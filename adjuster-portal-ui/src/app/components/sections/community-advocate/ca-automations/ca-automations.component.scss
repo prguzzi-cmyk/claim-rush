@@ -1,0 +1,52 @@
+.ca-tab-content { padding: 20px 0; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  h3 { margin: 0; }
+}
+
+.table-container { overflow-x: auto; }
+.rules-table { width: 100%; }
+
+.builder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  h3 { margin: 0; }
+}
+
+.builder-card {
+  border-radius: 12px;
+
+  h4 { margin: 16px 0 8px 0; color: #1a237e; }
+  .full-width { width: 100%; }
+}
+
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f5f7ff;
+  border-radius: 8px;
+  border-left: 3px solid #1a237e;
+
+  span { flex: 1; }
+}
+
+.add-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

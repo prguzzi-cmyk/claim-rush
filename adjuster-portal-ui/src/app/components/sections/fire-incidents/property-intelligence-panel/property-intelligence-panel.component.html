@@ -1,0 +1,184 @@
+<div class="intel-panel">
+  <!-- Header -->
+  <div class="panel-header">
+    <h3>
+      <mat-icon>person_search</mat-icon>
+      Property Intelligence
+    </h3>
+    <button mat-icon-button (click)="close()" matTooltip="Close panel">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <mat-progress-spinner diameter="36" mode="indeterminate"></mat-progress-spinner>
+    <span>Loading property intelligence...</span>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMsg && !isLoading" class="error-state">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ errorMsg }}</span>
+    <button mat-stroked-button (click)="loadIntelligence()">Retry</button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="intel && !isLoading" class="panel-content">
+    <!-- Source Display -->
+    <div class="source-banner">
+      <mat-icon class="source-icon">radar</mat-icon>
+      <span>Source: UPA Incident Intelligence Network</span>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="status-banner" [ngClass]="getStatusClass(intel.status)">
+      <mat-icon>{{ getStatusIcon(intel.status) }}</mat-icon>
+      <span>{{ getStatusLabel(intel.status) }}</span>
+    </div>
+
+    <!-- Address -->
+    <div class="section-card">
+      <div class="section-label">ADDRESS</div>
+      <div class="address-text">{{ intel.address || '—' }}</div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Pending Enrichment State -->
+    <div *ngIf="intel.status === 'pending'" class="section-card pending-state">
+      <mat-icon class="pending-icon">hourglass_empty</mat-icon>
+      <div class="pending-title">Awaiting Data Enrichment</div>
+      <div class="pending-desc">
+        Property owner information will appear here once the enrichment service is connected.
+      </div>
+    </div>
+
+    <!-- Failed State -->
+    <div *ngIf="intel.status === 'failed'" class="section-card pending-state">
+      <mat-icon class="failed-icon">warning</mat-icon>
+      <div class="pending-title">Enrichment Failed</div>
+      <div class="pending-desc">
+        The skip trace lookup could not be completed. Data will be retried automatically.
+      </div>
+    </div>
+
+    <!-- Enriched Owner Info -->
+    <div *ngIf="intel.status === 'enriched'" class="section-card">
+      <div class="section-label">PROPERTY OWNER</div>
+      <div class="owner-name">{{ intel.owner_name || 'Unknown' }}</div>
+
+      <div class="detail-row" *ngIf="intel.phone">
+        <mat-icon class="detail-icon">phone</mat-icon>
+        <span>{{ intel.phone }}</span>
+        <span class="phone-type-badge" [ngClass]="getPhoneTypeClass(intel.phone_type)">
+          {{ intel.phone_type || 'Unknown' }}
+        </span>
+      </div>
+
+      <div class="detail-row" *ngIf="intel.email">
+        <mat-icon class="detail-icon">email</mat-icon>
+        <span>{{ intel.email }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="!intel.phone && !intel.email">
+        <mat-icon class="detail-icon">info_outline</mat-icon>
+        <span class="no-data">No contact info found</span>
+      </div>
+    </div>
+
+    <mat-divider *ngIf="intel.status === 'enriched'"></mat-divider>
+
+    <!-- Property Details (only if enriched and has data) -->
+    <div class="section-card" *ngIf="intel.status === 'enriched' && (intel.property_value_estimate || intel.mortgage_lender || intel.insurance_probability_score)">
+      <div class="section-label">PROPERTY DETAILS</div>
+
+      <div class="detail-row" *ngIf="intel.property_value_estimate">
+        <mat-icon class="detail-icon">home</mat-icon>
+        <span>Value: {{ intel.property_value_estimate }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="intel.mortgage_lender">
+        <mat-icon class="detail-icon">account_balance</mat-icon>
+        <span>Lender: {{ intel.mortgage_lender }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="intel.insurance_probability_score">
+        <mat-icon class="detail-icon">verified_user</mat-icon>
+        <span>Insurance: {{ intel.insurance_probability_score }}</span>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Action Buttons -->
+    <div class="section-card actions-section">
+      <div class="section-label">ACTIONS</div>
+
+      <!-- Run Skip Trace -->
+      <button
+        mat-stroked-button
+        class="action-btn action-skip-trace"
+        (click)="runSkipTrace()"
+        [disabled]="skipTraceRunning"
+        *ngIf="intel.status === 'pending' || intel.status === 'failed'"
+      >
+        <mat-icon>manage_search</mat-icon>
+        {{ skipTraceRunning ? 'Running...' : 'Run Skip Trace' }}
+      </button>
+
+      <!-- Create Lead -->
+      <button
+        mat-stroked-button
+        class="action-btn action-create-lead"
+        (click)="openConvertToLead()"
+        *ngIf="!incident?.lead_id"
+      >
+        <mat-icon>person_add</mat-icon>
+        Create Lead
+      </button>
+
+      <!-- Send Tracked SMS -->
+      <div *ngIf="intel.status === 'enriched' && intel.phone" class="sms-section">
+        <mat-form-field appearance="outline" class="sms-field">
+          <mat-label>SMS Message</mat-label>
+          <textarea matInput [(ngModel)]="smsMessage" rows="3" maxlength="500"></textarea>
+          <mat-hint>{{ smsMessage.length }}/500</mat-hint>
+        </mat-form-field>
+        <button
+          mat-raised-button
+          color="primary"
+          class="action-btn action-send-sms"
+          (click)="sendSms()"
+          [disabled]="smsSending || smsSent || !smsMessage"
+        >
+          <mat-icon>{{ smsSent ? 'check' : 'sms' }}</mat-icon>
+          {{ smsSending ? 'Sending...' : smsSent ? 'SMS Sent' : 'Send Tracked SMS' }}
+        </button>
+      </div>
+
+      <!-- Call Owner -->
+      <a
+        mat-stroked-button
+        [href]="'tel:' + intel.phone"
+        class="action-btn action-call"
+        *ngIf="intel.status === 'enriched' && intel.phone"
+      >
+        <mat-icon>call</mat-icon> Call Owner
+      </a>
+    </div>
+
+    <!-- Incident context -->
+    <div class="section-card incident-context">
+      <div class="section-label">INCIDENT</div>
+      <div class="detail-row">
+        <mat-icon class="detail-icon">local_fire_department</mat-icon>
+        <span>{{ incident?.call_type_description || incident?.call_type }}</span>
+      </div>
+      <div class="detail-row" *ngIf="incident?.received_at">
+        <mat-icon class="detail-icon">schedule</mat-icon>
+        <span>{{ incident!.received_at | date:'MM/dd/yy HH:mm' }}</span>
+      </div>
+    </div>
+  </div>
+</div>

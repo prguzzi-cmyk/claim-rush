@@ -1,0 +1,125 @@
+<h1 mat-dialog-title>
+  {{
+  type == "add"
+  ? "Add"
+  : type == "view"
+  ? "View"
+  : "Edit"
+  }}
+  territory
+</h1>
+
+<div mat-dialog-content *ngIf="this.type != 'view'">
+  <form [formGroup]="territoryForm" class="territory-form">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Territory name</mat-label>
+      <input matInput placeholder="Territory name" formControlName="name" name="name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Territory type</mat-label>
+      <mat-select formControlName="territoryType" name="territoryType">
+        <mat-option *ngFor="let tt of territoryTypes" [value]="tt.value">
+          {{ tt.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="selectedType === 'state' || selectedType === 'county'">
+      <mat-label>State</mat-label>
+      <mat-select formControlName="state" name="state">
+        <mat-option *ngFor="let s of states" [value]="s.abbreviation">
+          {{ s.name }} ({{ s.abbreviation }})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="selectedType === 'county'">
+      <mat-label>County</mat-label>
+      <input matInput placeholder="County name" formControlName="county" name="county" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="selectedType === 'zip'">
+      <mat-label>ZIP Code</mat-label>
+      <input matInput placeholder="ZIP code" formControlName="zipCode" name="zipCode" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="selectedType === 'custom'">
+      <mat-label>Custom geometry (GeoJSON)</mat-label>
+      <textarea matInput placeholder="Paste GeoJSON" formControlName="customGeometry" name="customGeometry" rows="4"></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="isActive" name="isActive">Active</mat-checkbox>
+
+  </form>
+</div>
+
+<div mat-dialog-content *ngIf="this.type == 'view'">
+  <div class="row" style="max-width: 550px;">
+    <div class="col-sm-6">
+      <dl class="row">
+        <dt class="col-sm-12">Name</dt>
+        <dd class="col-sm-12">{{ this.territory.name }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Type</dt>
+        <dd class="col-sm-12">{{ this.territory.territory_type | titlecase }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">State</dt>
+        <dd class="col-sm-12">{{ this.territory.state || '-' }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">County</dt>
+        <dd class="col-sm-12">{{ this.territory.county || '-' }}</dd>
+      </dl>
+    </div>
+    <div class="col-sm-6">
+      <dl class="row">
+        <dt class="col-sm-12">ZIP Code</dt>
+        <dd class="col-sm-12">{{ this.territory.zip_code || '-' }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Active</dt>
+        <dd class="col-sm-12">{{ this.territory.is_active ? 'Yes' : 'No' }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Created at</dt>
+        <dd class="col-sm-12">{{ this.territory.created_at | date : "MMMM dd, yyyy" }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Updated at</dt>
+        <dd class="col-sm-12">{{
+          this.territory.updated_at
+          ? (this.territory.updated_at | date : "MMMM dd, yyyy")
+          : "-"
+        }}</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" (click)="addTerritory()" [disabled]="!territoryForm.valid || formDisabled"
+    *ngIf="type == 'add'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Add territory
+  </button>
+  <button mat-raised-button color="primary" (click)="saveTerritory()" [disabled]="!territoryForm.valid || formDisabled"
+    *ngIf="type == 'edit'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Save territory
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

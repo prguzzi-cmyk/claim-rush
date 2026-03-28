@@ -1,0 +1,95 @@
+.perf-container { min-height: calc(100vh - 64px); padding: 24px; }
+
+// ── Page Header ──
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px;
+  .header-text { h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.5rem; font-weight: 700;
+    .header-icon { font-size: 28px; width: 28px; height: 28px; color: #1565c0; } }
+    .subtitle { margin: 0; font-size: 0.875rem; color: #6b7280; } } }
+
+// ── Filter Bar ──
+.filter-bar-card {
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 20px 4px;
+  margin-bottom: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.filter-bar { display: flex; gap: 12px; flex-wrap: wrap;
+  .filter-field { width: 200px; } }
+
+// ── KPI Grid ──
+.kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+
+.kpi-card {
+  display: flex; align-items: center; gap: 14px; padding: 20px; background: #fff;
+  border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.25s; position: relative; overflow: hidden;
+
+  &::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #1565c0, #42a5f5); transform: scaleX(0); transition: transform 0.3s;
+  }
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); &::after { transform: scaleX(1); } }
+}
+
+.kpi-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; }
+
+  &.kpi-maroon { background: linear-gradient(135deg, #fce4ec, #fff); border: 1px solid #f8bbd0; mat-icon { color: #880e4f; } }
+  &.kpi-blue   { background: linear-gradient(135deg, #e3f2fd, #fff); border: 1px solid #bbdefb; mat-icon { color: #1565c0; } }
+  &.kpi-orange { background: linear-gradient(135deg, #fff3e0, #fff); border: 1px solid #ffe0b2; mat-icon { color: #e65100; } }
+  &.kpi-green  { background: linear-gradient(135deg, #e8f5e9, #fff); border: 1px solid #c8e6c9; mat-icon { color: #2e7d32; } }
+  &.kpi-purple { background: linear-gradient(135deg, #f3e5f5, #fff); border: 1px solid #e1bee7; mat-icon { color: #7b1fa2; } }
+  &.kpi-teal   { background: linear-gradient(135deg, #e0f7fa, #fff); border: 1px solid #b2ebf2; mat-icon { color: #00838f; } }
+}
+
+.kpi-content { display: flex; flex-direction: column; }
+.kpi-value { font-size: 1.6rem; font-weight: 700; color: #111827; line-height: 1.2; }
+.kpi-label { font-size: 0.7rem; font-weight: 600; color: #6b7280; margin-top: 4px; letter-spacing: 0.4px; }
+
+// ── Panel Card / Table ──
+.panel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 24px; }
+.panel-header {
+  display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.875rem;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: #1565c0; }
+  .header-badge { margin-left: auto; padding: 2px 10px; border-radius: 9999px; font-size: 0.68rem; font-weight: 600; background: #e3f2fd; color: #1565c0; }
+}
+
+.table-container { overflow-x: auto; }
+
+.lb-table { width: 100%;
+  th.mat-header-cell { font-weight: 600; font-size: 0.8125rem; color: #6b7280; padding: 12px 16px; }
+  td.mat-cell { font-size: 0.8125rem; padding: 12px 16px; color: #111827; }
+}
+
+// ── Rank Highlights ──
+.rank-medal { font-size: 1.2rem; }
+.rank-gold   { background: #fffde7 !important; }
+.rank-silver { background: #fafafa !important; }
+.rank-bronze { background: #fff8f0 !important; }
+
+// ── Agent Name + Territory Tag ──
+.territory-tag {
+  display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 9999px;
+  font-size: 0.65rem; font-weight: 600; background: #f3f4f6; color: #6b7280;
+}
+
+// ── Table Accents ──
+.amount-positive { color: #2e7d32; font-weight: 600; }
+
+// ── Conversion Progress Bar ──
+.conv-bar {
+  display: flex; align-items: center; gap: 8px; min-width: 110px;
+  mat-progress-bar { flex: 1; border-radius: 4px; height: 6px; }
+  .conv-label { font-size: 0.75rem; font-weight: 600; min-width: 38px; text-align: right; }
+}
+
+// ── Responsive ──
+@media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; gap: 12px; }
+  .filter-bar { flex-direction: column;
+    .filter-field { width: 100%; } }
+}
+@media (max-width: 600px) { .perf-container { padding: 16px; } }

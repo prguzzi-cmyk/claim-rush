@@ -1,0 +1,121 @@
+<div class="cfm-container">
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon class="header-icon">folder_open</mat-icon> Claim File Manager</h2>
+      <p class="subtitle">Active insurance claim files and workflow status</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="loadClaims()"><mat-icon>refresh</mat-icon> Refresh</button>
+      <button mat-raised-button color="accent" (click)="startAIIntake()"><mat-icon>smart_toy</mat-icon> Start AI Claim Intake</button>
+      <button mat-raised-button color="primary" (click)="createClaim()"><mat-icon>add</mat-icon> New Claim</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-blue"><mat-icon>assignment</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ activeClaims }}</span>
+        <span class="kpi-label">Active Claims</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-purple"><mat-icon>handshake</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ negotiationClaims }}</span>
+        <span class="kpi-label">In Negotiation</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-green"><mat-icon>check_circle</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ closedClaims }}</span>
+        <span class="kpi-label">Claims Closed</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workflow Stages -->
+  <div class="workflow-bar">
+    <div class="workflow-stage" *ngFor="let stage of stages; let i = index; let last = last">
+      <div class="stage-node" [style.backgroundColor]="stageFilter === '' ? '#1565c0' : '#e0e0e0'">
+        <mat-icon>{{ stage.icon }}</mat-icon>
+      </div>
+      <span class="stage-label">{{ stage.label }}</span>
+      <div class="stage-connector" *ngIf="!last"></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="stage-filters">
+      <button mat-stroked-button *ngFor="let f of stageFilters"
+        [class.filter-active]="stageFilter === f.value"
+        (click)="stageFilter = f.value; onFilterChange()">
+        <mat-icon>{{ f.icon }}</mat-icon> {{ f.label }}
+      </button>
+    </div>
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()" placeholder="Claim #, client, carrier...">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+  <!-- Claims Table -->
+  <div class="table-panel panel-card" *ngIf="!loading">
+    <div class="panel-header">
+      <mat-icon>table_chart</mat-icon> Claim Files
+      <span class="header-badge">{{ claims.length }}</span>
+    </div>
+    <div class="table-container">
+      <table mat-table [dataSource]="claims" class="claims-table">
+        <ng-container matColumnDef="claim_number">
+          <th mat-header-cell *matHeaderCellDef>Claim #</th>
+          <td mat-cell *matCellDef="let r"><strong>{{ r.claimNumber }}</strong></td>
+        </ng-container>
+        <ng-container matColumnDef="client">
+          <th mat-header-cell *matHeaderCellDef>Client</th>
+          <td mat-cell *matCellDef="let r">{{ r.clientName }}</td>
+        </ng-container>
+        <ng-container matColumnDef="address">
+          <th mat-header-cell *matHeaderCellDef>Property Address</th>
+          <td mat-cell *matCellDef="let r" class="address-cell">{{ r.propertyAddress }}</td>
+        </ng-container>
+        <ng-container matColumnDef="carrier">
+          <th mat-header-cell *matHeaderCellDef>Carrier</th>
+          <td mat-cell *matCellDef="let r">{{ r.carrier }}</td>
+        </ng-container>
+        <ng-container matColumnDef="adjuster">
+          <th mat-header-cell *matHeaderCellDef>Adjuster</th>
+          <td mat-cell *matCellDef="let r">{{ r.adjusterName || '—' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="phase">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="phase-badge" [style.backgroundColor]="getPhaseColor(r.phase)">
+              {{ getPhaseLabel(r.phase) }}
+            </span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="created">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let r">{{ r.createdAt | date:'MMM dd, yyyy' }}</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            class="clickable-row" (click)="openClaim(row)"></tr>
+      </table>
+      <div class="empty-state" *ngIf="claims.length === 0">
+        <mat-icon>folder_open</mat-icon>
+        <p>No claims match the current filter.</p>
+      </div>
+    </div>
+    <mat-paginator *ngIf="total > size" [length]="total" [pageSize]="size" [pageIndex]="page - 1"
+      [pageSizeOptions]="[10, 25, 50]" (page)="onPageChange($event)"></mat-paginator>
+  </div>
+</div>

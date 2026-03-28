@@ -1,0 +1,40 @@
+<!-- example-dialog.component.html -->
+<div class="dialog-header">
+    <p></p>
+    <button mat-icon-button (click)="onClose()" aria-label="Close dialog">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+<div class="dialog-content">
+    <div>
+        <div *ngIf="isImage()">
+          <img style="max-height: 600px;" [src]="fileUrl" alt="Image Preview" />
+        </div>
+        <div *ngIf="isEml() && !isLoading && !isError">
+          <div *ngFor="let part of emailParts">
+            <h4>{{ part.headers['content-type'] }}</h4>
+            <pre *ngIf="part.headers['content-type']?.includes('text/plain')">{{ part.content }}</pre>
+            <div *ngIf="part.headers['content-type']?.includes('text/html')" [innerHTML]="part.content"></div>
+          </div>
+          <div *ngIf="attachments.length > 0">
+            <h4>Attachments</h4>
+            <ul>
+              <li *ngFor="let attachment of attachments">
+                <a (click)="downloadAttachment(attachment)" href="javascript:void(0);">{{ attachment.headers['content-disposition'].split('filename=')[1] }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div *ngIf="isPdf()">
+          <iframe [src]="sanitizedUrl" width="100%" height="600px" ></iframe>
+        </div>
+        <div *ngIf="isOfficeFile()">
+          <iframe [src]="getGoogleDriveViewerUrl()" width="100%" height="600px" ></iframe>
+        </div>
+        <div *ngIf="!isImage() && !isPdf() && !isOfficeFile() && !isEml()">
+          <p>Unsupported file type.</p>
+          <button mat-button (click)="downloadFile()">Download File</button>
+        </div>
+      </div>
+</div>

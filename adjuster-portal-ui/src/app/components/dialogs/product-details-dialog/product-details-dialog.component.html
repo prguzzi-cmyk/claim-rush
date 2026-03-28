@@ -1,0 +1,111 @@
+<ng-container *ngIf="type==='add'">
+    <h2 mat-dialog-title>
+        Add product
+    </h2>
+    <div mat-dialog-content>
+        <form [formGroup]="productForm" class="product-form">
+            <mat-form-field appearance="outline">
+                <mat-label>Product Name</mat-label>
+                <input matInput placeholder="product name" formControlName="name" name="productName" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Category Id</mat-label>
+                <mat-select formControlName="category_id">
+                    <mat-option *ngFor="let cate of cates" [value]="cate.id">{{cate.name}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Original Price</mat-label>
+                <input matInput placeholder="Original Price" formControlName="original_price" name="originalPrice" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Price</mat-label>
+                <input matInput placeholder="Price" formControlName="price" name="price" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" placeholder="Enter description" rows="6"></textarea>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary">
+                <label for="file-input" class="m-0">Select file to upload</label>
+            </button>
+
+            <input (change)="selectFile($event)" type="file" name="file" id="file-input" class="d-none" />
+
+            <p *ngIf="file?.name" class="mb-3">{{ file?.name }} selected</p>
+
+        </form>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-raised-button color="primary" (click)="addProduct()">
+            Add product
+        </button>
+        <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+    </div>
+</ng-container>
+
+<ng--container *ngIf="type==='delete'">
+    <h2 mat-dialog-title>
+      Delete product
+    </h2>
+    <div mat-dialog-content>
+      Are you sure you want to delete this product?
+      <p></p>
+    </div>
+    <div mat-dialog-actions>
+      <button mat-raised-button color="warn" (click)="deleteProduct(product.id)">
+        Yes, delete this product
+      </button>
+      <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+    </div>
+  </ng--container>
+
+  <ng-container *ngIf="type==='edit'">
+    <h2 mat-dialog-title>
+        Edit product
+    </h2>
+    <div mat-dialog-content>
+        <form [formGroup]="productForm" class="product-form">
+            <mat-form-field appearance="outline">
+                <mat-label>Product Name</mat-label>
+                <input matInput placeholder="product name" formControlName="name" name="productName" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Category Id</mat-label>
+                <mat-select formControlName="category_id">
+                    <mat-option *ngFor="let cate of cates" [value]="cate.id">{{cate.name}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Original Price</mat-label>
+                <input matInput placeholder="Original Price" formControlName="original_price" name="originalPrice" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Price</mat-label>
+                <input matInput placeholder="Price" formControlName="price" name="price" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" placeholder="Enter description" rows="6"></textarea>
+            </mat-form-field>
+
+            <button mat-raised-button color="primary">
+                <label for="file-input" class="m-0">Select file to upload</label>
+            </button>
+
+            <img [src]="this.product.product_image" width="88px"/>
+
+            <input (change)="selectFile($event)" type="file" name="file" id="file-input" class="d-none" />
+
+            <p *ngIf="file?.name" class="mb-3">{{ file?.name }} selected</p>
+
+        </form>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-raised-button color="primary" (click)="updateProduct()">
+            Update product
+        </button>
+        <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+    </div>
+</ng-container>

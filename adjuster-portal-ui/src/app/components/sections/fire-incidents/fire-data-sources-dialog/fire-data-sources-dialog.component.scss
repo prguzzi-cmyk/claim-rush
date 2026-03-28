@@ -1,0 +1,64 @@
+.dialog-icon {
+  vertical-align: middle;
+  margin-right: 8px;
+  color: #1565c0;
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #666;
+}
+
+.sources-table {
+  width: 100%;
+}
+
+.source-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.source-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.source-type-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.type-socrata {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.type-nifc {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  &.type-firms {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+}
+
+.poll-interval {
+  font-size: 11px;
+  color: #888;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: #666;
+}

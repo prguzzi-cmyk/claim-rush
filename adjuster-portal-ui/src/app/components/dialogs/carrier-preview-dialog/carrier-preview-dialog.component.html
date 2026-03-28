@@ -1,0 +1,150 @@
+<h2 mat-dialog-title>
+  Review Carrier Estimate
+  <span class="parser-badge" [ngClass]="'parser-' + parserType">{{ parserLabel }}</span>
+  <span class="confidence-badge" [ngClass]="'confidence-' + parseConfidence">
+    {{ parseConfidence | titlecase }} Confidence
+  </span>
+</h2>
+
+<mat-dialog-content>
+  <!-- Summary stats -->
+  <div class="preview-stats">
+    <div class="stat">
+      <span class="stat-value">{{ items.length }}</span>
+      <span class="stat-label">Line Items</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">{{ totalCost | currency }}</span>
+      <span class="stat-label">Total Cost</span>
+    </div>
+    <div class="stat" *ngIf="highConfidenceCount">
+      <span class="stat-value confidence-high-text">{{ highConfidenceCount }}</span>
+      <span class="stat-label">High Conf.</span>
+    </div>
+    <div class="stat" *ngIf="mediumConfidenceCount">
+      <span class="stat-value confidence-medium-text">{{ mediumConfidenceCount }}</span>
+      <span class="stat-label">Medium Conf.</span>
+    </div>
+    <div class="stat" *ngIf="lowConfidenceCount">
+      <span class="stat-value confidence-low-text">{{ lowConfidenceCount }}</span>
+      <span class="stat-label">Low Conf.</span>
+    </div>
+  </div>
+
+  <p class="preview-hint" *ngIf="parseConfidence === 'low'">
+    <mat-icon>warning</mat-icon>
+    Low confidence — please review items carefully before confirming.
+  </p>
+
+  <!-- Carrier name (editable) -->
+  <mat-form-field appearance="outline" class="carrier-name-field">
+    <mat-label>Carrier Name</mat-label>
+    <input matInput [(ngModel)]="carrierName" />
+  </mat-form-field>
+
+  <!-- Items table -->
+  <div class="preview-table-wrapper">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th *ngIf="parserType === 'xactimate'" class="col-code">Code</th>
+          <th class="col-desc">Description</th>
+          <th class="col-room">Room</th>
+          <th class="col-qty">Qty</th>
+          <th class="col-unit">Unit</th>
+          <th class="col-cost">Unit Cost</th>
+          <th class="col-total">Total</th>
+          <th class="col-cat">Category</th>
+          <th class="col-conf">Conf.</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of items; let i = index"
+            [class.editing]="editingIndex === i"
+            [class.low-confidence]="item.confidence === 'low'"
+            (click)="startEditing(i)">
+
+          <!-- Code (Xactimate only) -->
+          <td *ngIf="parserType === 'xactimate'" class="col-code">
+            <input *ngIf="editingIndex === i" [(ngModel)]="item.line_item_code"
+                   class="inline-input code-input" (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.line_item_code || '-' }}</span>
+          </td>
+
+          <!-- Description -->
+          <td class="col-desc">
+            <input *ngIf="editingIndex === i" [(ngModel)]="item.description"
+                   class="inline-input desc-input" (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.description }}</span>
+          </td>
+
+          <!-- Room -->
+          <td class="col-room">
+            <input *ngIf="editingIndex === i" [(ngModel)]="item.room_name"
+                   class="inline-input room-input" (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.room_name || '-' }}</span>
+          </td>
+
+          <!-- Qty -->
+          <td class="col-qty">
+            <input *ngIf="editingIndex === i" type="number" [(ngModel)]="item.quantity"
+                   class="inline-input num-input" (ngModelChange)="recalcTotal(item)"
+                   (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.quantity }}</span>
+          </td>
+
+          <!-- Unit -->
+          <td class="col-unit">
+            <input *ngIf="editingIndex === i" [(ngModel)]="item.unit"
+                   class="inline-input unit-input" (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.unit || '-' }}</span>
+          </td>
+
+          <!-- Unit Cost -->
+          <td class="col-cost">
+            <input *ngIf="editingIndex === i" type="number" [(ngModel)]="item.unit_cost"
+                   class="inline-input num-input" (ngModelChange)="recalcTotal(item)"
+                   (click)="$event.stopPropagation()" />
+            <span *ngIf="editingIndex !== i">{{ item.unit_cost | currency }}</span>
+          </td>
+
+          <!-- Total -->
+          <td class="col-total">
+            <span>{{ item.total_cost | currency }}</span>
+          </td>
+
+          <!-- Category -->
+          <td class="col-cat">
+            <select *ngIf="editingIndex === i" [(ngModel)]="item.category"
+                    class="inline-select" (click)="$event.stopPropagation()">
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            </select>
+            <span *ngIf="editingIndex !== i">{{ item.category || '-' }}</span>
+          </td>
+
+          <!-- Confidence dot -->
+          <td class="col-conf">
+            <span class="conf-dot" [ngClass]="'conf-' + (item.confidence || 'medium')"></span>
+          </td>
+
+          <!-- Delete -->
+          <td class="col-actions">
+            <button mat-icon-button color="warn" (click)="$event.stopPropagation(); deleteItem(i)"
+                    matTooltip="Remove item">
+              <mat-icon>close</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="confirm()" [disabled]="items.length === 0">
+    <mat-icon>check</mat-icon>
+    Confirm &amp; Save ({{ items.length }} items)
+  </button>
+</mat-dialog-actions>

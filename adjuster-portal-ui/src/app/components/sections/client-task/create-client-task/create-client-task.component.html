@@ -1,0 +1,91 @@
+<!-- <p class="mat-display-1 section-title">User Tasks</p>
+
+
+<ng-container *ngIf="this.type != 'view' && this.type != 'delete'">
+
+<form [formGroup]="userTaskForm" class="lead-form" (ngSubmit)="saveUserTask()">
+  <mat-card-content>  
+
+    <mat-form-field appearance="outline">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" placeholder="Title"  maxlength="255" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Description</mat-label>
+      <textarea matInput rows="10" formControlName="description"
+        placeholder="Enter description"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Due Date</mat-label>
+      <input matInput formControlName="due_date" [matDatepicker]="picker">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>priority</mat-label>
+      <input matInput formControlName="priority" placeholder="priority">
+    </mat-form-field>
+
+    <div class="d-flex align-items-center mb-3">
+      Is active:
+
+      <mat-slide-toggle
+        (change)="toggleIsActive($event)"
+        [checked]="isActive"
+        color="primary"
+        class="ml-3"
+      ></mat-slide-toggle>
+    </div>
+
+  </mat-card-content>
+
+  <button mat-raised-button color="primary" type="submit" [disabled]="!userTaskForm?.valid">
+    Save
+  </button>
+  <button class="ml-1rem" color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+
+</form>
+
+</ng-container>
+
+<div mat-dialog-content *ngIf="this.type == 'view'">
+  <table>
+    <td>
+      <p><strong>Title</strong></p>
+      <p>{{ userTask?.title }}</p>
+
+      <p><strong>Description</strong></p>
+      <p>{{ userTask?.description }}</p>
+
+      <p><strong>Due Date</strong></p>
+      <p>{{ userTask?.due_date }}</p>
+
+      <p><strong>Priority</strong></p>
+      <p>{{ userTask?.priority}}</p>
+
+      <div>
+        <p class="flex-pr"><strong>Is Active</strong></p>
+        <mat-slide-toggle [checked]="!!+userTask?.is_active" disabled color="primary"></mat-slide-toggle>
+      </div>    
+
+    </td>
+  </table>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>
+
+
+
+<div mat-dialog-content *ngIf="this.type == 'delete'">
+  Are you sure you want to delete this User Task?
+  <p></p>
+
+  <button mat-raised-button color="warn" (click)="deleteUserTask(userTaskId)" *ngIf="type == 'delete'">
+    
+    Yes, delete this User Task
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div> -->

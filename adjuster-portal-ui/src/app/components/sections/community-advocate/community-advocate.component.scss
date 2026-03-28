@@ -1,0 +1,104 @@
+.ca-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+// ── Dev Role Switcher ──
+.dev-role-switcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  background: #fff3e0;
+  border: 1px dashed #ff9800;
+  border-radius: 8px;
+  font-size: 12px;
+
+  .dev-label {
+    font-weight: 700;
+    color: #e65100;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  ::ng-deep .mat-button-toggle-group {
+    height: 30px;
+
+    .mat-button-toggle {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+}
+
+.ca-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #1a237e;
+  }
+
+  .ca-subtitle {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+  }
+}
+
+.ca-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ca-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border-left: 4px solid #1a237e;
+
+  mat-icon {
+    color: #1a237e;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .kpi-content {
+    display: flex;
+    flex-direction: column;
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a237e;
+      line-height: 1.2;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.ca-tabs {
+  ::ng-deep .mat-mdc-tab-labels {
+    gap: 4px;
+  }
+
+  ::ng-deep .mat-mdc-tab {
+    min-width: 100px;
+    font-size: 13px;
+  }
+}

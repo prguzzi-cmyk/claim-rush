@@ -1,0 +1,1053 @@
+<div class="container" *ngIf="lead && userService.getUserPermissions('lead', 'read')">
+    <mat-card appearance="outlined" *ngIf="!this.userService.getUserPermissions('lead', 'read')">
+        You don't have permissions to view clients.
+    </mat-card>
+
+    <mat-card appearance="outlined" *ngIf="this.userService.getUserPermissions('lead', 'read')">
+        <div class="row">
+            <div class="col-6">
+
+
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a routerLink="/app/dashboard" (click)="onSidebarClick('Dashboard')">Home</a>
+                      </li>
+                      <li class="breadcrumb-item"><a routerLink="/app/leads" (click)="onSidebarClick('Leads')">Leads</a></li>
+                    <li class="breadcrumb-item">
+                        <a>{{ lead?.contact.full_name }}</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-6 text-end">
+                <button mat-mini-fab color="primary" class="m-1" matTooltip="Add a new task" matTooltipPosition="below"
+                    [disabled]="
+                        !userService.getUserPermissions('lead_task', 'create')
+                    " (click)="openTaskAddDialog(lead)">
+                    <mat-icon>add_task</mat-icon>
+                </button>
+
+                <button mat-mini-fab color="primary" class="m-1" matTooltip="Upload file" matTooltipPosition="below"
+                    [disabled]="
+                        !userService.getUserPermissions('lead_file', 'create')
+                    " (click)="openFileUploadDialog(lead)">
+                    <mat-icon>upload_file</mat-icon>
+                </button>
+
+                <button mat-mini-fab color="primary" class="m-1" matTooltip="Add new comment" matTooltipPosition="below"
+                    [disabled]="
+                        !userService.getUserPermissions(
+                            'lead_comment',
+                            'create'
+                        )
+                    " (click)="openCommentsAddDialog(lead)">
+                    <mat-icon>comment</mat-icon>
+                </button>
+
+                <button mat-mini-fab color="accent" class="m-1" matTooltip="Record Result" matTooltipPosition="below"
+                    [disabled]="
+                        !userService.getUserPermissions(
+                            'lead_outcome',
+                            'create'
+                        )
+                    " (click)="openRecordResultDialog(lead)">
+                    <mat-icon>assignment_turned_in</mat-icon>
+                </button>
+
+                <button mat-mini-fab color="warn" class="m-1" matTooltip="Convert to Client" matTooltipPosition="below"
+                    *ngIf="!lead.client_id"
+                    [disabled]="
+                        !userService.getUserPermissions('lead', 'update')
+                    " (click)="openConvertDialog(lead)">
+                    <mat-icon>person_add</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <mat-card-content>
+
+            <div class="col-xl-6 d-xl-block bg-light p-3 mb-3">
+                <h4 class="mat-h4">{{ lead?.contact.full_name }}</h4>
+                <div class="row" *ngIf="lead?.contact.address_loss">
+                  <div class="col-12">
+                    {{ lead?.contact.address_loss ? lead?.contact.address_loss + ',' : '' }}
+                    {{ lead?.contact.city_loss }} 
+                    {{ lead?.contact.state_loss }}
+                    {{ lead?.contact.zip_code_loss }}
+                  </div>
+                </div>
+                <div class="row" *ngIf="lead?.contact.phone_number">
+                  <div class="col-12">
+                    <a href="tel:lead?.contact.phone_number">{{lead?.contact.phone_number | mask : '000-000-0000'}}</a>
+                  </div>
+                </div>
+                <div class="row" *ngIf="lead?.contact.email">
+                  <div class="col-12">
+                    <a href="mailto:lead?.contact.email">{{lead?.contact.email}}</a>
+                  </div>
+                </div>
+              </div>
+
+            <!-- Owner Intelligence Card -->
+            <div class="owner-intel-card bg-light p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">
+                        <mat-icon class="align-middle" style="font-size: 20px;">person_search</mat-icon>
+                        Owner Intelligence
+                    </h5>
+                    <button mat-raised-button color="primary" size="small"
+                        (click)="runSkipTrace()"
+                        [disabled]="skipTraceLoading">
+                        <mat-spinner diameter="18" *ngIf="skipTraceLoading" class="d-inline-block me-1"></mat-spinner>
+                        {{ skipTrace?.lookup_status === 'failed' || skipTrace?.lookup_status === 'no_results' ? 'Retry Skip Trace' : 'Run Skip Trace' }}
+                    </button>
+                </div>
+
+                <!-- Loading state -->
+                <div *ngIf="skipTraceLoading && !skipTrace" class="text-muted">
+                    <mat-spinner diameter="24"></mat-spinner>
+                    Running skip trace lookup...
+                </div>
+
+                <!-- No data -->
+                <div *ngIf="!skipTrace && !skipTraceLoading" class="text-muted">
+                    No skip trace data available. Click "Run Skip Trace" to look up property owner information.
+                </div>
+
+                <!-- Failed -->
+                <div *ngIf="skipTrace?.lookup_status === 'failed'">
+                    <span class="text-danger">Skip trace lookup failed.</span>
+                    Click "Retry Skip Trace" to try again.
+                </div>
+
+                <!-- No Results -->
+                <div *ngIf="skipTrace?.lookup_status === 'no_results'">
+                    <span class="text-warning">No results found for this address.</span>
+                    Click "Retry Skip Trace" to try again.
+                </div>
+
+                <!-- Success -->
+                <div *ngIf="skipTrace?.lookup_status === 'success'">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <dl>
+                                <dt>Owner Name</dt>
+                                <dd>{{ (skipTrace.owner_first_name || '') + ' ' + (skipTrace.owner_last_name || '') | titlecase }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <dl>
+                                <dt>Phone</dt>
+                                <dd>
+                                    <a *ngIf="skipTrace.owner_phone" [href]="'tel:' + skipTrace.owner_phone">
+                                        {{ skipTrace.owner_phone }}
+                                    </a>
+                                    <span *ngIf="!skipTrace.owner_phone">-</span>
+                                </dd>
+                                <dt>Email</dt>
+                                <dd>
+                                    <a *ngIf="skipTrace.owner_email" [href]="'mailto:' + skipTrace.owner_email">
+                                        {{ skipTrace.owner_email }}
+                                    </a>
+                                    <span *ngIf="!skipTrace.owner_email">-</span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <dl>
+                                <dt>Mailing Address</dt>
+                                <dd>
+                                    <span *ngIf="skipTrace.owner_mailing_street">
+                                        {{ skipTrace.owner_mailing_street }}<br>
+                                        {{ skipTrace.owner_mailing_city ? skipTrace.owner_mailing_city + ',' : '' }}
+                                        {{ skipTrace.owner_mailing_state }}
+                                        {{ skipTrace.owner_mailing_zip }}
+                                    </span>
+                                    <span *ngIf="!skipTrace.owner_mailing_street">-</span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <span style="color: green;">&#10003; Success</span>
+                                &nbsp;&middot;&nbsp;
+                                Last lookup: {{ skipTrace.updated_at | date : 'MMM dd, yyyy h:mm a' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <mat-tab-group (selectedIndexChange)="tabChange($event)" #tabGroup>
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'green' }">headset_mic</mat-icon>&nbsp;Lead</ng-template>
+                    <p></p>
+                    <div class="row">
+                        <div class="col-md-6 col-lg-3">
+                            <!-- <h4>Lead information</h4> -->
+                            <dl class="row">
+                                <dt class="col-sm-12">Ref. #</dt>
+                                <dd class="col-sm-12">
+                                    {{ lead?.ref_string }}
+                                </dd>
+
+                                <dt class="col-sm-12">Loss date</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.loss_date | date : 'MMMM dd, yyyy'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Peril</dt>
+                                <dd class="col-sm-12">
+                                    {{ lead?.peril ? lead?.peril : '-' }}
+                                </dd>
+
+                                <dt class="col-sm-12">
+                                    Insurance company name
+                                </dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.insurance_company
+                                    ? lead?.insurance_company
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">
+                                    Insurance policy number
+                                </dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.policy_number
+                                    ? lead?.policy_number
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Claim Number</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.claim_number
+                                    ? lead?.claim_number
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Lead status</dt>
+                                <dd class="col-sm-12" [ngClass]="{
+                                        green: lead?.status == 'signed'
+                                    }">
+                                    {{ lead?.status }}
+                                </dd>
+
+                                <dt class="col-sm-12">Lead source</dt>
+                                <dd class="col-sm-12">{{ lead?.source_user?.first_name ? lead?.source_user?.first_name +
+                                    ' ' + lead?.source_user?.last_name : '-' }}</dd>
+
+                                <dt class="col-sm-12">
+                                    Lead other source info
+                                </dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.source_info
+                                    ? lead?.source_info
+                                    : '-'
+                                    }}
+                                </dd>
+                            </dl>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3">
+                            <!-- <h4>Contact</h4> -->
+                            <dl class="row">
+                                <dt class="col-sm-12">Full name</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.full_name
+                                    ? lead?.contact.full_name
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Alternate name</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.full_name_alt
+                                    ? lead?.contact.full_name_alt
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Email</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.email
+                                    ? lead?.contact.email
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Alternate email</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.email_alt
+                                    ? lead?.contact.email_alt
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Phone number</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.phone_number
+                                    ? (lead?.contact.phone_number
+                                    | mask : '000-000-0000')
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">
+                                    Alternate phone number
+                                </dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.phone_number_alt
+                                    ? (lead?.contact.phone_number_alt
+                                    | mask : '000-000-0000')
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Address</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.address
+                                    ? lead?.contact.address
+                                    : '-'
+                                    }}<br />
+                                    {{
+                                    lead?.contact.city
+                                    ? lead?.contact.city + ','
+                                    : ''
+                                    }}
+                                    {{ lead?.contact.state }}
+                                    {{ lead?.contact.zip_code }}
+                                </dd>
+
+                                <dt class="col-sm-12">Loss address</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.contact.address_loss
+                                    ? lead?.contact.address_loss
+                                    : '-'
+                                    }}<br />
+                                    {{
+                                    lead?.contact.city_loss
+                                    ? lead?.contact.city_loss + ','
+                                    : ''
+                                    }}
+                                    {{ lead?.contact.state_loss }}
+                                    {{ lead?.contact.zip_code_loss }}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-12 col-lg-3">
+                            <dl class="row">
+                                <dt class="col-sm-12">Created by</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.created_by?.first_name
+                                    ? lead?.created_by?.first_name +
+                                    ' ' +
+                                    lead?.created_by?.last_name
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Created at</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.created_at !== null
+                                    ? (lead?.created_at
+                                    | date
+                                    : 'MMMM dd, yyyy hh:mm:ss
+                                    a')
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Updated by</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.updated_by?.first_name
+                                    ? lead?.updated_by?.first_name +
+                                    ' ' +
+                                    lead?.updated_by?.last_name
+                                    : '-'
+                                    }}
+                                </dd>
+
+                                <dt class="col-sm-12">Updated at</dt>
+                                <dd class="col-sm-12">
+                                    {{
+                                    lead?.updated_at !== null
+                                    ? (lead?.updated_at
+                                    | date
+                                    : 'MMMM dd, yyyy hh:mm:ss
+                                    a')
+                                    : '-'
+                                    }}
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-12 col-lg-3">
+                            <dl>
+                                <dt class="col-sm-12">Assigned to</dt>
+                                <dd class="col-sm-12">
+                                    {{ lead?.assigned_user?.first_name }}
+                                    {{ lead?.assigned_user?.last_name }}
+                                </dd>
+                            </dl>
+
+                            <!-- Rescue Info -->
+                            <div *ngIf="lead?.is_rescued && rescueStatus" class="rescue-info-card">
+                                <div class="rescue-header">
+                                    <mat-icon style="font-size: 18px; width: 18px; height: 18px; color: #dc2626;">health_and_safety</mat-icon>
+                                    <strong>Rescued Lead</strong>
+                                    <span *ngIf="rescueStatus.latest_rescue?.rescue_level" class="rescue-level-chip"
+                                          [style.background]="rescueStatus.latest_rescue.rescue_level === 'rvp' ? '#dc262620' : '#f9731620'"
+                                          [style.color]="rescueStatus.latest_rescue.rescue_level === 'rvp' ? '#dc2626' : '#f97316'"
+                                          [style.border]="'1px solid ' + (rescueStatus.latest_rescue.rescue_level === 'rvp' ? '#dc262640' : '#f9731640')">
+                                        {{ rescueStatus.latest_rescue.rescue_level === 'rvp' ? 'RVP' : 'CP' }}
+                                    </span>
+                                </div>
+                                <div class="rescue-details" *ngIf="rescueStatus.latest_rescue">
+                                    <div class="rescue-field">
+                                        <span class="rescue-label">Original Agent</span>
+                                        <span class="rescue-value">{{ rescueStatus.latest_rescue.original_agent_name || '—' }}</span>
+                                    </div>
+                                    <div class="rescue-field">
+                                        <span class="rescue-label">Rescued To</span>
+                                        <span class="rescue-value">{{ rescueStatus.latest_rescue.new_agent_name || '—' }}</span>
+                                    </div>
+                                    <div class="rescue-field">
+                                        <span class="rescue-label">Reason</span>
+                                        <span class="rescue-value">{{ rescueService.getRescueReasonLabel(rescueStatus.latest_rescue.rescue_reason) }}</span>
+                                    </div>
+                                    <div class="rescue-field" *ngIf="rescueStatus.latest_rescue.score_tier">
+                                        <span class="rescue-label">Score Tier</span>
+                                        <span class="rescue-value"
+                                              [style.color]="rescueService.getScoreTierColor(rescueStatus.latest_rescue.score_tier)"
+                                              style="font-weight: 600; text-transform: uppercase;">
+                                            {{ rescueStatus.latest_rescue.score_tier }}
+                                        </span>
+                                    </div>
+                                    <div class="rescue-field" *ngIf="rescueStatus.latest_rescue.is_converted">
+                                        <span class="rescue-label">Converted</span>
+                                        <span class="rescue-value" style="color: #10b981; font-weight: 600;">Yes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <dt class="col-sm-12">
+                            Instructions or Notes for an agent
+                        </dt>
+                        <dd class="col-sm-12">
+                            {{
+                            lead?.instructions_or_notes
+                            ? lead?.instructions_or_notes
+                            : '-'
+                            }}
+                        </dd>
+                        </div>
+                    </div>
+                    
+
+                    <div class="row" *ngIf="lead?.status!='signed-approved' || role == 'super-admin'">
+                        <div class="col-md-12">
+                            <button mat-raised-button color="primary" class="mr-1" [disabled]="
+                                    !userService.getUserPermissions(
+                                        'lead',
+                                        'update'
+                                    )
+                                " (click)="openLeadEditDialog(lead)">
+                                Edit
+                            </button>
+                            &nbsp;
+                            <button color="warn" mat-raised-button [disabled]="
+                                    !lead.can_be_removed || !!+lead.is_removed || !this.userService.getUserPermissions('lead','remove')
+                                " (click)="openLeadDeleteDialog(lead)">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </mat-tab>
+
+                <!-- Documents -->
+
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'teal' }">upload</mat-icon>&nbsp;Files</ng-template>
+                    <p *ngIf="!dataSourceFile?.data.length">No files found.</p>
+
+                    <mat-form-field class="w-100">
+                        <mat-label>Filter files</mat-label>
+                        <input matInput (keyup)="applyFilter($event.target.value, 'files')"
+                            placeholder="Search files" />
+                    </mat-form-field>
+
+                    <table mat-table [dataSource]="dataSourceFile" class="followup-table"
+                        *ngIf="dataSourceFile?.data.length">
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{ i + 1 }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef>File name</th>
+                            <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                                {{ file.name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="description">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Description
+                            </th>
+                            <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                                {{ file.description }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="type">
+                            <th mat-header-cell *matHeaderCellDef>Type</th>
+                            <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                                {{ file.type }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_at">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created at
+                            </th>
+                            <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                                {{ file.created_at | date : 'MMMM dd, yyyy' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created by
+                            </th>
+                            <td mat-cell *matCellDef="let file">
+                                {{
+                                file?.created_by?.first_name
+                                ? file?.created_by?.first_name
+                                : '-'
+                                }}
+                                {{ file?.created_by?.last_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="download">
+                            <th mat-header-cell *matHeaderCellDef></th>
+                            <td mat-cell *matCellDef="let file">
+                                <div class="d-flex align-items-center">
+                                    <button mat-icon-button (click)="openFile(file.path, file.type)"
+                                        matTooltip="View document">
+                                        <mat-icon>visibility</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="edit">
+                            <th mat-header-cell *matHeaderCellDef>Edit</th>
+                            <td mat-cell *matCellDef="let file">
+                                <button mat-icon-button (click)="openFileEditDialog(file, lead.id)" [disabled]="
+                                        !userService.getUserPermissions(
+                                            'lead',
+                                            'update'
+                                        )
+                                    " matTooltip="Edit">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="delete">
+                            <th mat-header-cell *matHeaderCellDef>Delete</th>
+                            <td mat-cell *matCellDef="let file">
+                                <div>
+                                    <button mat-icon-button
+                                        [disabled]="!file.can_be_removed || !this.userService.getUserPermissions('lead_file','remove')"
+                                        (click)="openFileDeleteDialog(file)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsFiles"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsFiles"></tr>
+                    </table>
+
+                    <mat-paginator [style.visibility]="
+                            dataSourceFile?.data?.length <= 0
+                                ? 'hidden'
+                                : 'visible'
+                        " [length]="totalRecordsFiles" #paginatorFiles showFirstLastButtons [pageSize]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions" (page)="changePage($event, 'file')">
+                    </mat-paginator>
+                </mat-tab>
+
+                <!-- Tasks -->
+
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'blue' }">task</mat-icon>Tasks</ng-template>
+                    <p *ngIf="!dataSourceTasks?.data.length">No tasks found.</p>
+
+                    <mat-form-field class="w-100">
+                        <mat-label>Filter tasks</mat-label>
+                        <input matInput (keyup)="applyFilter($event.target.value, 'tasks')"
+                            placeholder="Search tasks" />
+                    </mat-form-field>
+
+                    <table mat-table [dataSource]="dataSourceTasks" class="followup-table"
+                        *ngIf="dataSourceTasks?.data.length">
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{ i + 1 }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="title">
+                            <th mat-header-cell *matHeaderCellDef>Title</th>
+                            <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                                {{ task.title }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="task_type">
+                            <th mat-header-cell *matHeaderCellDef>Type</th>
+                            <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                                {{ task.task_type }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="priority">
+                            <th mat-header-cell *matHeaderCellDef>Priority</th>
+                            <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                                {{ task.priority }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="due_date">
+                            <th mat-header-cell *matHeaderCellDef>Due date</th>
+                            <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                                {{ task.due_date | date : 'MMMM dd, yyyy' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_at">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created at
+                            </th>
+                            <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                                {{ task.created_at | date : 'MMMM dd, yyyy' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created by
+                            </th>
+                            <td mat-cell *matCellDef="let task">
+                                {{
+                                task?.created_by?.first_name
+                                ? task?.created_by?.first_name
+                                : '-'
+                                }}
+                                {{ task?.created_by?.last_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="edit">
+                            <th mat-header-cell *matHeaderCellDef>Edit</th>
+                            <td mat-cell *matCellDef="let task">
+                                <button mat-icon-button (click)="openTasksEditDialog(task)" matTooltip="Edit">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="delete">
+                            <th mat-header-cell *matHeaderCellDef>Delete</th>
+                            <td mat-cell *matCellDef="let task">
+                                <div>
+                                    <button mat-icon-button [disabled]="!task.can_be_removed || !this.userService.getUserPermissions('lead_task','remove')"
+                                        (click)="openTasksDeleteDialog(task)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsTasks"
+                            [ngClass]="{ green: row?.status == 'done' }"></tr>
+                    </table>
+
+                    <mat-paginator [style.visibility]="
+                            dataSourceTasks?.data?.length <= 0
+                                ? 'hidden'
+                                : 'visible'
+                        " [length]="totalRecordsTasks" #paginator showFirstLastButtons [pageSize]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions" (page)="changePage($event, 'task')">
+                    </mat-paginator>
+                </mat-tab>
+
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'brown' }">chat</mat-icon>&nbsp;Comments</ng-template>
+
+                    <form [formGroup]="commentForm" class="comment-form">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <mat-form-field appearance="outline" class="w-100">
+                                    <mat-label>Comments</mat-label>
+                                    <textarea matInput rows="4" formControlName="text" 
+                                        placeholder="Enter comments"></textarea>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                        <div class="col-md-12 text-right pr-0">
+                            <button mat-raised-button class="mr-0" color="primary" (click)="addComment()" [disabled]="
+                                    !commentForm.valid || commentFormDisabled
+                                ">
+                                <div class="spinner-container">
+                                    <mat-spinner diameter="25" *ngIf="
+                                            commentFormDisabled
+                                        "></mat-spinner>
+                                </div>
+                                Add comment
+                            </button>
+                        </div>
+                    </form>
+
+                    <p *ngIf="!dataSourceComments?.data.length">
+                        No comments found.
+                    </p>
+
+                    <mat-form-field class="w-100">
+                        <mat-label>Filter comments</mat-label>
+                        <input matInput (keyup)="
+                                applyFilter($event.target.value, 'comments')
+                            " placeholder="Search comments" />
+                    </mat-form-field>
+
+                    <table mat-table [dataSource]="dataSourceComments" class="followup-table"
+                        *ngIf="dataSourceComments?.data.length">
+                        <ng-container matColumnDef="description">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Description
+                            </th>
+                            <td mat-cell *matCellDef="let comment" (click)="openCommentViewDialog(comment)">
+                                <strong>{{
+                                    comment?.created_by?.first_name
+                                    ? comment?.created_by?.first_name
+                                    : '-'
+                                    }}
+                                    {{ comment?.created_by?.last_name }}</strong>
+                                |
+                                <strong>{{
+                                    comment.created_at
+                                    | date
+                                    : 'MMMM dd,
+                                    yyyy h:mm:ssa'
+                                    }}</strong><br />
+                                {{ comment.text }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="edit">
+                            <th mat-header-cell *matHeaderCellDef></th>
+                            <td mat-cell *matCellDef="let comment">
+                                <button mat-icon-button (click)="openCommentEditDialog(comment)" matTooltip="Edit">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="delete">
+                            <th mat-header-cell *matHeaderCellDef></th>
+                            <td mat-cell *matCellDef="let comment">
+                                <div>
+                                    <button mat-icon-button color="warn" [disabled]="!comment.can_be_removed || !this.userService.getUserPermissions('lead_comment','remove')" (click)="
+                                            openCommentDeleteDialog(comment)
+                                        ">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsComments"></tr>
+                        <tr mat-row *matRowDef="
+                                let row;
+                                columns: displayedColumnsComments
+                            "></tr>
+                    </table>
+
+                    <mat-paginator [style.visibility]="
+                            dataSourceComments?.data?.length <= 0
+                                ? 'hidden'
+                                : 'visible'
+                        " [length]="totalRecordsComments" #paginatorComments showFirstLastButtons [pageSize]="pageSize"
+                        [pageSizeOptions]="pageSizeOptions" (page)="changePage($event, 'comment')">
+                    </mat-paginator>
+                </mat-tab>
+
+                <!-- Outcomes -->
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'purple' }">assignment_turned_in</mat-icon>&nbsp;Outcomes</ng-template>
+                    <div class="mt-2 mb-2">
+                        <button mat-raised-button color="primary" (click)="openRecordResultDialog(lead)">
+                            <mat-icon>add</mat-icon> Add Outcome
+                        </button>
+                    </div>
+                    <p *ngIf="!dataSourceOutcomes?.data?.length" style="color: #888; padding: 16px 0;">No outcomes recorded yet.</p>
+
+                    <table mat-table [dataSource]="dataSourceOutcomes" class="followup-table"
+                        *ngIf="dataSourceOutcomes?.data?.length">
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{ i + 1 }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="outcome_status">
+                            <th mat-header-cell *matHeaderCellDef>Outcome</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome.outcome_status }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="category">
+                            <th mat-header-cell *matHeaderCellDef>Category</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome.category }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="notes">
+                            <th mat-header-cell *matHeaderCellDef>Notes</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome.notes || '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="automation_triggered">
+                            <th mat-header-cell *matHeaderCellDef>Automation</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome.automation_triggered || '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_at">
+                            <th mat-header-cell *matHeaderCellDef>Recorded at</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome.created_at | date : 'MMMM dd, yyyy h:mm a' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_by">
+                            <th mat-header-cell *matHeaderCellDef>Recorded by</th>
+                            <td mat-cell *matCellDef="let outcome">
+                                {{ outcome?.created_by?.first_name ? outcome?.created_by?.first_name : '-' }}
+                                {{ outcome?.created_by?.last_name }}
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsOutcomes"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsOutcomes"></tr>
+                    </table>
+                </mat-tab>
+
+                <!-- Communications -->
+                <mat-tab>
+                    <ng-template mat-tab-label><mat-icon
+                            [ngStyle]="{ color: 'orange' }">email</mat-icon>&nbsp;Communications</ng-template>
+
+                    <div class="mt-2 mb-2">
+                        <mat-chip-listbox aria-label="Channel filter">
+                            <mat-chip-option [selected]="communicationChannelFilter === null"
+                                (click)="filterCommunications(null)">All</mat-chip-option>
+                            <mat-chip-option [selected]="communicationChannelFilter === 'email'"
+                                (click)="filterCommunications('email')">Email</mat-chip-option>
+                            <mat-chip-option [selected]="communicationChannelFilter === 'sms'"
+                                (click)="filterCommunications('sms')">SMS</mat-chip-option>
+                        </mat-chip-listbox>
+                    </div>
+
+                    <p *ngIf="!dataSourceCommunications?.data?.length">No communications found.</p>
+
+                    <table mat-table [dataSource]="dataSourceCommunications" class="followup-table"
+                        *ngIf="dataSourceCommunications?.data?.length">
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{ i + 1 }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="channel">
+                            <th mat-header-cell *matHeaderCellDef>Channel</th>
+                            <td mat-cell *matCellDef="let comm">
+                                <mat-icon *ngIf="comm.channel === 'email'" matTooltip="Email">email</mat-icon>
+                                <mat-icon *ngIf="comm.channel === 'sms'" matTooltip="SMS">sms</mat-icon>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="purpose">
+                            <th mat-header-cell *matHeaderCellDef>Purpose</th>
+                            <td mat-cell *matCellDef="let comm">
+                                {{ comm.purpose }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="recipient">
+                            <th mat-header-cell *matHeaderCellDef>Recipient</th>
+                            <td mat-cell *matCellDef="let comm">
+                                {{ comm.recipient_email || comm.recipient_phone || '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="send_status">
+                            <th mat-header-cell *matHeaderCellDef>Status</th>
+                            <td mat-cell *matCellDef="let comm"
+                                [ngClass]="{
+                                    'green': comm.send_status === 'delivered',
+                                    'text-warning': comm.send_status === 'queued' || comm.send_status === 'pending',
+                                    'text-danger': comm.send_status === 'failed' || comm.send_status === 'bounced'
+                                }">
+                                {{ comm.send_status }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="sent_at">
+                            <th mat-header-cell *matHeaderCellDef>Sent</th>
+                            <td mat-cell *matCellDef="let comm">
+                                {{ comm.sent_at ? (comm.sent_at | date : 'MMM dd, yyyy h:mm a') : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="opened_at">
+                            <th mat-header-cell *matHeaderCellDef>Opened</th>
+                            <td mat-cell *matCellDef="let comm">
+                                {{ comm.opened_at ? (comm.opened_at | date : 'MMM dd, yyyy h:mm a') : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="clicked_at">
+                            <th mat-header-cell *matHeaderCellDef>Clicked</th>
+                            <td mat-cell *matCellDef="let comm">
+                                {{ comm.clicked_at ? (comm.clicked_at | date : 'MMM dd, yyyy h:mm a') : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumnsCommunications"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumnsCommunications"></tr>
+                    </table>
+                </mat-tab>
+
+                <!-- ── Consent & Contact Tab ── -->
+                <mat-tab label="Consent & Contact">
+                    <div style="padding: 16px;">
+                        <!-- UPA Funnel Status -->
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+                            <div style="flex: 1; min-width: 200px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666;">Routing Bucket</div>
+                                <div style="font-size: 16px; font-weight: 500;">{{ lead?.routing_bucket || 'Not set' }}</div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666;">Contact Status</div>
+                                <div style="font-size: 16px; font-weight: 500;">
+                                    <span [style.color]="getContactStatusColor(lead?.contact_status)">
+                                        {{ lead?.contact_status || 'new' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666;">Source Queue</div>
+                                <div style="font-size: 16px; font-weight: 500;">{{ lead?.source_queue || '-' }}</div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; padding: 12px; border-radius: 8px;"
+                                [style.background]="lead?.escalated_to_aci ? '#e8f5e9' : '#f5f5f5'">
+                                <div style="font-size: 12px; color: #666;">Escalated to ACI</div>
+                                <div style="font-size: 16px; font-weight: 500;">
+                                    <mat-icon *ngIf="lead?.escalated_to_aci" style="color: #4caf50; vertical-align: middle;">check_circle</mat-icon>
+                                    {{ lead?.escalated_to_aci ? 'Yes' : 'No' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Opt-out Toggles -->
+                        <h4 style="margin: 0 0 12px;">
+                            <mat-icon style="vertical-align: middle;">block</mat-icon> Opt-Out Controls
+                        </h4>
+                        <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px;">
+                            <mat-slide-toggle
+                                [checked]="lead?.contact?.sms_opt_out"
+                                (change)="toggleOptOut('sms', $event.checked)"
+                                color="warn">
+                                SMS Opt-out
+                            </mat-slide-toggle>
+                            <mat-slide-toggle
+                                [checked]="lead?.contact?.email_opt_out"
+                                (change)="toggleOptOut('email', $event.checked)"
+                                color="warn">
+                                Email Opt-out
+                            </mat-slide-toggle>
+                            <mat-slide-toggle
+                                [checked]="lead?.contact?.voice_opt_out"
+                                (change)="toggleOptOut('voice', $event.checked)"
+                                color="warn">
+                                Voice Opt-out
+                            </mat-slide-toggle>
+                        </div>
+
+                        <!-- Outreach History -->
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666;">Last Outreach</div>
+                                <div style="font-size: 14px;">
+                                    {{ lead?.last_outreach_at ? (lead?.last_outreach_at | date : 'MMM dd, yyyy h:mm a') : 'Never' }}
+                                </div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; padding: 12px; background: #f5f5f5; border-radius: 8px;">
+                                <div style="font-size: 12px; color: #666;">Last Reply</div>
+                                <div style="font-size: 14px; word-break: break-word;">
+                                    {{ lead?.last_reply || 'No reply yet' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-tab>
+            </mat-tab-group>
+        </mat-card-content>
+
+        <mat-card-actions> </mat-card-actions>
+    </mat-card>
+
+    <ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+</div>

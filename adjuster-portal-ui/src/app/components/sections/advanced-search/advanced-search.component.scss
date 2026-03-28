@@ -1,0 +1,49 @@
+.search-form {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.search-form .mat-mdc-form-field {
+  width: 30% !important;
+}
+
+.comments-table {
+  width: 100%;
+
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+  .green {
+      background-color: #368136bc;
+
+      .mat-mdc-cell {
+          color: #fff !important;
+      }
+  }
+}
+
+.data-table {
+  width: 100%;
+
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+  .green {
+
+    background-color: #368136;
+    .mat-mdc-cell {
+      color: #fff !important;
+
+    }
+  }
+
+}

@@ -1,0 +1,72 @@
+$navy: #0f1a2e;
+$gold: #c9a84c;
+$white: #ffffff;
+$bg: #f5f6fa;
+$text-dark: #1a1a2e;
+$text-mid: #555;
+$border: #e5e7eb;
+
+.mc-shell { display: flex; flex-direction: column; min-height: 100vh; background: $bg; }
+
+// ── TOP BAR ──
+.mc-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 60px; background: $navy;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100;
+}
+.mc-topbar-left { display: flex; align-items: center; gap: 10px; }
+.mc-logo-sm {
+  width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, $gold, #b8942f);
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $white; }
+}
+.mc-brand { color: $white; font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+
+.mc-topbar-right { display: flex; align-items: center; gap: 12px; }
+.mc-notif-indicator { position: relative; color: rgba(255,255,255,0.7);
+  mat-icon { font-size: 22px; }
+  .mc-notif-dot { position: absolute; top: -4px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
+    background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; } }
+
+.mc-avatar-btn {
+  display: flex; align-items: center; gap: 8px; background: none; border: none;
+  color: rgba(255,255,255,0.8); cursor: pointer; padding: 4px;
+  mat-icon { font-size: 18px; color: rgba(255,255,255,0.4); }
+}
+.mc-avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: $gold; letter-spacing: 1px;
+}
+.mc-user-name { font-size: 0.85rem; font-weight: 500; }
+
+.mc-menu-header { padding: 12px 16px; }
+.mc-menu-name { font-size: 14px; font-weight: 600; color: $text-dark; }
+.mc-menu-email { font-size: 12px; color: #999; }
+
+// ── CONTENT ──
+.mc-content { flex: 1; padding: 0 0 80px; } // 80px for bottom nav
+
+// ── BOTTOM NAV ──
+.mc-bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+  background: $white; border-top: 1px solid $border; z-index: 100;
+  justify-content: space-around; align-items: center;
+}
+.mc-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  color: #999; font-size: 10px; font-weight: 500; text-decoration: none; transition: color 0.15s;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; }
+  &.active, &:hover { color: $navy; }
+}
+
+@media (max-width: 768px) {
+  .mc-bottom-nav { display: flex; }
+  .mc-content { padding-bottom: 80px; }
+  .mc-user-name { display: none; }
+}
+
+@media (min-width: 769px) {
+  .mc-content { padding-bottom: 24px; }
+}

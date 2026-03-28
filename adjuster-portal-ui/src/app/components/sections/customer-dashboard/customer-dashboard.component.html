@@ -1,0 +1,72 @@
+<div class="customer-dashboard">
+  <!-- Welcome Header -->
+  <div class="welcome-header">
+    <h1 class="welcome-title">Welcome back, {{ userName }}</h1>
+    <p class="welcome-subtitle">Your Claim Portal</p>
+  </div>
+
+  <!-- Claims Grid -->
+  <div class="claims-grid" *ngIf="claims.length > 0">
+    <mat-card appearance="outlined" class="claim-card" *ngFor="let claim of claims" (click)="viewClaim(claim)">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="claim-icon">description</mat-icon>
+        <mat-card-title>{{ claim.claim_number || claim.ref_string }}</mat-card-title>
+        <mat-card-subtitle>{{ claim.ref_string }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Property Address -->
+        <div class="info-row">
+          <mat-icon class="info-icon">location_on</mat-icon>
+          <span>{{ formatAddress(claim) }}</span>
+        </div>
+
+        <!-- Insurance Carrier -->
+        <div class="info-row" *ngIf="claim.insurance_company">
+          <mat-icon class="info-icon">business</mat-icon>
+          <span>{{ claim.insurance_company }}</span>
+        </div>
+
+        <!-- Current Phase Badge -->
+        <div class="phase-badge-row">
+          <span class="phase-badge" [style.background-color]="getPhaseColor(claim)">
+            {{ getPhaseLabel(claim) }}
+          </span>
+        </div>
+
+        <!-- Mini Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Progress</span>
+            <span>{{ getPhaseProgress(claim) }}%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="getPhaseProgress(claim)"
+                 [style.background-color]="getPhaseColor(claim)"></div>
+          </div>
+        </div>
+
+        <!-- Last Updated -->
+        <div class="info-row updated-row" *ngIf="claim.updated_at">
+          <mat-icon class="info-icon">schedule</mat-icon>
+          <span class="text-muted">Updated {{ claim.updated_at | date:'MMM dd, yyyy' }}</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="viewClaim(claim); $event.stopPropagation()">
+          <mat-icon>open_in_new</mat-icon> View Claim
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Empty State -->
+  <mat-card appearance="outlined" class="empty-state" *ngIf="!loading && claims.length === 0">
+    <mat-icon class="empty-icon">inbox</mat-icon>
+    <h3>No Claims Found</h3>
+    <p>You don't have any claims associated with your account yet. If you believe this is an error, please contact your adjuster.</p>
+  </mat-card>
+</div>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

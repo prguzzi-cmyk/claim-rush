@@ -1,0 +1,228 @@
+.main-card {
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.full-height-card {
+  height: 100vh; /* Full viewport height */
+  display: flex;
+  flex-direction: column;
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+}
+.mlm-simulator {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.half-width {
+  width: 50%;
+  float: left;
+  margin: 20px auto;
+}
+
+.one-forth-width {
+  width: 25%;
+  float: left;
+  margin: 20px auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+button {
+  margin-top: 20px;
+  width: 100%;
+}
+
+button.commission-breakdown {
+  margin-top: 0px;
+  width: 20px;
+  float: right;
+}
+
+button.org-chart-info {
+  margin-top: 0px;
+  width: 20px;
+  float: right;
+}
+
+.custom-border {
+  border: 1px solid var(--border-default);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.custom-border:hover {
+  border-color: var(--color-primary-200);
+  box-shadow: var(--shadow-md);
+}
+
+fieldset {
+  margin-bottom: 20px;
+  border: 1px solid var(--border-default);
+  padding: 10px;
+}
+legend {
+  font-size: 1.2em;
+  padding: 0 10px;
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+h3 {
+  margin-top: 0;
+  font-weight: 600;
+  color: var(--color-primary-500);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+}
+
+.header h2 {
+  margin: 0; /* Removes default margin */
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.commission-breakdown {
+  margin-left: auto;
+}
+
+.commission-structure-image {
+  width: 450px;
+  height: 250px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.team-structure {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.team-structure-image {
+  min-width: 300px;
+  min-height: 200px;
+  max-width: 60%;
+  max-height: 30%;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.commission-details p {
+  margin: 10px 0;
+  font-size: 1.1em;
+}
+mat-divider {
+  margin: 20px 0;
+}
+
+/* Custom background color and text color for the header */
+.custom-header {
+  background-color: var(--color-primary-500);
+  color: #ffffff;
+}
+
+/* Customize the hover and active states */
+.custom-header.mat-expanded {
+  background-color: var(--color-primary-700);
+}
+
+//.custom-header:hover {
+//  background-color: #074378; /* Lighter shade on hover */
+//}
+
+/* Customize the icon color */
+.custom-header .mat-expansion-indicator {
+  color: #ffffff; /* Change to your desired icon color */
+}
+
+.disclaimer-card {
+  margin: 20px;
+  padding: 16px;
+  background-color: var(--surface-page);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.disclaimer-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #d32f2f; /* Red color to emphasize the importance */
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #d32f2f; /* Red color to emphasize the importance */
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card-content p {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card-content p strong {
+  color: #d32f2f; /* Use red color for strong text to emphasize key points */
+}
+
+.system-default-input-card {
+  margin: 20px;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+table {
+  width: 100%;
+}
+
+th {
+  font-weight: bold;
+  color: var(--color-primary-500);
+}
+
+td {
+  color: var(--text-primary);
+}
+

@@ -1,0 +1,193 @@
+.response-desk {
+  padding: var(--space-6);
+}
+
+.page-header {
+  margin-bottom: var(--space-6);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.5rem;
+    font-weight: var(--weight-semibold);
+
+    mat-icon {
+      color: var(--color-primary-600);
+    }
+  }
+
+  .subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-12);
+}
+
+.table-container {
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.desk-table {
+  width: 100%;
+}
+
+.message-cell {
+  max-width: 250px;
+
+  .message-preview {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+
+    .msg-direction-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: var(--text-tertiary);
+    }
+  }
+
+  .no-message {
+    color: var(--text-tertiary);
+    font-style: italic;
+    font-size: var(--text-sm);
+  }
+}
+
+.phone-link {
+  color: var(--color-primary-600);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+// Status badges
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  &.small {
+    font-size: 10px;
+    padding: 2px 8px;
+    text-transform: none;
+  }
+
+  &.badge-gray {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+
+  &.badge-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.badge-green {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  &.badge-orange {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+
+  &.badge-purple {
+    background: #ede9fe;
+    color: #6d28d9;
+  }
+
+  &.badge-dark-green {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.badge-red {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
+// Highlighted row for "responded-yes"
+.highlighted-row {
+  background: #f0fdf4 !important;
+
+  &:hover {
+    background: #dcfce7 !important;
+  }
+}
+
+.empty-state-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+
+  h3 {
+    margin: 16px 0 6px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 0.875rem;
+    color: var(--text-secondary, #64748b);
+    max-width: 360px;
+  }
+}
+
+.empty-state-icon-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-primary-50, #eff6ff);
+  border: 2px solid var(--color-primary-100, #dbeafe);
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: var(--color-primary-500, #3b82f6);
+  }
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 12px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,84 @@
+<mat-card appearance="outlined" *ngxPermissionsOnly="['super-admin']">
+  <div class="row">
+    <div class="col-7">
+      <p class="mat-headline-4 section-title">Announcements</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Administration</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Announcements</a>
+        </li>
+      </ul>
+    </div>
+    <div class="col-5 text-end">
+      <button mat-mini-fab matTooltip="Add new announcement" color="primary" (click)="openAddDialog()"><mat-icon>add</mat-icon></button>
+    </div>
+
+  </div>
+
+
+  <mat-card-content>
+    <table mat-table [dataSource]="dataSource" class="announcements-table">
+
+      <ng-container matColumnDef="sn">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+        <td mat-cell *matCellDef="let element; let i = index;">{{i+1}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+        <td mat-cell *matCellDef="let announcement" (click)="openViewDialog(announcement)">{{announcement.title}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="announcement_date">
+        <th mat-header-cell *matHeaderCellDef>Announcement date</th>
+        <td mat-cell *matCellDef="let announcement" (click)="openViewDialog(announcement)">
+          {{announcement.announcement_date |
+          date: 'MMMM dd, yyyy'}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="expiration_date">
+        <th mat-header-cell *matHeaderCellDef>Expiration date</th>
+        <td mat-cell *matCellDef="let announcement" class="last-active-cell">{{ announcement.expiration_date | date:
+          'MMMM dd, yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created at</th>
+        <td mat-cell *matCellDef="let announcement" (click)="openViewDialog(announcement)">{{announcement.created_at |
+          date:
+          'MMMM dd, yyyy'}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+        <td mat-cell *matCellDef="let announcement">
+          <button mat-icon-button [disabled]="!!+announcement.is_removed" (click)="openEditDialog(announcement)"
+            matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Delete</th>
+        <td mat-cell *matCellDef="let announcement">
+          <div>
+            <button mat-icon-button [disabled]="!announcement.can_be_removed || !!+announcement.is_removed"
+              (click)="openDeleteDialog(announcement)"><mat-icon>delete</mat-icon></button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <app-paginator [style.visibility]="dataSource.length <= 0 ? 'hidden' : 'visible'" #paginator
+      [totalItems]="totalRecords" (pageChange)="onPageChange($event)"></app-paginator>
+
+  </mat-card-content>
+
+  <mat-card-actions>
+  </mat-card-actions>
+</mat-card>

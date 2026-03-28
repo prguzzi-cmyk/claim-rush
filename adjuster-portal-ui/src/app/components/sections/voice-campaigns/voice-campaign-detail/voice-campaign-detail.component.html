@@ -1,0 +1,328 @@
+<div class="detail-page">
+
+  <!-- Back Button & Header -->
+  <div class="page-header">
+    <button mat-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon> Back to Campaigns
+    </button>
+    <div class="header-actions" *ngIf="campaign" aria-live="polite">
+      <button mat-stroked-button (click)="editCampaign()" matTooltip="Edit Settings" [disabled]="actionInProgress" [attr.aria-disabled]="actionInProgress" aria-label="Edit campaign settings">
+        <mat-icon>edit</mat-icon> Edit
+      </button>
+      <button mat-raised-button color="primary" (click)="launchCampaign()" *ngIf="campaign.status === 'draft'" [disabled]="actionInProgress" [attr.aria-disabled]="actionInProgress" aria-label="Launch campaign">
+        <mat-spinner diameter="16" *ngIf="actionInProgress"></mat-spinner>
+        <mat-icon *ngIf="!actionInProgress">rocket_launch</mat-icon>
+        {{ actionInProgress ? 'Launching...' : 'Launch' }}
+      </button>
+      <button mat-raised-button color="primary" (click)="resumeCampaign()" *ngIf="campaign.status === 'paused'" [disabled]="actionInProgress" [attr.aria-disabled]="actionInProgress" aria-label="Resume campaign">
+        <mat-spinner diameter="16" *ngIf="actionInProgress"></mat-spinner>
+        <mat-icon *ngIf="!actionInProgress">play_arrow</mat-icon>
+        {{ actionInProgress ? 'Resuming...' : 'Resume' }}
+      </button>
+      <button mat-raised-button color="warn" (click)="pauseCampaign()" *ngIf="campaign.status === 'active'" [disabled]="actionInProgress" [attr.aria-disabled]="actionInProgress" aria-label="Pause campaign">
+        <mat-spinner diameter="16" *ngIf="actionInProgress"></mat-spinner>
+        <mat-icon *ngIf="!actionInProgress">pause</mat-icon>
+        {{ actionInProgress ? 'Pausing...' : 'Pause' }}
+      </button>
+      <button mat-stroked-button color="warn" (click)="deleteCampaign()" *ngIf="campaign.status === 'draft'" [disabled]="actionInProgress" [attr.aria-disabled]="actionInProgress" aria-label="Delete campaign">
+        <mat-spinner diameter="16" *ngIf="actionInProgress"></mat-spinner>
+        <mat-icon *ngIf="!actionInProgress">delete</mat-icon>
+        {{ actionInProgress ? 'Deleting...' : 'Delete' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading && campaign">
+
+    <!-- Campaign Info Card -->
+    <mat-card class="campaign-info-card">
+      <div class="campaign-header">
+        <div class="campaign-title-row">
+          <h2>{{ campaign.name }}</h2>
+          <span class="status-chip" [style.background]="getStatusColor(campaign.status)">
+            {{ campaign.status }}
+          </span>
+        </div>
+        <p class="campaign-desc" *ngIf="campaign.description">{{ campaign.description }}</p>
+      </div>
+
+      <div class="campaign-meta">
+        <div class="meta-item">
+          <span class="meta-label">Call Window</span>
+          <span class="meta-value">{{ campaign.call_window_start }} – {{ campaign.call_window_end }} ({{ campaign.call_window_timezone }})</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Max Retries</span>
+          <span class="meta-value">{{ campaign.max_retries }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Retry Delay</span>
+          <span class="meta-value">{{ campaign.retry_delay_minutes }} min</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Max Calls/Day</span>
+          <span class="meta-value">{{ campaign.max_calls_per_day }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.launched_at">
+          <span class="meta-label">Launched</span>
+          <span class="meta-value">{{ campaign.launched_at | date:'short' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.created_at">
+          <span class="meta-label">Created</span>
+          <span class="meta-value">{{ campaign.created_at | date:'short' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.updated_at">
+          <span class="meta-label">Updated</span>
+          <span class="meta-value">{{ campaign.updated_at | date:'short' }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.lead_source_filter">
+          <span class="meta-label">Lead Source</span>
+          <span class="meta-value">{{ campaign.lead_source_filter }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.territory_state_filter">
+          <span class="meta-label">State</span>
+          <span class="meta-value">{{ campaign.territory_state_filter }}</span>
+        </div>
+        <div class="meta-item" *ngIf="campaign.incident_type_filter">
+          <span class="meta-label">Incident Type</span>
+          <span class="meta-value">{{ campaign.incident_type_filter }}</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <div class="progress-label">
+          <span>Progress</span>
+          <span class="progress-pct">{{ getProgressPercent() }}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" [style.width.%]="getProgressPercent()" [style.background]="getProgressPercent() >= 100 ? '#4caf50' : '#2196f3'"></div>
+        </div>
+        <div class="progress-counts">
+          {{ campaign.total_calls_placed }} / {{ campaign.total_leads_targeted }} leads called
+        </div>
+        <div class="completion-forecast" *ngIf="getEstimatedCompletion() as est">
+          <mat-icon class="forecast-icon">schedule</mat-icon>
+          <span>{{ est.remaining }} leads remaining &middot; Est. completion {{ est.estDate }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Script / Prompt -->
+    <mat-card class="script-card" *ngIf="campaign.script_template">
+      <h3><mat-icon>smart_toy</mat-icon> AI Script / Prompt</h3>
+      <pre class="script-text">{{ campaign.script_template }}</pre>
+    </mat-card>
+
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(33,150,243,0.1);">
+          <mat-icon aria-hidden="true" style="color: #2196f3;">call</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ analytics.total_calls }}</span>
+          <span class="kpi-label">Total Calls</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(76,175,80,0.1);">
+          <mat-icon aria-hidden="true" style="color: #4caf50;">phone_in_talk</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ analytics.calls_answered }}</span>
+          <span class="kpi-label">Answered</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(255,152,0,0.1);">
+          <mat-icon aria-hidden="true" style="color: #ff9800;">percent</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ getAnswerRate() }}%</span>
+          <span class="kpi-label">Answer Rate</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(156,39,176,0.1);">
+          <mat-icon aria-hidden="true" style="color: #9c27b0;">trending_up</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ analytics.conversion_rate | number:'1.1-1' }}%</span>
+          <span class="kpi-label">Conversion</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(0,150,136,0.1);">
+          <mat-icon aria-hidden="true" style="color: #009688;">timer</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ analytics.avg_duration_seconds | durationFormat }}</span>
+          <span class="kpi-label">Avg Duration</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(76,175,80,0.1);">
+          <mat-icon aria-hidden="true" style="color: #4caf50;">schedule</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ totalDuration | durationFormat }}</span>
+          <span class="kpi-label">Total Duration</span>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi-card">
+        <div class="kpi-icon-wrap" style="background: rgba(233,30,99,0.1);">
+          <mat-icon aria-hidden="true" style="color: #e91e63;">attach_money</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ formatCost(totalCost) }}</span>
+          <span class="kpi-label">Total Cost</span>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Outcome Breakdown -->
+    <mat-card class="outcome-card" *ngIf="outcomeEntries.length > 0">
+      <h3><mat-icon>pie_chart</mat-icon> Outcome Breakdown</h3>
+      <div class="outcome-bars">
+        <div class="outcome-row" *ngFor="let entry of outcomeEntries">
+          <span class="outcome-label">{{ entry.label }}</span>
+          <div class="outcome-bar-bg">
+            <div class="outcome-bar-fill" [style.width.%]="entry.percent" [style.background]="entry.color"></div>
+          </div>
+          <span class="outcome-count">{{ entry.count }}</span>
+          <span class="outcome-pct">{{ entry.percent }}%</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Daily Trend -->
+    <mat-card class="trend-card" *ngIf="analytics.daily_trend && analytics.daily_trend.length > 0">
+      <h3><mat-icon>show_chart</mat-icon> Daily Call Volume (Last 30 Days)</h3>
+      <div class="trend-chart">
+        <div class="trend-bar-container" *ngFor="let day of analytics.daily_trend" [matTooltip]="day.date + ': ' + day.calls + ' calls'">
+          <div class="trend-bar" [style.height.%]="getTrendBarHeight(day.calls)" [style.background]="day.calls > 0 ? '#2196f3' : '#e0e0e0'"></div>
+          <span class="trend-date">{{ formatTrendDate(day.date) }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Call Logs Table -->
+    <mat-card class="call-logs-card">
+      <div class="call-logs-header">
+        <h3><mat-icon>list</mat-icon> Call Logs</h3>
+        <button mat-stroked-button (click)="exportCallLogs()" [disabled]="callLogs.length === 0" matTooltip="Export call logs as CSV">
+          <mat-icon>download</mat-icon> Export CSV
+        </button>
+      </div>
+
+      <div *ngIf="callLogs.length === 0" class="empty-state-small">
+        <mat-icon>phone_missed</mat-icon>
+        <p *ngIf="campaign.status === 'draft'">No calls placed yet. Launch this campaign to start outreach.</p>
+        <p *ngIf="campaign.status === 'active'">Calls are being placed. Check back shortly.</p>
+        <p *ngIf="campaign.status !== 'draft' && campaign.status !== 'active'">No calls placed for this campaign.</p>
+        <button mat-stroked-button color="primary" *ngIf="campaign.status === 'draft'" (click)="launchCampaign()">
+          <mat-icon>rocket_launch</mat-icon> Launch Campaign
+        </button>
+      </div>
+
+      <div *ngIf="callLogs.length > 0" class="call-log-filters">
+        <mat-form-field appearance="outline" class="call-log-search">
+          <mat-label>Search calls</mat-label>
+          <input matInput [(ngModel)]="callLogSearchTerm" (keyup)="applyCallLogFilters()" placeholder="Lead name or phone..." />
+          <mat-icon matSuffix *ngIf="!callLogSearchTerm">search</mat-icon>
+          <button mat-icon-button matSuffix *ngIf="callLogSearchTerm" (click)="callLogSearchTerm = ''; applyCallLogFilters()" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="call-log-outcome-filter">
+          <mat-label>Outcome</mat-label>
+          <mat-select [(value)]="callLogOutcomeFilter" (selectionChange)="applyCallLogFilters()">
+            <mat-option value="">All Outcomes</mat-option>
+            <mat-option *ngFor="let opt of outcomeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div *ngIf="callLogs.length > 0" class="table-container">
+        <table mat-table [dataSource]="callLogDataSource" matSort class="call-logs-table">
+
+          <!-- Lead Name -->
+          <ng-container matColumnDef="lead_name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Lead</th>
+            <td mat-cell *matCellDef="let log">{{ log.lead_name || '—' }}</td>
+          </ng-container>
+
+          <!-- Phone Number -->
+          <ng-container matColumnDef="phone_number">
+            <th mat-header-cell *matHeaderCellDef>Phone</th>
+            <td mat-cell *matCellDef="let log">{{ log.phone_number | phoneFormat }}</td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let log">
+              <div class="call-status-cell">
+                <mat-icon class="status-icon" [style.color]="getCallStatusColor(log.status)">
+                  {{ getCallStatusIcon(log.status) }}
+                </mat-icon>
+                <span class="status-text">{{ log.status }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Duration -->
+          <ng-container matColumnDef="duration">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="duration_seconds">Duration</th>
+            <td mat-cell *matCellDef="let log">{{ log.duration_seconds | durationFormat }}</td>
+          </ng-container>
+
+          <!-- Outcome -->
+          <ng-container matColumnDef="outcome">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Outcome</th>
+            <td mat-cell *matCellDef="let log">
+              <span *ngIf="log.outcome" class="outcome-badge" [style.background]="getOutcomeColor(log.outcome)">
+                {{ getOutcomeLabel(log.outcome) }}
+              </span>
+              <span *ngIf="!log.outcome" class="no-outcome">—</span>
+            </td>
+          </ng-container>
+
+          <!-- Date -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+            <td mat-cell *matCellDef="let log">{{ log.created_at | date:'short' }}</td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let log">
+              <button mat-icon-button matTooltip="View Transcript" aria-label="View transcript" (click)="viewTranscript(log)">
+                <mat-icon>article</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="callLogColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: callLogColumns;"></tr>
+        </table>
+
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card>
+
+  </ng-container>
+</div>

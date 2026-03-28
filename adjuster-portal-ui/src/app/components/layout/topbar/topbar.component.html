@@ -1,0 +1,119 @@
+<div class="topbar-inner">
+  <!-- Left: Home + New -->
+  <div class="topbar-left">
+    <a class="topbar-icon-btn" routerLink="/app/dashboard" (click)="onNavigate('Dashboard')" matTooltip="Home">
+      <mat-icon>home</mat-icon>
+    </a>
+
+    <button mat-button [matMenuTriggerFor]="fastEntryMenu" class="new-btn">
+      <mat-icon>add</mat-icon> New
+    </button>
+    <mat-menu #fastEntryMenu="matMenu">
+      <button mat-menu-item [hidden]="!userService.getUserPermissions('lead', 'create')" (click)="openLeadAddDialog()">
+        <mat-icon>headset_mic</mat-icon> Lead
+      </button>
+      <button mat-menu-item [hidden]="!userService.getUserPermissions('client', 'create')" (click)="openCreateClientDialog()">
+        <mat-icon>person_add</mat-icon> Client
+      </button>
+      <button mat-menu-item [hidden]="!userService.getUserPermissions('claim', 'create')" (click)="openClaimAddDialog()">
+        <mat-icon>assignment</mat-icon> Claim
+      </button>
+    </mat-menu>
+  </div>
+
+  <!-- Center: Search -->
+  <div class="topbar-center">
+    <form class="search-wrapper" (clickOutside)="hideDropdown()">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="{{ placeholder }}"
+        [formControl]="clientCtrl"
+        (focus)="showDropdown = true"
+        (input)="onInputChange()"
+      />
+      <ul *ngIf="showDropdown && filteredClients?.length" class="search-results">
+        <li
+          *ngFor="let client of filteredClients"
+          (click)="onClientSelected(client)"
+          class="search-result-item"
+        >
+          <span class="result-type-icon" *ngIf="client.type === 'lead'">🎧</span>
+          <span class="result-type-icon" *ngIf="client.type === 'client'">👤</span>
+          <div class="result-text">
+            <strong>{{ client.full_name }}</strong> - {{ client.ref_string }}
+            <small>
+              {{ client.address ? client.address + ',' : '' }}
+              {{ client.city }} {{ client.state }} {{ client.zip_code }}
+            </small>
+          </div>
+        </li>
+      </ul>
+    </form>
+  </div>
+
+  <!-- Right: Live Feed + Pending leads + Notifications + User menu -->
+  <div class="topbar-right">
+    <!-- Live Feed trigger -->
+    <button class="topbar-live-feed-btn" (click)="liveActivityService.drawerToggle$.next()" matTooltip="Live Activity Feed">
+      <span class="live-feed-dot"></span>
+      <span class="live-feed-label">Live Feed</span>
+    </button>
+
+    <a class="topbar-icon-btn" routerLink="/app/leads" [queryParams]="{ type:'pending'}" (click)="onNavigate('Leads')"
+        *ngIf="(this.role == 'super-admin' || this.role == 'admin') && pendingLeadsCount">
+      <mat-icon matTooltip="Leads pending for approval" [matBadge]="pendingLeadsCount" matBadgeColor="primary">headset_mic</mat-icon>
+    </a>
+
+    <!-- Notification Bell -->
+    <div class="notification-wrapper" *ngIf="role && role !== 'customer'">
+      <button class="topbar-icon-btn"
+        (click)="$event.stopPropagation(); toggleNotificationPanel()"
+        matTooltip="Notifications">
+        <mat-icon [matBadge]="unreadCount" matBadgeColor="warn"
+          [matBadgeHidden]="unreadCount === 0" matBadgeSize="small">
+          notifications
+        </mat-icon>
+      </button>
+
+      <!-- Notification Dropdown Panel -->
+      <div class="notification-panel" *ngIf="showNotificationPanel" (clickOutside)="showNotificationPanel = false">
+        <div class="notification-header">
+          <span class="notification-title">Notifications</span>
+          <button mat-button *ngIf="unreadCount > 0" (click)="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notification-list">
+          <div *ngFor="let n of notifications"
+            class="notification-item" [class.unread]="!n.is_read"
+            (click)="onNotificationClick(n)">
+            <mat-icon class="notification-icon">{{ getNotificationIcon(n.notification_type) }}</mat-icon>
+            <div class="notification-content">
+              <span class="notification-item-title">{{ n.title }}</span>
+              <span class="notification-item-message">{{ n.message }}</span>
+              <span class="notification-item-time">{{ n.created_at | date: 'M/d/yy h:mm a' }}</span>
+            </div>
+          </div>
+          <div class="notification-empty" *ngIf="notifications.length === 0">
+            No notifications
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="topbar-icon-btn" [matMenuTriggerFor]="userMenu" matTooltip="Account">
+      <mat-icon>person</mat-icon>
+    </button>
+
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item routerLink="/app/administration/profile" (click)="onNavigate('Profile')">
+        <mat-icon color="accent">account_box</mat-icon>
+        <span>{{ user.first_name }} {{ user.last_name }}</span>
+      </button>
+      <button mat-menu-item (click)="logOut()">
+        <mat-icon color="accent">power_settings_new</mat-icon>
+        <span>Log out</span>
+      </button>
+    </mat-menu>
+  </div>
+</div>

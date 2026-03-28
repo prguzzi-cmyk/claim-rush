@@ -1,0 +1,28 @@
+<mj-section padding="20px 20px 0 20px" background-color="#FFFFFF">
+  <mj-column>
+    <mj-text align="left" font-size="20px" font-weight="500">Logo</mj-text>
+  </mj-column>
+</mj-section>
+
+<mj-section padding="20px 20px 0 20px" background-color="#FFFFFF">
+  <mj-column>
+    <mj-text align="center" font-weight="500" padding="30px 40px 10px 40px" font-size="32px" line-height="40px"
+             mj-class="app-color">
+      {{ project_name }}
+    </mj-text>
+  </mj-column>
+</mj-section>
+
+<mj-section padding="10px 20px" background-color="#FFFFFF">
+  <mj-column>
+    <mj-divider width="30px" border-width="3px" border-color="#9B9B9B"></mj-divider>
+  </mj-column>
+</mj-section>
+
+<mj-section padding="0 20px 20px 20px" background-color="#FFFFFF">
+  <mj-column width="80%">
+    <mj-text align="center" padding-top="10px" font-weight="500" font-size="20px" padding="0px">
+      {{ email_tagline }}
+    </mj-text>
+  </mj-column>
+</mj-section>

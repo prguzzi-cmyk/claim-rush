@@ -1,0 +1,38 @@
+.team-structure-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.team-structure-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.interpretation-table {
+  text-align: center;
+  width: 50%;
+  overflow-y: auto;
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0 3px 3px -2px rgba(0, 0, 0, 0.2),
+  0 3px 4px 0 rgba(0, 0, 0, 0.14),
+  0 1px 8px 0 rgba(0, 0, 0, 0.12);
+}
+
+table {
+  width: 100%;
+}
+
+mat-header-cell, mat-cell {
+  padding: 8px;
+}
+
+mat-header-row, mat-row {
+  display: flex;
+  align-items: center;
+}

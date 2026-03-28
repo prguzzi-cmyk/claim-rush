@@ -1,0 +1,21 @@
+services:
+  app:
+    image: adjuster-portal-ui
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: always
+    ports:
+      - 4200:4200
+    volumes:
+      - ./:/usr/src/app/
+      - /usr/src/app/.cache
+      - /usr/src/app/node_modules
+      - /usr/src/app/public
+    networks:
+      - local-net
+
+networks:
+  local-net:
+    name: adjuster-portal-localhost-net
+    driver: bridge

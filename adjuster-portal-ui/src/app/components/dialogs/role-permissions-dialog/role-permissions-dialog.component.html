@@ -1,0 +1,74 @@
+<h1 mat-dialog-title>
+  {{
+  type == "assign"
+  ? "Assign permissions to role"
+  : type == "remove"
+  ? "Remove role permission"
+  : ""
+  }}
+  Policy
+</h1>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+<div mat-dialog-content *ngIf="this.type != 'view' && this.type != 'delete' && this.type != 'remove'">
+  <form [formGroup]="rolePermissionForm" class="role-form">
+    <mat-form-field class="example-full-width">
+      <mat-label>Select permissions to assign</mat-label>
+      <input type="text" placeholder="Select permissions" aria-label="Select permissions" matInput
+        [formControl]="permissionCtrl" [matAutocomplete]="auto">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayPermission">
+        <mat-option *ngFor="let permission of filteredPermissions | async" [value]="permission">
+          <mat-checkbox [checked]="isSelected(permission)" (click)="$event.stopPropagation()"
+            (change)="toggleSelection(permission)">
+            {{permission.name}}
+          </mat-checkbox>
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <div class="selected-permissions">
+      <mat-chip-listbox>
+        <mat-chip-option *ngFor="let permission of selectedPermissions" [removable]="true" (removed)="remove(permission)">
+          {{permission.name}}
+          <mat-icon matChipRemove>cancel</mat-icon>
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+  </form>
+
+</div>
+
+<div mat-dialog-content *ngIf="this.type == 'remove'">
+  Are you sure you want to remove this permission?
+  <p></p>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" (click)="assignRolePermissions()"
+    [disabled]="!rolePermissionForm.valid || formDisabled" *ngIf="type == 'assign'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Assign permissions
+  </button>
+  <button mat-raised-button color="primary" (click)="updatePolicy()"
+    [disabled]="!rolePermissionForm.valid || formDisabled" *ngIf="type == 'edit'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Save policy
+  </button>
+
+  <button mat-raised-button color="warn" (click)="deletePolicy(policy.id)" *ngIf="type == 'delete'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Yes, delete this policy
+  </button>
+  <button mat-raised-button color="warn" (click)="removePermission()" *ngIf="type == 'remove'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="formDisabled"></mat-spinner>
+    </div>
+    Yes, remove this permission
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

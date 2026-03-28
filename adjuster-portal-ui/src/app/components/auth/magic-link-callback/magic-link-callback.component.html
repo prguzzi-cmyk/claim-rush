@@ -1,0 +1,27 @@
+<div class="callback-page">
+  <div class="callback-card">
+    <span class="logo" style="font-size:28px;font-weight:800;color:#fff;letter-spacing:5px;display:block;text-align:center;margin-bottom:16px;">RIN<sup style="font-size:10px;color:#00C2FF;">&trade;</sup></span>
+
+    <!-- Verifying -->
+    <div *ngIf="state === 'verifying'" class="state-content">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="status-text">Verifying your sign-in link...</p>
+    </div>
+
+    <!-- Success -->
+    <div *ngIf="state === 'success'" class="state-content">
+      <mat-icon class="success-icon">check_circle</mat-icon>
+      <p class="status-text">Signed in successfully!</p>
+      <p class="sub-text">Redirecting you now...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="state === 'error'" class="state-content">
+      <mat-icon class="error-icon">error</mat-icon>
+      <p class="status-text">{{ errorMessage }}</p>
+      <button mat-raised-button color="primary" (click)="goToLogin()">
+        Back to sign in
+      </button>
+    </div>
+  </div>
+</div>

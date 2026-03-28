@@ -1,0 +1,241 @@
+<div class="voice-outreach-detail-page">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()" matTooltip="Back to dashboard">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Call Detail</h2>
+    <span class="status-chip" *ngIf="call"
+          [style.background]="getStatusColor(call.status) + '20'"
+          [style.color]="getStatusColor(call.status)">
+      <span class="status-dot" *ngIf="isLiveStatus(call.status)"
+            [style.background]="getStatusColor(call.status)"
+            [class.pulse]="isLiveStatus(call.status)"></span>
+      {{ getStatusLabel(call.status) }}
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading call details...</span>
+  </div>
+
+  <div class="row" *ngIf="!loading && call">
+    <!-- Left Column (7) -->
+    <div class="col-md-7">
+      <!-- Call Info Card -->
+      <mat-card appearance="outlined" class="info-card">
+        <mat-card-header>
+          <mat-card-title>Call Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Lead</span>
+              <span class="info-value">{{ lead?.owner_name || 'Unknown' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Phone</span>
+              <span class="info-value">{{ call.phoneNumber }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Provider</span>
+              <span class="info-value">{{ call.provider }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Call SID</span>
+              <span class="info-value mono">{{ call.callSid || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Status</span>
+              <span class="info-value">
+                <span class="status-chip"
+                      [style.background]="getStatusColor(call.status) + '20'"
+                      [style.color]="getStatusColor(call.status)">
+                  {{ getStatusLabel(call.status) }}
+                </span>
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Duration</span>
+              <span class="info-value">{{ formatDuration(call.durationSeconds) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Agent</span>
+              <span class="info-value">{{ call.assignedAdjusterName || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Outcome</span>
+              <span class="info-value" *ngIf="call.outcome">
+                <mat-icon class="outcome-icon" [style.color]="getOutcomeColor(call.outcome)">
+                  {{ getOutcomeIcon(call.outcome) }}
+                </mat-icon>
+                {{ getOutcomeLabel(call.outcome) }}
+              </span>
+              <span class="info-value text-muted" *ngIf="!call.outcome">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Started</span>
+              <span class="info-value">{{ call.startedAt ? (call.startedAt | date:'medium') : '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ended</span>
+              <span class="info-value">{{ call.endedAt ? (call.endedAt | date:'medium') : '—' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Qualification Data Card -->
+      <mat-card appearance="outlined" class="info-card" *ngIf="hasQualificationData()">
+        <mat-card-header>
+          <mat-card-title>Qualification Data</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <ng-container *ngFor="let field of qualFields">
+              <div class="info-item" *ngIf="getQualValue(call.qualificationData!, field.key) !== null">
+                <span class="info-label">
+                  <mat-icon class="qual-icon">{{ field.icon }}</mat-icon>
+                  {{ field.label }}
+                </span>
+                <span class="info-value"
+                      [class.bool-yes]="call.qualificationData![field.key] === true"
+                      [class.bool-no]="call.qualificationData![field.key] === false">
+                  <mat-icon *ngIf="call.qualificationData![field.key] === true" class="bool-icon yes">check_circle</mat-icon>
+                  <mat-icon *ngIf="call.qualificationData![field.key] === false" class="bool-icon no">cancel</mat-icon>
+                  {{ getQualValue(call.qualificationData!, field.key) }}
+                </span>
+              </div>
+            </ng-container>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Transcript Card -->
+      <mat-card appearance="outlined" class="info-card" *ngIf="call.transcriptSummary || call.transcriptUrl">
+        <mat-card-header>
+          <mat-card-title>Transcript</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p *ngIf="call.transcriptSummary" class="transcript-text">{{ call.transcriptSummary }}</p>
+          <a *ngIf="call.transcriptUrl" [href]="call.transcriptUrl" target="_blank" mat-stroked-button>
+            <mat-icon>play_circle</mat-icon> View Recording
+          </a>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Record Outcome Card (inline) -->
+      <mat-card appearance="outlined" class="info-card" *ngIf="!call.outcome || call.outcome !== selectedOutcome">
+        <mat-card-header>
+          <mat-card-title>Record Outcome</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Call Outcome</mat-label>
+            <mat-select [(ngModel)]="selectedOutcome">
+              <mat-option *ngFor="let o of outcomes" [value]="o">
+                <mat-icon [style.color]="outcomeMeta[o].color">{{ outcomeMeta[o].icon }}</mat-icon>
+                {{ outcomeMeta[o].label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Notes</mat-label>
+            <textarea matInput [(ngModel)]="outcomeNotes" rows="3" placeholder="Add notes..."></textarea>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary"
+                  [disabled]="!selectedOutcome || savingOutcome"
+                  (click)="saveOutcome()">
+            <mat-spinner *ngIf="savingOutcome" diameter="18" class="inline-spinner"></mat-spinner>
+            {{ savingOutcome ? 'Saving...' : 'Save Outcome' }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Right Column (5) -->
+    <div class="col-md-5">
+      <!-- Escalation Timeline -->
+      <mat-card appearance="outlined" class="timeline-card" *ngIf="session">
+        <mat-card-header>
+          <mat-card-title>Escalation Timeline</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="timeline">
+            <div class="timeline-item" *ngFor="let attempt of session.callAttempts; let i = index"
+                 [class.current]="attempt.id === call.id">
+              <div class="timeline-marker"
+                   [style.background]="getStatusColor(attempt.status)"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="attempt-num">Attempt #{{ i + 1 }}</span>
+                  <span class="status-chip small"
+                        [style.background]="getStatusColor(attempt.status) + '20'"
+                        [style.color]="getStatusColor(attempt.status)">
+                    {{ getStatusLabel(attempt.status) }}
+                  </span>
+                </div>
+                <div class="timeline-meta" *ngIf="attempt.outcome">
+                  <mat-icon class="outcome-icon" [style.color]="getOutcomeColor(attempt.outcome)">
+                    {{ getOutcomeIcon(attempt.outcome) }}
+                  </mat-icon>
+                  {{ getOutcomeLabel(attempt.outcome) }}
+                </div>
+                <div class="timeline-meta">
+                  <span *ngIf="attempt.durationSeconds != null">{{ formatDuration(attempt.durationSeconds) }}</span>
+                  <span *ngIf="attempt.assignedAdjusterName"> &middot; {{ attempt.assignedAdjusterName }}</span>
+                </div>
+                <div class="timeline-time">
+                  {{ attempt.startedAt ? (attempt.startedAt | date:'short') : (attempt.createdAt | date:'short') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Session Summary Card -->
+      <mat-card appearance="outlined" class="info-card" *ngIf="session">
+        <mat-card-header>
+          <mat-card-title>Session Summary</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <span class="info-label">Contact Status</span>
+              <span class="info-value">{{ getContactStatusLabel(session.contactStatus) }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="info-label">Total Attempts</span>
+              <span class="info-value">{{ session.totalAttempts }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="info-label">Escalation Level</span>
+              <span class="info-value">{{ session.escalationLevel }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="info-label">Resolved</span>
+              <span class="info-value">
+                <mat-icon [class.resolved]="session.isResolved" [class.unresolved]="!session.isResolved">
+                  {{ session.isResolved ? 'check_circle' : 'pending' }}
+                </mat-icon>
+                {{ session.isResolved ? 'Yes' : 'No' }}
+              </span>
+            </div>
+            <div class="summary-item" *ngIf="session.resolutionType">
+              <span class="info-label">Resolution</span>
+              <span class="info-value">{{ session.resolutionType }}</span>
+            </div>
+            <div class="summary-item" *ngIf="session.lastAttemptAt">
+              <span class="info-label">Last Attempt</span>
+              <span class="info-value">{{ session.lastAttemptAt | date:'medium' }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,227 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+
+  .section-title {
+    margin: 0;
+  }
+}
+
+.create-card {
+  margin-bottom: 16px;
+}
+
+.intake-card {
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+
+  mat-form-field {
+    min-width: 140px;
+    flex: 1;
+  }
+
+  .field-type {
+    flex: 0 0 180px;
+  }
+
+  .field-address {
+    flex: 2;
+    min-width: 240px;
+  }
+
+  .field-city {
+    flex: 2;
+    min-width: 160px;
+  }
+
+  .field-state {
+    flex: 0 0 200px;
+  }
+
+  .field-zip {
+    flex: 0 0 120px;
+    min-width: 120px;
+  }
+
+  .field-county {
+    flex: 1;
+    min-width: 140px;
+  }
+}
+
+.distribute-toggle {
+  margin-left: 8px;
+}
+
+.creation-result {
+  margin-top: 16px;
+
+  mat-divider {
+    margin-bottom: 12px;
+  }
+}
+
+.result-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.result-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-label {
+  color: #777;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.result-value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+
+  mat-form-field {
+    min-width: 140px;
+    max-width: 200px;
+  }
+}
+
+.record-count {
+  color: #777;
+  font-size: 13px;
+  margin-left: auto;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+// Column widths
+::ng-deep .mat-column-created_at {
+  width: 130px;
+  font-size: 12px;
+}
+
+::ng-deep .mat-column-call_type {
+  width: 100px;
+}
+
+::ng-deep .mat-column-address {
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::ng-deep .mat-column-state {
+  width: 50px;
+  text-align: center;
+}
+
+::ng-deep .mat-column-lead_ref {
+  width: 80px;
+}
+
+::ng-deep .mat-column-territory {
+  width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::ng-deep .mat-column-status {
+  width: 90px;
+  text-align: center;
+}
+
+.call-type {
+  font-weight: 600;
+}
+
+.call-type-desc {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lead-ref {
+  font-family: monospace;
+  font-weight: 600;
+  color: #1976d2;
+
+  &.clickable {
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.muted {
+  color: #bbb;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-converted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.badge-pending {
+  background: #fff8e1;
+  color: #f9a825;
+}
+
+.badge-skipped {
+  background: #fbe9e7;
+  color: #c62828;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 16px;
+  color: #999;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+  }
+}

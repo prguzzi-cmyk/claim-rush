@@ -1,0 +1,75 @@
+<h2 mat-dialog-title>Manage Collaborators</h2>
+
+<div mat-dialog-content>
+    <div *ngIf="action == 'add'">
+        <mat-form-field>
+            <mat-label>Select agent</mat-label>
+            <input *ngIf="userService.getUserPermissions('user', 'read')" type="text" matInput
+              [formControl]="assignedToControl" [matAutocomplete]="autoAssignedTo">
+            <mat-autocomplete #autoAssignedTo="matAutocomplete" [displayWith]="displayAgent"
+              (optionSelected)="onAssignedToSelected($event)">
+              <mat-option *ngFor="let agent of filteredAgents | async" [value]="agent">
+                {{ agent?.first_name }} {{ agent?.last_name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+    </div>
+    <div *ngIf="action == 'view'">
+        <div *ngIf="!dataSource.length">No collaborator found.</div>
+        <table *ngIf="dataSource.length" mat-table [dataSource]="dataSource" class="collaborators-table">
+            <ng-container matColumnDef="sn">
+                <th mat-header-cell *matHeaderCellDef>#</th>
+                <td mat-cell *matCellDef="let element; let i = index">
+                    {{
+                            (i + 1)
+                    }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="first_name">
+                <th mat-header-cell *matHeaderCellDef>First name</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.first_name }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="last_name">
+                <th mat-header-cell *matHeaderCellDef>Last name</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.last_name }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let element">
+                    {{ element.email }}
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="delete">
+                <th mat-header-cell *matHeaderCellDef>Delete</th>
+                <td mat-cell *matCellDef="let element">
+                    <div>
+                        <button
+                            mat-icon-button
+                            (click)="deleteCollaborator(element.id)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+    </div>
+</div>
+
+<div mat-dialog-actions>
+    <button mat-raised-button (click)="addCollaborators()" *ngIf="action!='add'" color="primary">Add</button>
+    <button mat-raised-button (click)="saveCollaborators()" *ngIf="action=='add'" color="primary">Save</button>
+
+    <button color="accent" mat-raised-button mat-dialog-close>Close</button>
+</div>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

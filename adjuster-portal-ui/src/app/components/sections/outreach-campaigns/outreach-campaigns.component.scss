@@ -1,0 +1,108 @@
+.outreach-container { min-height: calc(100vh - 64px); padding: 24px; }
+
+// ── Page Header ──
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px;
+  .header-text { h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.5rem; font-weight: 700; .header-icon { font-size: 28px; width: 28px; height: 28px; color: #1565c0; } }
+    .subtitle { margin: 0; font-size: 0.875rem; color: #6b7280; } }
+  .header-actions { display: flex; gap: 8px; } }
+
+.loading-container { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 60px; color: #6b7280; }
+
+// ── Stats Bar ──
+.stats-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.stat-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; background: #f3f4f6; color: #374151;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &.stat-active { background: #e8f5e9; color: #2e7d32; }
+  &.stat-done { background: #e3f2fd; color: #1565c0; }
+  &.stat-stopped { background: #fff3e0; color: #e65100; } }
+
+// ── Campaign Grid ──
+.campaign-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.campaign-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: box-shadow 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); } }
+
+.campaign-card-header { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid #f3f4f6; }
+.campaign-type-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; } }
+.campaign-info { flex: 1; min-width: 0;
+  h3 { margin: 0; font-size: 0.9rem; font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .campaign-meta { font-size: 0.72rem; color: #6b7280; } }
+.status-badge { padding: 3px 10px; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.03em; flex-shrink: 0; }
+
+.campaign-card-body { padding: 14px 18px; }
+.campaign-stat-row { display: flex; gap: 16px; margin-bottom: 6px; }
+.campaign-stat { font-size: 0.75rem; color: #6b7280; strong { color: #111827; } }
+.campaign-trigger { display: flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 0.72rem; color: #7b1fa2; font-weight: 500;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; } }
+
+.campaign-card-actions { display: flex; align-items: center; gap: 4px; padding: 8px 14px; border-top: 1px solid #f3f4f6; background: #fafafa;
+  button { mat-icon { font-size: 18px; width: 18px; height: 18px; } }
+  mat-slide-toggle { margin-left: auto; } }
+
+// ── Editor ──
+.editor-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px; margin-bottom: 16px; }
+.editor-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+.panel-card { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.panel-header { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.875rem; color: #111827;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: #1565c0; }
+  .header-badge { margin-left: auto; padding: 2px 10px; border-radius: 9999px; font-size: 0.68rem; font-weight: 600; background: #e3f2fd; color: #1565c0; }
+  .add-step-btn { margin-left: auto; mat-icon { color: #4caf50; } } }
+
+.editor-form { padding: 18px;
+  .full-width { width: 100%; }
+  .half-width { width: calc(50% - 8px); display: inline-block; &:nth-child(even) { margin-left: 16px; } } }
+
+// ── Steps Builder ──
+.steps-list { padding: 12px 18px; }
+.step-card { border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.step-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #fafafa; border-bottom: 1px solid #f3f4f6; }
+.step-number { width: 24px; height: 24px; border-radius: 50%; background: #1565c0; color: #fff; font-size: 0.7rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-channel-icon { font-size: 18px !important; width: 18px !important; height: 18px !important; }
+.step-label { font-size: 0.8rem; font-weight: 600; flex: 1; }
+.step-delay-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 600; background: #e3f2fd; color: #1565c0; }
+.step-actions { display: flex; gap: 0;
+  button { width: 28px; height: 28px; line-height: 28px; mat-icon { font-size: 16px; width: 16px; height: 16px; } } }
+.step-config { display: flex; gap: 8px; padding: 10px 14px; align-items: flex-start;
+  .step-field { flex: 1;
+    &.mat-mdc-form-field { margin-bottom: 0; }
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; } }
+  .step-field-sm { width: 100px; flex-shrink: 0;
+    &.mat-mdc-form-field { margin-bottom: 0; }
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; } } }
+.step-connector { display: flex; align-items: center; justify-content: center; padding: 4px 0;
+  .connector-line { flex: 1; height: 1px; background: #e0e0e0; }
+  .connector-icon { font-size: 16px; width: 16px; height: 16px; color: #bdbdbd; margin: 0 4px; } }
+.empty-steps { text-align: center; padding: 24px; color: #9ca3af;
+  mat-icon { font-size: 32px; width: 32px; height: 32px; opacity: 0.4; } }
+
+// ── Preview ──
+.preview-panel { margin-bottom: 16px; }
+.flow-preview { display: flex; align-items: center; gap: 0; padding: 20px; overflow-x: auto; }
+.flow-node { display: flex; align-items: center; gap: 6px; padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.78rem; font-weight: 500; white-space: nowrap; background: #fff;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  .flow-delay { font-size: 0.65rem; color: #6b7280; margin-left: 4px; }
+  &.flow-trigger { background: #f3e5f5; border-color: #7b1fa2; color: #7b1fa2; } }
+.flow-connector { width: 32px; height: 2px; background: #e0e0e0; flex-shrink: 0; }
+
+// ── Logs ──
+.logs-panel { margin-bottom: 24px; }
+.logs-list { padding: 12px 18px; }
+.log-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f3f4f6;
+  &:last-child { border-bottom: none; } }
+.log-icon { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; } }
+.log-body { flex: 1; }
+.log-header-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.log-outcome { font-size: 0.78rem; font-weight: 600; text-transform: capitalize; }
+.log-channel { font-size: 0.68rem; color: #6b7280; background: #f3f4f6; padding: 1px 6px; border-radius: 4px; }
+.log-step { font-size: 0.68rem; color: #6b7280; }
+.log-time { font-size: 0.68rem; color: #9ca3af; margin-left: auto; }
+.log-notes { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 40px; color: #9ca3af;
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.4; } }
+
+// ── Responsive ──
+@media (max-width: 1200px) { .campaign-grid { grid-template-columns: 1fr; } .editor-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .page-header { flex-direction: column; gap: 12px; } }
+@media (max-width: 600px) { .outreach-container { padding: 16px; } .step-config { flex-direction: column; } }

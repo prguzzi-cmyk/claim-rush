@@ -1,0 +1,111 @@
+<mat-sidenav-container class="fire-incidents-container">
+  <mat-sidenav
+    position="end"
+    mode="over"
+    [opened]="!!selectedIncident"
+    (closed)="closeIntelPanel()"
+  >
+    <app-property-intelligence-panel
+      [incident]="selectedIncident"
+      (closed)="closeIntelPanel()">
+    </app-property-intelligence-panel>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+  <div class="page-header">
+    <h2>
+      <mat-icon class="fire-icon">local_fire_department</mat-icon>
+      Response Intelligence Network<sup class="brand-tm">™</sup>
+    </h2>
+    <p class="subtitle">Real-time fire &amp; emergency incident data &nbsp;·&nbsp; <strong>RIN</strong></p>
+  </div>
+
+  <!-- Shared filter bar -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Agency</mat-label>
+      <mat-select [(ngModel)]="selectedAgencyId" (selectionChange)="applyFilters()">
+        <mat-option value="">All Agencies</mat-option>
+        <mat-option *ngFor="let agency of agencies" [value]="agency.id">
+          {{ agency.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Call Type</mat-label>
+      <mat-select [(ngModel)]="selectedCallType" (selectionChange)="applyFilters()">
+        <mat-option value="">All Types</mat-option>
+        <mat-optgroup label="Categories">
+          <mat-option *ngFor="let cat of categoryGroups" [value]="cat.codes">
+            {{ cat.label }}
+          </mat-option>
+        </mat-optgroup>
+        <mat-optgroup label="Individual Types">
+          <mat-option *ngFor="let ct of callTypes" [value]="ct.code">
+            {{ ct.label }}
+          </mat-option>
+        </mat-optgroup>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Date Range</mat-label>
+      <mat-select [(ngModel)]="selectedDateRange" (selectionChange)="onDateRangeChange()">
+        <mat-option *ngFor="let dr of dateRangeOptions" [value]="dr.value">
+          {{ dr.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div *ngIf="selectedDateRange === 'custom'" class="custom-date-range">
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>From</mat-label>
+        <input matInput [matDatepicker]="pickerFrom" [(ngModel)]="customDateFrom" (dateChange)="onCustomDateChange()">
+        <mat-datepicker-toggle matIconSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+        <mat-datepicker #pickerFrom></mat-datepicker>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="date-field">
+        <mat-label>To</mat-label>
+        <input matInput [matDatepicker]="pickerTo" [(ngModel)]="customDateTo" (dateChange)="onCustomDateChange()">
+        <mat-datepicker-toggle matIconSuffix [for]="pickerTo"></mat-datepicker-toggle>
+        <mat-datepicker #pickerTo></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
+      <mat-icon>clear</mat-icon> Clear
+    </button>
+  </div>
+
+  <!-- Active date range label -->
+  <div class="date-range-label">
+    <mat-icon>schedule</mat-icon>
+    <span>Showing: {{ getDateRangeLabel() }}</span>
+  </div>
+
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" animationDuration="200ms">
+    <mat-tab label="List View">
+      <ng-template matTabContent>
+        <app-fire-incidents-list
+          [filters]="currentFilters"
+          [agencies]="agencies"
+          (rowClicked)="openIntelPanel($event)"
+          (showOnMap)="focusIncidentOnMap($event)"
+          (agenciesChanged)="onAgenciesChanged()">
+        </app-fire-incidents-list>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Map View">
+      <ng-template matTabContent>
+        <app-fire-incidents-map
+          [filters]="currentFilters"
+          [focusIncident]="selectedIncident"
+          (markerClicked)="openIntelPanel($event)">
+        </app-fire-incidents-map>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+  </mat-sidenav-content>
+</mat-sidenav-container>

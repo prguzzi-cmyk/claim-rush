@@ -1,0 +1,1118 @@
+<mat-card appearance="outlined">
+    <p class="mat-headline-4 section-title">Report</p>
+
+    <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Reports</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">User Report</a></li>
+
+    </ul>
+    <mat-card-header>
+    </mat-card-header>
+    <mat-card-content>
+        <div class="row">
+            <div class="col-xs-12 col-md-6">
+                <mat-form-field class="w-100" appearance="outline" [hidden]="role != 'super-admin'">
+                    <mat-label>Enter user name to select</mat-label>
+                    <input type="text" matInput placeholder="Enter user name" [formControl]="assignedToControl"
+                        [matAutocomplete]="auto" />
+                    <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAgent"
+                        (optionSelected)="onAssignedSelected($event)">
+                        <mat-option *ngFor="
+                                let agent of filteredAssignedToAgents | async
+                            " [value]="agent">
+                            {{ agent?.first_name }} {{ agent?.last_name }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+            </div>
+        </div>
+        <!-- Leads Assigned To -->
+        <div *ngIf="dataSourceLeads?.data?.length">
+            <h5>Leads assigned to {{userName}}</h5>
+            <div class="mat-table-scroll-container">
+                <table mat-table *ngIf="dataSourceLeads?.data?.length" [dataSource]="dataSourceLeads"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorLeads?.pageIndex *
+                            paginatorLeads?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.full_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <a type="button" class="link-ref" (click)="
+                                    onLeadDetail(
+                                        lead?.id,
+                                        lead?.contact?.full_name +
+                                            '-' +
+                                            lead?.ref_string.slice(-3)
+                                    )
+                                ">{{ lead?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone_number">
+                        <th mat-header-cell *matHeaderCellDef>Phone</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.phone_number | phoneNumberFormat }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.email }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Source</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{
+                            lead.source_user
+                            ? lead.source_user?.first_name +
+                            ' ' +
+                            lead.source_user?.last_name
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Status</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.status }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.created_by?.first_name }}
+                            {{ lead.created_by?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let lead" class="expiry-date-cell">
+                            {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let lead" class="last-active-cell">
+                            <span *ngIf="!lead.updated_at">-</span>{{ lead.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef>Edit</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <button mat-icon-button [disabled]="
+                                    !userService.getUserPermissions(
+                                        'lead',
+                                        'update'
+                                    )
+                                " (click)="editLead(lead.id)" matTooltip="Edit {{ lead.first_name }} {{
+                                    lead.last_name
+                                }}">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="delete">
+                        <th mat-header-cell *matHeaderCellDef>Delete</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <div>
+                                <button mat-icon-button color="warn" [disabled]="
+                                        !lead.can_be_removed ||
+                                        !!+lead.is_removed
+                                    " (click)="openLeadDeleteDialog(lead.id)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsLeads"></tr>
+                    <tr mat-row *matRowDef="let lead; columns: displayedColumnsLeads" [ngClass]="{
+                            green: lead.status == 'signed-approved'
+                        }"></tr>
+                </table>
+
+                <mat-paginator #paginatorLeads [style.visibility]="
+                        dataSourceLeads?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    " [length]="this.leadPaginationData.totalRecords" (page)="changePage($event, 'leadsByAssignedTo')"
+                    showFirstLastButtons [pageSize]="this.leadPaginationData.pageSize"
+                    [pageSizeOptions]="pageSizeOptions">
+                </mat-paginator>
+            </div>
+
+            <div class="row" [style.visibility]="
+                    dataSourceLeads?.data?.length <= 0 ? 'hidden' : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary"
+                        (click)="downloadExcel(dataSourceLeads?.data, 'leads')">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary"
+                        (click)="downloadCsv(dataSourceLeads?.data, 'leads')">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads Source By -->
+        <div *ngIf="dataSourceLeadsSource?.data?.length">
+            <p>&nbsp;</p>
+            <h5>Leads source by {{userName}}</h5>
+            <div class="mat-table-scroll-container">
+                <table mat-table *ngIf="dataSourceLeadsSource?.data?.length" [dataSource]="dataSourceLeadsSource"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorLeadsSource?.pageIndex *
+                            paginatorLeadsSource?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.full_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <a type="button" class="link-ref" (click)="
+                                    onLeadDetail(
+                                        lead?.id,
+                                        lead?.contact?.full_name +
+                                            '-' +
+                                            lead?.ref_string.slice(-3)
+                                    )
+                                ">{{ lead?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone_number">
+                        <th mat-header-cell *matHeaderCellDef>Phone</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.phone_number | phoneNumberFormat }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.email }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Source</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{
+                            lead.source_user?.first_name +
+                            ' ' +
+                            lead.source_user?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Status</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.status }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.created_by?.first_name }}
+                            {{ lead.created_by?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let lead" class="expiry-date-cell">
+                            {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let lead" class="last-active-cell">
+                            <span *ngIf="!lead.updated_at">-</span>{{ lead.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef>Edit</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <button mat-icon-button [disabled]="
+                                    !userService.getUserPermissions(
+                                        'lead',
+                                        'update'
+                                    )
+                                " (click)="editLead(lead.id)" matTooltip="Edit {{ lead.first_name }} {{
+                                    lead.last_name
+                                }}">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="delete">
+                        <th mat-header-cell *matHeaderCellDef>Delete</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <div>
+                                <button mat-icon-button color="warn" [disabled]="
+                                        !lead.can_be_removed ||
+                                        !!+lead.is_removed
+                                    " (click)="openLeadDeleteDialog(lead.id)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsLeads"></tr>
+                    <tr mat-row *matRowDef="let lead; columns: displayedColumnsLeads" [ngClass]="{
+                            green: lead.status == 'signed-approved'
+                        }"></tr>
+                </table>
+            </div>
+
+            <mat-paginator #paginatorLeadsSource [style.visibility]="
+                    dataSourceLeadsSource?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                " [length]="this.leadSourcePaginationData.totalRecords" (page)="changePage($event, 'leadsBySource')"
+                showFirstLastButtons [pageSize]="this.leadSourcePaginationData.pageSize"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceLeadsSource?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadExcel(dataSourceLeadsSource?.data, 'leads')
+                        ">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadCsv(dataSourceLeadsSource?.data, 'leads')
+                        ">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clients assigned to -->
+        <div *ngIf="dataSourceClients?.data?.length">
+            <p>&nbsp;</p>
+            <h5>Clients assigned to {{userName}}</h5>
+            <div class="mat-table-scroll-container">
+                <table mat-table *ngIf="dataSourceClients?.data?.length" [dataSource]="dataSourceClients"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginator?.pageIndex * paginator?.pageSize + (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let client">
+                            <a type="button" class="link-ref" (click)="
+                                onClientDetail(
+                                    client?.id,
+                                    client?.full_name +
+                                        '-' +
+                                        client?.ref_string.slice(-3)
+                                )
+                            ">{{ client?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name">
+                        <th mat-header-cell *matHeaderCellDef>Full name</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client)">
+                            {{ client?.full_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name_alt">
+                        <th mat-header-cell *matHeaderCellDef>Alternate name</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client)">
+                            {{ client?.full_name_alt }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone_number">
+                        <th mat-header-cell *matHeaderCellDef>Phone</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client)">
+                            {{ client?.phone_number }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client)">
+                            {{ client?.email }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client)">
+                            {{
+                            client.created_by?.first_name +
+                            ' ' +
+                            client.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let client" class="expiry-date-cell">
+                            {{ client.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let client" (click)="viewClient(client.id)" class="last-active-cell">
+                            <span *ngIf="!client.updated_at">-</span>{{ client.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClients"></tr>
+                    <tr mat-row *matRowDef="
+                        let client;
+                        columns: displayedColumnsClients
+                    "></tr>
+                </table>
+            </div>
+            <mat-paginator [style.visibility]="
+                    this.clientPaginationData.total <= 0 ? 'hidden' : 'visible'
+                " #paginator [length]="this.clientPaginationData.totalRecords" (page)="changePage($event, 'client')"
+                showFirstLastButtons [pageSize]="this.clientPaginationData.pageSize"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceClients?.data?.length <= 0 ? 'hidden' : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="downloadExcel(this.clients, 'clients')">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="downloadCsv(this.clients, 'clients')">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims assigned to -->
+        <div *ngIf="dataSourceClaims?.data?.length > 0">
+            <p>&nbsp;</p>
+            <h5>Claims assigned to {{userName}}</h5>
+            <div class="mat-table-scroll-container">
+                <table mat-table [dataSource]="dataSourceClaims" *ngIf="dataSourceClaims?.data?.length > 0"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorClaims?.pageIndex *
+                            paginatorClaims?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            <a type="button" class="link-ref" (click)="
+                                    onClaimDetail(
+                                        claim?.id,
+                                        claim?.client?.full_name +
+                                            '-' +
+                                            claim?.ref_string.slice(-3)
+                                    )
+                                ">{{ claim?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.claim_number ? claim?.claim_number : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.policy_number
+                            ? claim?.policy_number
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref" (click)="
+                                    onClientDetail(
+                                        claim?.client_id,
+                                        claim?.client?.full_name
+                                    )
+                                ">{{ claim?.client?.full_name }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phase">
+                        <th mat-header-cell *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Sourced by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.source_user?.first_name }}
+                            {{ claim?.source_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="signed_by">
+                        <th mat-header-cell *matHeaderCellDef>Signed by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.signed_by_user?.first_name }}
+                            {{ claim?.signed_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjusted_by">
+                        <th mat-header-cell *matHeaderCellDef>Adjusted by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.adjusted_by_user?.first_name }}
+                            {{ claim?.adjusted_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assigned_to">
+                        <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.assigned_user?.first_name }}
+                            {{ claim?.assigned_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let claim" class="expiry-date-cell">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let claim" class="last-active-cell">
+                            <span *ngIf="!claim.updated_at">-</span>{{ claim.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr mat-row *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+            </div>
+
+            <mat-paginator #paginatorClaims [style.visibility]="
+                    dataSourceClaims?.data?.length <= 0 ? 'hidden' : 'visible'
+                " [length]="this.claimPaginationData.totalRecords" (page)="changePage($event, 'claim')"
+                showFirstLastButtons [pageSize]="this.claimPaginationData.pageSize" [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceClaims?.data?.length <= 0 ? 'hidden' : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="downloadExcel(this.claims, 'claims')">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="downloadCsv(this.claims, 'claims')">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims source -->
+        <div *ngIf="dataSourceClaimsSource?.data?.length > 0">
+            <p>&nbsp;</p>
+            <h5>Claims source by {{userName}}</h5>
+            <div class="mat-table-scroll-container">
+                <table mat-table [dataSource]="dataSourceClaimsSource" *ngIf="dataSourceClaimsSource?.data?.length > 0"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorClaimsSource?.pageIndex *
+                            paginatorClaimsSource?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            <a type="button" class="link-ref" (click)="
+                                    onClaimDetail(
+                                        claim?.id,
+                                        claim?.client?.full_name +
+                                            '-' +
+                                            claim?.ref_string.slice(-3)
+                                    )
+                                ">{{ claim?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.claim_number ? claim?.claim_number : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.policy_number
+                            ? claim?.policy_number
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref" (click)="
+                                    onClientDetail(
+                                        claim?.client_id,
+                                        claim?.client?.full_name
+                                    )
+                                ">{{ claim?.client?.full_name }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phase">
+                        <th mat-header-cell *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Sourced by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.source_user?.first_name }}
+                            {{ claim?.source_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="signed_by">
+                        <th mat-header-cell *matHeaderCellDef>Signed by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.signed_by_user?.first_name }}
+                            {{ claim?.signed_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjusted_by">
+                        <th mat-header-cell *matHeaderCellDef>Adjusted by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.adjusted_by_user?.first_name }}
+                            {{ claim?.adjusted_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assigned_to">
+                        <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.assigned_user?.first_name }}
+                            {{ claim?.assigned_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let claim" class="expiry-date-cell">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let claim" class="last-active-cell">
+                            <span *ngIf="!claim.updated_at">-</span>{{ claim.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr mat-row *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+            </div>
+            <mat-paginator #paginatorClaimsSource [style.visibility]="
+                    dataSourceClaimsSource?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                " [length]="this.claimSourcePaginationData.totalRecords" (page)="changePage($event, 'claimBySource')"
+                showFirstLastButtons [pageSize]="this.claimSourcePaginationData.pageSize"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceClaimsSource?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadExcel(
+                                dataSourceClaimsSource?.data,
+                                'claims'
+                            )
+                        ">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadCsv(dataSourceClaimsSource?.data, 'claims')
+                        ">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims signed by -->
+        <div *ngIf="dataSourceClaimsSigned?.data?.length > 0">
+            <p>&nbsp;</p>
+            <h5>Claims signed by {{userName}}</h5>
+
+            <p *ngIf="dataSourceClaimsSigned?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div class="mat-table-scroll-container">
+                <table mat-table [dataSource]="dataSourceClaimsSigned" *ngIf="dataSourceClaimsSigned?.data?.length > 0"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorClaimsSigned?.pageIndex *
+                            paginatorClaimsSigned?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            <a type="button" class="link-ref" (click)="
+                                    onClaimDetail(
+                                        claim?.id,
+                                        claim?.client?.full_name +
+                                            '-' +
+                                            claim?.ref_string.slice(-3)
+                                    )
+                                ">{{ claim?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.claim_number ? claim?.claim_number : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.policy_number
+                            ? claim?.policy_number
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref" (click)="
+                                    onClientDetail(
+                                        claim?.client_id,
+                                        claim?.client?.full_name
+                                    )
+                                ">{{ claim?.client?.full_name }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phase">
+                        <th mat-header-cell *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Sourced by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.source_user?.first_name }}
+                            {{ claim?.source_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="signed_by">
+                        <th mat-header-cell *matHeaderCellDef>Signed by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.signed_by_user?.first_name }}
+                            {{ claim?.signed_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjusted_by">
+                        <th mat-header-cell *matHeaderCellDef>Adjusted by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.adjusted_by_user?.first_name }}
+                            {{ claim?.adjusted_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assigned_to">
+                        <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.assigned_user?.first_name }}
+                            {{ claim?.assigned_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let claim" class="expiry-date-cell">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let claim" class="last-active-cell">
+                            <span *ngIf="!claim.updated_at">-</span>{{ claim.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr mat-row *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+            </div>
+            <mat-paginator #paginatorClaimsSigned [style.visibility]="
+                    dataSourceClaimsSigned?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                " [length]="this.claimSignedPaginationData.totalRecords" (page)="changePage($event, 'claimBySigned')"
+                showFirstLastButtons [pageSize]="this.claimSignedPaginationData.pageSize"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceClaimsSigned?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadExcel(
+                                dataSourceClaimsSigned?.data,
+                                'claims'
+                            )
+                        ">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadCsv(dataSourceClaimsSigned?.data, 'claims')
+                        ">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Claims adjusted by -->
+        <div *ngIf="dataSourceClaimsAdjust?.data?.length > 0">
+            <p>&nbsp;</p>
+            <h5>Claims adjusted by {{userName}}</h5>
+
+            <p *ngIf="dataSourceClaimsAdjust?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div class="mat-table-scroll-container">
+                <table mat-table [dataSource]="dataSourceClaimsAdjust" *ngIf="dataSourceClaimsAdjust?.data?.length > 0"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>#</th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorClaimsAdjust?.pageIndex *
+                            paginatorClaimsAdjust?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            <a type="button" class="link-ref" (click)="
+                                    onClaimDetail(
+                                        claim?.id,
+                                        claim?.client?.full_name +
+                                            '-' +
+                                            claim?.ref_string.slice(-3)
+                                    )
+                                ">{{ claim?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.claim_number ? claim?.claim_number : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.policy_number
+                            ? claim?.policy_number
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref" (click)="
+                                    onClientDetail(
+                                        claim?.client_id,
+                                        claim?.client?.full_name
+                                    )
+                                ">{{ claim?.client?.full_name }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phase">
+                        <th mat-header-cell *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Sourced by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.source_user?.first_name }}
+                            {{ claim?.source_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="signed_by">
+                        <th mat-header-cell *matHeaderCellDef>Signed by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.signed_by_user?.first_name }}
+                            {{ claim?.signed_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjusted_by">
+                        <th mat-header-cell *matHeaderCellDef>Adjusted by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.adjusted_by_user?.first_name }}
+                            {{ claim?.adjusted_by_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assigned_to">
+                        <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.assigned_user?.first_name }}
+                            {{ claim?.assigned_user?.last_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let claim" class="expiry-date-cell">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td mat-cell *matCellDef="let claim" class="last-active-cell">
+                            <span *ngIf="!claim.updated_at">-</span>{{ claim.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr mat-row *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+            </div>
+            <mat-paginator #paginatorClaimsAdjust [style.visibility]="
+                    dataSourceClaimsAdjust?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                " [length]="this.claimAdjustPaginationData.totalRecords" (page)="changePage($event, 'claimByAdjust')"
+                showFirstLastButtons [pageSize]="this.claimAdjustPaginationData.pageSize"
+                [pageSizeOptions]="pageSizeOptions">
+            </mat-paginator>
+
+            <div class="row" [style.visibility]="
+                    dataSourceClaimsAdjust?.data?.length <= 0
+                        ? 'hidden'
+                        : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadExcel(
+                                dataSourceClaimsAdjust?.data,
+                                'claims'
+                            )
+                        ">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="
+                            downloadCsv(dataSourceClaimsAdjust?.data, 'claims')
+                        ">
+                        <mat-icon>download</mat-icon>CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </mat-card-content>
+
+    <mat-card-actions> </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

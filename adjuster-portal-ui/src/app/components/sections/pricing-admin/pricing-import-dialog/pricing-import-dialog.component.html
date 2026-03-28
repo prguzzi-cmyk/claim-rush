@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>Import Items into "{{ version.version_label }}"</h2>
+
+<mat-dialog-content>
+  <div class="import-content">
+    <!-- File picker -->
+    <div class="file-picker">
+      <button mat-stroked-button (click)="fileInput.click()" [disabled]="importing">
+        <mat-icon>upload_file</mat-icon>
+        {{ selectedFile ? selectedFile.name : 'Choose CSV File' }}
+      </button>
+      <input #fileInput type="file" accept=".csv" (change)="onFileSelected($event)" hidden>
+    </div>
+
+    <p class="hint">
+      CSV must have columns: <code>code</code>, <code>category</code>, <code>description</code>,
+      <code>unit</code>, <code>base_cost</code>, <code>labor_cost</code>, <code>material_cost</code>
+    </p>
+
+    <!-- Preview -->
+    <div class="preview" *ngIf="previewRows.length > 0">
+      <h4>Preview (first {{ previewRows.length }} rows)</h4>
+      <div class="preview-scroll">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of previewColumns">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of previewRows">
+              <td *ngFor="let col of previewColumns">{{ row[col] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Upload progress -->
+    <mat-progress-bar *ngIf="importing" mode="determinate" [value]="uploadProgress"></mat-progress-bar>
+
+    <!-- Import result -->
+    <div class="import-result" *ngIf="importResult">
+      <div class="result-success" *ngIf="importResult.imported > 0">
+        Successfully imported {{ importResult.imported }} of {{ importResult.total_rows }} rows.
+      </div>
+      <div class="result-errors" *ngIf="importResult.errors.length > 0">
+        <strong>{{ importResult.errors.length }} errors:</strong>
+        <ul>
+          <li *ngFor="let err of importResult.errors">{{ err }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">{{ importResult ? 'Done' : 'Cancel' }}</button>
+  <button mat-raised-button color="primary" (click)="doImport()"
+          [disabled]="!selectedFile || importing"
+          *ngIf="!importResult">
+    {{ importing ? 'Importing...' : 'Import' }}
+  </button>
+</mat-dialog-actions>

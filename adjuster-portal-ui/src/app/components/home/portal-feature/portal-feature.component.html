@@ -1,0 +1,35 @@
+<div
+  *ngIf="screenSize == 'xl'"
+  class="portal-feature-card card-{{ portalFeature.id }} card-{{
+    portalFeature.position
+  }} screen-xl"
+>
+  <div class="card-content">
+    <mat-icon class="card-icon">{{ portalFeature.icon }}</mat-icon>
+
+    <div class="block-right">
+      <h5 class="card-title">{{ portalFeature?.name }}</h5>
+
+      <button (click)="handleClick(portalFeature)" class="card-btn">
+        Learn More
+      </button>
+    </div>
+  </div>
+
+  <div #circlesContainer class="pulse-circles-container d-none d-xl-block">
+    <div style="--index: 0" class="pulse-circle circle-one"></div>
+    <div style="--index: 1" class="pulse-circle two"></div>
+  </div>
+</div>
+
+<div *ngIf="screenSize == 'xs'" class="portal-feature-card screen-xs">
+  <div class="card-header">
+    <mat-icon class="card-icon">{{ portalFeature.icon }}</mat-icon>
+
+    <h5 class="card-title">{{ portalFeature?.name }}</h5>
+  </div>
+
+  <p class="card-description">
+    {{ portalFeature.description }}
+  </p>
+</div>

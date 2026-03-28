@@ -1,0 +1,89 @@
+
+<mat-card appearance="outlined" *ngxPermissionsOnly="['super-admin']">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">Policies</p>
+<ul class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+  </li>
+  <li class="breadcrumb-item"><a href="javascript:">Administration</a>
+  </li>
+  <li class="breadcrumb-item"><a href="javascript:">Policies</a>
+  </li>
+</ul>
+    </div>
+    <div class="col-2 text-end">
+      <button mat-mini-fab matTooltip="Add a user policy" color="primary" (click)="openPolicyAddDialog()"><mat-icon>add</mat-icon></button>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <table mat-table [dataSource]="dataSource" class="policies-table">
+
+      <ng-container matColumnDef="sn">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+        <td mat-cell *matCellDef="let element; let i = index;">{{ ((pageIndex - 1) * pageSize) + (i + 1) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="first_name">
+        <th mat-header-cell *matHeaderCellDef>First name</th>
+        <td mat-cell *matCellDef="let element" (click)="openPolicyViewDialog(element)">
+          {{element.user.first_name}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="last_name">
+        <th mat-header-cell *matHeaderCellDef>Last name</th>
+        <td mat-cell *matCellDef="let element" (click)="openPolicyViewDialog(element)">
+          {{element.user.last_name}}</td>
+      </ng-container>
+
+
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created</th>
+        <td mat-cell *matCellDef="let element" (click)="openPolicyViewDialog(element)">{{element.created_at |
+          date: 'MMMM dd, yyyy'}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="updated_at">
+        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+        <td mat-cell *matCellDef="let element" class="last-active-cell"><span
+            *ngIf="!element.updated_at">-</span>{{element.updated_at | date: 'MMMM dd, yyyy'}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button [disabled]="!!+element.is_removed"
+            (click)="openPolicyEditDialog(element)"
+            matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Delete</th>
+        <td mat-cell *matCellDef="let element">
+          <div>
+            <button mat-icon-button
+              (click)="openPolicyDeleteDialog(element)"><mat-icon>delete</mat-icon></button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+
+
+    <app-paginator [style.visibility]="totalRecords <= 0 ? 'hidden' : 'visible'" #paginator [totalItems]="totalRecords"  (pageChange)="onPageChange($event)"></app-paginator>
+
+
+  </mat-card-content>
+
+  <mat-card-actions>
+  </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+

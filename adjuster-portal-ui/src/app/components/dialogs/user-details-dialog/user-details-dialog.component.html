@@ -1,0 +1,426 @@
+<h2 mat-dialog-title>
+  {{
+  type == "add"
+  ? "Add user"
+  : type == "view"
+  ? this.user.first_name + ' ' + this.user.last_name
+  : type == "delete"
+  ? "Delete user"
+  : "Edit"
+  }}
+</h2>
+
+<!-- <p>{{ userForm.valid | json }}</p>
+<p>{{ userForm.value | json }}</p>
+<p>myForm status: {{ userForm.status | json }}</p> -->
+
+<div mat-dialog-content *ngIf="this.type != 'view' && this.type != 'delete'">
+  <form [formGroup]="userForm" class="user-form">
+    <mat-form-field appearance="outline">
+      <mat-label>First name</mat-label>
+      <input matInput placeholder="First name" formControlName="firstName" name="firstName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Last name</mat-label>
+      <input matInput placeholder="Last name" formControlName="lastName" name="lastName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput placeholder="Email" formControlName="userEmail" name="userEmail" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput placeholder="Phone number" formControlName="phoneNumber" mask='(000) 000-0000'
+        name="phoneNumber" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone number extension</mat-label>
+      <input matInput placeholder="Phone number extension" formControlName="phoneNumberExtension" max="5"
+        name="phoneNumberExtension" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Address</mat-label>
+      <input matInput placeholder="Address" formControlName="address" name="address" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput placeholder="City" formControlName="city" name="city" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>State</mat-label>
+      <input matInput placeholder="State" formControlName="state" name="state" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Zip code</mat-label>
+      <input matInput placeholder="Zip code" formControlName="zipCode" name="zipCode" autocomplete="doNotAutoComplete" />
+    </mat-form-field>
+
+      <mat-form-field appearance="outline">
+          <mat-label>MLM parent (optional)</mat-label>
+          <mat-select (selectionChange)="changeMLMParent($event.value)" formControlName="parentId" name="parentId" placeholder="Select MLM Parent">
+              <mat-option *ngFor="let upaUser of mlmParentUsers" [value]="upaUser.id">
+                  {{ upaUser.first_name }}  {{ upaUser.last_name }}
+              </mat-option>
+          </mat-select>
+      </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="!updateProfile">
+      <mat-label>User role</mat-label>
+      <mat-select (selectionChange)="changeRole($event.value)" formControlName="role" placeholder="User role"
+        name="role">
+        <mat-option *ngFor="let role of roles" [value]="role.id">
+          {{ role.display_name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Select manager (optional)</mat-label>
+      <input type="text" matInput placeholder="Select source by" [formControl]="managerControl" [matAutocomplete]="auto">
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onLeadSourceSelected($event)">
+        <mat-option *ngFor="let agent of filteredAgents | async" [value]="agent">
+          {{ agent?.first_name }} {{ agent?.last_name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Operating Mode</mat-label>
+      <mat-select formControlName="operatingMode" name="operatingMode">
+        <mat-option value="neutral">Neutral (RIN Standard)</mat-option>
+        <mat-option value="aci">ACI Adjuster Mode</mat-option>
+        <mat-option value="upa">UPA Advocacy Mode</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="!updateProfile">
+      <mat-label>Password</mat-label>
+      <input matInput placeholder="Password" formControlName="userPassword" name="userPassword"
+      value=""  autocomplete="new-password"
+        [type]="visible ? 'text' : 'password'" [required]="type == 'add'" />
+      <mat-icon matSuffix (click)="visible = !visible">{{
+        visible ? "visibility" : "visibility_off"
+        }}</mat-icon>
+    </mat-form-field>
+
+    <!-- <button mat-icon-button matTooltip="Generate password" (click)="generatePassword()" *ngIf="!updateProfile">
+      <mat-icon>vpn_key</mat-icon> Generate password
+    </button> -->
+
+    <mat-checkbox formControlName="isActive" name="isActive" value="1" *ngIf="!updateProfile">Activate
+      user</mat-checkbox>
+    <br />
+  </form>
+</div>
+
+<div mat-dialog-content *ngIf="this.type == 'delete'">
+  Are you sure you want to delete this user?
+  <p></p>
+</div>
+
+<div mat-dialog-content *ngIf="this.type == 'view'">
+
+  <mat-tab-group>
+    <mat-tab>
+      <ng-template mat-tab-label>Account details</ng-template>
+
+      <div class="row">
+        <div class="col-sm-6">
+          <dl class="row">
+            <dt class="col-sm-12">First name</dt>
+            <dd class="col-sm-12">{{ this.user.first_name }}</dd>
+
+            <dt class="col-sm-12">Last name</dt>
+            <dd class="col-sm-12">{{ this.user.last_name }}</dd>
+
+            <dt class="col-sm-12">Email</dt>
+            <dd class="col-sm-12">{{ this.user.email }}</dd>
+
+            <dt class="col-sm-12">Phone</dt>
+            <dd class="col-sm-12">
+              {{
+              this.user.user_meta.phone_number | phoneNumberFormat
+              }} {{
+              this.user.user_meta.phone_number_extension ? 'x' + this.user.user_meta.phone_number_extension : ''
+              }}
+            </dd>
+
+            <dt class="col-sm-12">User status</dt>
+            <dd class="col-sm-12">
+              {{ this.user.is_active ? "Active" : "Inactive" }}
+            </dd>
+
+            <dt class="col-sm-12">Creation date</dt>
+            <dd class="col-sm-12">
+              {{ this.user.created_at | date : "MMMM dd, yyyy" }}
+            </dd>
+          </dl>
+        </div>
+        <div class="col-sm-6">
+          <dl class="row">
+            <dt class="col-sm-12">Role</dt>
+            <dd class="col-sm-12">{{ this.user.role.name }}</dd>
+
+            <dt class="col-sm-12">Address</dt>
+            <dd class="col-sm-12">
+              {{ this.user.user_meta.address ? this.user.user_meta.address : "-" }}
+            </dd>
+
+            <dt class="col-sm-12">City</dt>
+            <dd class="col-sm-12">
+              {{ this.user.user_meta.city ? this.user.user_meta.city : "-" }}
+            </dd>
+
+            <dt class="col-sm-12">State</dt>
+            <dd class="col-sm-12">
+              {{ this.user.user_meta.state ? this.user.user_meta.state : "-" }}
+            </dd>
+
+            <dt class="col-sm-12">Zip code</dt>
+            <dd class="col-sm-12">
+              {{
+              this.user.user_meta.zip_code ? this.user.user_meta.zip_code : "-"
+              }}
+            </dd>
+
+            <dt class="col-sm-12">Last modified</dt>
+            <dd class="col-sm-12">
+              {{
+              this.user.updated_at
+              ? (this.user.updated_at | date : "MMMM dd, yyyy")
+              : "-"
+              }}
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>Policies</ng-template>
+
+
+      <table mat-table [dataSource]="dataSourcePolicies" class="permissions-table">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index;">{{ (paginatorPolicies.pageIndex *
+            paginatorPolicies.pageSize) + (i + 1) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef>User</th>
+          <td mat-cell *matCellDef="let element">
+            {{element.user.first_name}} {{element.user.last_name}}</td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Created at</th>
+          <td mat-cell *matCellDef="let element">{{element.created_at |
+            date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_by">
+          <th mat-header-cell *matHeaderCellDef>Created by</th>
+          <td mat-cell *matCellDef="let element" class="last-active-cell">{{element.created_by.first_name}}
+            {{element.created_by.last_name}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <th mat-header-cell *matHeaderCellDef>Delete</th>
+          <td mat-cell *matCellDef="let element">
+            <div>
+              <button mat-icon-button [disabled]="!element.can_be_removed || !!+element.is_removed"
+                (click)="openPoliciyDeleteDialog(element)"><mat-icon>delete</mat-icon></button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumnsPolicies"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnsPolicies;"></tr>
+      </table>
+
+      <mat-paginator [style.visibility]="dataSourcePolicies.length <= 0 ? 'hidden' : 'visible'" #paginatorPolicies
+        [length]="dataSourcePolicies ? dataSourcePolicies.length : 0" [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions">
+      </mat-paginator>
+
+
+
+
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>Permissions</ng-template>
+
+      <table mat-table [dataSource]="dataSource" class="permissions-table">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index;">{{ (paginator.pageIndex * paginator.pageSize) + (i + 1)
+            }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="module">
+          <th mat-header-cell *matHeaderCellDef>Module name</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.module.replace('_',' ') | titlecase}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Display name</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">{{permission.name}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="operation">
+          <th mat-header-cell *matHeaderCellDef>Operation</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.operation}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.created_at |
+            date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="updated_at">
+          <th mat-header-cell *matHeaderCellDef>Last updated</th>
+          <td mat-cell *matCellDef="let permission" class="last-active-cell"><span
+              *ngIf="!permission.updated_at">-</span>{{permission.updated_at | date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="edit">
+          <th mat-header-cell *matHeaderCellDef>Edit</th>
+          <td mat-cell *matCellDef="let permission">
+            <button mat-icon-button [disabled]="!!+permission.is_removed" (click)="openPermissionEditDialog(permission)"
+              matTooltip="Edit {{permission.display_name}}"><mat-icon>edit</mat-icon></button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <th mat-header-cell *matHeaderCellDef>Delete</th>
+          <td mat-cell *matCellDef="let permission">
+            <div>
+              <button mat-icon-button [disabled]="!permission.can_be_removed || !!+permission.is_removed"
+                (click)="openPermissionDeleteDialog(permission)"><mat-icon>delete</mat-icon></button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator [style.visibility]="permissions.length <= 0 ? 'hidden' : 'visible'" #paginator
+        [length]="totalPermissions" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions">
+      </mat-paginator>
+
+    </mat-tab>
+    <mat-tab>
+      <ng-template mat-tab-label>Territories</ng-template>
+
+      <div class="row" style="margin-bottom: 10px; margin-top: 10px;">
+        <div class="col-sm-8">
+          <mat-checkbox [checked]="nationalAccess" (change)="toggleNationalAccess()" color="primary">
+            National Access (bypasses territory filtering)
+          </mat-checkbox>
+        </div>
+        <div class="col-sm-4 text-end">
+          <button mat-mini-fab matTooltip="Assign territories" color="primary" (click)="openAssignTerritoriesDialog()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="territoriesLoading" style="text-align: center; padding: 20px;">
+        <mat-spinner diameter="40" style="margin: 0 auto;"></mat-spinner>
+      </div>
+
+      <div *ngIf="!territoriesLoading && userTerritories.length === 0" style="padding: 10px;">
+        <p>No territories assigned.</p>
+      </div>
+
+      <table mat-table [dataSource]="userTerritories" class="permissions-table"
+        *ngIf="!territoriesLoading && userTerritories.length > 0">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index;">{{i + 1}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let t">{{t.name}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="territory_type">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let t">{{t.territory_type | titlecase}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef>State</th>
+          <td mat-cell *matCellDef="let t">{{t.state || '-'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="remove">
+          <th mat-header-cell *matHeaderCellDef>Remove</th>
+          <td mat-cell *matCellDef="let t">
+            <button mat-icon-button color="warn" (click)="removeTerritory(t)" matTooltip="Remove territory">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumnsTerritories"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnsTerritories;"></tr>
+      </table>
+
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" (click)="addUser()" [disabled]="!userForm.valid || userFormDisabled"
+    *ngIf="type == 'add'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="userFormDisabled"></mat-spinner>
+    </div>
+    Add user
+  </button>
+  <button mat-raised-button color="primary" (click)="saveUser()" [disabled]="!userForm.valid || userFormDisabled"
+    [hidden]="updateProfile" *ngIf="type == 'edit'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="userFormDisabled"></mat-spinner>
+    </div>
+    Save user
+  </button>
+
+  <button mat-raised-button color="primary" (click)="updateUserProfile()"
+    [disabled]="!userForm.valid || userFormDisabled" [hidden]="!updateProfile" *ngIf="type == 'edit'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="userFormDisabled"></mat-spinner>
+    </div>
+    Save profile
+  </button>
+
+  <button mat-raised-button color="warn" [disabled]="!user.can_be_removed" (click)="deleteUser(user.id)"
+    *ngIf="type == 'delete'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="userFormDisabled"></mat-spinner>
+    </div>
+    Yes, delete this user
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

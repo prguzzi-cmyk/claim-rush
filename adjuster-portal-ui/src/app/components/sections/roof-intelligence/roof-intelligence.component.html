@@ -1,0 +1,1555 @@
+<mat-sidenav-container class="roof-container">
+  <!-- Property Intelligence Side Panel -->
+  <mat-sidenav
+    position="end"
+    mode="over"
+    [opened]="propertyPanelOpen"
+    (closed)="closePropertyPanel()"
+  >
+    <div class="property-panel" *ngIf="selectedProperty">
+      <div class="property-panel-header">
+        <h3>
+          <mat-icon>home_work</mat-icon>
+          Property Intelligence
+        </h3>
+        <button mat-icon-button (click)="closePropertyPanel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Compliance Banner -->
+      <div class="compliance-banner" *ngIf="selectedProperty && !checkLicensingCompliance(selectedProperty).compliant">
+        <mat-icon>gpp_bad</mat-icon>
+        <div class="compliance-banner-text">
+          <strong>Not Licensed</strong>
+          <span>{{ checkLicensingCompliance(selectedProperty).reason }}</span>
+        </div>
+      </div>
+
+      <!-- Roof Score Card -->
+      <div class="property-score-card">
+        <div class="score-ring" [style.border-color]="getDamageColor(selectedProperty.probabilityTier)">
+          <span class="score-value">{{ selectedProperty.roofScore }}</span>
+          <span class="score-unit">/100</span>
+        </div>
+        <div class="score-info">
+          <span class="score-label">Roof Probability Score</span>
+          <span
+            class="score-badge"
+            [style.background]="getDamageColor(selectedProperty.probabilityTier)"
+          >
+            {{ getTierLabel(selectedProperty.probabilityTier) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Opportunity Score Pill -->
+      <div class="opportunity-score-row">
+        <span class="opportunity-label">Opportunity Score</span>
+        <span
+          class="opportunity-score-pill"
+          [style.background]="getOpportunityScoreColor(selectedProperty.opportunityScore)"
+        >
+          {{ selectedProperty.opportunityScore | uppercase }}
+        </span>
+      </div>
+
+      <!-- Lead Pipeline (70+ score) -->
+      <div class="lead-pipeline-section" *ngIf="selectedProperty.roofScore >= 70">
+        <span class="section-label">
+          <mat-icon class="section-icon">local_shipping</mat-icon>
+          Lead Pipeline
+        </span>
+        <div class="lead-pipeline-row">
+          <span
+            class="lead-pipeline-badge"
+            [class.queued]="selectedProperty.leadPipelineStatus === 'queued'"
+            [class.sent]="selectedProperty.leadPipelineStatus === 'sent'"
+          >
+            {{ selectedProperty.leadPipelineStatus | uppercase }}
+          </span>
+          <button
+            mat-stroked-button
+            class="send-pipeline-btn"
+            *ngIf="selectedProperty.leadPipelineStatus !== 'sent'"
+            (click)="sendToLeadPipeline(selectedProperty)"
+          >
+            <mat-icon>send</mat-icon> Send to Pipeline
+          </button>
+        </div>
+      </div>
+
+      <!-- Address -->
+      <div class="property-section">
+        <span class="section-label">
+          <mat-icon class="section-icon">location_on</mat-icon>
+          Property Address
+          <span class="address-quality-badge" style="margin-left: 8px;"
+            [style.background]="selectedProperty.addressQuality === 'resolved' ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)'"
+            [style.color]="selectedProperty.addressQuality === 'resolved' ? '#16a34a' : '#d97706'"
+          >{{ selectedProperty.addressQuality === 'resolved' ? 'RESOLVED' : 'UNRESOLVED' }}</span>
+        </span>
+        <span class="section-value" [class.address-unresolved]="selectedProperty.addressQuality === 'unresolved'">
+          {{ selectedProperty.address }}
+        </span>
+        <span class="section-sub">
+          <ng-container *ngIf="selectedProperty.city">{{ selectedProperty.city }}, </ng-container>{{ selectedProperty.state }}
+          <ng-container *ngIf="selectedProperty.zip"> {{ selectedProperty.zip }}</ng-container>
+        </span>
+        <span class="section-sub" *ngIf="selectedProperty.county">{{ selectedProperty.county }} County</span>
+        <div class="property-meta-row" *ngIf="selectedProperty.propertyType !== 'unknown' || selectedProperty.ownerName !== 'Unknown Owner'">
+          <span class="property-type-badge" *ngIf="selectedProperty.propertyType !== 'unknown'"
+            [style.background]="selectedProperty.propertyType === 'residential' ? 'rgba(59,130,246,0.12)' : 'rgba(168,85,247,0.12)'"
+            [style.color]="selectedProperty.propertyType === 'residential' ? '#2563eb' : '#7c3aed'"
+          >
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">
+              {{ selectedProperty.propertyType === 'residential' ? 'home' : 'business' }}
+            </mat-icon>
+            {{ selectedProperty.propertyType === 'residential' ? 'Residential' : 'Commercial' }}
+          </span>
+          <span class="owner-badge" *ngIf="selectedProperty.ownerName && selectedProperty.ownerName !== 'Unknown Owner'">
+            <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">person</mat-icon>
+            {{ selectedProperty.ownerName }}
+            <span class="owner-status-dot"
+              [style.background]="selectedProperty.ownerStatus === 'verified' ? '#16a34a' : '#d97706'"
+              [matTooltip]="selectedProperty.ownerStatus === 'verified' ? 'Owner verified' : 'Owner unverified'"
+            ></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Roof Details Grid -->
+      <div class="property-details-grid">
+        <div class="detail-card">
+          <mat-icon class="detail-icon">roofing</mat-icon>
+          <span class="detail-label">Roof Type</span>
+          <span class="detail-value">{{ selectedProperty.roofType }}</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon class="detail-icon">calendar_month</mat-icon>
+          <span class="detail-label">Roof Age</span>
+          <span class="detail-value">{{ selectedProperty.roofAge }} yrs</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon class="detail-icon">square_foot</mat-icon>
+          <span class="detail-label">Roof Size</span>
+          <span class="detail-value">{{ selectedProperty.roofSizeSqFt | number }} ft&sup2;</span>
+        </div>
+        <div class="detail-card">
+          <mat-icon class="detail-icon">attach_money</mat-icon>
+          <span class="detail-label">Claim Range</span>
+          <span class="detail-value claim-range-value">
+            ${{ (selectedProperty.claimRangeLow / 1000).toFixed(0) }}K &ndash; ${{ (selectedProperty.claimRangeHigh / 1000).toFixed(0) }}K
+          </span>
+        </div>
+        <div class="detail-card">
+          <mat-icon class="detail-icon">vertical_split</mat-icon>
+          <span class="detail-label">Siding Damage</span>
+          <span class="detail-value">{{ selectedProperty.sidingDamageProbability }}%</span>
+        </div>
+      </div>
+
+      <!-- Storm Event Block -->
+      <div class="storm-event-block">
+        <div class="storm-header">
+          <mat-icon>thunderstorm</mat-icon>
+          <span>Storm Event</span>
+        </div>
+        <div class="storm-details">
+          <div class="storm-detail-row">
+            <span class="storm-detail-label">Type</span>
+            <span class="storm-detail-value">{{ selectedProperty.stormType }}</span>
+          </div>
+          <div class="storm-detail-row">
+            <span class="storm-detail-label">Date</span>
+            <span class="storm-detail-value">{{ selectedProperty.stormDate }}</span>
+          </div>
+          <div class="storm-detail-row" *ngIf="selectedProperty.hailSize">
+            <span class="storm-detail-label">Hail Size</span>
+            <span class="storm-detail-value">{{ selectedProperty.hailSize }}</span>
+          </div>
+          <div class="storm-detail-row" *ngIf="selectedProperty.windSpeed">
+            <span class="storm-detail-label">Wind Speed</span>
+            <span class="storm-detail-value">{{ selectedProperty.windSpeed }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freshness & Opportunity Age -->
+      <div class="freshness-section" *ngIf="selectedProperty">
+        <span class="section-label">
+          <mat-icon class="section-icon">schedule</mat-icon>
+          Data Freshness
+        </span>
+        <div class="freshness-grid">
+          <div class="freshness-row">
+            <span class="freshness-label">Event Detected</span>
+            <span class="freshness-value">{{ cachedFreshness.event }}</span>
+          </div>
+          <div class="freshness-row">
+            <span class="freshness-label">Image Captured</span>
+            <span class="freshness-value">{{ cachedFreshness.image }}</span>
+          </div>
+          <div class="freshness-row">
+            <span class="freshness-label">Score Calculated</span>
+            <span class="freshness-value">{{ cachedFreshness.score }}</span>
+          </div>
+          <div class="freshness-row">
+            <span class="freshness-label">Last Updated</span>
+            <span class="freshness-value">{{ cachedFreshness.updated }}</span>
+          </div>
+        </div>
+        <div class="freshness-age-row">
+          <span class="freshness-label">Opportunity Age</span>
+          <span class="age-badge" [style.border-color]="getAgeBadgeColor(selectedProperty?.opportunityAge || 'archive')" [style.color]="getAgeBadgeColor(selectedProperty?.opportunityAge || 'archive')">
+            {{ getAgeBadgeLabel(selectedProperty?.opportunityAge || 'archive') }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Recommended Action -->
+      <div class="recommended-action-card">
+        <div class="rec-header">
+          <mat-icon>auto_awesome</mat-icon>
+          <span>AI Recommended Action</span>
+        </div>
+        <p class="rec-text">{{ selectedProperty.recommendedAction }}</p>
+      </div>
+
+      <!-- Outreach Script (70+ score) -->
+      <div class="outreach-script-card" *ngIf="selectedProperty.roofScore >= 70">
+        <div class="script-header">
+          <mat-icon>record_voice_over</mat-icon>
+          <span>Suggested Outreach Script</span>
+        </div>
+        <p class="script-text">{{ selectedProperty.outreachScript }}</p>
+      </div>
+
+      <!-- Satellite Roof Intelligence Module -->
+      <div class="vision-module-section" *ngIf="selectedProperty?.visionAnalysis">
+        <div class="vision-module-header">
+          <mat-icon>satellite_alt</mat-icon>
+          <span>Satellite Roof Intelligence</span>
+          <span class="premium-tag">PREMIUM</span>
+        </div>
+
+        <!-- Satellite Image -->
+        <div class="satellite-image-container">
+          <!-- GOOD: show image normally -->
+          <ng-container *ngIf="selectedProperty.imageQuality === 'GOOD'">
+            <img
+              [src]="selectedProperty.visionAnalysis.satelliteImageUrl"
+              alt="Satellite imagery of {{selectedProperty.address}}"
+              class="satellite-image"
+              (error)="onSatelliteImageError($event, selectedProperty)"
+            />
+            <div class="satellite-image-overlay">
+              <span class="sat-label">
+                <mat-icon>satellite_alt</mat-icon>
+                {{selectedProperty.visionAnalysis.imageSource}}
+              </span>
+              <span class="sat-resolution">{{selectedProperty.visionAnalysis.resolutionCm}}cm/px</span>
+            </div>
+          </ng-container>
+
+          <!-- WEAK: show image with amber "Limited Visibility" banner -->
+          <ng-container *ngIf="selectedProperty.imageQuality === 'WEAK'">
+            <div class="satellite-image-weak-wrap">
+              <img
+                [src]="selectedProperty.visionAnalysis.satelliteImageUrl"
+                alt="Satellite imagery of {{selectedProperty.address}}"
+                class="satellite-image satellite-image-dimmed"
+                (error)="onSatelliteImageError($event, selectedProperty)"
+              />
+              <div class="image-quality-weak-banner">
+                <mat-icon>visibility_off</mat-icon>
+                <span>Limited Visibility — roof partially obstructed</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- BAD: placeholder, no image -->
+          <ng-container *ngIf="selectedProperty.imageQuality === 'BAD'">
+            <div class="satellite-placeholder-bad">
+              <mat-icon>block</mat-icon>
+              <span class="placeholder-title">Roof imagery unavailable</span>
+              <span class="placeholder-reason">{{ selectedProperty.roofImageAnalysis?.qualityReason || 'Satellite image does not show a usable roof view' }}</span>
+            </div>
+          </ng-container>
+
+          <div class="satellite-scan-badge" *ngIf="selectedProperty.satelliteScanDate">
+            Scanned: {{selectedProperty.satelliteScanDate}}
+          </div>
+        </div>
+
+        <!-- Confidence Label -->
+        <div class="image-confidence-label" [style.color]="getImageQualityColor(selectedProperty.imageQuality)">
+          <mat-icon>{{ getImageQualityIcon(selectedProperty.imageQuality) }}</mat-icon>
+          <span class="confidence-text">{{ getConfidenceLabel(selectedProperty.imageQuality) }}</span>
+          <span class="confidence-subtext">{{ getConfidenceSubtext(selectedProperty.imageQuality) }}</span>
+        </div>
+
+        <!-- Image Debug Info Panel -->
+        <details class="image-debug-panel" *ngIf="selectedProperty.roofImageAnalysis">
+          <summary>Image Quality Details</summary>
+          <div class="debug-content">
+            <div class="debug-row"><span>Roof Coverage</span><span>{{ selectedProperty.roofImageAnalysis.roofCoveragePct }}%</span></div>
+            <div class="debug-row"><span>Tree/Foliage Dominance</span><span>{{ selectedProperty.roofImageAnalysis.treeDominancePct }}%</span></div>
+            <div class="debug-row"><span>Crop Center Source</span><span>{{ selectedProperty.roofImageAnalysis.cropCenterSource }}</span></div>
+            <div class="debug-row"><span>Image Timestamp</span><span>{{ selectedProperty.roofImageAnalysis.imageTimestamp || 'N/A' }}</span></div>
+            <div class="debug-row"><span>Quality Reason</span><span>{{ selectedProperty.roofImageAnalysis.qualityReason }}</span></div>
+          </div>
+        </details>
+
+        <!-- Scanning Indicator -->
+        <div class="satellite-scanning" *ngIf="satelliteScanLoading">
+          <mat-icon class="scanning-icon">radar</mat-icon>
+          <span>Running Vision AI analysis...</span>
+        </div>
+
+        <!-- Vision analysis unavailable for BAD imagery -->
+        <div class="vision-unavailable-notice" *ngIf="selectedProperty.imageQuality === 'BAD'">
+          <mat-icon>visibility_off</mat-icon>
+          <span>Vision analysis unavailable — roof not visible in satellite imagery</span>
+        </div>
+
+        <!-- GOOD + WEAK: full vision analysis -->
+        <ng-container *ngIf="selectedProperty.imageQuality !== 'BAD'">
+          <!-- Damage Probability Meter -->
+          <div class="damage-meter-section">
+            <div class="meter-header">
+              <mat-icon>speed</mat-icon>
+              <span>Roof Damage Probability</span>
+            </div>
+            <div class="damage-meter">
+              <div class="meter-track">
+                <div
+                  class="meter-fill"
+                  [style.width.%]="selectedProperty.visionAnalysis.visionScore"
+                  [style.background]="getDamageProbabilityColor(selectedProperty.visionAnalysis.visionScore)"
+                ></div>
+              </div>
+              <div class="meter-labels">
+                <span>0</span>
+                <span class="meter-score" [style.color]="getDamageProbabilityColor(selectedProperty.visionAnalysis.visionScore)">
+                  {{selectedProperty.visionAnalysis.visionScore}}/100
+                </span>
+                <span>100</span>
+              </div>
+            </div>
+            <div class="meter-confidence">
+              Overall Confidence: {{(selectedProperty.visionAnalysis.overallConfidence * 100).toFixed(0)}}%
+            </div>
+          </div>
+
+          <!-- Damage Type Tags -->
+          <div class="damage-tags-section" *ngIf="selectedProperty.visionAnalysis.damageTags.length > 0">
+            <div class="tags-header">
+              <mat-icon>label</mat-icon>
+              <span>Detected Damage Types</span>
+            </div>
+            <div class="damage-tags">
+              <span
+                class="damage-tag"
+                *ngFor="let tag of selectedProperty.visionAnalysis.damageTags"
+              >
+                {{tag}}
+              </span>
+            </div>
+          </div>
+
+          <!-- Score Composition -->
+          <div class="score-composition">
+            <div class="score-row">
+              <span>Storm Score</span>
+              <span class="score-value storm">{{selectedProperty.roofScore}}</span>
+              <span class="score-weight">&times; 55%</span>
+            </div>
+            <div class="score-row">
+              <span>Vision Score</span>
+              <span class="score-value vision">{{selectedProperty.visionAnalysis.visionScore}}</span>
+              <span class="score-weight">&times; 45%</span>
+            </div>
+            <div class="score-row final">
+              <span>Final Claim Score</span>
+              <span class="score-value final">{{selectedProperty.finalClaimScore}}</span>
+            </div>
+          </div>
+
+          <!-- Vision Badge -->
+          <div *ngIf="selectedProperty.visionBadgeEligible" class="vision-badge">
+            <mat-icon>verified</mat-icon> Vision AI Verified
+          </div>
+
+          <!-- Damage Detections Grid -->
+          <div class="detections-grid">
+            <div *ngFor="let d of selectedProperty.visionAnalysis.detections"
+                 class="detection-card" [class.detected]="d.detected">
+              <div class="detection-header">
+                <mat-icon>{{getDetectionIcon(d.type)}}</mat-icon>
+                <span>{{d.label}}</span>
+              </div>
+              <div class="detection-stats" *ngIf="d.detected">
+                <span class="severity-badge" [class]="'severity-' + d.severity">{{d.severity}}</span>
+                <span>{{(d.confidence * 100).toFixed(0)}}% conf</span>
+                <span>{{d.areaAffectedPct}}% area</span>
+              </div>
+              <div class="detection-not-found" *ngIf="!d.detected">Not detected</div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ═══ WEAK/BAD: Lead Confidence Engine ═══ -->
+        <div class="lead-confidence-engine" *ngIf="selectedProperty.imageQuality !== 'GOOD'">
+
+          <!-- Engine Header -->
+          <div class="lce-header">
+            <mat-icon>hub</mat-icon>
+            <span>Lead Confidence Engine</span>
+          </div>
+
+          <!-- Storm-Based Analysis (Primary) card -->
+          <div class="lce-primary-card">
+            <div class="lce-primary-icon">
+              <mat-icon>verified</mat-icon>
+            </div>
+            <div class="lce-primary-content">
+              <div class="lce-primary-headline">Storm-Based Analysis (Primary)</div>
+              <div class="lce-primary-body">
+                This lead is generated using verified storm impact data and property risk — not dependent on satellite imagery.
+              </div>
+              <div class="lce-primary-badge">
+                <mat-icon>check_circle</mat-icon>
+                <strong>Image not required for this lead</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Score Cards Row -->
+          <div class="lce-scores">
+            <div class="lce-score-card storm">
+              <mat-icon>thunderstorm</mat-icon>
+              <div class="lce-score-data">
+                <span class="lce-score-value">{{selectedProperty.roofScore}}</span>
+                <span class="lce-score-label">Storm Impact Score</span>
+              </div>
+            </div>
+            <div class="lce-score-card final">
+              <div class="lce-score-data">
+                <span class="lce-score-value lce-final-value" [style.color]="getDamageColor(selectedProperty.probabilityTier)">
+                  {{selectedProperty.finalClaimScore}}
+                </span>
+                <span class="lce-score-label">Final Score</span>
+              </div>
+              <mat-icon>emoji_events</mat-icon>
+            </div>
+          </div>
+
+          <!-- Score derivation line -->
+          <div class="lce-derivation">
+            Final Score derived from storm impact + property risk + market activity
+          </div>
+
+          <!-- Supporting Evidence Sections -->
+          <div class="lce-evidence-header">
+            <mat-icon>fact_check</mat-icon>
+            <span>Supporting Evidence</span>
+          </div>
+
+          <!-- 1. Verified Storm Impact -->
+          <div class="ljp-section ljp-highlight ljp-highlight-storm">
+            <div class="ljp-section-title">
+              <mat-icon>thunderstorm</mat-icon> Verified Storm Impact
+            </div>
+            <div class="ljp-grid">
+              <div class="ljp-item" *ngIf="selectedProperty.hailSize">
+                <span class="ljp-label">Hail</span>
+                <span class="ljp-value ljp-value-accent">{{ selectedProperty.hailSize }}</span>
+              </div>
+              <div class="ljp-item" *ngIf="selectedProperty.windSpeed">
+                <span class="ljp-label">Wind</span>
+                <span class="ljp-value ljp-value-accent">{{ selectedProperty.windSpeed }}</span>
+              </div>
+              <div class="ljp-item">
+                <span class="ljp-label">Date</span>
+                <span class="ljp-value">{{ formatStormDate(selectedProperty.stormDate) }}</span>
+              </div>
+              <div class="ljp-item">
+                <span class="ljp-label">Type</span>
+                <span class="ljp-value">{{ selectedProperty.stormType }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Property Risk -->
+          <div class="ljp-section ljp-highlight ljp-highlight-property">
+            <div class="ljp-section-title">
+              <mat-icon>home</mat-icon> Property Risk
+            </div>
+            <div class="ljp-grid">
+              <div class="ljp-item">
+                <span class="ljp-label">Roof Age</span>
+                <span class="ljp-value ljp-value-accent">{{ selectedProperty.roofAge }} years</span>
+              </div>
+              <div class="ljp-item">
+                <span class="ljp-label">Size</span>
+                <span class="ljp-value">{{ selectedProperty.roofSizeSqFt | number }} sq ft</span>
+              </div>
+              <div class="ljp-item">
+                <span class="ljp-label">Material</span>
+                <span class="ljp-value">{{ selectedProperty.roofType }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Area Claim Activity -->
+          <div class="ljp-section ljp-highlight ljp-highlight-claims">
+            <div class="ljp-section-title">
+              <mat-icon>location_on</mat-icon> Area Claim Activity
+            </div>
+            <div class="ljp-grid">
+              <div class="ljp-item">
+                <span class="ljp-label">Claims (2-mi radius)</span>
+                <span class="ljp-value ljp-value-accent">{{ getAreaClaimCount(selectedProperty) }} filed</span>
+              </div>
+              <div class="ljp-item">
+                <span class="ljp-label">Avg Payout</span>
+                <span class="ljp-value ljp-value-accent">${{ getAreaAvgPayout(selectedProperty) | number }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Conclusion -->
+          <div class="ljp-conclusion" [style.border-color]="getDamageColor(selectedProperty.probabilityTier)">
+            <mat-icon>smart_toy</mat-icon>
+            <span>{{ getAiConclusion(selectedProperty) }}</span>
+          </div>
+
+          <!-- AI Claim Opportunity Decision -->
+          <div class="lce-decision" [ngClass]="getClaimDecisionTier(selectedProperty.finalClaimScore)">
+            <div class="lce-decision-header">
+              <mat-icon>{{ getClaimDecisionIcon(selectedProperty.finalClaimScore) }}</mat-icon>
+              <span>AI Claim Opportunity Decision</span>
+            </div>
+            <div class="lce-decision-text">{{ getClaimDecisionText(selectedProperty.finalClaimScore) }}</div>
+            <div class="lce-decision-subtext">Based on storm impact + property profile + market data</div>
+          </div>
+        </div>
+
+        <!-- Repair Scope Estimate -->
+        <div *ngIf="selectedProperty.repairScope" class="repair-scope-section">
+          <div class="repair-scope-header">
+            <mat-icon>construction</mat-icon> Estimated Repair Scope
+          </div>
+          <div class="repair-scope-grid">
+            <div class="repair-scope-item">
+              <span class="scope-label">Roof</span>
+              <span class="scope-value">
+                {{selectedProperty.repairScope.roofReplacement ? 'Full Replacement' : 'Partial Repair'}}
+              </span>
+              <span class="scope-detail">{{selectedProperty.repairScope.roofRepairSqFt | number}} sq ft</span>
+            </div>
+            <div class="repair-scope-item" *ngIf="selectedProperty.repairScope.gutterLinearFt > 0">
+              <span class="scope-label">Gutters</span>
+              <span class="scope-value">Repair/Replace</span>
+              <span class="scope-detail">{{selectedProperty.repairScope.gutterLinearFt}} linear ft</span>
+            </div>
+            <div class="repair-scope-item" *ngIf="selectedProperty.repairScope.sidingRepairSqFt > 0">
+              <span class="scope-label">Siding</span>
+              <span class="scope-value">Section Repair</span>
+              <span class="scope-detail">{{selectedProperty.repairScope.sidingRepairSqFt | number}} sq ft</span>
+            </div>
+            <div class="repair-scope-item">
+              <span class="scope-label">Labor Est.</span>
+              <span class="scope-value">{{selectedProperty.repairScope.totalLaborHours}} hrs</span>
+            </div>
+          </div>
+          <div class="repair-scope-notes">{{selectedProperty.repairScope.scopeNotes}}</div>
+        </div>
+
+        <!-- ACI Adjuster Intelligence Estimate -->
+        <div *ngIf="selectedProperty.claimScopeEstimate" class="claimscope-section">
+          <div class="claimscope-header">
+            <mat-icon>calculate</mat-icon> ACI Adjuster Intelligence Estimate
+          </div>
+          <div class="claimscope-total">
+            ${{selectedProperty.claimScopeEstimate.totalEstimate | number:'1.0-0'}}
+          </div>
+          <div class="claimscope-breakdown">
+            <div>Roofing: ${{selectedProperty.claimScopeEstimate.roofing | number:'1.0-0'}}</div>
+            <div>Gutters: ${{selectedProperty.claimScopeEstimate.gutters | number:'1.0-0'}}</div>
+            <div>Siding: ${{selectedProperty.claimScopeEstimate.siding | number:'1.0-0'}}</div>
+            <div>Debris: ${{selectedProperty.claimScopeEstimate.debrisRemoval | number:'1.0-0'}}</div>
+            <div>Supplemental: ${{selectedProperty.claimScopeEstimate.supplemental | number:'1.0-0'}}</div>
+          </div>
+          <div class="claimscope-confidence">
+            Confidence: {{(selectedProperty.claimScopeEstimate.confidence * 100).toFixed(0)}}%
+          </div>
+        </div>
+
+        <!-- Sales Sheet Preview -->
+        <div class="sales-sheet-preview">
+          <div class="preview-header">
+            <mat-icon>description</mat-icon>
+            <span>Adjuster Sales Sheet</span>
+          </div>
+          <div class="preview-card">
+            <div class="preview-row">
+              <span class="preview-label">Property</span>
+              <span class="preview-value">{{selectedProperty.address}}</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Final Score</span>
+              <span class="preview-value preview-score" [style.color]="getDamageColor(selectedProperty.probabilityTier)">
+                {{selectedProperty.finalClaimScore}}/100
+              </span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Claim Range</span>
+              <span class="preview-value preview-claim">
+                ${{(selectedProperty.claimRangeLow / 1000).toFixed(0)}}K &ndash; ${{(selectedProperty.claimRangeHigh / 1000).toFixed(0)}}K
+              </span>
+            </div>
+            <div class="preview-row" *ngIf="selectedProperty.claimScopeEstimate">
+              <span class="preview-label">AI Estimate</span>
+              <span class="preview-value preview-claim">
+                ${{selectedProperty.claimScopeEstimate.totalEstimate | number:'1.0-0'}}
+              </span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Damage Types</span>
+              <span class="preview-value">{{selectedProperty.visionAnalysis.damageTags.length}} detected</span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-label">Owner</span>
+              <span class="preview-value">{{selectedProperty.ownerName}}</span>
+            </div>
+          </div>
+          <button mat-stroked-button class="preview-download-btn" (click)="generateSalesSheet()">
+            <mat-icon>picture_as_pdf</mat-icon> Download Full PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Scan Not Available -->
+      <div class="vision-module-section vision-no-scan" *ngIf="!selectedProperty?.visionAnalysis && selectedProperty">
+        <div class="vision-module-header">
+          <mat-icon>satellite_alt</mat-icon>
+          <span>Satellite Roof Intelligence</span>
+        </div>
+        <div class="no-scan-message">
+          <mat-icon>cloud_off</mat-icon>
+          <span>No satellite scan available for this property.</span>
+          <button mat-stroked-button class="run-scan-btn" (click)="runSatelliteScan(selectedProperty!)" [disabled]="satelliteScanLoading">
+            <mat-icon>radar</mat-icon> Run Satellite Scan
+          </button>
+        </div>
+      </div>
+
+      <!-- Territory Enforcement Module -->
+      <div class="territory-module-section" *ngIf="territoryEnforcementEnabled">
+        <div class="territory-module-header">
+          <mat-icon>shield</mat-icon>
+          <span>Territory Enforcement</span>
+          <span class="territory-tag">ENFORCED</span>
+        </div>
+
+        <!-- Demo Mode Toggle -->
+        <div class="territory-demo-toggle">
+          <mat-slide-toggle
+            [(ngModel)]="territoryDemoMode"
+            color="primary"
+          >
+            Demo Mode ({{ territoryDemoMode ? '5s' : '5min' }} timeouts)
+          </mat-slide-toggle>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="territory-tabs">
+          <button
+            class="territory-tab"
+            [class.active]="territoryPanelTab === 'enforcement'"
+            (click)="territoryPanelTab = 'enforcement'"
+          >
+            Enforcement
+          </button>
+          <button
+            class="territory-tab"
+            [class.active]="territoryPanelTab === 'log'"
+            (click)="territoryPanelTab = 'log'"
+          >
+            Assignment Log
+            <span class="tab-count" *ngIf="assignmentLog.length">{{ assignmentLog.length }}</span>
+          </button>
+        </div>
+
+        <!-- Enforcement Tab -->
+        <div *ngIf="territoryPanelTab === 'enforcement'">
+          <!-- Territory Resolution Card -->
+          <div class="territory-result-card" *ngIf="activeEscalation">
+            <div class="territory-result-header">
+              <mat-icon>map</mat-icon>
+              <span>{{ activeEscalation.enforcementResult.territory?.name || 'No Territory' }}</span>
+            </div>
+            <div class="territory-result-details">
+              <span>{{ activeEscalation.enforcementResult.territory?.agents?.length || 0 }} agents</span>
+              <span *ngIf="activeEscalation.enforcementResult.territory?.chapterPresident">
+                CP: {{ activeEscalation.enforcementResult.territory!.chapterPresident!.name }}
+              </span>
+              <span *ngIf="!activeEscalation.enforcementResult.territory?.chapterPresident" class="no-cp">
+                No Chapter President
+              </span>
+            </div>
+          </div>
+
+          <div class="territory-result-card territory-blocked" *ngIf="!activeEscalation && selectedProperty">
+            <div class="territory-result-header">
+              <mat-icon>info</mat-icon>
+              <span>Click a lead action to start territory enforcement</span>
+            </div>
+          </div>
+
+          <!-- Escalation Chain Stepper -->
+          <div class="escalation-chain" *ngIf="activeEscalation">
+            <div class="escalation-stepper">
+              <div
+                *ngFor="let step of activeEscalation.enforcementResult.escalationChain; let i = index; let last = last"
+                class="escalation-step-wrapper"
+              >
+                <div
+                  class="escalation-step"
+                  [class.step-active]="step.status === 'active'"
+                  [class.step-accepted]="step.status === 'accepted'"
+                  [class.step-timeout]="step.status === 'timeout'"
+                  [class.step-declined]="step.status === 'declined'"
+                  [class.step-skipped]="step.status === 'skipped'"
+                >
+                  <div class="step-circle" [style.background]="getEscalationStepColor(step.status)">
+                    <mat-icon>{{ getEscalationStepIcon(step.status) }}</mat-icon>
+                  </div>
+                  <div class="step-content">
+                    <span class="step-level">Level {{ step.level }}: {{ getEscalationDisplayLabel(step.label) }}</span>
+                    <span class="step-agent" *ngIf="step.agent">{{ step.agent.name }}</span>
+                    <span class="step-agent step-no-agent" *ngIf="!step.agent">No agent assigned</span>
+                    <span class="step-status" [style.color]="getEscalationStepColor(step.status)">
+                      {{ step.status | uppercase }}
+                    </span>
+                  </div>
+                  <div class="escalation-timer" *ngIf="step.status === 'active'">
+                    {{ activeEscalation.remainingSeconds }}s
+                  </div>
+                </div>
+                <div class="step-connector" *ngIf="!last"
+                     [style.border-color]="getEscalationStepColor(step.status)"></div>
+              </div>
+            </div>
+
+            <!-- Demo Controls -->
+            <div class="escalation-demo-controls" *ngIf="!activeEscalation.isComplete">
+              <button mat-raised-button class="demo-accept-btn" (click)="simulateAcceptNow()">
+                <mat-icon>check</mat-icon> Simulate Accept
+              </button>
+              <button mat-stroked-button class="demo-decline-btn" (click)="simulateDeclineNow()">
+                <mat-icon>close</mat-icon> Simulate Decline
+              </button>
+              <button mat-stroked-button class="demo-cancel-btn" (click)="cancelEscalation()">
+                <mat-icon>stop</mat-icon> Cancel
+              </button>
+            </div>
+
+            <!-- Accepted Result Card -->
+            <div class="escalation-accepted-result" *ngIf="activeEscalation.isAccepted && activeEscalation.acceptedBy">
+              <div class="accepted-header">
+                <mat-icon>check_circle</mat-icon>
+                <span>Lead Accepted</span>
+              </div>
+              <div class="accepted-agent-info">
+                <div class="accepted-name">{{ activeEscalation.acceptedBy.name }}</div>
+                <div class="accepted-detail">
+                  <mat-icon>phone</mat-icon> {{ activeEscalation.acceptedBy.phone }}
+                </div>
+                <div class="accepted-detail">
+                  <mat-icon>email</mat-icon> {{ activeEscalation.acceptedBy.email }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignment Log Tab -->
+        <div *ngIf="territoryPanelTab === 'log'" class="assignment-log">
+          <div class="log-empty" *ngIf="assignmentLog.length === 0">
+            No assignment activity yet. Trigger a lead action to start.
+          </div>
+          <div class="log-entry" *ngFor="let entry of assignmentLog">
+            <div class="log-icon" [style.color]="getLogActionColor(entry.action)">
+              <mat-icon>{{ getLogActionIcon(entry.action) }}</mat-icon>
+            </div>
+            <div class="log-content">
+              <span class="log-action">{{ entry.action | uppercase }}</span>
+              <span class="log-notes">{{ entry.notes }}</span>
+              <span class="log-meta">
+                {{ entry.propertyAddress }}
+                <span *ngIf="entry.escalationLevel"> · Level {{ entry.escalationLevel }}</span>
+              </span>
+              <span class="log-time">{{ entry.timestamp | date:'HH:mm:ss' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Owner Info -->
+      <div class="property-section">
+        <span class="section-label">
+          <mat-icon class="section-icon">person</mat-icon>
+          Property Owner
+        </span>
+        <div class="owner-row">
+          <span class="section-value">{{ selectedProperty.ownerName }}</span>
+          <span class="owner-pill" [style.background]="getOwnerStatusColor(selectedProperty.ownerStatus)">
+            {{ selectedProperty.ownerStatus | uppercase }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Workflow Status -->
+      <div class="workflow-status-section">
+        <span class="section-label">
+          <mat-icon class="section-icon">account_tree</mat-icon>
+          Pipeline Status
+        </span>
+        <div class="workflow-grid">
+          <div class="workflow-step">
+            <div class="workflow-dot" [style.background]="getStatusColor(selectedProperty.aiReviewStatus)"></div>
+            <span class="workflow-label">AI Review</span>
+            <span class="workflow-val" [style.color]="getStatusColor(selectedProperty.aiReviewStatus)">
+              {{ getStatusLabel(selectedProperty.aiReviewStatus) }}
+            </span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-dot" [style.background]="getStatusColor(selectedProperty.adjusterPacketStatus)"></div>
+            <span class="workflow-label">Adjuster Packet</span>
+            <span class="workflow-val" [style.color]="getStatusColor(selectedProperty.adjusterPacketStatus)">
+              {{ getStatusLabel(selectedProperty.adjusterPacketStatus) }}
+            </span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-dot" [style.background]="getStatusColor(selectedProperty.skipTraceStatus)"></div>
+            <span class="workflow-label">Skip Trace</span>
+            <span class="workflow-val" [style.color]="getStatusColor(selectedProperty.skipTraceStatus)">
+              {{ getStatusLabel(selectedProperty.skipTraceStatus) }}
+            </span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-dot" [style.background]="getStatusColor(selectedProperty.outreachStatus)"></div>
+            <span class="workflow-label">AI Outreach</span>
+            <span class="workflow-val" [style.color]="getStatusColor(selectedProperty.outreachStatus)">
+              {{ getStatusLabel(selectedProperty.outreachStatus) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="property-actions">
+        <button mat-raised-button color="primary" class="action-btn" (click)="generateSalesSheet()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Download Sales Sheet (PDF)
+        </button>
+        <button mat-stroked-button color="primary" class="action-btn" (click)="sendToAdjuster()">
+          <mat-icon>person_add</mat-icon>
+          Send to Adjuster
+        </button>
+        <button mat-stroked-button class="action-btn action-btn-trace" (click)="queueSkipTrace()">
+          <mat-icon>person_search</mat-icon>
+          Queue for Skip Trace
+        </button>
+        <button mat-stroked-button class="action-btn action-btn-ai" (click)="queueAiOutreach()">
+          <mat-icon>smart_toy</mat-icon>
+          Queue AI Outreach
+        </button>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-text">
+        <h2>
+          <mat-icon class="header-icon">roofing</mat-icon>
+          Roof Intelligence Command Center
+        </h2>
+        <p class="subtitle">
+          Satellite AI roof analysis &middot; claim probability scoring &middot; revenue pipeline
+          <span class="refresh-info" *ngIf="lastRefreshTimestamp">
+            &middot; Last refresh: {{ cachedLastRefreshLabel }} ({{ lastRefreshRecordCount }} records)
+          </span>
+          <span class="refresh-info geocode-progress" *ngIf="geocodeProgress.total > 0 && geocodeProgress.resolved + geocodeProgress.failed < geocodeProgress.total">
+            &middot; Resolving addresses: {{ geocodeProgress.resolved }}/{{ geocodeProgress.total }}
+          </span>
+        </p>
+      </div>
+      <div class="header-actions">
+        <mat-slide-toggle
+          [checked]="useLiveData"
+          (change)="toggleDataSource()"
+          color="accent"
+          class="data-source-toggle"
+        >
+          {{ useLiveData ? 'Live Pipeline' : 'Demo Mode' }}
+        </mat-slide-toggle>
+        <mat-form-field appearance="outline" class="analysis-mode-select" *ngIf="useLiveData">
+          <mat-label>Analysis Mode</mat-label>
+          <mat-select [(ngModel)]="analysisMode">
+            <mat-option value="rules">Rules Engine</mat-option>
+            <mat-option value="ai_vision">AI Vision</mat-option>
+            <mat-option value="demo">Demo</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button class="action-header-btn" (click)="submitBatchAnalysis()" *ngIf="useLiveData">
+          <mat-icon>play_arrow</mat-icon> Run Analysis
+        </button>
+        <mat-slide-toggle
+          [(ngModel)]="territoryEnforcementEnabled"
+          color="primary"
+          class="territory-header-toggle"
+        >
+          Territory Enforcement
+        </mat-slide-toggle>
+        <button mat-stroked-button class="action-header-btn" (click)="loadLiveData()" *ngIf="useLiveData" [disabled]="liveDataLoading">
+          <mat-icon>refresh</mat-icon> Refresh
+        </button>
+        <button mat-stroked-button class="action-header-btn" (click)="exportHighProbList()">
+          <mat-icon>download</mat-icon> Export Opportunities
+          <span class="header-count" *ngIf="highProbCount">{{ highProbCount }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Potential Claims Ticker Bar -->
+    <div class="claims-ticker-bar" *ngIf="tickerMessages.length > 0">
+      <div class="ticker-label">
+        <mat-icon>warning</mat-icon>
+        <span>LIVE</span>
+      </div>
+      <div class="ticker-track">
+        <div class="ticker-scroll">
+          <!-- First copy -->
+          <span
+            class="ticker-item"
+            *ngFor="let msg of tickerMessages"
+            [class]="'ticker-' + msg.severity"
+          >
+            <span class="ticker-dot" [style.background]="getSeverityColor(msg.severity)"></span>
+            {{ msg.text }}
+            <span class="ticker-time">{{ cachedTickerTimes.get(msg.id) || '' }}</span>
+          </span>
+          <!-- Duplicate for seamless loop -->
+          <span
+            class="ticker-item"
+            *ngFor="let msg of tickerMessages"
+            [class]="'ticker-' + msg.severity"
+          >
+            <span class="ticker-dot" [style.background]="getSeverityColor(msg.severity)"></span>
+            {{ msg.text }}
+            <span class="ticker-time">{{ cachedTickerTimes.get(msg.id) || '' }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Source Banner -->
+    <div class="data-source-banner" *ngIf="liveDataLoading" style="background: #e3f2fd; padding: 8px 16px; border-radius: 4px; margin: 0 16px 8px; display: flex; align-items: center; gap: 8px;">
+      <mat-spinner diameter="18"></mat-spinner>
+      <span>Loading live data from Roof Analysis API...</span>
+    </div>
+    <div class="data-source-banner" *ngIf="liveDataError" style="background: #fff3e0; padding: 8px 16px; border-radius: 4px; margin: 0 16px 8px; display: flex; align-items: center; gap: 8px;">
+      <mat-icon style="color: #e65100;">warning</mat-icon>
+      <span>{{ liveDataError }}</span>
+    </div>
+    <div class="data-source-banner" *ngIf="!useLiveData && !liveDataLoading" style="background: #f3e5f5; padding: 8px 16px; border-radius: 4px; margin: 0 16px 8px; display: flex; align-items: center; gap: 8px;">
+      <mat-icon style="color: #7b1fa2;">science</mat-icon>
+      <span>DEMO MODE — Showing mock property data. Toggle "Live Pipeline" to connect to the API.</span>
+    </div>
+    <div class="data-source-banner" *ngIf="useLiveData && !liveDataLoading && !liveDataError" style="background: #e8f5e9; padding: 8px 16px; border-radius: 4px; margin: 0 16px 8px; display: flex; align-items: center; gap: 8px;">
+      <mat-icon style="color: #2e7d32;">cloud_done</mat-icon>
+      <span>LIVE PIPELINE — {{ liveDataTotal }} records from Roof Analysis API</span>
+    </div>
+
+    <!-- Actionable View Filter Chips -->
+    <div class="actionable-filter-bar" style="display: flex; gap: 8px; padding: 0 16px 12px; flex-wrap: wrap; align-items: center;">
+      <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-right: 4px;">View:</span>
+      <button
+        *ngFor="let opt of actionableViewOptions"
+        (click)="setActionableView(opt.value)"
+        style="display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; border: 1px solid;"
+        [style.background]="filters.actionableView === opt.value ? '#1e293b' : 'transparent'"
+        [style.color]="filters.actionableView === opt.value ? '#ffffff' : '#64748b'"
+        [style.border-color]="filters.actionableView === opt.value ? '#1e293b' : '#e2e8f0'"
+      >
+        <mat-icon style="font-size: 16px; width: 16px; height: 16px;">{{ opt.icon }}</mat-icon>
+        {{ opt.label }}
+        <span
+          *ngIf="opt.value === 'actionable'"
+          style="background: #22c55e; color: white; font-size: 0.65rem; padding: 1px 6px; border-radius: 10px; font-weight: 700;"
+        >{{ actionableCount }}</span>
+        <span
+          *ngIf="opt.value === 'archive'"
+          style="background: #94a3b8; color: white; font-size: 0.65rem; padding: 1px 6px; border-radius: 10px; font-weight: 700;"
+        >{{ archivedCount }}</span>
+      </button>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-scanned">
+          <mat-icon>satellite_alt</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ propertiesScanned }}</span>
+          <span class="kpi-label">Properties Scanned</span>
+          <span class="kpi-sub" *ngIf="scanQueueStats.total > 0">{{ scanQueueStats.total }} in queue ({{ scanQueueStats.pending }} pending)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-immediate">
+          <mat-icon>local_fire_department</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ actionableCount }}</span>
+          <span class="kpi-label">Actionable Opportunities</span>
+          <span class="kpi-sub">Score > 0 or storm context</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-claimval">
+          <mat-icon>attach_money</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ formatCurrency(leadPipelineValue) }}</span>
+          <span class="kpi-label">Est. Pipeline Value</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(148,163,184,0.12);">
+          <mat-icon style="color: #94a3b8;">inventory_2</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ archivedCount }}</span>
+          <span class="kpi-label">Archived / No Damage</span>
+          <span class="kpi-sub">Zero-damage scans</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenue Pipeline Status Bar -->
+    <div class="pipeline-bar">
+      <div class="pipeline-step">
+        <mat-icon>satellite_alt</mat-icon>
+        <div class="pipeline-info">
+          <span class="pipeline-count">{{ aiReviewCompleteCount }}</span>
+          <span class="pipeline-label">AI Review Complete</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">
+        <mat-icon>chevron_right</mat-icon>
+      </div>
+      <div class="pipeline-step">
+        <mat-icon>assignment</mat-icon>
+        <div class="pipeline-info">
+          <span class="pipeline-count">{{ adjusterPacketReadyCount }}</span>
+          <span class="pipeline-label">Adjuster Packet Ready</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">
+        <mat-icon>chevron_right</mat-icon>
+      </div>
+      <div class="pipeline-step">
+        <mat-icon>person_search</mat-icon>
+        <div class="pipeline-info">
+          <span class="pipeline-count">{{ skipTracePendingCount }}</span>
+          <span class="pipeline-label">Skip Trace Pending</span>
+        </div>
+      </div>
+      <div class="pipeline-arrow">
+        <mat-icon>chevron_right</mat-icon>
+      </div>
+      <div class="pipeline-step">
+        <mat-icon>smart_toy</mat-icon>
+        <div class="pipeline-info">
+          <span class="pipeline-count">{{ aiAgentReadyCount }}</span>
+          <span class="pipeline-label">AI Agent Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Potential Claims Rolling In -->
+    <div class="predicted-claims-section">
+      <div class="predicted-claims-header">
+        <div class="predicted-claims-title">
+          <mat-icon>bolt</mat-icon>
+          <h3>Potential Claims Rolling In</h3>
+          <span class="claims-live-tag">LIVE FEED</span>
+        </div>
+        <div class="predicted-claims-stats">
+          <div class="claim-stat">
+            <span class="claim-stat-value claim-stat-critical">{{ getCriticalEventCount() }}</span>
+            <span class="claim-stat-label">Critical</span>
+          </div>
+          <div class="claim-stat">
+            <span class="claim-stat-value claim-stat-zones">{{ getActiveZoneCount() }}</span>
+            <span class="claim-stat-label">Active Zones</span>
+          </div>
+          <div class="claim-stat">
+            <span class="claim-stat-value claim-stat-homes">{{ getTotalHomesAffected() | number }}</span>
+            <span class="claim-stat-label">Homes Affected</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="predicted-claims-grid predicted-claims-grid-single">
+
+        <!-- Predicted Zones -->
+        <div class="zones-panel">
+          <div class="zones-panel-label">
+            <mat-icon>layers</mat-icon> Predicted Claim Zones
+          </div>
+          <div class="zones-list">
+            <div
+              class="zone-card"
+              *ngFor="let zone of predictedZones"
+              [class]="'zone-severity-' + zone.severity"
+              (click)="selectZone(zone)"
+            >
+              <div class="zone-card-header">
+                <div class="zone-priority" [style.background]="getPriorityColor(zone.priority)">
+                  {{ zone.priority }}
+                </div>
+                <span class="zone-name">{{ zone.name }}</span>
+                <span class="zone-severity-pill" [style.background]="getSeverityColor(zone.severity)">
+                  {{ zone.severity | uppercase }}
+                </span>
+              </div>
+              <div class="zone-card-stats">
+                <div class="zone-stat">
+                  <mat-icon>home</mat-icon>
+                  <span>{{ zone.estimatedHomesAffected | number }} homes</span>
+                </div>
+                <div class="zone-stat">
+                  <mat-icon>percent</mat-icon>
+                  <span>{{ zone.claimProbability }}% prob</span>
+                </div>
+                <div class="zone-stat">
+                  <mat-icon>near_me</mat-icon>
+                  <span>{{ zone.trajectory }}</span>
+                </div>
+              </div>
+              <div class="zone-card-footer">
+                <span class="zone-zips">ZIPs: {{ zone.affectedZips.join(', ') }}</span>
+                <span class="zone-linked" *ngIf="zone.linkedPropertyIds.length">
+                  {{ zone.linkedPropertyIds.length }} linked properties
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Detail Panel (overlay) -->
+    <div class="zone-detail-overlay" *ngIf="zonePanelOpen && selectedZone" (click)="closeZonePanel()">
+      <div class="zone-detail-panel" (click)="$event.stopPropagation()">
+        <div class="zone-detail-header">
+          <div class="zone-detail-title">
+            <div class="zone-detail-priority" [style.background]="getPriorityColor(selectedZone.priority)">
+              {{ selectedZone.priority }}
+            </div>
+            <h3>{{ selectedZone.name }}</h3>
+          </div>
+          <button mat-icon-button (click)="closeZonePanel()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="zone-detail-severity-bar" [style.background]="getSeverityColor(selectedZone.severity)">
+          <mat-icon>{{ getEventTypeIcon(selectedZone.eventType) }}</mat-icon>
+          <span>{{ getEventTypeLabel(selectedZone.eventType) }} — {{ selectedZone.severity | uppercase }}</span>
+          <span class="zone-prob-badge">{{ selectedZone.claimProbability }}% Claim Probability</span>
+        </div>
+
+        <div style="padding: 8px 16px;">
+          <button
+            mat-raised-button
+            color="accent"
+            (click)="scanZone(selectedZone)"
+            [disabled]="zoneScanLoading"
+            style="width: 100%;"
+          >
+            <mat-icon>radar</mat-icon>
+            {{ zoneScanLoading ? 'Scanning...' : 'Scan Zone for Properties' }}
+          </button>
+        </div>
+
+        <div class="zone-detail-grid">
+          <div class="zone-detail-item">
+            <span class="zd-label">Estimated Homes</span>
+            <span class="zd-value">{{ selectedZone.estimatedHomesAffected | number }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zd-label">Affected ZIPs</span>
+            <span class="zd-value">{{ selectedZone.affectedZips.join(', ') }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zd-label">County</span>
+            <span class="zd-value">{{ selectedZone.county }}, {{ selectedZone.state }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zd-label">Trajectory</span>
+            <span class="zd-value">{{ selectedZone.trajectory }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zd-label">Radius</span>
+            <span class="zd-value">{{ (selectedZone.radiusMeters / 1000).toFixed(1) }} km</span>
+          </div>
+          <div class="zone-detail-item" *ngIf="selectedZone.territoryName">
+            <span class="zd-label">Territory</span>
+            <span class="zd-value">{{ selectedZone.territoryName }}</span>
+          </div>
+        </div>
+
+        <!-- Linked Properties -->
+        <div class="zone-linked-properties" *ngIf="getLinkedProperties(selectedZone).length > 0">
+          <h4>
+            <mat-icon>link</mat-icon> Linked Properties ({{ getLinkedProperties(selectedZone).length }})
+          </h4>
+          <div class="linked-prop-list">
+            <div
+              class="linked-prop-card"
+              *ngFor="let prop of getLinkedProperties(selectedZone)"
+              (click)="selectProperty(prop); closeZonePanel()"
+            >
+              <div class="linked-prop-address">{{ prop.address }}</div>
+              <div class="linked-prop-details">
+                <span class="linked-score" [style.color]="getDamageColor(prop.probabilityTier)">
+                  Score: {{ prop.finalClaimScore }}
+                </span>
+                <span>{{ prop.city }}, {{ prop.state }}</span>
+                <span>${{ (prop.claimRangeLow / 1000).toFixed(0) }}K–${{ (prop.claimRangeHigh / 1000).toFixed(0) }}K</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="zone-no-linked" *ngIf="getLinkedProperties(selectedZone).length === 0">
+          <mat-icon>info</mat-icon>
+          No tracked properties in this claim zone yet. Click "Scan Zone" above to discover properties.
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Storm Type</mat-label>
+        <mat-select [(ngModel)]="filters.stormType" (selectionChange)="onStormTypeChange()">
+          <mat-option *ngFor="let opt of stormTypeOptions" [value]="opt.value">
+            {{ opt.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="filter-group">
+        <label class="filter-group-label">Damage Probability</label>
+        <div class="slider-row">
+          <mat-slider min="0" max="100" step="5" discrete class="damage-slider">
+            <input matSliderThumb [(ngModel)]="filters.minDamageProbability" (valueChange)="applyFilters()">
+          </mat-slider>
+          <span class="slider-value">{{ filters.minDamageProbability }}%+</span>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>County</mat-label>
+        <mat-select [(ngModel)]="filters.county" (selectionChange)="applyFilters()">
+          <mat-option value="">All Counties</mat-option>
+          <mat-option *ngFor="let c of countyOptions" [value]="c">{{ c }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>ZIP Code</mat-label>
+        <mat-select [(ngModel)]="filters.zip" (selectionChange)="applyFilters()">
+          <mat-option value="">All ZIPs</mat-option>
+          <mat-option *ngFor="let z of zipOptions" [value]="z">{{ z }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
+        <mat-icon>clear</mat-icon> Clear
+      </button>
+    </div>
+
+    <!-- Layer Toggles + Map -->
+    <div class="map-section">
+      <div class="layer-toggles">
+        <span class="toggle-label">Layers:</span>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="hailLayerVisible"
+          data-type="hail"
+          (click)="toggleHailLayer()"
+        >
+          <span class="layer-dot" data-type="hail"></span>
+          Hail Zones
+        </button>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="windLayerVisible"
+          data-type="wind"
+          (click)="toggleWindLayer()"
+        >
+          <span class="layer-dot" data-type="wind"></span>
+          Wind Zones
+        </button>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="predictedZonesLayerVisible"
+          data-type="claims"
+          (click)="togglePredictedZonesLayer()"
+        >
+          <span class="layer-dot" data-type="claims"></span>
+          Claim Zones
+        </button>
+        <span class="toggle-divider">|</span>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="isSatelliteView"
+          data-type="satellite"
+          (click)="toggleSatelliteView()"
+        >
+          <mat-icon class="chip-sat-icon">satellite_alt</mat-icon>
+          Satellite
+        </button>
+      </div>
+
+      <div class="map-wrapper">
+        <div class="map-label">ROOF IMPACT MAP</div>
+        <div
+          leaflet
+          class="roof-map"
+          [leafletOptions]="leafletOptions"
+          (leafletMapReady)="onMapReady($event)"
+        ></div>
+        <!-- Map Legend -->
+        <div class="map-legend">
+          <div class="legend-title">MARKERS</div>
+          <div class="legend-items">
+            <span class="legend-item"><span class="legend-dot" style="background:#ef4444"></span>Immediate</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>High</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Medium</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Low</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabbed Queue Table -->
+    <div class="opportunities-section">
+      <div class="opp-header">
+        <h3>
+          <mat-icon>trending_up</mat-icon>
+          Roof Opportunities
+        </h3>
+        <span class="opp-count">{{ activeQueueProperties.length }} opportunities &middot; {{ formatCurrency(estimatedClaimValue) }} est. pipeline</span>
+      </div>
+
+      <!-- Queue Tabs -->
+      <div class="queue-tabs">
+        <button
+          class="queue-tab"
+          [class.active]="activeQueueTab === 'all'"
+          data-tab="all"
+          (click)="switchQueueTab('all')"
+        >
+          All Opportunities
+        </button>
+        <button
+          class="queue-tab"
+          [class.active]="activeQueueTab === 'high'"
+          data-tab="high"
+          (click)="switchQueueTab('high')"
+        >
+          High Probability (70&ndash;84)
+          <span class="tab-count" *ngIf="highProbQueueCount">{{ highProbQueueCount }}</span>
+        </button>
+        <button
+          class="queue-tab"
+          [class.active]="activeQueueTab === 'immediate'"
+          data-tab="immediate"
+          (click)="switchQueueTab('immediate')"
+        >
+          Immediate Leads (85+)
+          <span class="tab-count" *ngIf="immediateLeadCount">{{ immediateLeadCount }}</span>
+        </button>
+      </div>
+
+      <div class="opp-table-wrap">
+        <table class="opp-table">
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Final Score</th>
+              <th>Tier</th>
+              <th>Age</th>
+              <th>Est. Claim Value</th>
+              <th>Owner</th>
+              <th>Compliance</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let prop of activeQueueProperties"
+              class="opp-row"
+              [class.selected]="selectedProperty?.id === prop.id"
+              [class.tier-row-low]="prop.probabilityTier === 'low'"
+              [class.tier-row-medium]="prop.probabilityTier === 'medium'"
+              [class.tier-row-high]="prop.probabilityTier === 'high'"
+              [class.tier-row-immediate]="prop.probabilityTier === 'immediate'"
+              (click)="selectProperty(prop)"
+            >
+              <td class="td-address">
+                <span [class.address-unresolved]="prop.addressQuality === 'unresolved'"
+                      [class.address-resolved]="prop.addressQuality === 'resolved'">{{ prop.address }}</span>
+                <span class="td-city">
+                  <ng-container *ngIf="prop.city">{{ prop.city }}, </ng-container>{{ prop.state }}
+                  <ng-container *ngIf="prop.zip"> {{ prop.zip }}</ng-container>
+                  <span
+                    class="address-quality-badge"
+                    [style.background]="prop.addressQuality === 'resolved' ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)'"
+                    [style.color]="prop.addressQuality === 'resolved' ? '#16a34a' : '#d97706'"
+                  >{{ prop.addressQuality === 'resolved' ? 'VERIFIED' : 'UNRESOLVED' }}</span>
+                  <span class="property-type-badge" *ngIf="prop.propertyType !== 'unknown'"
+                    [style.background]="prop.propertyType === 'residential' ? 'rgba(59,130,246,0.12)' : 'rgba(168,85,247,0.12)'"
+                    [style.color]="prop.propertyType === 'residential' ? '#2563eb' : '#7c3aed'"
+                  >{{ prop.propertyType === 'residential' ? 'Residential' : 'Commercial' }}</span>
+                </span>
+              </td>
+              <td>
+                <div class="prob-bar-cell">
+                  <div class="prob-bar">
+                    <div
+                      class="prob-fill"
+                      [style.width.%]="prop.finalClaimScore"
+                      [style.background]="getScoreGradient(prop.finalClaimScore)"
+                    ></div>
+                  </div>
+                  <div class="final-score-cell">
+                    <span class="prob-text" [style.color]="getDamageColor(prop.probabilityTier)">{{ prop.finalClaimScore }}/100</span>
+                    <span class="score-breakdown">Storm: {{prop.roofScore}} | Vision: {{prop.visionAnalysis.visionScore}}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tier-cell">
+                  <span
+                    class="tier-pill"
+                    [class.tier-low]="prop.probabilityTier === 'low'"
+                    [class.tier-medium]="prop.probabilityTier === 'medium'"
+                    [class.tier-high]="prop.probabilityTier === 'high'"
+                    [class.tier-immediate]="prop.probabilityTier === 'immediate'"
+                    [style.border-color]="getDamageColor(prop.probabilityTier)"
+                    [style.color]="getDamageColor(prop.probabilityTier)"
+                  >
+                    {{ getTierLabel(prop.probabilityTier) }}
+                  </span>
+                  <mat-icon *ngIf="prop.visionBadgeEligible" class="vision-badge-icon" matTooltip="Vision AI Verified">verified</mat-icon>
+                </div>
+              </td>
+              <td>
+                <span
+                  class="age-badge"
+                  [style.border-color]="getAgeBadgeColor(prop.opportunityAge)"
+                  [style.color]="getAgeBadgeColor(prop.opportunityAge)"
+                >{{ getAgeBadgeLabel(prop.opportunityAge) }}</span>
+              </td>
+              <td class="td-claim" [style.color]="getDamageColor(prop.probabilityTier)">
+                ${{ (prop.claimRangeLow / 1000).toFixed(0) }}K &ndash; ${{ (prop.claimRangeHigh / 1000).toFixed(0) }}K
+              </td>
+              <td>
+                <span class="status-pill" [style.background]="getOwnerStatusColor(prop.ownerStatus) + '1a'" [style.color]="getOwnerStatusColor(prop.ownerStatus)">
+                  {{ prop.ownerStatus | uppercase }}
+                </span>
+              </td>
+              <td>
+                <span class="compliance-badge" *ngIf="checkLicensingCompliance(prop).compliant">
+                  <mat-icon class="compliance-ok">check_circle</mat-icon>
+                </span>
+                <span class="compliance-badge" *ngIf="!checkLicensingCompliance(prop).compliant" [matTooltip]="checkLicensingCompliance(prop).reason">
+                  <mat-icon class="compliance-locked">lock</mat-icon>
+                </span>
+              </td>
+              <td>
+                <span
+                  class="status-pill"
+                  [style.background]="getLeadWorkflowColor(prop.leadWorkflowStatus) + '1a'"
+                  [style.color]="getLeadWorkflowColor(prop.leadWorkflowStatus)"
+                >
+                  {{ getLeadWorkflowLabel(prop.leadWorkflowStatus) }}
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button
+                    *ngIf="prop.leadWorkflowStatus === 'not_started'"
+                    mat-icon-button
+                    class="action-btn-inline"
+                    [matTooltip]="checkLicensingCompliance(prop).compliant ? 'Start Outreach' : checkLicensingCompliance(prop).reason"
+                    [disabled]="!checkLicensingCompliance(prop).compliant"
+                    (click)="startOutreach(prop, $event)"
+                  >
+                    <mat-icon>campaign</mat-icon>
+                  </button>
+                  <button
+                    *ngIf="prop.leadWorkflowStatus !== 'claim_filed'"
+                    mat-icon-button
+                    class="action-btn-inline"
+                    [matTooltip]="checkLicensingCompliance(prop).compliant ? 'Mark Contacted' : checkLicensingCompliance(prop).reason"
+                    [disabled]="!checkLicensingCompliance(prop).compliant"
+                    (click)="markAsContacted(prop, $event)"
+                  >
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                  <button
+                    *ngIf="prop.leadWorkflowStatus === 'contacted' || prop.leadWorkflowStatus === 'inspection_scheduled'"
+                    mat-icon-button
+                    class="action-btn-inline"
+                    [matTooltip]="checkLicensingCompliance(prop).compliant ? 'Create Claim' : checkLicensingCompliance(prop).reason"
+                    [disabled]="!checkLicensingCompliance(prop).compliant"
+                    (click)="createClaim(prop, $event)"
+                  >
+                    <mat-icon>assignment</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="opp-empty" *ngIf="activeQueueProperties.length === 0">
+        No opportunities match current filters. Try switching to "All" view or toggling Demo Mode.
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+

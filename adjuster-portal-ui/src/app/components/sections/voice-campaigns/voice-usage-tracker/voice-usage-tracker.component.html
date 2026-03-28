@@ -1,0 +1,158 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2><mat-icon>analytics</mat-icon> Campaign Analytics & Usage</h2>
+    <p>Monitor voice campaign performance and usage</p>
+  </div>
+</div>
+
+<!-- Campaign Filter -->
+<div class="filter-row">
+  <mat-form-field appearance="outline" class="campaign-filter">
+    <mat-label>Campaign</mat-label>
+    <mat-select [(value)]="selectedCampaignId" (selectionChange)="onCampaignChange()">
+      <mat-option value="">All Campaigns</mat-option>
+      <mat-option *ngFor="let c of campaigns" [value]="c.id">{{ c.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <span class="filter-hint" *ngIf="selectedCampaignName">Showing analytics for "{{ selectedCampaignName }}"</span>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading">
+  <mat-spinner diameter="36"></mat-spinner>
+</div>
+
+<!-- Error -->
+<div class="error-state" *ngIf="!loading && loadError">
+  <mat-icon>error_outline</mat-icon>
+  <p>Failed to load analytics</p>
+  <button mat-stroked-button color="primary" (click)="loadData()">
+    <mat-icon>refresh</mat-icon> Retry
+  </button>
+</div>
+
+<div class="analytics-layout" *ngIf="!loading && !loadError">
+
+  <!-- Usage Alert -->
+  <div class="usage-alert usage-alert-danger" *ngIf="getUsageStatus() === 'danger'" role="alert">
+    <mat-icon>priority_high</mat-icon>
+    <div class="alert-content">
+      <strong>{{ getUsageStatusLabel() }}</strong>
+      <span *ngIf="usage.overage_minutes > 0">You have exceeded your plan limit by {{ usage.overage_minutes | number:'1.0-0' }} minutes. Overage charges may apply.</span>
+      <span *ngIf="usage.overage_minutes === 0">You have used {{ usage.percent_used | number:'1.0-0' }}% of your plan limit. Consider pausing campaigns to avoid overage.</span>
+    </div>
+  </div>
+  <div class="usage-alert usage-alert-warning" *ngIf="getUsageStatus() === 'warning'" role="alert">
+    <mat-icon>warning</mat-icon>
+    <div class="alert-content">
+      <strong>{{ getUsageStatusLabel() }}</strong>
+      <span>{{ usage.percent_used | number:'1.0-0' }}% of your {{ usage.plan_limit_minutes | number:'1.0-0' }} minute plan used. {{ (usage.plan_limit_minutes - usage.minutes_used) | number:'1.0-0' }} minutes remaining.</span>
+    </div>
+  </div>
+
+  <!-- Usage Card (full width) -->
+  <mat-card appearance="outlined" class="usage-card">
+    <h3><mat-icon>data_usage</mat-icon> Voice Minutes Usage</h3>
+    <div class="usage-bar-container">
+      <div class="usage-bar" [style.width.%]="usage.percent_used" [style.background]="getUsageBarColor()"></div>
+    </div>
+    <div class="usage-details">
+      <span class="usage-used">{{ usage.minutes_used | number:'1.0-0' }} min used</span>
+      <span class="usage-limit">/ {{ usage.plan_limit_minutes | number:'1.0-0' }} min limit</span>
+      <span class="usage-status-label" [class]="'usage-status-' + getUsageStatus()">{{ getUsageStatusLabel() }}</span>
+    </div>
+    <div class="burn-rate-hint" *ngIf="getBurnRateForecast() as forecast">
+      <mat-icon class="hint-icon">trending_flat</mat-icon>
+      <span>{{ forecast }}</span>
+    </div>
+    <div class="usage-meta">
+      <div class="meta-item">
+        <span class="meta-value">{{ usage.call_count }}</span>
+        <span class="meta-label">Calls This Period</span>
+      </div>
+      <div class="meta-item" *ngIf="usage.overage_minutes > 0">
+        <span class="meta-value overage">+{{ usage.overage_minutes | number:'1.0-0' }} min</span>
+        <span class="meta-label">Overage</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-value">{{ usage.percent_used | number:'1.0-0' }}%</span>
+        <span class="meta-label">Used</span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Daily Trend -->
+  <mat-card appearance="outlined" class="trend-card" *ngIf="analytics.daily_trend && analytics.daily_trend.length > 0">
+    <h3><mat-icon>show_chart</mat-icon> Daily Call Volume (Last 30 Days)</h3>
+    <div class="trend-chart">
+      <div class="trend-bar-wrapper" *ngFor="let day of analytics.daily_trend" [matTooltip]="day.date + ': ' + day.calls + ' calls'">
+        <div class="trend-bar" [style.height.%]="getTrendBarHeight(day.calls)" [style.background]="day.calls > 0 ? '#2196f3' : '#e0e0e0'"></div>
+        <span class="trend-date">{{ formatTrendDate(day.date) }}</span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Performance Grid -->
+  <div class="performance-grid">
+    <!-- Performance KPIs -->
+    <mat-card appearance="outlined" class="kpi-card">
+      <h3><mat-icon>speed</mat-icon> Performance</h3>
+      <div class="kpi-grid">
+        <div class="kpi-item">
+          <span class="kpi-value">{{ analytics.total_calls }}</span>
+          <span class="kpi-label">Total Calls</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-value">{{ analytics.calls_answered }}</span>
+          <span class="kpi-label">Answered</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-value">{{ getAnswerRate() }}%</span>
+          <span class="kpi-label">Answer Rate</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-value">{{ analytics.conversion_rate }}%</span>
+          <span class="kpi-label">Conversion</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-value">{{ analytics.avg_duration_seconds | durationFormat }}</span>
+          <span class="kpi-label">Avg Duration</span>
+        </div>
+        <div class="kpi-item">
+          <span class="kpi-value">{{ campaigns.length }}</span>
+          <span class="kpi-label">Campaigns</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Outcome Breakdown -->
+    <mat-card appearance="outlined" class="breakdown-card">
+      <h3><mat-icon>pie_chart</mat-icon> Outcome Breakdown</h3>
+      <div class="empty-breakdown" *ngIf="outcomeEntries.length === 0">
+        <mat-icon>donut_large</mat-icon>
+        <p>No call data yet</p>
+      </div>
+      <div class="outcome-list" *ngIf="outcomeEntries.length > 0">
+        <div class="outcome-row" *ngFor="let entry of outcomeEntries">
+          <div class="outcome-info">
+            <span class="outcome-label">{{ entry.label }}</span>
+            <span class="outcome-count">{{ entry.count }} ({{ entry.percent }}%)</span>
+          </div>
+          <div class="outcome-bar-container">
+            <div class="outcome-bar" [style.width.%]="entry.percent" [style.background]="entry.color"></div>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- No campaigns guidance -->
+  <div class="empty-state" *ngIf="campaigns.length === 0 && analytics.total_calls === 0">
+    <mat-icon>analytics</mat-icon>
+    <p>No campaign data yet</p>
+    <span class="empty-hint">Usage analytics will appear here as you launch and run voice campaigns.</span>
+    <button mat-raised-button color="primary" routerLink="/app/outreach/voice" class="empty-cta">
+      <mat-icon>campaign</mat-icon> Create a Campaign
+    </button>
+  </div>
+</div>

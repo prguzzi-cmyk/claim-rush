@@ -1,0 +1,435 @@
+<!-- Command Center Launch Intro -->
+<app-command-center-intro
+  *ngIf="showIntro"
+  [allowAudio]="introAllowAudio"
+  (introComplete)="onIntroComplete()">
+</app-command-center-intro>
+
+<mat-sidenav-container class="dashboard-container">
+  <mat-sidenav
+    position="end"
+    mode="over"
+    [opened]="!!selectedIncident"
+    (closed)="closeIntelPanel()"
+  >
+    <app-property-intelligence-panel
+      [incident]="selectedIncident"
+      (closed)="closeIntelPanel()">
+    </app-property-intelligence-panel>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAGE HEADER
+         ═══════════════════════════════════════════════════════ -->
+    <div class="cc-header">
+      <div class="cc-header-text">
+        <h1>
+          <mat-icon class="cc-header-icon">hub</mat-icon>
+          Command Center
+        </h1>
+        <p class="cc-subtitle">
+          Real-time property damage intelligence
+          <span class="live-badge">
+            <span class="live-dot"></span>
+            LIVE
+          </span>
+          <span class="last-update" *ngIf="lastRefreshTime">
+            Updated {{ getRelativeTime(lastRefreshTime) }}
+          </span>
+        </p>
+      </div>
+      <div class="cc-header-actions">
+        <button mat-stroked-button (click)="replayIntro()" class="replay-btn" matTooltip="Replay launch intro">
+          <mat-icon>play_circle</mat-icon> Intro
+        </button>
+        <button mat-stroked-button (click)="refreshAll()" class="refresh-btn">
+          <mat-icon>refresh</mat-icon> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         COMMAND CENTER KPI BAR
+         ═══════════════════════════════════════════════════════ -->
+    <div class="kpi-bar">
+      <div class="kpi-tile">
+        <div class="kpi-tile-icon kpi-icon-fire"><mat-icon>radar</mat-icon></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ firesToday }}</span>
+          <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
+          <span class="kpi-tile-label">Incidents Today</span>
+        </div>
+      </div>
+
+      <div class="kpi-tile">
+        <div class="kpi-tile-icon kpi-icon-leads"><mat-icon>person_add</mat-icon></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ newLeads }}</span>
+          <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
+          <span class="kpi-tile-label">Leads Created</span>
+        </div>
+      </div>
+
+      <div class="kpi-tile">
+        <div class="kpi-tile-icon kpi-icon-calls"><mat-icon>phone_in_talk</mat-icon></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-value">{{ aiCallsRunning }}</span>
+          <span class="kpi-tile-label">AI Calls Running</span>
+        </div>
+      </div>
+
+      <div class="kpi-tile">
+        <div class="kpi-tile-icon kpi-icon-claims"><mat-icon>description</mat-icon></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ activeClaims }}</span>
+          <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
+          <span class="kpi-tile-label">Active Claims</span>
+        </div>
+      </div>
+
+      <div class="kpi-tile">
+        <div class="kpi-tile-icon kpi-icon-recovery"><mat-icon>account_balance</mat-icon></div>
+        <div class="kpi-tile-body">
+          <span class="kpi-tile-value">{{ fmtCurrency(recoveryValue) }}</span>
+          <span class="kpi-tile-label">Recovery Value</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         MAIN GRID: MAP (left) + ACTIVITY FEED (right)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="cc-main-grid">
+
+      <!-- LEFT: LIVE INCIDENT MAP -->
+      <div class="cc-panel cc-map-panel">
+        <div class="cc-panel-header">
+          <mat-icon>satellite_alt</mat-icon>
+          <span>Live Incident Map</span>
+          <span class="header-badge" *ngIf="allMapIncidents.length > 0">{{ allMapIncidents.length }} incidents</span>
+        </div>
+        <div class="cc-map-wrapper">
+          <div class="cc-map-loading" *ngIf="!mapLoaded">Loading map...</div>
+          <google-map
+            class="cc-map"
+            height="100%"
+            width="100%"
+            [center]="mapCenter"
+            [zoom]="mapZoom"
+            [options]="mapOptions"
+            (mapInitialized)="onMapReady()">
+
+            <!-- Incident markers -->
+            <map-marker *ngFor="let m of incidentMarkers"
+              [position]="m.position"
+              [options]="m.options"
+              (mapClick)="onMarkerClick(m.incident)">
+            </map-marker>
+
+            <!-- Hotspot heat circles -->
+            <map-circle *ngFor="let c of heatCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options">
+            </map-circle>
+          </google-map>
+
+          <!-- Map legend overlay -->
+          <div class="cc-map-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>Fire</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#8b5cf6;"></span>Storm</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Crime</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#0ea5e9;"></span>Roof</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#06b6d4;"></span>Water</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: LIVE ACTIVITY FEED -->
+      <div class="cc-panel cc-feed-panel">
+        <div class="cc-panel-header">
+          <mat-icon>stream</mat-icon>
+          <span>Live Activity Feed</span>
+          <span class="header-badge pulse-badge">LIVE</span>
+        </div>
+        <div class="cc-feed-scroll">
+          <div *ngIf="activityFeed.length === 0" class="cc-feed-empty">
+            <mat-icon>hourglass_empty</mat-icon>
+            <span>Waiting for activity...</span>
+          </div>
+
+          <div *ngFor="let item of activityFeed"
+               class="cc-feed-item"
+               (click)="onActivityClick(item)">
+            <div class="feed-icon-wrap" [style.background]="getActivityColor(item.eventType) + '18'">
+              <mat-icon [style.color]="getActivityColor(item.eventType)">{{ getActivityIcon(item.eventType) }}</mat-icon>
+            </div>
+            <div class="feed-body">
+              <div class="feed-type-badge" [style.color]="getActivityColor(item.eventType)">
+                {{ getActivityTypeLabel(item.eventType) }}
+              </div>
+              <div class="feed-label">{{ item.label }}</div>
+              <div class="feed-meta" *ngIf="item.sublabel">{{ item.sublabel }}</div>
+            </div>
+            <div class="feed-time">{{ getRelativeTime(item.timestamp) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SECOND ROW: AGENT OPS + HOTSPOTS + RECENT INCIDENTS
+         ═══════════════════════════════════════════════════════ -->
+    <div class="cc-secondary-grid">
+
+      <!-- AGENT OPERATIONS PANEL -->
+      <div class="cc-panel cc-ops-panel">
+        <div class="cc-panel-header">
+          <mat-icon>groups</mat-icon>
+          <span>Agent Operations</span>
+        </div>
+        <div class="cc-ops-grid">
+          <div class="ops-stat">
+            <span class="ops-value">{{ activeAgents }}</span>
+            <span class="ops-label">Active Agents</span>
+          </div>
+          <div class="ops-stat">
+            <span class="ops-value">{{ aiCallsRunning }}</span>
+            <span class="ops-label">Calls Running</span>
+          </div>
+          <div class="ops-stat">
+            <span class="ops-value">{{ leadsAssigned }}</span>
+            <span class="ops-label">Leads Assigned</span>
+          </div>
+          <div class="ops-stat">
+            <span class="ops-value ops-highlight">{{ agentConversionPct }}%</span>
+            <span class="ops-label">Conversion</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DAMAGE HOTSPOTS -->
+      <div class="cc-panel cc-hotspots-panel">
+        <div class="cc-panel-header">
+          <mat-icon>whatshot</mat-icon>
+          <span>Damage Hotspots</span>
+        </div>
+        <div class="cc-hotspots-list">
+          <div *ngIf="hotspotData.length === 0" class="hotspots-empty">
+            <span>No clusters detected</span>
+          </div>
+          <div *ngFor="let spot of hotspotData; let i = index" class="hotspot-row">
+            <span class="hotspot-rank">#{{ i + 1 }}</span>
+            <div class="hotspot-bar-wrap">
+              <div class="hotspot-bar"
+                   [style.width.%]="(spot.count / (hotspotData[0]?.count || 1)) * 100"
+                   [style.background]="spot.count > 5 ? '#ef4444' : spot.count > 3 ? '#f97316' : '#eab308'">
+              </div>
+            </div>
+            <span class="hotspot-count">{{ spot.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT INCIDENTS -->
+      <div class="cc-panel cc-incidents-panel">
+        <div class="cc-panel-header">
+          <mat-icon>notifications_active</mat-icon>
+          <span>Recent Incidents</span>
+          <span class="header-badge" *ngIf="totalPropertyIncidents > 0">{{ totalPropertyIncidents }}</span>
+        </div>
+        <div class="cc-incidents-scroll">
+          <div *ngIf="incidentsLoading" class="cc-feed-empty">
+            <mat-spinner diameter="28"></mat-spinner>
+            <span>Connecting to RIN stream...</span>
+          </div>
+          <div *ngIf="!incidentsLoading && recentIncidents.length === 0" class="cc-feed-empty">
+            <mat-icon>check_circle_outline</mat-icon>
+            <span>No incidents reported today</span>
+          </div>
+
+          <div *ngFor="let incident of recentIncidents"
+               class="cc-incident-card"
+               [class.incident-converted]="!!incident.lead_id"
+               [class.incident-new]="isNewIncident(incident.id)">
+            <div class="incident-top-row">
+              <span class="call-type-emoji">{{ getCallTypeEmoji(incident.call_type) }}</span>
+              <span class="call-type-badge" [ngClass]="getCallTypeBadgeClass(incident.call_type)">
+                {{ incident.call_type_description || incident.call_type }}
+              </span>
+              <span class="new-badge" *ngIf="isNewIncident(incident.id)">NEW</span>
+              <span class="incident-time">{{ getRelativeTime(incident.received_at) }}</span>
+            </div>
+            <div class="incident-address">{{ incident.address || 'Unknown address' }}</div>
+            <div class="incident-actions-row">
+              <button mat-button color="primary"
+                      *ngIf="userService.getUserPermissions('lead', 'create') && !incident.lead_id"
+                      (click)="onConvertToLead(incident)">
+                <mat-icon>person_add</mat-icon> Convert
+              </button>
+              <span *ngIf="incident.lead_id" class="converted-chip" (click)="navigateToLead(incident)">
+                <mat-icon>check_circle</mat-icon> Lead
+              </span>
+              <button mat-icon-button (click)="focusOnMap(incident)"
+                      *ngIf="incident.latitude != null"
+                      matTooltip="Show on map">
+                <mat-icon>my_location</mat-icon>
+              </button>
+              <button mat-icon-button (click)="onViewIntel(incident)" matTooltip="Property Intel">
+                <mat-icon>insights</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         CHARTS (admin/super-admin only)
+         ═══════════════════════════════════════════════════════ -->
+    <div class="charts-grid" *ngIf="role === 'admin' || role === 'super-admin'">
+      <div class="cc-panel chart-panel">
+        <div class="cc-panel-header">
+          <mat-icon>pie_chart</mat-icon>
+          <span>Leads by Status</span>
+        </div>
+        <div class="chart-container">
+          <ngx-charts-pie-chart
+            [scheme]="colorScheme"
+            [results]="leadByStatusReportData"
+            [legend]="true"
+            maxLabelLength="100"
+            legendTitle=""
+            [legendPosition]="'right'"
+            [labels]="true">
+          </ngx-charts-pie-chart>
+        </div>
+      </div>
+      <div class="cc-panel chart-panel">
+        <div class="cc-panel-header">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Claims by Phase</span>
+        </div>
+        <div class="chart-container">
+          <ngx-charts-bar-vertical
+            [scheme]="colorScheme"
+            [results]="claimByPhases"
+            [gradient]="gradient"
+            [xAxis]="showXAxis"
+            [yAxis]="showYAxis"
+            [legend]="true"
+            [showXAxisLabel]="showXAxisLabel"
+            [showYAxisLabel]="showYAxisLabel"
+            [xAxisLabel]="'Phases'"
+            [yAxisLabel]="'Claims'"
+            [legendPosition]="'right'"
+            legendTitle=""
+            [yAxisTickFormatting]="axisFormatShowNumbers">
+          </ngx-charts-bar-vertical>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Performance Table -->
+    <div class="cc-panel" *ngIf="agentPerformanceData?.length && (role === 'admin' || role === 'super-admin')" style="margin-bottom: 16px;">
+      <div class="cc-panel-header">
+        <mat-icon>people</mat-icon>
+        <span>Agent Performance</span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table mat-table [dataSource]="dataSourcePerformance" class="w-100">
+          <ng-container matColumnDef="agent_name">
+            <th mat-header-cell *matHeaderCellDef>Agent</th>
+            <td mat-cell *matCellDef="let row">{{ row.agent_name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="total_leads_received">
+            <th mat-header-cell *matHeaderCellDef>Leads</th>
+            <td mat-cell *matCellDef="let row">{{ row.total_leads_received }}</td>
+          </ng-container>
+          <ng-container matColumnDef="contact_attempts">
+            <th mat-header-cell *matHeaderCellDef>Attempts</th>
+            <td mat-cell *matCellDef="let row">{{ row.contact_attempts }}</td>
+          </ng-container>
+          <ng-container matColumnDef="no_answer">
+            <th mat-header-cell *matHeaderCellDef>No Answer</th>
+            <td mat-cell *matCellDef="let row">{{ row.no_answer }}</td>
+          </ng-container>
+          <ng-container matColumnDef="left_message">
+            <th mat-header-cell *matHeaderCellDef>Left Msg</th>
+            <td mat-cell *matCellDef="let row">{{ row.left_message }}</td>
+          </ng-container>
+          <ng-container matColumnDef="callbacks_pending">
+            <th mat-header-cell *matHeaderCellDef>Callbacks</th>
+            <td mat-cell *matCellDef="let row">{{ row.callbacks_pending }}</td>
+          </ng-container>
+          <ng-container matColumnDef="wants_info">
+            <th mat-header-cell *matHeaderCellDef>Wants Info</th>
+            <td mat-cell *matCellDef="let row">{{ row.wants_info }}</td>
+          </ng-container>
+          <ng-container matColumnDef="appointments_scheduled">
+            <th mat-header-cell *matHeaderCellDef>Appts</th>
+            <td mat-cell *matCellDef="let row">{{ row.appointments_scheduled }}</td>
+          </ng-container>
+          <ng-container matColumnDef="signed_clients">
+            <th mat-header-cell *matHeaderCellDef>Signed</th>
+            <td mat-cell *matCellDef="let row">{{ row.signed_clients }}</td>
+          </ng-container>
+          <ng-container matColumnDef="closing_rate">
+            <th mat-header-cell *matHeaderCellDef>Close %</th>
+            <td mat-cell *matCellDef="let row">{{ row.closing_rate }}%</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumnsPerformance"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumnsPerformance"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notice Board -->
+    <mat-accordion class="notice-board">
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>campaign</mat-icon>
+            Notice Board
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="notice-board-content">
+          <div class="notice-col">
+            <h4>Announcements</h4>
+            <table mat-table [dataSource]="dataSourceAnnouncements" class="notice-table">
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef>Announcements</th>
+                <td mat-cell *matCellDef="let announcement" (click)="openViewAnnouncementDialog(announcement)">
+                  <strong>{{ announcement.announcement_date | date : "MMMM dd, yyyy" }}</strong><br>
+                  {{ announcement.title }}
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumnsAnnouncements"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumnsAnnouncements"></tr>
+            </table>
+          </div>
+          <div class="notice-col">
+            <h4>Newsletters</h4>
+            <table mat-table [dataSource]="dataSourceNewsletter" class="notice-table">
+              <ng-container matColumnDef="title">
+                <th mat-header-cell *matHeaderCellDef>Newsletters</th>
+                <td mat-cell class="text-nowrap" (click)="openViewNewsletterDialog(newsletter)" *matCellDef="let newsletter">
+                  {{ newsletter.title }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="publication_date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell class="text-nowrap" (click)="openViewNewsletterDialog(newsletter)" *matCellDef="let newsletter">
+                  {{ newsletter.publication_date | date : "MMMM dd, yyyy" }}
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumnsNewsletters"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumnsNewsletters"></tr>
+            </table>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+  </mat-sidenav-content>
+</mat-sidenav-container>

@@ -1,0 +1,2683 @@
+
+
+    <mat-card appearance="outlined">
+        <p class="mat-headline-4 section-title">Advanced search</p>
+
+        <ul class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a [routerLink]="['/app/search']" (click)="onNavigate('Reports')">Search</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="javascript:">Advanced search</a>
+            </li>
+        </ul>
+        <mat-card-content>
+            <div class="row">
+                <!-- Module selection -->
+                <div class="col-md-12">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Select a module</mat-label>
+                        <mat-select
+                            placeholder="Select module"
+                            (selectionChange)="searchModule($event.value)"
+                            name="module"
+                            #module>
+                            <mat-option *ngIf="userService.getUserPermissions('lead','read')" value="Leads">Leads</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('lead_comment','read')" value="Leads comments">Leads comments</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('lead_task','read')" value="Leads tasks">Leads tasks</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('lead_file','read')" value="Leads files">Leads files</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('client','read')" value="Clients">Clients</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('client_comment','read')" value="Clients comments">Clients comments</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('client_task','read')" value="Clients tasks">Clients tasks</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('client_file','read')" value="Clients files">Clients files</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('claim','read')" value="Claims">Claims</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('claim_comment','read')" value="Claims comments">Claims comments</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('claim_task','read')" value="Claims tasks">Claims tasks</mat-option>
+                            <mat-option *ngIf="userService.getUserPermissions('claim_file','read')" value="Claims files">Claims files</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Clients form -->
+                <div *ngIf="module.value == 'Clients'">
+                    <form [formGroup]="clientForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #clientPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Ref. # (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="refString"
+                                placeholder="Reference number. e.g UPA-CL-XXXXXX" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            [hidden]="role != 'super-admin'">
+                            <mat-label>User assigned to (optional)</mat-label>
+                            <mat-select
+                                formControlName="belongsTo"
+                                name="belongsTo">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let agent of agents"
+                                    [value]="agent.id">
+                                    {{ agent?.first_name }}
+                                    {{ agent?.last_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Full name (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="fullName"
+                                placeholder="Enter name" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Email address (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="email"
+                                placeholder="Enter email address" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Phone number (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="phoneNumber"
+                                placeholder="Enter phone number" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Address (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="address"
+                                placeholder="Enter address" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact city (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="city"
+                                placeholder="e.g. Philadelphia" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact state (optional)</mat-label>
+                            <mat-select
+                                formControlName="state"
+                                name="e.g. Pennsylvania">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let state of states"
+                                    [value]="state.abbreviation">
+                                    {{ state.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Zip code (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="zipCode"
+                                placeholder="e.g. 15000" />
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Clients comments form -->
+                <div *ngIf="module.value == 'Clients comments'">
+                    <form [formGroup]="clientForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #clientPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Search keyword</mat-label>
+                            <input
+                                matInput
+                                formControlName="text"
+                                placeholder="Search keyword" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Clients files form -->
+                <div *ngIf="module.value == 'Clients files'">
+                    <form [formGroup]="clientForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>File name</mat-label>
+                            <input
+                                matInput
+                                formControlName="fileName"
+                                placeholder="File name" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Description" />
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Client tasks form -->
+                <div *ngIf="module.value == 'Clients tasks'">
+                    <form [formGroup]="clientForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Title (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="title"
+                                placeholder="Enter task title" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Enter task description" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            [hidden]="role != 'super-admin'">
+                            <mat-label>User assigned to (optional)</mat-label>
+                            <mat-select
+                                formControlName="assignedTo"
+                                name="assigned_to">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let agent of agents"
+                                    [value]="agent.id">
+                                    {{ agent?.first_name }}
+                                    {{ agent?.last_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="taskStartDate"
+                                [matDatepicker]="pickerTaskStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerTaskStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerTaskStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task completion date
+                                (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="completionDate"
+                                [matDatepicker]="pickerCompletionDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerCompletionDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerCompletionDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task due date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="dueDate"
+                                [matDatepicker]="pickerDueDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerDueDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerDueDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task type</mat-label>
+                            <mat-select
+                                formControlName="taskType"
+                                placeholder="Select task type"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let type of taskTypes"
+                                    [value]="type">
+                                    {{ type }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Priority</mat-label>
+                            <mat-select
+                                formControlName="priority"
+                                placeholder="Select priority"
+                                name="priority">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let priority of priorities"
+                                    [value]="priority">
+                                    {{ priority }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Status</mat-label>
+                            <mat-select
+                                formControlName="status"
+                                placeholder="Select task status"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let status of taskStatuses"
+                                    [value]="status">
+                                    {{ status }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Leads tasks form -->
+                <div *ngIf="module.value == 'Leads tasks'">
+                    <form [formGroup]="leadForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <!-- <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field> -->
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Title (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="title"
+                                placeholder="Enter task title" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Enter task description" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            [hidden]="role != 'super-admin'">
+                            <mat-label>User assigned to (optional)</mat-label>
+                            <mat-select
+                                formControlName="assignedTo"
+                                name="assigned_to">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let agent of agents"
+                                    [value]="agent.id">
+                                    {{ agent?.first_name }}
+                                    {{ agent?.last_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="taskStartDate"
+                                [matDatepicker]="pickerTaskStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerTaskStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerTaskStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task completion date
+                                (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="completionDate"
+                                [matDatepicker]="pickerCompletionDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerCompletionDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerCompletionDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task due date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="dueDate"
+                                [matDatepicker]="pickerDueDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerDueDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerDueDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task type</mat-label>
+                            <mat-select
+                                formControlName="taskType"
+                                placeholder="Select task type"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let type of taskTypes"
+                                    [value]="type">
+                                    {{ type }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Priority</mat-label>
+                            <mat-select
+                                formControlName="priority"
+                                placeholder="Select priority"
+                                name="priority">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let priority of priorities"
+                                    [value]="priority">
+                                    {{ priority }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Status</mat-label>
+                            <mat-select
+                                formControlName="status"
+                                placeholder="Select task status"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let status of taskStatuses"
+                                    [value]="status">
+                                    {{ status }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Claim tasks form -->
+                <div *ngIf="module.value == 'Claims tasks'">
+                    <form [formGroup]="claimForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Title (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="title"
+                                placeholder="Enter task title" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Enter task description" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            [hidden]="role != 'super-admin'">
+                            <mat-label>User assigned to (optional)</mat-label>
+                            <mat-select
+                                formControlName="assignedTo"
+                                name="assigned_to">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let agent of agents"
+                                    [value]="agent.id">
+                                    {{ agent?.first_name }}
+                                    {{ agent?.last_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="taskStartDate"
+                                [matDatepicker]="pickerTaskStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerTaskStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerTaskStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task completion date
+                                (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="completionDate"
+                                [matDatepicker]="pickerCompletionDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerCompletionDate"></mat-datepicker-toggle>
+                            <mat-datepicker
+                                #pickerCompletionDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task due date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="dueDate"
+                                [matDatepicker]="pickerDueDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerDueDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerDueDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Task type</mat-label>
+                            <mat-select
+                                formControlName="taskType"
+                                placeholder="Select task type"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let type of taskTypes"
+                                    [value]="type">
+                                    {{ type }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Priority</mat-label>
+                            <mat-select
+                                formControlName="priority"
+                                placeholder="Select priority"
+                                name="priority">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let priority of priorities"
+                                    [value]="priority">
+                                    {{ priority }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Status</mat-label>
+                            <mat-select
+                                formControlName="status"
+                                placeholder="Select task status"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let status of taskStatuses"
+                                    [value]="status">
+                                    {{ status }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Leads files form -->
+                <div *ngIf="module.value == 'Leads files'">
+                    <form [formGroup]="leadForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>File name</mat-label>
+                            <input
+                                matInput
+                                formControlName="fileName"
+                                placeholder="File name" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Description" />
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Leads form -->
+                <div *ngIf="module.value == 'Leads'">
+                    <form [formGroup]="leadForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Ref. # (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="refString"
+                                placeholder="Reference number. e.g UPA-LD-XXXXXX" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" [hidden]="role != 'super-admin'">
+                            <mat-label>Assigned to</mat-label>
+                            <input type="text" matInput placeholder="Select assigned to" [formControl]="assignedToControl" [matAutocomplete]="auto">
+                            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onLeadAssignedSelected($event)">
+                              <mat-option *ngFor="let agent of filteredAssignedToAgents | async" [value]="agent">
+                                {{ agent?.first_name }} {{ agent?.last_name }}
+                              </mat-option>
+                            </mat-autocomplete>
+                          </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Loss date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="lossDate"
+                                [matDatepicker]="pickerLossDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerLossDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerLossDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Peril (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="peril"
+                                placeholder="Enter peril e.g. flood, storm" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Insurance company (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="insuranceCompany"
+                                placeholder="Enter insurance company name" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Policy number (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="policyNumber"
+                                placeholder="Enter policy reference number" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Claim number (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="claimNumber"
+                                placeholder="Enter claim reference number" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Status</mat-label>
+                            <mat-select
+                                formControlName="status"
+                                placeholder="Select status"
+                                name="status">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let status of statuses"
+                                    [value]="status">
+                                    {{ status }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Source by</mat-label>
+                            <input type="text" matInput placeholder="Select source by" [formControl]="sourceControl" [matAutocomplete]="auto">
+                            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onLeadSourceSelected($event)">
+                              <mat-option *ngFor="let agent of filteredAgents | async" [value]="agent">
+                                {{ agent?.first_name }} {{ agent?.last_name }}
+                              </mat-option>
+                            </mat-autocomplete>
+                          </mat-form-field>
+                          
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact city (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="city"
+                                placeholder="e.g. Philadelphia" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact state (optional)</mat-label>
+                            <mat-select
+                                formControlName="state"
+                                name="e.g. Pennsylvania">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let state of states"
+                                    [value]="state.abbreviation">
+                                    {{ state.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Leads comments form -->
+                <div *ngIf="module.value == 'Leads comments'">
+                    <form [formGroup]="leadForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #clientPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Search keyword</mat-label>
+                            <input
+                                matInput
+                                formControlName="text"
+                                placeholder="Search keyword" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div *ngIf="module.value == 'Claims'">
+                    <form [formGroup]="claimForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #claimPeriod>
+                                <mat-option value>current-month</mat-option>
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="claimPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="claimPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Ref. # (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="refString"
+                                placeholder="Reference number. e.g UPA-CM-XXXXXX" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            [hidden]="role != 'super-admin'">
+                            <mat-label>User assigned to (optional)</mat-label>
+                            <mat-select
+                                formControlName="assignedTo"
+                                name="assigned_to">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let agent of agents"
+                                    [value]="agent.id">
+                                    {{ agent?.first_name }}
+                                    {{ agent?.last_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Claim phase</mat-label>
+                            <mat-select
+                                formControlName="currentPhase"
+                                placeholder="Select status"
+                                name="currentPhase">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let phase of phases"
+                                    [value]="phase.slug">
+                                    {{ phase.display_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Source by</mat-label>
+                            <input type="text" matInput placeholder="Select source by" [formControl]="sourceControl" [matAutocomplete]="auto">
+                            <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onClaimSourceSelected($event)">
+                              <mat-option *ngFor="let agent of filteredAgents | async" [value]="agent">
+                                {{ agent?.first_name }} {{ agent?.last_name }}
+                              </mat-option>
+                            </mat-autocomplete>
+                          </mat-form-field>
+
+                          <!-- Signed By Control -->
+                            <mat-form-field appearance="outline">
+                                <mat-label>Signed by</mat-label>
+                                <input type="text" matInput placeholder="Select signed by" [formControl]="signedByControl" [matAutocomplete]="autoSignedBy">
+                                <mat-autocomplete #autoSignedBy="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onClaimSignedSelected($event)">
+                                <mat-option *ngFor="let agent of filteredSignedByAgents | async" [value]="agent">
+                                    {{ agent?.first_name }} {{ agent?.last_name }}
+                                </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+                            
+                            <!-- Adjusted By Control -->
+                            <mat-form-field appearance="outline">
+                                <mat-label>Adjusted by</mat-label>
+                                <input type="text" matInput placeholder="Select adjusted by" [formControl]="adjustedByControl" [matAutocomplete]="autoAdjustedBy">
+                                <mat-autocomplete #autoAdjustedBy="matAutocomplete" [displayWith]="displayAgent" (optionSelected)="onClaimAdjustedSelected($event)">
+                                <mat-option *ngFor="let agent of filteredAdjustedByAgents | async" [value]="agent">
+                                    {{ agent?.first_name }} {{ agent?.last_name }}
+                                </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+
+                           
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact city (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="city"
+                                placeholder="e.g. Philadelphia" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Contact state (optional)</mat-label>
+                            <mat-select
+                                formControlName="state"
+                                name="e.g. Pennsylvania">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let state of states"
+                                    [value]="state.abbreviation">
+                                    {{ state.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Zipcode from (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="zipCodeStart"
+                                maxlength="5"
+                                placeholder="Enter zip code start range"
+                                #zipCodeStart />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>{{
+                                zipCodeStart.value == ''
+                                ? 'Zipcode to (optional)'
+                                : 'Zipcode to (required)'
+                                }}</mat-label>
+                            <input
+                                matInput
+                                formControlName="zipCodeEnd"
+                                maxlength="5"
+                                [required]="zipCodeStart.value != ''"
+                                placeholder="Enter zip code end range" />
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Claims comments form -->
+                <div *ngIf="module.value == 'Claims comments'">
+                    <form [formGroup]="claimForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #clientPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="clientPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Search keyword</mat-label>
+                            <input
+                                matInput
+                                formControlName="text"
+                                placeholder="Search keyword" />
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Claims files form -->
+                <div *ngIf="module.value == 'Claims files'">
+                    <form [formGroup]="claimForm" class="search-form">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Period</mat-label>
+                            <mat-select
+                                formControlName="period"
+                                name="period"
+                                #leadPeriod>
+                                
+                                <mat-option
+                                    *ngFor="let period of periods"
+                                    [value]="period">
+                                    {{ period.replace('-', ' ') | titlecase }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>Start date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="startDate"
+                                [matDatepicker]="pickerStartDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerStartDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerStartDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field
+                            appearance="outline"
+                            *ngIf="leadPeriod.value == 'custom-range'">
+                            <mat-label>End date (optional)</mat-label>
+                            <input
+                                matInput
+                                formControlName="endDate"
+                                [matDatepicker]="pickerEndDate" />
+                            <mat-datepicker-toggle
+                                matSuffix
+                                [for]="pickerEndDate"></mat-datepicker-toggle>
+                            <mat-datepicker #pickerEndDate></mat-datepicker>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client" name="client">
+                                <mat-option value>Any</mat-option>
+                                <mat-option
+                                    *ngFor="let client of clients"
+                                    [value]="client.id">
+                                    {{ client?.full_name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>File name</mat-label>
+                            <input
+                                matInput
+                                formControlName="fileName"
+                                placeholder="File name" />
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Description</mat-label>
+                            <input
+                                matInput
+                                formControlName="description"
+                                placeholder="Description" />
+                        </mat-form-field>
+
+                        <mat-form-field style="visibility: hidden">
+                            <input matInput />
+                        </mat-form-field>
+
+                        <div class="col-md-12 align-self-center text-center">
+                            <button
+                                class="btn btn-primary"
+                                style="width: 30%"
+                                mat-raised-button
+                                color="primary"
+                                (click)="search()">
+                                Search <mat-icon color="white">search</mat-icon>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Clients result -->
+            <p *ngIf="dataSourceClients?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div *ngIf="dataSourceClients?.data?.length">
+                <h5>Clients</h5>
+
+                <table
+                    mat-table
+                    *ngIf="dataSourceClients?.data?.length"
+                    [dataSource]="dataSourceClients"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th
+                            mat-header-cell
+                            *matHeaderCellDef
+                            ></th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginator?.pageIndex * paginator?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let client">
+                            <a type="button" class="link-ref"
+                            (click)="onClientDetail(client?.id, client?.full_name + '-' + client?.ref_string.slice(-3))">{{client?.ref_string}}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name">
+                        <th mat-header-cell *matHeaderCellDef>Full name</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            (click)="viewClient(client)">
+                            {{ client?.full_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name_alt">
+                        <th mat-header-cell *matHeaderCellDef>
+                            Alternate name
+                        </th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            (click)="viewClient(client)">
+                            {{ client?.full_name_alt }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            (click)="viewClient(client)">
+                            {{ client?.email }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            (click)="viewClient(client)">
+                            {{
+                            client.created_by?.first_name +
+                            ' ' +
+                            client.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            class="expiry-date-cell">
+                            {{ client.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let client"
+                            (click)="viewClient(client.id)"
+                            class="last-active-cell">
+                            <span *ngIf="!client.updated_at">-</span>{{
+                            client.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsClients"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="
+                            let client;
+                            columns: displayedColumnsClients
+                        "></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                        this.clientPaginationData.total <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    #paginator
+                    [length]="this.clientPaginationData.totalRecords"
+                    (page)="changePage($event, 'client')"
+                    showFirstLastButtons
+                    [pageSize]="this.clientPaginationData.pageSize"
+                    [pageSizeOptions]="pageSizeOptions">
+                </mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceClients?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadExcel(this.clients, 'clients')">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadCsv(this.clients, 'clients')">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients comments result -->
+            <p *ngIf="dataSourceClientComments?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div *ngIf="dataSourceClientComments?.data?.length">
+                <h5>Comments</h5>
+                <table
+                    mat-table
+                    [dataSource]="dataSourceClientComments"
+                    class="comments-table"
+                    *ngIf="dataSourceClientComments?.data.length">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>
+                            #
+                        </th>
+                        <td
+                            mat-cell
+                            *matCellDef="let element; let i = index"
+                            (click)="openCommentViewDialog(comment)">
+                            {{ i + 1 }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Description</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let comment"
+                            (click)="openCommentViewDialog(comment)">
+                            <strong>{{
+                                comment?.created_by?.first_name
+                                ? comment?.created_by?.first_name
+                                : '-'
+                                }}
+                                {{ comment?.created_by?.last_name }}</strong>
+                            |
+                            <strong>{{
+                                comment.created_at
+                                | date : 'MMMM dd, yyyy h:mm:ssa'
+                                }}</strong><br />
+                            {{ comment.text }}
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsComments"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="
+                            let row;
+                            columns: displayedColumnsComments
+                        "></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                        dataSourceClientComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    #paginator
+                    [length]="dataSourceClientComments?.data?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceClientComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadExcel(
+                                    this.clientsComments,
+                                    'client_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadCsv(
+                                    this.clientsComments,
+                                    'client_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p *ngIf="dataSourceFiles?.data?.length == 0">
+                No matching records found.
+            </p>
+            <!-- Clients/Claims/Leads files result -->
+            <div *ngIf="dataSourceFiles?.data?.length">
+                <h5>Files</h5>
+                
+
+                <table mat-table [dataSource]="dataSourceFiles"
+                    class="comments-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef
+                            >#</th>
+                        <td mat-cell
+                            *matCellDef="let element; let i = index;">{{
+                            (paginatorFiles.pageIndex *
+                            paginatorFiles.pageSize) + (i + 1) }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>File name</th>
+                        <td mat-cell *matCellDef="let file"
+                            (click)="openFileViewDialog(file)">{{file.name}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Description</th>
+                        <td mat-cell *matCellDef="let file"
+                            (click)="openFileViewDialog(file)">{{file.description}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="type">
+                        <th mat-header-cell *matHeaderCellDef>Type</th>
+                        <td mat-cell *matCellDef="let file"
+                            (click)="openFileViewDialog(file)">{{file.type}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let file"
+                            (click)="openFileViewDialog(file)">{{file.created_at
+                            | date:
+                            "MMMM dd, yyyy"}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell
+                            *matCellDef="let file">{{file?.created_by?.first_name
+                            ? file?.created_by?.first_name
+                            : '-'}} {{file?.created_by?.last_name}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="download">
+                        <th mat-header-cell *matHeaderCellDef>Download</th>
+                        <td mat-cell *matCellDef="let file">
+                            <div class="d-flex align-items-center">
+                                <a href="{{ file.path }}" download
+                                    class="text-dark">
+                                    <mat-icon>download</mat-icon>
+                                </a>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row
+                        *matHeaderRowDef="displayedColumnsFiles"></tr>
+                    <tr mat-row
+                        *matRowDef="let row; columns: displayedColumnsFiles;"></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                        dataSourceFiles?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    #paginatorFiles
+                    [length]="dataSourceFiles?.data?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceFiles?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadExcel(
+                                    this.files,
+                                    'client_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadCsv(
+                                    this.files,
+                                    'client_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clients/Claims/Leads tasks result -->
+            <p *ngIf="dataSourceTasks?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div *ngIf="dataSourceTasks?.data?.length">
+                <h5>Tasks</h5>
+
+                <table mat-table [dataSource]="dataSourceTasks"
+                    class="comments-table" *ngIf="dataSourceTasks?.data.length">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef
+                            >#</th>
+                        <td mat-cell
+                            *matCellDef="let element; let i = index;">{{
+                            (paginatorTasks.pageIndex *
+                            paginatorTasks.pageSize) + (i + 1) }}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="title">
+                        <th mat-header-cell *matHeaderCellDef>Title</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.title}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="task_type">
+                        <th mat-header-cell *matHeaderCellDef>Type</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.task_type}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Status</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.status}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="priority">
+                        <th mat-header-cell *matHeaderCellDef>Priority</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.priority}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="due_date">
+                        <th mat-header-cell *matHeaderCellDef>Due date</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.due_date
+                            | date:
+                            "MMMM dd, yyyy"}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let task"
+                            (click)="openTasksViewDialog(task)">{{task.created_at
+                            | date:
+                            "MMMM dd, yyyy"}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell
+                            *matCellDef="let task">{{task?.created_by?.first_name
+                            ? task?.created_by?.first_name
+                            : '-'}} {{task?.created_by?.last_name}}</td>
+                    </ng-container>
+
+                    <tr mat-header-row
+                        *matHeaderRowDef="displayedColumnsTasks"></tr>
+                    <tr mat-row
+                        *matRowDef="let row; columns: displayedColumnsTasks;"
+                        [ngClass]="{'green': row?.status == 'done'}"></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                                    dataSourceTasks?.data?.length <= 0
+                                        ? 'hidden'
+                                        : 'visible'
+                                "
+                    #paginatorTasks
+                    [length]="dataSourceTasks?.data?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                                    dataSourceTasks?.data?.length <= 0
+                                        ? 'hidden'
+                                        : 'visible'
+                                ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                            downloadExcel(
+                                                this.tasks,
+                                                'client_comments'
+                                            )
+                                        ">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                            downloadCsv(
+                                                this.tasks,
+                                                'client_comments'
+                                            )
+                                        ">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claims results -->
+            <p *ngIf="dataSourceClaims?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div
+                *ngIf="
+                    dataSourceClaims?.data?.length ||
+                    dataSourceClaims?.data?.length == 0
+                ">
+                <h5>Claims</h5>
+                
+                <table
+                    mat-table
+                    [dataSource]="dataSourceClaims"
+                    *ngIf="dataSourceClaims?.data?.length > 0"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>
+                            #
+                        </th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorClaims?.pageIndex *
+                            paginatorClaims?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            <a type="button" class="link-ref"
+                                (click)="onClaimDetail(claim?.id, claim?.client?.full_name + '-' + claim?.ref_string.slice(-3))">{{claim?.ref_string}}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.claim_number ? claim?.claim_number : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim?.policy_number
+                            ? claim?.policy_number
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref"
+                                (click)="onClientDetail(claim?.client_id, claim?.client?.full_name )">{{claim?.client?.full_name}}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phase">
+                        <th mat-header-cell *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let claim"
+                            class="expiry-date-cell">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let claim"
+                            class="last-active-cell">
+                            <span *ngIf="!claim.updated_at">-</span>{{
+                            claim.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+
+                <mat-paginator
+                    #paginatorClaims
+                    [style.visibility]="
+                        dataSourceClaims?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    [length]="this.claimPaginationData.totalRecords"
+                    (page)="changePage($event, 'claim')"
+                    showFirstLastButtons
+                    [pageSize]="this.claimPaginationData.pageSize"
+                    [pageSizeOptions]="pageSizeOptions">
+                </mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceClaims?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadExcel(this.claims, 'claims')">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadCsv(this.claims, 'claims')">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claims comments results -->
+            <p *ngIf="dataSourceClaimComments?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div *ngIf="dataSourceClaimComments?.data?.length">
+                <h5>Comments</h5>
+
+                <table
+                    mat-table
+                    [dataSource]="dataSourceClaimComments"
+                    class="comments-table"
+                    *ngIf="dataSourceClaimComments?.data.length">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>
+                            #
+                        </th>
+                        <td
+                            mat-cell
+                            *matCellDef="let element; let i = index"
+                            (click)="openCommentViewDialog(comment)">
+                            {{ i + 1 }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Description</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let comment"
+                            (click)="openCommentViewDialog(comment)">
+                            <strong>{{
+                                comment?.created_by?.first_name
+                                ? comment?.created_by?.first_name
+                                : '-'
+                                }}
+                                {{ comment?.created_by?.last_name }}</strong>
+                            |
+                            <strong>{{
+                                comment.created_at
+                                | date : 'MMMM dd, yyyy h:mm:ssa'
+                                }}</strong><br />
+                            {{ comment.text }}
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsComments"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="
+                            let row;
+                            columns: displayedColumnsComments
+                        "></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                        dataSourceClaimComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    #paginatorClaimsComments
+                    [length]="dataSourceClaimComments?.data?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceClaimComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadExcel(
+                                    this.claimsComments,
+                                    'claims_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadCsv(
+                                    this.claimsComments,
+                                    'claim_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leads results -->
+            <p *ngIf="dataSourceLeads?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div
+                *ngIf="
+                    dataSourceLeads?.data?.length 
+                ">
+                <h5>Leads</h5>
+                
+                <table
+                    mat-table
+                    *ngIf="dataSourceLeads?.data?.length"
+                    [dataSource]="dataSourceLeads"
+                    class="data-table">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>
+                            #
+                        </th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{
+                            paginatorLeads?.pageIndex *
+                            paginatorLeads?.pageSize +
+                            (i + 1)
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="full_name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.full_name }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_string">
+                        <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <a type="button" class="link-ref" (click)="
+                                onLeadDetail(
+                                            lead?.id,
+                                            lead?.contact?.full_name +
+                                                '-' +
+                                                lead?.ref_string.slice(-3)
+                                        )
+                                    ">{{ lead?.ref_string }}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone_number">
+                        <th mat-header-cell *matHeaderCellDef>Phone</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.phone_number | phoneNumberFormat}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.contact?.email }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell *matHeaderCellDef>Source</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.source_user?.first_name + ' '  + lead.source_user?.last_name}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="status">
+                        <th mat-header-cell *matHeaderCellDef>Status</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.status }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>Created by</th>
+                        <td mat-cell *matCellDef="let lead">
+                            {{ lead.created_by?.created_by }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell *matHeaderCellDef>Created at</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let lead"
+                            class="expiry-date-cell">
+                            {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let lead"
+                            class="last-active-cell">
+                            <span *ngIf="!lead.updated_at">-</span>{{
+                            lead.updated_at | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef>Edit</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <button
+                                mat-icon-button
+                                [disabled]="
+                                    !userService.getUserPermissions(
+                                        'lead',
+                                        'update'
+                                    )
+                                "
+                                (click)="editLead(lead.id)"
+                                matTooltip="Edit {{ lead.first_name }} {{
+                                    lead.last_name
+                                }}">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="delete">
+                        <th mat-header-cell *matHeaderCellDef>Delete</th>
+                        <td mat-cell *matCellDef="let lead">
+                            <div>
+                                <button
+                                    mat-icon-button
+                                    color="warn"
+                                    [disabled]="
+                                        !lead.can_be_removed ||
+                                        !!+lead.is_removed
+                                    "
+                                    (click)="openLeadDeleteDialog(lead.id)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsLeads"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="let lead; columns: displayedColumnsLeads"
+                        [ngClass]="{
+                            green: lead.status == 'signed-approved'
+                        }"></tr>
+                </table>
+
+                <mat-paginator
+                    #paginatorLeads
+                    [style.visibility]="
+                        dataSourceLeads?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    [length]="this.leadPaginationData.totalRecords"
+                    (page)="changePage($event, 'lead')"
+                    showFirstLastButtons
+                    [pageSize]="this.leadPaginationData.pageSize"
+                    [pageSizeOptions]="pageSizeOptions">
+                </mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceLeads?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadExcel(this.leads, 'leads')">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="downloadCsv(this.leads, 'leads')">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leads Comments results -->
+            <p *ngIf="dataSourceLeadComments?.data?.length == 0">
+                No matching records found.
+            </p>
+            <div *ngIf="dataSourceLeadComments?.data?.length">
+                <h5>Comments</h5>
+                <table
+                    mat-table
+                    [dataSource]="dataSourceLeadComments"
+                    class="comments-table"
+                    *ngIf="dataSourceLeadComments?.data.length">
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef>
+                            #
+                        </th>
+                        <td
+                            mat-cell
+                            *matCellDef="let element; let i = index"
+                            (click)="openCommentViewDialog(comment)">
+                            {{ i + 1 }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Description</th>
+                        <td
+                            mat-cell
+                            *matCellDef="let comment"
+                            (click)="openCommentViewDialog(comment)">
+                            <strong>{{
+                                comment?.created_by?.first_name
+                                ? comment?.created_by?.first_name
+                                : '-'
+                                }}
+                                {{ comment?.created_by?.last_name }}</strong>
+                            |
+                            <strong>{{
+                                comment.created_at
+                                | date : 'MMMM dd, yyyy h:mm:ssa'
+                                }}</strong><br />
+                            {{ comment.text }}
+                        </td>
+                    </ng-container>
+
+                    <tr
+                        mat-header-row
+                        *matHeaderRowDef="displayedColumnsComments"></tr>
+                    <tr
+                        mat-row
+                        *matRowDef="
+                            let row;
+                            columns: displayedColumnsComments
+                        "></tr>
+                </table>
+
+                <mat-paginator
+                    [style.visibility]="
+                        dataSourceLeadComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    "
+                    #paginator
+                    [length]="dataSourceLeadComments?.data?.length"
+                    [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+                <div
+                    class="row"
+                    [style.visibility]="
+                        dataSourceLeadComments?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadExcel(
+                                    this.leadsComments,
+                                    'lead_comments'
+                                )
+                            ">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button
+                            mat-raised-button
+                            csvLink
+                            color="primary"
+                            (click)="
+                                downloadCsv(this.leadsComments, 'lead_comments')
+                            ">
+                            <mat-icon>download</mat-icon>CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </mat-card-content>
+
+        <mat-card-actions> </mat-card-actions>
+    </mat-card>
+    <ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+
+    <!-- <pre>{{ claimForm.value | json }}</pre> -->

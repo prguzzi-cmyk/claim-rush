@@ -1,0 +1,395 @@
+<!-- ══════════════════════════════════════════════════════════════════
+     REMOTE INSPECTION CAPTURE — Premium, Mobile-First
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- ══════ PROCESSING OVERLAY — "AI is Working" ══════ -->
+<div class="ric-processing-overlay" *ngIf="showProcessing">
+  <div class="ric-processing-card" [class.ric-processing-done]="processingComplete">
+
+    <!-- Scanning animation -->
+    <div class="ric-scan-visual">
+      <div class="ric-scan-ring ric-ring-outer"></div>
+      <div class="ric-scan-ring ric-ring-mid"></div>
+      <div class="ric-scan-ring ric-ring-inner"></div>
+      <div class="ric-scan-core">
+        <mat-icon *ngIf="!processingComplete">memory</mat-icon>
+        <mat-icon *ngIf="processingComplete" class="ric-done-icon">check_circle</mat-icon>
+      </div>
+      <div class="ric-scan-sweep" *ngIf="!processingComplete"></div>
+    </div>
+
+    <h2 *ngIf="!processingComplete">Analyzing Your Property Damage</h2>
+    <p class="ric-proc-subtitle" *ngIf="!processingComplete">We're reviewing your photos to identify damage areas and claim opportunities.</p>
+    <h2 *ngIf="processingComplete" class="ric-done-heading">Analysis Complete</h2>
+
+    <!-- Step-by-step progression -->
+    <div class="ric-processing-steps">
+      <div class="ric-proc-step" *ngFor="let step of processingSteps"
+           [class.ric-step-active]="step.active"
+           [class.ric-step-complete]="step.complete">
+        <div class="ric-proc-step-indicator">
+          <div class="ric-proc-dot" *ngIf="!step.complete && !step.active"></div>
+          <mat-spinner diameter="16" *ngIf="step.active"></mat-spinner>
+          <mat-icon *ngIf="step.complete">check</mat-icon>
+        </div>
+        <span>{{ step.label }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ AI DAMAGE INSIGHT PANEL ══════ -->
+<div class="ric-insight-overlay" *ngIf="showInsightPanel && insightResult">
+  <div class="ric-insight-page">
+
+    <!-- Header -->
+    <div class="ric-insight-header">
+      <div class="ric-insight-icon-wrap">
+        <mat-icon>insights</mat-icon>
+      </div>
+      <h1>Your Claim Insights</h1>
+      <p>Here's what we found based on your photos.</p>
+    </div>
+
+    <!-- Results Card -->
+    <div class="ric-insight-card">
+
+      <!-- Detected Damage Areas -->
+      <div class="ric-insight-section">
+        <h3><mat-icon>search</mat-icon> Detected Damage Areas</h3>
+        <div class="ric-damage-list">
+          <div class="ric-damage-item" *ngFor="let d of insightResult.damageAreas">
+            <div class="ric-damage-dot">
+              <mat-icon>{{ d.icon }}</mat-icon>
+            </div>
+            <div class="ric-damage-info">
+              <span class="ric-damage-label">{{ d.label }}</span>
+              <span class="ric-damage-area">{{ d.area }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Claim Insight Message -->
+      <div class="ric-insight-message">
+        <mat-icon>lightbulb</mat-icon>
+        <p>{{ insightResult.insightMessage }}</p>
+      </div>
+
+      <!-- Confidence Indicator -->
+      <div class="ric-insight-section">
+        <h3><mat-icon>verified_user</mat-icon> Claim Review Confidence</h3>
+        <div class="ric-confidence">
+          <div class="ric-confidence-track">
+            <div class="ric-confidence-fill"
+                 [style.width.%]="insightResult.confidencePercent"
+                 [class.ric-conf-moderate]="insightResult.confidenceLevel === 'moderate'"
+                 [class.ric-conf-high]="insightResult.confidenceLevel === 'high'">
+            </div>
+          </div>
+          <div class="ric-confidence-label"
+               [class.ric-conf-moderate]="insightResult.confidenceLevel === 'moderate'"
+               [class.ric-conf-high]="insightResult.confidenceLevel === 'high'">
+            {{ insightResult.confidenceLevel === 'high' ? 'High' : 'Moderate' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reassurance -->
+      <div class="ric-insight-reassurance">
+        <mat-icon>shield</mat-icon>
+        <p>{{ insightResult.reassurance }}</p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="ric-insight-cta">
+      <button mat-raised-button class="ric-insight-btn" (click)="showNextSteps()">
+        <mat-icon>arrow_forward</mat-icon>
+        Continue My Claim Review
+      </button>
+      <p class="ric-insight-cta-hint">We'll guide you through the next steps.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════ CLAIM ADVISOR / NEXT STEP GUIDANCE ══════ -->
+<div class="ric-advisor-overlay" *ngIf="showAdvisorPanel">
+  <div class="ric-advisor-page">
+
+    <!-- Header -->
+    <div class="ric-advisor-header">
+      <h1>What This Means for Your Claim</h1>
+    </div>
+
+    <!-- Explanation -->
+    <div class="ric-advisor-text">
+      <p>Based on what we're seeing, there may be additional details in your claim that are often overlooked without a full review.</p>
+      <p>A detailed claim review helps ensure all damage is properly documented and considered — not just what's immediately visible.</p>
+      <p class="ric-advisor-reassurance">Many claims benefit from a more thorough evaluation before final decisions are made.</p>
+    </div>
+
+    <!-- Options -->
+    <div class="ric-advisor-options">
+
+      <!-- Option 1: Primary -->
+      <div class="ric-advisor-card ric-advisor-primary">
+        <div class="ric-advisor-card-icon">
+          <mat-icon>assignment_turned_in</mat-icon>
+        </div>
+        <h3>Have Us Review Your Claim</h3>
+        <p>Our team can take a closer look and help ensure your claim is fully evaluated.</p>
+        <button mat-raised-button class="ric-advisor-btn-primary" (click)="requestClaimReview()">
+          <mat-icon>arrow_forward</mat-icon>
+          Request Claim Review
+        </button>
+      </div>
+
+      <!-- Option 2: Secondary -->
+      <div class="ric-advisor-card ric-advisor-secondary">
+        <div class="ric-advisor-card-icon ric-advisor-icon-secondary">
+          <mat-icon>dashboard</mat-icon>
+        </div>
+        <h3>Continue On Your Own</h3>
+        <p>You can proceed with your claim and access your dashboard.</p>
+        <button mat-stroked-button class="ric-advisor-btn-secondary" (click)="goToClaim()">
+          Go to My Claim Dashboard
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="ric-page">
+
+  <!-- ── HEADER ── -->
+  <div class="ric-header">
+    <h1>Document Your Property Damage</h1>
+    <p>Upload a few photos of the damage so we can begin reviewing your claim.</p>
+  </div>
+
+  <!-- ── GUIDANCE INSTRUCTION CARD ── -->
+  <div class="ric-guidance-card" *ngIf="!submitted">
+    <div class="ric-guidance-card-icon">
+      <mat-icon>camera_alt</mat-icon>
+    </div>
+    <div class="ric-guidance-card-text">
+      <p class="ric-guidance-main">Take clear photos of the affected areas from different angles.
+        You don't need anything special — your phone is perfect.</p>
+      <p class="ric-guidance-sub">If your phone supports advanced scanning, you may use it, but regular photos work just as well.</p>
+    </div>
+  </div>
+
+  <!-- ── CLAIM DOCUMENTATION PROGRESS ── -->
+  <div class="ric-progress" *ngIf="!submitted">
+    <div class="ric-progress-label">Claim Documentation Progress</div>
+    <div class="ric-progress-bar">
+      <div class="ric-progress-fill"
+           [style.width.%]="canProceed ? 100 : (photos.length / minPhotos) * 100">
+      </div>
+    </div>
+    <div class="ric-progress-text" *ngIf="photos.length === 0">
+      Upload photos to get started
+    </div>
+    <div class="ric-progress-text" *ngIf="photos.length > 0 && photos.length < 4">
+      {{ photosRemaining }} more photo{{ photosRemaining !== 1 ? 's' : '' }} for good coverage
+    </div>
+    <div class="ric-progress-text ric-ready" *ngIf="photos.length >= 4 && photos.length < 8">
+      Good coverage — ready to continue
+    </div>
+    <div class="ric-progress-text ric-ready" *ngIf="photos.length >= 8">
+      Excellent coverage
+    </div>
+  </div>
+
+  <!-- ══════ PHOTO UPLOAD SECTION ══════ -->
+  <div class="ric-card">
+    <div class="ric-card-header">
+      <div class="ric-card-icon photo-icon">
+        <mat-icon>photo_camera</mat-icon>
+      </div>
+      <div>
+        <h2>Upload Photos</h2>
+      </div>
+    </div>
+
+    <!-- ── AI Photo Guidance Panel (rotating tips) ── -->
+    <div class="ric-guidance" *ngIf="!submitted">
+      <button class="ric-guidance-toggle" (click)="toggleGuidance()">
+        <mat-icon>lightbulb</mat-icon>
+        <span>Photo Tips</span>
+        <mat-icon class="ric-guidance-chevron" [class.ric-expanded]="guidanceExpanded">expand_more</mat-icon>
+      </button>
+      <div class="ric-guidance-body" *ngIf="guidanceExpanded">
+        <!-- Rotating tip -->
+        <div class="ric-active-tip">
+          <mat-icon [style.color]="'#1565c0'">{{ photoTips[currentTipIndex].icon }}</mat-icon>
+          <span>{{ photoTips[currentTipIndex].text }}</span>
+        </div>
+        <!-- Tip dots -->
+        <div class="ric-tip-dots">
+          <span *ngFor="let tip of photoTips; let i = index"
+                class="ric-tip-dot"
+                [class.ric-tip-dot-active]="i === currentTipIndex"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Coverage Meter ── -->
+    <div class="ric-coverage" *ngIf="photos.length > 0 && !submitted">
+      <div class="ric-coverage-header">
+        <span class="ric-coverage-label">Coverage</span>
+        <span class="ric-coverage-level"
+              [class.ric-level-basic]="coverageLevel === 'basic'"
+              [class.ric-level-good]="coverageLevel === 'good'"
+              [class.ric-level-complete]="coverageLevel === 'complete'">
+          {{ coverageLabel }}
+        </span>
+      </div>
+      <div class="ric-coverage-track">
+        <div class="ric-coverage-fill" [style.width.%]="coveragePercent"
+             [class.ric-fill-basic]="coverageLevel === 'basic'"
+             [class.ric-fill-good]="coverageLevel === 'good'"
+             [class.ric-fill-complete]="coverageLevel === 'complete'">
+        </div>
+        <div class="ric-coverage-marks">
+          <span class="ric-mark" style="left:33%">Basic</span>
+          <span class="ric-mark" style="left:66%">Good</span>
+          <span class="ric-mark" style="left:100%">Complete</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo Grid with AI Feedback -->
+    <div class="ric-photo-grid" *ngIf="photos.length > 0">
+      <div class="ric-photo-cell" *ngFor="let photo of photos; let i = index">
+        <div class="ric-photo-thumb">
+          <img [src]="photo.preview" alt="Damage photo">
+          <button class="ric-remove-btn" (click)="removePhoto(i)" *ngIf="!submitted">
+            <mat-icon>close</mat-icon>
+          </button>
+          <div class="ric-upload-progress" *ngIf="uploading && !photo.uploaded">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+          <div class="ric-upload-done" *ngIf="photo.uploaded">
+            <mat-icon>check</mat-icon>
+          </div>
+          <!-- Analyzing shimmer -->
+          <div class="ric-analyzing" *ngIf="photo.analyzing">
+            <div class="ric-analyzing-shimmer"></div>
+          </div>
+        </div>
+        <!-- AI Feedback badge -->
+        <div class="ric-ai-feedback" *ngIf="photo.aiFeedback && !photo.analyzing"
+             [style.color]="photo.aiFeedbackColor">
+          <mat-icon>{{ photo.aiFeedbackIcon }}</mat-icon>
+          <span>{{ photo.aiFeedback }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Smart feedback messages -->
+    <div class="ric-smart-feedback" *ngIf="smartFeedback && !submitted">
+      <mat-icon>{{ smartFeedbackIcon }}</mat-icon>
+      <span>{{ smartFeedback }}</span>
+    </div>
+
+    <!-- Room-based hint -->
+    <div class="ric-room-hint" *ngIf="roomHint && !submitted">
+      <mat-icon>check_circle</mat-icon>
+      <span>{{ roomHint }}</span>
+    </div>
+
+    <!-- Upload Button -->
+    <button mat-raised-button class="ric-upload-btn" (click)="photoInput.click()" [disabled]="submitted">
+      <mat-icon>add_photo_alternate</mat-icon>
+      {{ photos.length === 0 ? 'Upload Photos' : 'Add More Photos' }}
+    </button>
+    <input #photoInput type="file" accept="image/*" multiple capture="environment" style="display:none;"
+           (change)="onPhotosSelected($event)" [disabled]="submitted">
+
+    <div class="ric-photo-count" *ngIf="photos.length > 0">
+      {{ photos.length }} photo{{ photos.length !== 1 ? 's' : '' }} added
+    </div>
+  </div>
+
+  <!-- ══════ OPTION 2: 3D SCAN ══════ -->
+  <div class="ric-card">
+    <div class="ric-card-header">
+      <div class="ric-card-icon scan-icon">
+        <mat-icon>view_in_ar</mat-icon>
+      </div>
+      <div>
+        <h2>3D Scan <span class="ric-optional-tag">Optional</span></h2>
+      </div>
+    </div>
+
+    <div class="ric-instructions">
+      <p>If your phone supports scanning, you can walk through the property and capture everything in one pass.</p>
+      <p class="ric-reassure">If not — no problem at all. Photos work perfectly.</p>
+    </div>
+
+    <div class="ric-scan-steps" *ngIf="!scanFile">
+      <div class="ric-step">
+        <span class="ric-step-num">1</span>
+        <span>Open your scanning app (such as Polycam)</span>
+      </div>
+      <div class="ric-step">
+        <span class="ric-step-num">2</span>
+        <span>Walk slowly through each room</span>
+      </div>
+      <div class="ric-step">
+        <span class="ric-step-num">3</span>
+        <span>Capture walls, ceilings, and floors</span>
+      </div>
+      <div class="ric-step">
+        <span class="ric-step-num">4</span>
+        <span>Upload the scan below</span>
+      </div>
+    </div>
+
+    <!-- Scan File Uploaded -->
+    <div class="ric-scan-file" *ngIf="scanFile">
+      <div class="ric-scan-file-info">
+        <mat-icon>view_in_ar</mat-icon>
+        <div>
+          <div class="ric-scan-name">{{ scanFile.file.name }}</div>
+          <div class="ric-scan-size">{{ formatFileSize(scanFile.file.size) }}</div>
+        </div>
+        <div class="ric-scan-status">
+          <mat-spinner diameter="20" *ngIf="uploading && !scanFile.uploaded"></mat-spinner>
+          <mat-icon *ngIf="scanFile.uploaded" style="color:#2e7d32;">check_circle</mat-icon>
+        </div>
+      </div>
+      <button class="ric-remove-scan" (click)="removeScan()" *ngIf="!submitted">
+        <mat-icon>delete_outline</mat-icon> Remove
+      </button>
+    </div>
+
+    <!-- Upload Scan Button -->
+    <button mat-raised-button class="ric-upload-btn ric-scan-btn" (click)="scanInput.click()"
+            [disabled]="submitted || scanFile !== null">
+      <mat-icon>cloud_upload</mat-icon>
+      {{ scanFile ? 'Scan Added' : 'Upload 3D Scan' }}
+    </button>
+    <input #scanInput type="file" accept=".ply,.obj,.glb,.gltf,.usdz,.zip,.e57,.las,.laz,.fbx"
+           style="display:none;" (change)="onScanSelected($event)" [disabled]="submitted">
+  </div>
+
+  <!-- ══════ SUBMIT BUTTON ══════ -->
+  <div class="ric-submit-section" *ngIf="!submitted">
+    <button mat-raised-button class="ric-submit-btn" (click)="submit()"
+            [disabled]="!canProceed || uploading">
+      <mat-icon *ngIf="!uploading">arrow_forward</mat-icon>
+      <mat-spinner *ngIf="uploading" diameter="22"></mat-spinner>
+      {{ uploading ? 'Uploading...' : 'Continue My Claim' }}
+    </button>
+    <p class="ric-submit-hint" *ngIf="!canProceed && photos.length > 0">
+      Add {{ photosRemaining }} more photo{{ photosRemaining !== 1 ? 's' : '' }} to continue.
+    </p>
+  </div>
+
+</div>

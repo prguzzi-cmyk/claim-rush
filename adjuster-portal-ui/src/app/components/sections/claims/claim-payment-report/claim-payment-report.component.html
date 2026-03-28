@@ -1,0 +1,136 @@
+<mat-card appearance="outlined" [hidden]="this.userService.getUserPermissions('claim','read')">
+    You don't have permissions to view claims.
+</mat-card>
+
+<mat-card appearance="outlined" [hidden]="!this.userService.getUserPermissions('claim','read')">
+    <div class="row">
+        <div class="col-10">
+            <span class="mat-headline-4 section-title">Claim Payments Ready to Process</span>
+
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+                </li>
+                <li class="breadcrumb-item"><a href="javascript:">Claim Payments Ready to Process</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <mat-card-content>
+
+        <div class="col-md-12">
+
+            <div class="mat-table-scroll-container">
+                <div class="mat-table-scroll-container">
+                    <table mat-table [dataSource]="payments" class="claim-table" matSort matSortActive="created_at"
+                        matSortDirection="desc" matSortDisableClear>
+
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef></th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{  (i + 1) }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ref_string">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Claim. #</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                <a type="button" class="link-ref"
+                                    (click)="onClaimDetail(claim?.claim?.id, claim?.client?.full_name + '-' + claim?.claim?.ref_number)">{{claim?.claim?.ref_string}}</a>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="client">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Client</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                {{claim?.client?.full_name}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="payment_date">
+                            <th mat-header-cell *matHeaderCellDef>Payment date</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                {{claim?.payments[0]?.payment_date | date : "MMMM dd, yyyy"}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="check_amount">
+                            <th mat-header-cell *matHeaderCellDef>Check amount</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                ${{claim?.payments[0]?.check_amount}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="contingency_fee_percentage">
+                            <th mat-header-cell *matHeaderCellDef>Contingency fee</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                {{claim?.payments[0]?.contingency_fee_percentage ?? '0'}}%
+                            </td>
+                        </ng-container>
+                        
+
+                        <ng-container matColumnDef="appraisal_fee">
+                            <th mat-header-cell *matHeaderCellDef>Appraisal fee</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                ${{claim?.payments[0]?.appraisal_fee ?? '0'}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="umpire_fee">
+                            <th mat-header-cell *matHeaderCellDef>Umpire fee</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                ${{claim?.payments[0]?.umpire_fee ?? '0'}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="mold_fee">
+                            <th mat-header-cell *matHeaderCellDef>Mold fee</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                ${{claim?.payments[0]?.mold_fee ?? '0'}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="misc_fee">
+                            <th mat-header-cell *matHeaderCellDef>Misc fee</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                ${{claim?.payments[0]?.misc_fee ?? '0'}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="check_ref_number">
+                            <th mat-header-cell *matHeaderCellDef>Check ref. #</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                {{claim?.payments[0]?.ref_number}}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="check_type">
+                            <th mat-header-cell *matHeaderCellDef>Check type</th>
+                            <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                                {{claim?.payments[0]?.check_type}}
+                            </td>
+                        </ng-container>
+
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="
+                                let claim;
+                                columns: displayedColumns
+                            "></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- <mat-paginator [length]="totalRecords" #paginator showFirstLastButtons [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)">
+            </mat-paginator> -->
+
+
+        </div>
+
+    </mat-card-content>
+
+    <mat-card-actions> </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

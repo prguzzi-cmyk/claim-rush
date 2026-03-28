@@ -1,0 +1,118 @@
+.estimating-list-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .breadcrumb {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+
+    a {
+      color: var(--color-primary-500);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    span {
+      font-weight: 500;
+    }
+  }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+  }
+
+  .estimates-table {
+    width: 100%;
+  }
+
+  .clickable-row {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-primary-50);
+    }
+  }
+
+  .mode-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &.mode-residential { background: #e8f5e9; color: #2e7d32; }
+    &.mode-commercial { background: #e3f2fd; color: #1565c0; }
+    &.mode-restoration { background: #fff3e0; color: #e65100; }
+    &.mode-contents { background: #f3e5f5; color: #7b1fa2; }
+    &.mode-supplement { background: #fce4ec; color: #c62828; }
+  }
+
+  .status-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+
+    &.status-draft {
+      background-color: var(--color-slate-200);
+      color: var(--color-slate-600);
+    }
+
+    &.status-in_progress {
+      background-color: #fff3e0;
+      color: #e65100;
+    }
+
+    &.status-review {
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+
+    &.status-approved {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &.status-completed {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+
+    .empty-icon {
+      font-size: 64px;
+      height: 64px;
+      width: 64px;
+      color: var(--text-tertiary);
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+  }
+}

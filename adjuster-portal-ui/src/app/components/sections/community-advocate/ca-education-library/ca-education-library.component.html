@@ -1,0 +1,85 @@
+<div class="ca-tab-content">
+  <div class="toolbar">
+    <div class="chip-filter">
+      <mat-chip-set>
+        <mat-chip *ngFor="let cat of categories"
+                  [highlighted]="selectedCategory === cat"
+                  (click)="selectedCategory = cat; applyFilter()">
+          {{ cat === 'all' ? 'All' : cat }}
+        </mat-chip>
+      </mat-chip-set>
+    </div>
+    <button mat-raised-button color="primary" (click)="openForm()">
+      <mat-icon>add</mat-icon> Add Content
+    </button>
+  </div>
+
+  <!-- Content Cards Grid -->
+  <div class="content-grid" *ngIf="!showForm">
+    <mat-card *ngFor="let item of filteredContent" class="content-card" (click)="toggleExpand(item.id)">
+      <div class="content-header">
+        <mat-icon class="type-icon">{{ getCategoryIcon(item.category) }}</mat-icon>
+        <mat-chip class="type-chip">{{ item.category }}</mat-chip>
+      </div>
+      <h3>{{ item.title }}</h3>
+      <p class="topic">{{ item.topic }}</p>
+      <p class="summary">{{ item.summary }}</p>
+      <div class="content-stats">
+        <span><mat-icon>visibility</mat-icon> {{ item.views | number }}</span>
+        <span><mat-icon>share</mat-icon> {{ item.shares }}</span>
+        <mat-icon class="pub-icon" [style.color]="item.is_published ? '#4caf50' : '#ccc'">
+          {{ item.is_published ? 'public' : 'public_off' }}
+        </mat-icon>
+      </div>
+
+      <!-- Expanded Detail -->
+      <div class="expanded-content" *ngIf="expandedId === item.id">
+        <mat-divider></mat-divider>
+        <div class="detail-body">
+          <p>{{ item.content }}</p>
+          <small>Created: {{ item.created_at }}</small>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Add Form -->
+  <mat-card *ngIf="showForm" class="form-card">
+    <mat-card-header>
+      <mat-card-title>Add Education Content</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput [(ngModel)]="contentForm.title">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="contentForm.category">
+            <mat-option value="article">Article</mat-option>
+            <mat-option value="video">Video</mat-option>
+            <mat-option value="checklist">Checklist</mat-option>
+            <mat-option value="infographic">Infographic</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Topic</mat-label>
+          <input matInput [(ngModel)]="contentForm.topic">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Summary</mat-label>
+          <input matInput [(ngModel)]="contentForm.summary">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Content</mat-label>
+          <textarea matInput [(ngModel)]="contentForm.content" rows="6"></textarea>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeForm()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveContent()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

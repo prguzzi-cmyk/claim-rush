@@ -1,0 +1,29 @@
+<mat-card appearance="outlined" class="h-100 m-0">
+  <h4 class="mat-h3">{{ resource.name }}</h4>
+
+  <p>{{ resource.description }}</p>
+
+  <div>
+    <span *ngFor="let item of resource.items" class="d-inline-block mr-3 mb-3">
+      <a
+        *ngIf="item.pathType === 'relative'"
+        mat-raised-button
+        color="primary"
+        routerLink="{{ item.path }}"
+      >
+        {{ item.buttonLabel }}
+      </a>
+
+      <a
+        *ngIf="item.pathType === 'absolute'"
+        mat-raised-button
+        color="primary"
+        href="{{ item.path }}"
+        target="_blank"
+        class="d-inline-block"
+      >
+        {{ item.buttonLabel }}
+      </a>
+    </span>
+  </div>
+</mat-card>

@@ -1,0 +1,441 @@
+@use '../../../../../styles/variables' as vars;
+
+// .mat-mdc-icon-button {
+//   height: 34px;
+//   width: 34px;
+//   line-height: 34px;
+// }
+
+.mat-column-download {
+  text-align: right !important;
+}
+
+.mat-mdc-card-content a {
+  color:  vars.$primary-color !important;
+}
+
+.mat-mdc-card-content a:hover {
+  color: vars.$accent-color !important;
+}
+
+.progress {
+  font-size: 1rem;
+  padding: 0px;
+  margin: 0px;
+}
+
+.collaborator {
+  color: red;
+}
+
+// ── Timeline Activity Feed ──
+.timeline-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 16px 0;
+
+  .timeline-filter-select {
+    width: 240px;
+  }
+
+  .timeline-count {
+    font-size: 13px;
+    color: #888;
+  }
+}
+
+.activity-timeline {
+  padding: 16px 16px 16px 24px;
+}
+
+.activity-event {
+  display: flex;
+  gap: 16px;
+  min-height: 72px;
+
+  .activity-icon-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 40px;
+
+    .activity-icon-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      .activity-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: #fff;
+      }
+    }
+
+    .activity-connector {
+      width: 2px;
+      flex: 1;
+      background: #e0e0e0;
+      margin: 4px 0;
+    }
+  }
+
+  .activity-content {
+    flex: 1;
+    padding-bottom: 20px;
+
+    .activity-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+
+      .activity-type-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+      }
+
+      .activity-timestamp {
+        font-size: 12px;
+        color: #999;
+      }
+    }
+
+    .activity-title {
+      font-weight: 500;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .activity-details {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    .activity-author {
+      font-size: 12px;
+      color: #aaa;
+      font-style: italic;
+    }
+  }
+}
+
+.empty-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: #aaa;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+  }
+}
+
+
+.claim-table {
+  width: 100%;
+
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .green {
+
+    background-color: #368136bc;
+
+    .mat-mdc-cell {
+      color: #fff !important;
+
+    }
+  }
+}
+
+
+.mat-mdc-form-field {
+  margin-right: 5px;
+}
+
+.checkbox-row {
+  width: 30px;
+}
+
+// Phase Tracker
+.phase-tracker {
+  padding: 0 12px;
+  margin: 12px 0;
+}
+
+.phase-header {
+  display: flex;
+  align-items: center;
+}
+
+.phase-title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.phase-badge {
+  display: inline-block;
+  background-color: vars.$primary-color;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.phase-pct {
+  font-size: 12px;
+  color: #757575;
+  margin-left: auto;
+}
+
+.phase-override-btn {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  margin-left: 4px;
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.phase-progress-bar {
+  height: 6px !important;
+  border-radius: 3px;
+  margin: 8px 0;
+}
+
+.phase-steps {
+  display: flex;
+  position: relative;
+}
+
+.phase-step {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .step-connector {
+    position: absolute;
+    top: 15px;
+    right: 50%;
+    left: -50%;
+    height: 2px;
+    background-color: #e0e0e0;
+    z-index: 0;
+  }
+
+  .step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #bdbdbd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+    color: #bdbdbd;
+
+    .mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .step-label {
+    font-size: 10px;
+    margin-top: 4px;
+    color: #616161;
+    word-wrap: break-word;
+    text-wrap: balance;
+  }
+
+  &.completed {
+    .step-connector {
+      background-color: vars.$primary-color;
+    }
+
+    .step-dot {
+      background-color: vars.$primary-color;
+      border-color: vars.$primary-color;
+      color: #fff;
+    }
+  }
+
+  &.active {
+    .step-connector {
+      background-color: #e0e0e0;
+    }
+
+    .step-dot {
+      border-color: vars.$primary-color;
+      color: vars.$primary-color;
+      box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.15);
+    }
+
+    .step-label {
+      font-weight: 700;
+      color: vars.$primary-color;
+    }
+  }
+
+  &.upcoming {
+    .step-dot {
+      border-color: #bdbdbd;
+      color: #bdbdbd;
+    }
+  }
+}
+
+.phase-metadata {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.escalation-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  .mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.sub-status-badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  background: #34495e;
+  color: #fff;
+}
+
+.override-section-label {
+  font-size: 11px;
+  color: #757575;
+  margin-top: 10px;
+  display: block;
+  font-weight: 600;
+}
+
+.phase-override-panel {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px dashed #e0e0e0;
+  border-radius: 6px;
+  background-color: #fafafa;
+
+  small {
+    color: #757575;
+  }
+}
+
+.override-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.override-chip {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  border: 1px solid #bdbdbd;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: vars.$primary-color;
+    color: vars.$primary-color;
+  }
+
+  &.active {
+    background-color: vars.$primary-color;
+    border-color: vars.$primary-color;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// ── Estimates Tab ──
+.estimates-tab { padding: 16px; }
+.estimates-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  h3 { margin: 0; font-size: 1.1rem; font-weight: 600; } }
+.estimates-empty { text-align: center; padding: 40px; color: #9ca3af;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.4; display: block; margin: 0 auto 8px; } }
+.estimates-load-btn { text-align: center; padding: 16px; }
+.estimate-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.estimate-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.2s;
+  &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: #90caf9; } }
+.est-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  mat-icon { font-size: 24px; width: 24px; height: 24px; } }
+.est-card-info { flex: 1;
+  strong { font-size: 0.88rem; display: block; color: #111827; }
+  .est-mode { font-size: 0.7rem; color: #6b7280; text-transform: capitalize; } }
+.est-status-badge { padding: 2px 8px; border-radius: 6px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+  &.est-status-draft { background: #f3f4f6; color: #6b7280; }
+  &.est-status-in_progress { background: #e3f2fd; color: #1565c0; }
+  &.est-status-review { background: #fff3e0; color: #e65100; }
+  &.est-status-approved { background: #e8f5e9; color: #2e7d32; }
+  &.est-status-completed { background: #e8f5e9; color: #2e7d32; } }
+.est-card-totals { margin-bottom: 10px;
+  .est-total { font-size: 1.3rem; font-weight: 700; color: #1565c0; }
+  .est-total-label { display: block; font-size: 0.68rem; color: #6b7280; } }
+.est-card-actions { display: flex; gap: 8px;
+  .est-action-btn { font-size: 0.72rem !important; padding: 0 10px !important; min-height: 30px !important; line-height: 30px !important;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; } } }

@@ -1,0 +1,47 @@
+<div class="notifications-container">
+  <div class="section-card">
+    <div class="notif-header">
+      <div>
+        <h3>Notifications</h3>
+        <p class="notif-subtitle">Updates on your claim status, payments, and messages.</p>
+      </div>
+      <button mat-stroked-button class="mark-all-btn" (click)="onMarkAllRead()" *ngIf="unreadCount > 0">
+        <mat-icon>done_all</mat-icon> Mark All Read
+      </button>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-chips">
+      <span class="filter-label">Filter:</span>
+      <button class="filter-chip" [class.active]="!typeFilter" (click)="typeFilter = null">All</button>
+      <button *ngFor="let t of types" class="filter-chip" [class.active]="typeFilter === t.value" (click)="typeFilter = typeFilter === t.value ? null : t.value">
+        <mat-icon class="chip-icon">{{ t.icon }}</mat-icon> {{ t.label }}
+      </button>
+    </div>
+
+    <!-- Notification List -->
+    <div class="notif-list">
+      <div *ngFor="let n of filteredNotifications" class="notif-item" [class.unread]="!n.read" (click)="onMarkRead(n.id)">
+        <div class="notif-icon-wrap" [attr.data-type]="n.type">
+          <mat-icon>{{ n.icon }}</mat-icon>
+        </div>
+        <div class="notif-content">
+          <div class="notif-title-row">
+            <span class="notif-title">{{ n.title }}</span>
+            <span class="notif-time">{{ formatTime(n.timestamp) }}</span>
+          </div>
+          <p class="notif-message">{{ n.message }}</p>
+          <div class="notif-meta" *ngIf="n.relatedStage">
+            <span class="notif-stage-badge">{{ n.relatedStage | titlecase }}</span>
+          </div>
+        </div>
+        <div class="notif-unread-dot" *ngIf="!n.read"></div>
+      </div>
+
+      <div *ngIf="filteredNotifications.length === 0" class="empty-state">
+        <mat-icon>notifications_none</mat-icon>
+        <p>No notifications match this filter.</p>
+      </div>
+    </div>
+  </div>
+</div>

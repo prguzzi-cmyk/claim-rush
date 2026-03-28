@@ -1,0 +1,221 @@
+<mat-card>
+  <mat-card-header>
+    <div class="header-row">
+      <h2>New Fire Claim</h2>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Loss Information -->
+      <div class="form-section">
+        <h3>Loss Information</h3>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Loss Date</mat-label>
+            <input matInput [matDatepicker]="lossDatePicker" formControlName="loss_date" />
+            <mat-datepicker-toggle matSuffix [for]="lossDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #lossDatePicker></mat-datepicker>
+            <mat-error *ngIf="form.get('loss_date')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Claim Number (optional)</mat-label>
+            <input matInput formControlName="claim_number" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Property Address -->
+      <div class="form-section">
+        <h3>Property Address</h3>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address Line 1</mat-label>
+            <input matInput formControlName="address_line1" />
+            <mat-error *ngIf="form.get('address_line1')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address Line 2</mat-label>
+            <input matInput formControlName="address_line2" />
+          </mat-form-field>
+        </div>
+        <div class="form-row three-col">
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+            <mat-error *ngIf="form.get('city')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" maxlength="2" style="text-transform: uppercase" />
+            <mat-error *ngIf="form.get('state')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>ZIP</mat-label>
+            <input matInput formControlName="zip" />
+            <mat-error *ngIf="form.get('zip')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Insured Information -->
+      <div class="form-section">
+        <h3>Insured Information</h3>
+        <div class="form-row three-col">
+          <mat-form-field appearance="outline">
+            <mat-label>Insured Name</mat-label>
+            <input matInput formControlName="insured_name" />
+            <mat-error *ngIf="form.get('insured_name')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Phone</mat-label>
+            <input matInput formControlName="insured_phone" />
+            <mat-error *ngIf="form.get('insured_phone')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="insured_email" type="email" />
+            <mat-error *ngIf="form.get('insured_email')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="form.get('insured_email')?.hasError('email')">Invalid email</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Carrier Information -->
+      <div class="form-section">
+        <h3>Carrier Information (Optional)</h3>
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Carrier Name</mat-label>
+            <input matInput formControlName="carrier_name" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Policy Number</mat-label>
+            <input matInput formControlName="policy_number" />
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Fire Questionnaire -->
+      <div class="form-section">
+        <h3>Fire Damage Details</h3>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Area of Origin</mat-label>
+            <mat-select formControlName="origin_area">
+              <mat-option *ngFor="let area of originAreas" [value]="area.value">
+                {{ area.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('origin_area')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" *ngIf="form.get('origin_area')?.value === 'other'">
+            <mat-label>Specify Other Area</mat-label>
+            <input matInput formControlName="origin_area_other" />
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rooms Affected</mat-label>
+            <textarea matInput formControlName="rooms_affected" rows="3"
+              placeholder="List all rooms/areas affected by fire, smoke, or water damage"></textarea>
+            <mat-error *ngIf="form.get('rooms_affected')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Smoke Damage Level</mat-label>
+            <mat-select formControlName="smoke_level">
+              <mat-option *ngFor="let level of smokeLevels" [value]="level.value">
+                {{ level.label }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('smoke_level')?.hasError('required')">Required</mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="toggle-group">
+          <div class="toggle-item">
+            <span>Water damage from fire suppression?</span>
+            <mat-button-toggle-group formControlName="water_from_suppression">
+              <mat-button-toggle [value]="true">Yes</mat-button-toggle>
+              <mat-button-toggle [value]="false">No</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="toggle-item">
+            <span>Roof opened by firefighters?</span>
+            <mat-button-toggle-group formControlName="roof_opened_by_firefighters">
+              <mat-button-toggle [value]="true">Yes</mat-button-toggle>
+              <mat-button-toggle [value]="false">No</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <div class="toggle-item">
+            <span>Power shut off?</span>
+            <mat-button-toggle-group formControlName="power_shut_off">
+              <mat-button-toggle [value]="true">Yes</mat-button-toggle>
+              <mat-button-toggle [value]="false">No</mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-section">
+        <h3>Additional Notes</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="4"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- File Upload -->
+      <div class="form-section">
+        <h3>Photos &amp; Videos</h3>
+        <div class="upload-zone" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
+          <mat-icon>cloud_upload</mat-icon>
+          <p>Drag &amp; drop files here or click to browse</p>
+          <input type="file" multiple accept="image/*,video/*" (change)="onFileSelected($event)" #fileInput hidden />
+          <button mat-stroked-button type="button" (click)="fileInput.click()">
+            Browse Files
+          </button>
+        </div>
+
+        <div class="pending-files" *ngIf="pendingFiles.length > 0">
+          <div class="pending-file" *ngFor="let pf of pendingFiles; let i = index">
+            <img *ngIf="pf.preview" [src]="pf.preview" class="file-thumbnail" />
+            <mat-icon *ngIf="!pf.preview" class="file-icon">videocam</mat-icon>
+            <div class="file-info">
+              <span class="file-name">{{ pf.file.name }}</span>
+              <span class="file-type">{{ pf.mediaType }}</span>
+            </div>
+            <button mat-icon-button type="button" color="warn" (click)="removePendingFile(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" routerLink="/app/fire-claims">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="submitting">
+          {{ submitting ? 'Submitting...' : 'Create Fire Claim' }}
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>Create Pricing Version</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="version-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Source</mat-label>
+      <mat-select formControlName="source">
+        <mat-option value="craftsman">Craftsman</mat-option>
+        <mat-option value="xactimate">Xactimate</mat-option>
+        <mat-option value="manual">Manual</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Version Label</mat-label>
+      <input matInput formControlName="version_label" placeholder="e.g. 2026-Q1">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Effective Date</mat-label>
+      <input matInput type="date" formControlName="effective_date">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Region</mat-label>
+      <input matInput formControlName="region" placeholder="national">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()"
+          [disabled]="form.invalid || saving">
+    {{ saving ? 'Creating...' : 'Create' }}
+  </button>
+</mat-dialog-actions>

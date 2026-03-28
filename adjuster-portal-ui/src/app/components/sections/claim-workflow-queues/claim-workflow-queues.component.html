@@ -1,0 +1,129 @@
+<div class="workflow-queues-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h2>
+        <mat-icon class="header-icon">dashboard</mat-icon>
+        Claim Workflow Queues
+      </h2>
+      <p class="subtitle">Actionable claim queues across your workflow pipeline</p>
+    </div>
+    <button mat-stroked-button class="refresh-btn" (click)="loadData()">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading workflow queues...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && metrics">
+
+    <!-- Top Metrics -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-claims"><mat-icon>assignment</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ metrics.activeClaims }}</span>
+          <span class="kpi-label">Active Claims</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-action"><mat-icon>notification_important</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ metrics.claimsNeedingAction }}</span>
+          <span class="kpi-label">Needs Action</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-supplement"><mat-icon>request_quote</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ metrics.supplementsPending }}</span>
+          <span class="kpi-label">Supplements Pending</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-payment"><mat-icon>payments</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ metrics.paymentsIssuedToday }}</span>
+          <span class="kpi-label">Payments Today</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-recovered"><mat-icon>trending_up</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(metrics.totalRecovered) }}</span>
+          <span class="kpi-label">Total Recovered</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue Cards Grid -->
+    <div class="queues-grid">
+      <div class="queue-card" *ngFor="let queue of queues">
+
+        <!-- Queue Header -->
+        <div class="queue-header">
+          <div class="queue-title-row">
+            <mat-icon [style.color]="queue.color">{{ queue.icon }}</mat-icon>
+            <h3>{{ queue.label }}</h3>
+            <span class="priority-badge" [style.backgroundColor]="getPriorityColor(queue.actionStatus)">
+              {{ getPriorityLabel(queue.actionStatus) }}
+            </span>
+          </div>
+          <span class="queue-count">{{ queue.count }}</span>
+        </div>
+
+        <!-- Claim Rows -->
+        <div class="queue-body">
+          <div class="queue-claim-row" *ngFor="let claim of getQueuePreview(queue)"
+               (click)="openClaim(claim)">
+            <div class="claim-primary">
+              <span class="claim-number">{{ claim.claimNumber || claim.refString }}</span>
+              <span class="claim-client">{{ claim.clientName }}</span>
+            </div>
+            <div class="claim-secondary">
+              <span class="claim-days" [class.stale]="(claim.signals.daysSinceLastActivity || 0) > 7">
+                {{ formatDaysAgo(claim.signals.daysSinceLastActivity) }}
+              </span>
+              <span class="claim-status-chip" [style.backgroundColor]="queue.color">
+                {{ claim.currentPhase || claim.actionStatus }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Empty queue -->
+          <div class="queue-empty" *ngIf="queue.count === 0">
+            <mat-icon>check_circle</mat-icon>
+            <span>No claims in this queue</span>
+          </div>
+        </div>
+
+        <!-- View All Footer -->
+        <div class="queue-footer" *ngIf="queue.count > QUEUE_PREVIEW_LIMIT">
+          <button mat-button class="view-all-btn" (click)="openClaim(queue.claims[0])">
+            View All {{ queue.count }} Claims
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Signal Alerts -->
+    <div class="signal-alerts" *ngIf="metrics.stalledClaimCount > 0 || metrics.overdueTaskCount > 0">
+      <div class="signal-card signal-stalled" *ngIf="metrics.stalledClaimCount > 0">
+        <mat-icon>warning</mat-icon>
+        <span><strong>{{ metrics.stalledClaimCount }}</strong> stalled claim{{ metrics.stalledClaimCount !== 1 ? 's' : '' }} with no activity for 14+ days</span>
+      </div>
+      <div class="signal-card signal-overdue" *ngIf="metrics.overdueTaskCount > 0">
+        <mat-icon>assignment_late</mat-icon>
+        <span><strong>{{ metrics.overdueTaskCount }}</strong> overdue task{{ metrics.overdueTaskCount !== 1 ? 's' : '' }} across active claims</span>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

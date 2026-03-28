@@ -1,0 +1,151 @@
+<div class="asa-dark">
+
+  <div class="asa-header">
+    <div>
+      <h1>Sales KPI Dashboard</h1>
+      <p class="asa-subtitle">Conversion metrics, agent performance, and pipeline analytics.</p>
+    </div>
+  </div>
+
+  <div class="asa-body">
+
+    <!-- ══════ TOP KPI CARDS ══════ -->
+    <div class="kpi-grid" *ngIf="kpis">
+      <div class="kpi-big-card">
+        <div class="kpi-big-icon"><mat-icon>forum</mat-icon></div>
+        <div class="kpi-big-value">{{ kpis.conversationsStarted }}</div>
+        <div class="kpi-big-label">Conversations Started</div>
+      </div>
+      <div class="kpi-big-card">
+        <div class="kpi-big-icon green"><mat-icon>verified</mat-icon></div>
+        <div class="kpi-big-value">{{ kpis.leadsQualified }}</div>
+        <div class="kpi-big-label">Leads Qualified</div>
+      </div>
+      <div class="kpi-big-card">
+        <div class="kpi-big-icon orange"><mat-icon>event</mat-icon></div>
+        <div class="kpi-big-value">{{ kpis.appointmentsBooked }}</div>
+        <div class="kpi-big-label">Appointments Booked</div>
+      </div>
+      <div class="kpi-big-card">
+        <div class="kpi-big-icon purple"><mat-icon>how_to_reg</mat-icon></div>
+        <div class="kpi-big-value">{{ kpis.clientsSigned }}</div>
+        <div class="kpi-big-label">Clients Signed</div>
+      </div>
+      <div class="kpi-big-card highlight">
+        <div class="kpi-big-icon"><mat-icon>trending_up</mat-icon></div>
+        <div class="kpi-big-value">{{ kpis.conversionRate }}%</div>
+        <div class="kpi-big-label">Conversion Rate</div>
+      </div>
+    </div>
+
+    <div class="panels-row">
+
+      <!-- ══════ DAILY ACTIVITY ══════ -->
+      <div class="dark-panel flex-panel">
+        <div class="dark-panel-header">
+          <mat-icon>bar_chart</mat-icon> Daily Activity (7 Days)
+        </div>
+        <div class="chart-body">
+          <div class="bar-chart">
+            <div *ngFor="let day of dailyMetrics" class="bar-group">
+              <div class="bars">
+                <div class="bar bar-conversations" [style.height.%]="(day.conversations / getMaxDaily('conversations')) * 100"></div>
+                <div class="bar bar-qualified" [style.height.%]="(day.qualified / getMaxDaily('conversations')) * 100"></div>
+                <div class="bar bar-signed" [style.height.%]="(day.signed / getMaxDaily('conversations')) * 100"></div>
+              </div>
+              <div class="bar-label">{{ day.date }}</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot conversations"></span> Conversations</span>
+            <span class="legend-item"><span class="legend-dot qualified"></span> Qualified</span>
+            <span class="legend-item"><span class="legend-dot signed"></span> Signed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════ STATUS FUNNEL ══════ -->
+      <div class="dark-panel flex-panel-sm">
+        <div class="dark-panel-header">
+          <mat-icon>filter_alt</mat-icon> Pipeline Funnel
+        </div>
+        <div class="funnel-body">
+          <div *ngFor="let s of statusBreakdown" class="funnel-row">
+            <div class="funnel-label">{{ s.label }}</div>
+            <div class="funnel-bar-wrap">
+              <div class="funnel-bar" [style.width.%]="s.percentage" [style.background]="getStatusBarColor(s.status)"></div>
+            </div>
+            <div class="funnel-count">{{ s.count }}</div>
+            <div class="funnel-pct">{{ s.percentage }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panels-row">
+
+      <!-- ══════ AGENT PERFORMANCE ══════ -->
+      <div class="dark-panel flex-panel">
+        <div class="dark-panel-header">
+          <mat-icon>leaderboard</mat-icon> Agent Performance
+        </div>
+        <div class="table-wrap">
+          <table class="dark-table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Conversations</th>
+                <th>Qualified</th>
+                <th>Appointments</th>
+                <th>Signed</th>
+                <th>Conversion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of agentStats; let i = index">
+                <td>
+                  <span class="rank" *ngIf="i === 0">&#x1f947;</span>
+                  <span class="rank" *ngIf="i === 1">&#x1f948;</span>
+                  <span class="rank" *ngIf="i === 2">&#x1f949;</span>
+                  {{ a.name }}
+                </td>
+                <td>{{ a.conversations }}</td>
+                <td>{{ a.qualified }}</td>
+                <td>{{ a.appointments }}</td>
+                <td class="signed-cell">{{ a.signed }}</td>
+                <td>
+                  <span class="conversion-badge" [class.high]="a.conversionRate >= 30" [class.mid]="a.conversionRate >= 10 && a.conversionRate < 30" [class.low]="a.conversionRate < 10">
+                    {{ a.conversionRate }}%
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════ CLAIM TYPE BREAKDOWN ══════ -->
+      <div class="dark-panel flex-panel-sm">
+        <div class="dark-panel-header">
+          <mat-icon>pie_chart</mat-icon> Claim Type Breakdown
+        </div>
+        <div class="breakdown-body">
+          <div *ngFor="let t of claimTypeBreakdown" class="breakdown-row">
+            <div class="breakdown-icon">
+              <mat-icon>{{ getClaimIcon(t.type) }}</mat-icon>
+            </div>
+            <div class="breakdown-info">
+              <div class="breakdown-type">{{ t.type | titlecase }}</div>
+              <div class="breakdown-bar-wrap">
+                <div class="breakdown-bar" [style.width.%]="t.percentage" [style.background]="getClaimBarColor(t.type)"></div>
+              </div>
+            </div>
+            <div class="breakdown-count">{{ t.count }}</div>
+            <div class="breakdown-pct">{{ t.percentage }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,769 @@
+<div class="comms-hub-dark">
+
+  <!-- ══════ PAGE HEADER ══════ -->
+  <div class="hub-header">
+    <div>
+      <h1><mat-icon>cell_tower</mat-icon> Communications Hub</h1>
+      <div class="hub-subtitle">Central command for SMS, email, AI voice calls &amp; campaign management across all leads and claims</div>
+    </div>
+    <div class="hub-header-right">
+      <div class="compliance-badge" (click)="activeTabIndex = 5" matTooltip="View compliance settings">
+        <mat-icon>verified_user</mat-icon>
+        <span>TCPA Compliant</span>
+      </div>
+      <div class="hub-status">
+        <span class="status-dot"></span>
+        Systems Online
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ KPI ROW (Dashboard Metrics) ══════ -->
+  <div class="kpi-row">
+    <div class="kpi-dark-card" *ngFor="let kpi of kpiCards">
+      <div class="kpi-icon-bg" [style.backgroundColor]="kpi.color + '18'">
+        <mat-icon [style.color]="kpi.color">{{ kpi.icon }}</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-dark-value">{{ kpi.value }}</span>
+        <span class="kpi-dark-label">{{ kpi.label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ TAB GROUP ══════ -->
+  <div class="hub-tabs">
+    <mat-tab-group [(selectedIndex)]="activeTabIndex" animationDuration="200ms">
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 1: SMS
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>sms</mat-icon> SMS</span>
+        </ng-template>
+
+        <div class="tab-body-grid">
+          <!-- Left: Send SMS -->
+          <div class="send-panel">
+            <div class="dark-panel">
+              <div class="dark-panel-header">
+                <mat-icon>send</mat-icon> Send SMS
+              </div>
+              <div class="panel-body">
+                <!-- Lead search -->
+                <div class="lead-search-wrap">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Search leads by name, phone, or email</mat-label>
+                    <input matInput [(ngModel)]="leadSearchTerm" (input)="searchLeads()" placeholder="Type to search...">
+                    <mat-icon matPrefix>search</mat-icon>
+                  </mat-form-field>
+                  <div class="lead-search-results" *ngIf="showLeadSearch && leadSearchResults.length > 0">
+                    <div class="lead-result-row" *ngFor="let lead of leadSearchResults" (click)="selectLead(lead)">
+                      <mat-icon>person_add</mat-icon>
+                      <div class="lead-result-info">
+                        <span class="lead-result-name">{{ getLeadName(lead) }}</span>
+                        <span class="lead-result-detail">{{ getLeadPhone(lead) }} &middot; {{ getLeadEmail(lead) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="selected-leads" *ngIf="selectedLeads.length > 0">
+                  <div class="selected-lead-chip" *ngFor="let lead of selectedLeads">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ getLeadName(lead) }}</span>
+                    <button mat-icon-button class="chip-remove" (click)="removeLead(lead)"><mat-icon>close</mat-icon></button>
+                  </div>
+                </div>
+
+                <!-- Template selector -->
+                <mat-form-field appearance="outline" class="full-width" style="margin-top:12px;">
+                  <mat-label>Use Template (optional)</mat-label>
+                  <mat-select [(ngModel)]="selectedTemplateId" (selectionChange)="onTemplateSelected()">
+                    <mat-option value="">-- None --</mat-option>
+                    <mat-option *ngFor="let tpl of smsTemplates" [value]="tpl.id">{{ tpl.name }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Message</mat-label>
+                  <textarea matInput [(ngModel)]="messageBody" rows="4" placeholder="Type your SMS message..."></textarea>
+                  <mat-hint align="end">{{ messageBody.length }}/160</mat-hint>
+                </mat-form-field>
+
+                <div class="action-footer">
+                  <button mat-raised-button class="send-btn" (click)="sendSms()"
+                          [disabled]="sendingAction || selectedLeads.length === 0 || !messageBody.trim()">
+                    <mat-icon *ngIf="!sendingAction">send</mat-icon>
+                    <mat-spinner *ngIf="sendingAction" diameter="18"></mat-spinner>
+                    {{ sendingAction ? 'Sending...' : 'Send SMS (' + selectedLeads.length + ')' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: SMS Conversation Thread -->
+          <div class="thread-panel">
+            <div class="dark-panel" style="height:100%;display:flex;flex-direction:column;">
+              <div class="dark-panel-header">
+                <mat-icon>forum</mat-icon> SMS Conversations
+                <span class="thread-count" *ngIf="smsConversations.length">{{ smsConversations.length }} threads</span>
+              </div>
+              <div class="conv-split" *ngIf="smsConversations.length > 0; else emptySms">
+                <!-- Thread list -->
+                <div class="conv-list-scroll">
+                  <div class="conv-row" *ngFor="let conv of smsConversations"
+                       [class.conv-active]="selectedConversation?.leadId === conv.leadId"
+                       (click)="selectConversation(conv)">
+                    <div class="conv-avatar">{{ conv.leadName.charAt(0) }}</div>
+                    <div class="conv-body">
+                      <div class="conv-name">{{ conv.leadName }}</div>
+                      <div class="conv-phone">{{ conv.phone }}</div>
+                      <div class="conv-preview">{{ conv.lastMessage }}</div>
+                    </div>
+                    <div class="conv-time">{{ timeAgo(conv.lastTimestamp) }}</div>
+                  </div>
+                </div>
+                <!-- Selected thread messages -->
+                <div class="conv-messages-pane" *ngIf="selectedConversation">
+                  <div class="conv-detail-header">
+                    <div class="conv-avatar" style="width:28px;height:28px;font-size:0.6rem;">{{ selectedConversation.leadName.charAt(0) }}</div>
+                    <div>
+                      <div class="conv-detail-name">{{ selectedConversation.leadName }}</div>
+                      <div class="conv-detail-meta">{{ selectedConversation.phone }}
+                        <a class="link-to-lead" (click)="navigateToLead(selectedConversation.leadId)">View Lead</a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="conv-messages">
+                    <div *ngFor="let msg of selectedConversation.messages"
+                         [class.msg-outbound]="msg.direction === 'outbound'"
+                         [class.msg-inbound]="msg.direction === 'inbound'">
+                      <div class="msg-text">{{ msg.body_preview || 'No content' }}</div>
+                      <div class="msg-time">{{ msg.created_at | date:'MMM dd, h:mm a' }}
+                        <span class="msg-status-badge"
+                              [style.backgroundColor]="getStatusColor(msg.send_status) + '1A'"
+                              [style.color]="getStatusColor(msg.send_status)">{{ msg.send_status }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <ng-template #emptySms>
+                <div class="empty-state" style="flex:1;">
+                  <mat-icon>sms</mat-icon>
+                  <span>No SMS conversations yet. Send a message to start one.</span>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 2: EMAIL
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>email</mat-icon> Email</span>
+        </ng-template>
+
+        <div class="send-section">
+          <div class="dark-panel">
+            <div class="dark-panel-header">
+              <mat-icon>email</mat-icon> Compose Email
+            </div>
+            <div class="panel-body">
+              <!-- Lead search -->
+              <div class="lead-search-wrap">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Search leads by name, phone, or email</mat-label>
+                  <input matInput [(ngModel)]="leadSearchTerm" (input)="searchLeads()" placeholder="Type to search...">
+                  <mat-icon matPrefix>search</mat-icon>
+                </mat-form-field>
+                <div class="lead-search-results" *ngIf="showLeadSearch && leadSearchResults.length > 0">
+                  <div class="lead-result-row" *ngFor="let lead of leadSearchResults" (click)="selectLead(lead)">
+                    <mat-icon>person_add</mat-icon>
+                    <div class="lead-result-info">
+                      <span class="lead-result-name">{{ getLeadName(lead) }}</span>
+                      <span class="lead-result-detail">{{ getLeadPhone(lead) }} &middot; {{ getLeadEmail(lead) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="selected-leads" *ngIf="selectedLeads.length > 0">
+                <div class="selected-lead-chip" *ngFor="let lead of selectedLeads">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ getLeadName(lead) }} ({{ getLeadEmail(lead) }})</span>
+                  <button mat-icon-button class="chip-remove" (click)="removeLead(lead)"><mat-icon>close</mat-icon></button>
+                </div>
+              </div>
+
+              <!-- Template selector -->
+              <mat-form-field appearance="outline" class="full-width" style="margin-top:12px;">
+                <mat-label>Use Template (optional)</mat-label>
+                <mat-select [(ngModel)]="selectedTemplateId" (selectionChange)="onTemplateSelected()">
+                  <mat-option value="">-- None --</mat-option>
+                  <mat-option *ngFor="let tpl of emailTemplates" [value]="tpl.id">{{ tpl.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Subject</mat-label>
+                <input matInput [(ngModel)]="messageSubject" placeholder="Email subject line">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Message Body</mat-label>
+                <textarea matInput [(ngModel)]="messageBody" rows="8" placeholder="Compose your email..."></textarea>
+              </mat-form-field>
+
+              <!-- Attachment area -->
+              <div class="attachment-area">
+                <button mat-stroked-button class="attach-btn" (click)="attachmentInput.click()">
+                  <mat-icon>attach_file</mat-icon> Attach Files
+                </button>
+                <input #attachmentInput type="file" multiple style="display:none;" (change)="onFilesSelected($event)">
+                <div class="attachment-list" *ngIf="attachments.length > 0">
+                  <div class="attachment-chip" *ngFor="let file of attachments; let i = index">
+                    <mat-icon>insert_drive_file</mat-icon>
+                    <span>{{ file.name }} ({{ formatFileSize(file.size) }})</span>
+                    <button mat-icon-button class="chip-remove" (click)="removeAttachment(i)"><mat-icon>close</mat-icon></button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="action-footer">
+                <button mat-raised-button class="send-btn" (click)="sendEmail()"
+                        [disabled]="sendingAction || selectedLeads.length === 0 || !messageSubject.trim()">
+                  <mat-icon *ngIf="!sendingAction">send</mat-icon>
+                  <mat-spinner *ngIf="sendingAction" diameter="18"></mat-spinner>
+                  {{ sendingAction ? 'Sending...' : 'Send Email (' + selectedLeads.length + ')' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 3: VOICE CALLS
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>phone_in_talk</mat-icon> Voice Calls</span>
+        </ng-template>
+
+        <div class="voice-section">
+          <!-- Initiate Call Panel -->
+          <div class="dark-panel" style="margin-bottom:16px;">
+            <div class="dark-panel-header">
+              <mat-icon>smart_toy</mat-icon> Initiate AI Voice Call
+            </div>
+            <div class="panel-body">
+              <div class="voice-init-grid">
+                <div class="voice-init-left">
+                  <div class="lead-search-wrap">
+                    <mat-form-field appearance="outline" class="full-width">
+                      <mat-label>Search leads to call</mat-label>
+                      <input matInput [(ngModel)]="leadSearchTerm" (input)="searchLeads()" placeholder="Type to search...">
+                      <mat-icon matPrefix>search</mat-icon>
+                    </mat-form-field>
+                    <div class="lead-search-results" *ngIf="showLeadSearch && leadSearchResults.length > 0">
+                      <div class="lead-result-row" *ngFor="let lead of leadSearchResults" (click)="selectLead(lead)">
+                        <mat-icon>person_add</mat-icon>
+                        <div class="lead-result-info">
+                          <span class="lead-result-name">{{ getLeadName(lead) }}</span>
+                          <span class="lead-result-detail">{{ getLeadPhone(lead) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="selected-leads" *ngIf="selectedLeads.length > 0">
+                    <div class="selected-lead-chip" *ngFor="let lead of selectedLeads">
+                      <mat-icon>person</mat-icon>
+                      <span>{{ getLeadName(lead) }}</span>
+                      <button mat-icon-button class="chip-remove" (click)="removeLead(lead)"><mat-icon>close</mat-icon></button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="voice-init-right">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Select Voice Script</mat-label>
+                    <mat-select [(ngModel)]="selectedScriptId">
+                      <mat-option value="">-- None --</mat-option>
+                      <mat-option *ngFor="let script of voiceScripts" [value]="script.id">{{ script.name }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Call Notes (optional)</mat-label>
+                    <textarea matInput [(ngModel)]="messageBody" rows="2" placeholder="Notes for the AI agent..."></textarea>
+                  </mat-form-field>
+
+                  <button mat-raised-button class="send-btn voice-btn" (click)="initiateVoiceCall()"
+                          [disabled]="sendingAction || selectedLeads.length === 0">
+                    <mat-icon *ngIf="!sendingAction">phone_forwarded</mat-icon>
+                    <mat-spinner *ngIf="sendingAction" diameter="18"></mat-spinner>
+                    {{ sendingAction ? 'Initiating...' : 'Start AI Call (' + selectedLeads.length + ')' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Call History Table -->
+          <div class="dark-panel">
+            <div class="dark-panel-header">
+              <mat-icon>history</mat-icon> Call History
+              <div class="header-filters">
+                <mat-form-field appearance="outline" class="filter-field-sm">
+                  <mat-label>Status</mat-label>
+                  <mat-select [(ngModel)]="logStatusFilter" (selectionChange)="loadCommunicationLogs()">
+                    <mat-option value="">All</mat-option>
+                    <mat-option value="sent">Completed</mat-option>
+                    <mat-option value="pending">Pending</mat-option>
+                    <mat-option value="failed">Failed</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="dark-table">
+                <thead>
+                  <tr>
+                    <th>Lead</th>
+                    <th>Direction</th>
+                    <th>Script</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Agent</th>
+                    <th>Timestamp</th>
+                    <th>Link</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let log of voiceLogs">
+                    <td>
+                      <span class="log-lead-name">{{ log.lead?.contact?.full_name || 'Lead #' + (log.lead_id || '').substring(0, 8) }}</span>
+                    </td>
+                    <td>
+                      <mat-icon [style.color]="getDirectionColor(log.direction)" style="font-size:16px;width:16px;height:16px;">{{ getDirectionIcon(log.direction) }}</mat-icon>
+                      {{ log.direction }}
+                    </td>
+                    <td style="font-size:0.75rem;color:#6b7280;">{{ log.purpose || '—' }}</td>
+                    <td style="font-size:0.75rem;color:#6b7280;">{{ log.body_preview || '—' }}</td>
+                    <td>
+                      <span class="status-badge"
+                            [style.backgroundColor]="getStatusColor(log.send_status) + '1A'"
+                            [style.color]="getStatusColor(log.send_status)">{{ log.send_status }}</span>
+                    </td>
+                    <td style="font-size:0.75rem;color:#6b7280;">{{ log.agent?.first_name ? log.agent.first_name + ' ' + log.agent.last_name : '—' }}</td>
+                    <td style="font-size:0.75rem;color:#6b7280;">{{ log.created_at | date:'MMM dd, h:mm a' }}</td>
+                    <td>
+                      <button mat-icon-button *ngIf="log.lead_id" (click)="navigateToLead(log.lead_id!)" matTooltip="View Lead">
+                        <mat-icon style="font-size:16px;width:16px;height:16px;color:#1565c0;">open_in_new</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="empty-state" *ngIf="voiceLogs.length === 0" style="padding:40px;">
+                <mat-icon>phone_in_talk</mat-icon>
+                <span>No voice call logs found</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 4: CAMPAIGNS
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>campaign</mat-icon> Campaigns</span>
+        </ng-template>
+
+        <div class="campaigns-section">
+          <!-- Bulk Action Panel -->
+          <div class="dark-panel" style="margin-bottom:16px;">
+            <div class="dark-panel-header">
+              <mat-icon>rocket_launch</mat-icon> Bulk Campaign Actions
+            </div>
+            <div class="panel-body">
+              <!-- Lead selection -->
+              <div class="lead-search-wrap">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Search and select leads for campaign</mat-label>
+                  <input matInput [(ngModel)]="leadSearchTerm" (input)="searchLeads()" placeholder="Type to search...">
+                  <mat-icon matPrefix>search</mat-icon>
+                </mat-form-field>
+                <div class="lead-search-results" *ngIf="showLeadSearch && leadSearchResults.length > 0">
+                  <div class="lead-result-row" *ngFor="let lead of leadSearchResults" (click)="selectLead(lead)">
+                    <mat-icon>person_add</mat-icon>
+                    <div class="lead-result-info">
+                      <span class="lead-result-name">{{ getLeadName(lead) }}</span>
+                      <span class="lead-result-detail">{{ getLeadPhone(lead) }} &middot; {{ getLeadEmail(lead) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="selected-leads" *ngIf="selectedLeads.length > 0">
+                <div class="selected-lead-chip" *ngFor="let lead of selectedLeads">
+                  <mat-icon>person</mat-icon>
+                  <span>{{ getLeadName(lead) }}</span>
+                  <button mat-icon-button class="chip-remove" (click)="removeLead(lead)"><mat-icon>close</mat-icon></button>
+                </div>
+              </div>
+              <div class="no-leads-hint" *ngIf="selectedLeads.length === 0">
+                Select leads above to run bulk campaign actions.
+              </div>
+
+              <!-- Campaign Action Buttons -->
+              <div class="campaign-actions" *ngIf="selectedLeads.length > 0">
+                <div class="campaign-action-card" (click)="executeBulkAction('sms')">
+                  <div class="campaign-action-icon" style="background:#2e7d321A;">
+                    <mat-icon style="color:#2e7d32;">sms</mat-icon>
+                  </div>
+                  <div class="campaign-action-info">
+                    <span class="campaign-action-title">Send Bulk SMS</span>
+                    <span class="campaign-action-desc">Send SMS to {{ selectedLeads.length }} selected lead{{ selectedLeads.length !== 1 ? 's' : '' }}</span>
+                  </div>
+                  <mat-icon class="campaign-action-arrow">chevron_right</mat-icon>
+                </div>
+
+                <div class="campaign-action-card" (click)="executeBulkAction('email')">
+                  <div class="campaign-action-icon" style="background:#e651001A;">
+                    <mat-icon style="color:#e65100;">email</mat-icon>
+                  </div>
+                  <div class="campaign-action-info">
+                    <span class="campaign-action-title">Send Bulk Email</span>
+                    <span class="campaign-action-desc">Email {{ selectedLeads.length }} selected lead{{ selectedLeads.length !== 1 ? 's' : '' }}</span>
+                  </div>
+                  <mat-icon class="campaign-action-arrow">chevron_right</mat-icon>
+                </div>
+
+                <div class="campaign-action-card" (click)="executeBulkAction('voice')">
+                  <div class="campaign-action-icon" style="background:#1565c01A;">
+                    <mat-icon style="color:#1565c0;">phone_forwarded</mat-icon>
+                  </div>
+                  <div class="campaign-action-info">
+                    <span class="campaign-action-title">Start AI Call Campaign</span>
+                    <span class="campaign-action-desc">Launch AI voice calls to {{ selectedLeads.length }} lead{{ selectedLeads.length !== 1 ? 's' : '' }}</span>
+                  </div>
+                  <mat-icon class="campaign-action-arrow">chevron_right</mat-icon>
+                </div>
+              </div>
+
+              <!-- Bulk SMS/Email form (shown after selection) -->
+              <div class="bulk-form" *ngIf="bulkActionChannel">
+                <div class="bulk-form-header">
+                  <mat-icon>{{ bulkActionChannel === 'sms' ? 'sms' : bulkActionChannel === 'email' ? 'email' : 'phone_forwarded' }}</mat-icon>
+                  <span>{{ bulkActionChannel === 'sms' ? 'Bulk SMS' : bulkActionChannel === 'email' ? 'Bulk Email' : 'AI Call Campaign' }}</span>
+                  <button mat-icon-button (click)="bulkActionChannel = null"><mat-icon>close</mat-icon></button>
+                </div>
+
+                <mat-form-field appearance="outline" class="full-width" *ngIf="bulkActionChannel !== 'voice'">
+                  <mat-label>Use Template</mat-label>
+                  <mat-select [(ngModel)]="selectedTemplateId" (selectionChange)="onTemplateSelected()">
+                    <mat-option value="">-- None --</mat-option>
+                    <mat-option *ngFor="let tpl of (bulkActionChannel === 'sms' ? smsTemplates : emailTemplates)" [value]="tpl.id">{{ tpl.name }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width" *ngIf="bulkActionChannel === 'email'">
+                  <mat-label>Subject</mat-label>
+                  <input matInput [(ngModel)]="messageSubject">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width" *ngIf="bulkActionChannel === 'voice'">
+                  <mat-label>Voice Script</mat-label>
+                  <mat-select [(ngModel)]="selectedScriptId">
+                    <mat-option value="">-- None --</mat-option>
+                    <mat-option *ngFor="let script of voiceScripts" [value]="script.id">{{ script.name }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>{{ bulkActionChannel === 'voice' ? 'Call Notes' : 'Message' }}</mat-label>
+                  <textarea matInput [(ngModel)]="messageBody" rows="4"></textarea>
+                </mat-form-field>
+
+                <div class="action-footer">
+                  <button mat-raised-button class="send-btn" (click)="executeBulkSend()"
+                          [disabled]="sendingAction">
+                    <mat-icon *ngIf="!sendingAction">{{ bulkActionChannel === 'voice' ? 'phone_forwarded' : 'send' }}</mat-icon>
+                    <mat-spinner *ngIf="sendingAction" diameter="18"></mat-spinner>
+                    {{ sendingAction ? 'Processing...' : 'Launch Campaign (' + selectedLeads.length + ' leads)' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Link to full campaign manager -->
+          <div class="campaign-links">
+            <button mat-stroked-button class="campaign-link-btn" (click)="navigateTo('/app/outreach/campaigns')">
+              <mat-icon>rocket_launch</mat-icon> Full Campaign Manager
+            </button>
+            <button mat-stroked-button class="campaign-link-btn" (click)="navigateTo('/app/voice-outreach-agent')">
+              <mat-icon>phone_forwarded</mat-icon> AI Voice Outreach Agent
+            </button>
+            <button mat-stroked-button class="campaign-link-btn" (click)="navigateTo('/app/message-templates')">
+              <mat-icon>message</mat-icon> Manage Templates
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 5: CONVERSATIONS (Central Inbox)
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>forum</mat-icon> Conversations</span>
+        </ng-template>
+
+        <div class="conversations-section">
+          <!-- Channel Filter -->
+          <div class="inbox-filters">
+            <button mat-stroked-button [class.filter-active]="inboxChannelFilter === ''"
+                    (click)="filterInbox('')">All</button>
+            <button mat-stroked-button [class.filter-active]="inboxChannelFilter === 'sms'"
+                    (click)="filterInbox('sms')">
+              <mat-icon>sms</mat-icon> SMS
+            </button>
+            <button mat-stroked-button [class.filter-active]="inboxChannelFilter === 'email'"
+                    (click)="filterInbox('email')">
+              <mat-icon>email</mat-icon> Email
+            </button>
+            <button mat-stroked-button [class.filter-active]="inboxChannelFilter === 'voice'"
+                    (click)="filterInbox('voice')">
+              <mat-icon>phone</mat-icon> Voice
+            </button>
+          </div>
+
+          <div class="conv-layout">
+            <!-- Left: Conversation List -->
+            <div class="conv-list-panel">
+              <div class="conv-list-header">
+                <mat-icon>inbox</mat-icon> Inbox ({{ filteredConversations.length }})
+              </div>
+              <div class="conv-list-scroll">
+                <div class="conv-row" *ngFor="let conv of filteredConversations"
+                     [class.conv-active]="selectedConversation?.leadId === conv.leadId"
+                     (click)="selectConversation(conv)">
+                  <div class="conv-avatar">{{ conv.leadName.charAt(0) }}</div>
+                  <div class="conv-body">
+                    <div class="conv-name-row">
+                      <span class="conv-name">{{ conv.leadName }}</span>
+                      <span class="type-badge"
+                            [style.backgroundColor]="getChannelColor(conv.lastChannel) + '18'"
+                            [style.color]="getChannelColor(conv.lastChannel)">
+                        <mat-icon>{{ getChannelIcon(conv.lastChannel) }}</mat-icon>
+                        {{ conv.lastChannel | uppercase }}
+                      </span>
+                    </div>
+                    <div class="conv-phone">{{ conv.phone }}</div>
+                    <div class="conv-preview">{{ conv.lastMessage }}</div>
+                  </div>
+                  <div class="conv-time">{{ timeAgo(conv.lastTimestamp) }}</div>
+                </div>
+
+                <div class="conv-empty-list" *ngIf="filteredConversations.length === 0">
+                  <mat-icon>forum</mat-icon>
+                  <span>No conversations found</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Conversation Detail -->
+            <div class="conv-detail-panel" *ngIf="selectedConversation; else emptyConvDetail">
+              <div class="conv-detail-header">
+                <div class="conv-avatar" style="width:32px;height:32px;font-size:0.68rem;">{{ selectedConversation.leadName.charAt(0) }}</div>
+                <div>
+                  <div class="conv-detail-name">{{ selectedConversation.leadName }}</div>
+                  <div class="conv-detail-meta">
+                    {{ selectedConversation.phone }} &middot; {{ selectedConversation.email }}
+                    <a class="link-to-lead" (click)="navigateToLead(selectedConversation.leadId)">View Lead</a>
+                  </div>
+                </div>
+                <button mat-icon-button class="conv-close-btn" (click)="clearConversation()"><mat-icon>close</mat-icon></button>
+              </div>
+
+              <div class="conv-messages">
+                <div *ngFor="let msg of selectedConversation.messages"
+                     [class.msg-outbound]="msg.direction === 'outbound'"
+                     [class.msg-inbound]="msg.direction === 'inbound'">
+                  <div class="msg-sender-row">
+                    <mat-icon class="msg-channel-icon" [style.color]="getChannelColor(msg.channel)">{{ getChannelIcon(msg.channel) }}</mat-icon>
+                    <span class="msg-sender">{{ msg.agent?.first_name ? msg.agent.first_name + ' ' + msg.agent.last_name : (msg.direction === 'inbound' ? selectedConversation.leadName : 'System') }}</span>
+                    <span class="msg-status-badge"
+                          [style.backgroundColor]="getStatusColor(msg.send_status) + '1A'"
+                          [style.color]="getStatusColor(msg.send_status)">{{ msg.send_status }}</span>
+                  </div>
+                  <div class="msg-text" *ngIf="msg.subject"><strong>{{ msg.subject }}</strong></div>
+                  <div class="msg-text">{{ msg.body_preview || 'No content' }}</div>
+                  <div class="msg-time">{{ msg.created_at | date:'MMM dd, h:mm a' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #emptyConvDetail>
+              <div class="conv-detail-panel">
+                <div class="conv-empty-state">
+                  <mat-icon>forum</mat-icon>
+                  <span>Select a conversation to view the full thread</span>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- ═══════════════════════════════════════════════════════
+           TAB 6: COMPLIANCE (Architecture)
+           ═══════════════════════════════════════════════════════ -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>verified_user</mat-icon> Compliance</span>
+        </ng-template>
+
+        <div class="compliance-section">
+          <!-- Compliance KPIs -->
+          <div class="compliance-kpi-row">
+            <div class="compliance-kpi">
+              <mat-icon style="color:#2e7d32;">check_circle</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.total_opted_in }}</div>
+              <div class="compliance-kpi-lbl">Opted In</div>
+            </div>
+            <div class="compliance-kpi">
+              <mat-icon style="color:#c62828;">cancel</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.total_opted_out }}</div>
+              <div class="compliance-kpi-lbl">Opted Out</div>
+            </div>
+            <div class="compliance-kpi">
+              <mat-icon style="color:#e65100;">do_not_disturb</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.total_dnc_entries }}</div>
+              <div class="compliance-kpi-lbl">DNC Entries</div>
+            </div>
+            <div class="compliance-kpi">
+              <mat-icon style="color:#1565c0;">block</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.blocked_today }}</div>
+              <div class="compliance-kpi-lbl">Blocked Today</div>
+            </div>
+            <div class="compliance-kpi">
+              <mat-icon style="color:#7b1fa2;">shield</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.compliance_rate }}%</div>
+              <div class="compliance-kpi-lbl">Compliance Rate</div>
+            </div>
+            <div class="compliance-kpi">
+              <mat-icon style="color:#00838f;">public</mat-icon>
+              <div class="compliance-kpi-val">{{ complianceMetrics.countries_enabled }}</div>
+              <div class="compliance-kpi-lbl">Countries Active</div>
+            </div>
+          </div>
+
+          <div class="compliance-grid">
+            <!-- Opt-In Tracking -->
+            <div class="dark-panel">
+              <div class="dark-panel-header">
+                <mat-icon>how_to_reg</mat-icon> Opt-In Tracking
+              </div>
+              <div class="panel-body">
+                <div class="consent-channel-row" *ngFor="let ch of ['sms', 'email', 'voice']">
+                  <div class="consent-channel-label">
+                    <mat-icon>{{ getChannelIcon(ch) }}</mat-icon>
+                    {{ ch | uppercase }}
+                  </div>
+                  <div class="consent-bar">
+                    <div class="consent-bar-fill opted-in"
+                         [style.width.%]="getConsentPercent(ch, 'opted_in')"></div>
+                    <div class="consent-bar-fill opted-out"
+                         [style.width.%]="getConsentPercent(ch, 'opted_out')"></div>
+                  </div>
+                  <div class="consent-stats">
+                    <span class="consent-in">{{ getConsentCount(ch, 'opted_in') }} in</span>
+                    <span class="consent-out">{{ getConsentCount(ch, 'opted_out') }} out</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Do Not Call List -->
+            <div class="dark-panel">
+              <div class="dark-panel-header">
+                <mat-icon>phone_disabled</mat-icon> Do Not Call / Contact List
+              </div>
+              <div class="panel-body">
+                <div class="dnc-info">
+                  <div class="dnc-stat">
+                    <span class="dnc-stat-val">{{ complianceMetrics.total_dnc_entries }}</span>
+                    <span class="dnc-stat-lbl">Total DNC Entries</span>
+                  </div>
+                  <div class="dnc-sources">
+                    <span class="dnc-source-badge">Federal Registry</span>
+                    <span class="dnc-source-badge">State Registry</span>
+                    <span class="dnc-source-badge">Internal</span>
+                    <span class="dnc-source-badge">Carrier Complaints</span>
+                  </div>
+                </div>
+                <p class="compliance-note">
+                  All outbound communications are automatically filtered against DNC lists before sending.
+                  Manual entries can be added through the admin panel.
+                </p>
+              </div>
+            </div>
+
+            <!-- Country Rule Toggles -->
+            <div class="dark-panel" style="grid-column: 1 / -1;">
+              <div class="dark-panel-header">
+                <mat-icon>public</mat-icon> Country / Region Rules
+              </div>
+              <div class="panel-body">
+                <table class="dark-table">
+                  <thead>
+                    <tr>
+                      <th>Country</th>
+                      <th>SMS</th>
+                      <th>Voice</th>
+                      <th>Email</th>
+                      <th>Quiet Hours</th>
+                      <th>Opt-In Required</th>
+                      <th>TCPA</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let rule of countryRules">
+                      <td><strong>{{ rule.country_name }}</strong> <span style="color:#9ca3af;">({{ rule.country_code }})</span></td>
+                      <td><mat-icon [style.color]="rule.sms_enabled ? '#2e7d32' : '#c62828'">{{ rule.sms_enabled ? 'check_circle' : 'cancel' }}</mat-icon></td>
+                      <td><mat-icon [style.color]="rule.voice_enabled ? '#2e7d32' : '#c62828'">{{ rule.voice_enabled ? 'check_circle' : 'cancel' }}</mat-icon></td>
+                      <td><mat-icon [style.color]="rule.email_enabled ? '#2e7d32' : '#c62828'">{{ rule.email_enabled ? 'check_circle' : 'cancel' }}</mat-icon></td>
+                      <td style="font-size:0.75rem;color:#6b7280;">{{ rule.quiet_hours_start && rule.quiet_hours_end ? rule.quiet_hours_start + ' – ' + rule.quiet_hours_end : 'None' }}</td>
+                      <td><mat-icon [style.color]="rule.require_opt_in ? '#e65100' : '#9ca3af'">{{ rule.require_opt_in ? 'check' : 'remove' }}</mat-icon></td>
+                      <td><mat-icon [style.color]="rule.tcpa_compliant ? '#2e7d32' : '#9ca3af'">{{ rule.tcpa_compliant ? 'verified' : 'remove' }}</mat-icon></td>
+                      <td>
+                        <span class="status-badge" [style.backgroundColor]="rule.is_active ? '#2e7d321A' : '#c628281A'"
+                              [style.color]="rule.is_active ? '#2e7d32' : '#c62828'">{{ rule.is_active ? 'Active' : 'Disabled' }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+
+</div>

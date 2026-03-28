@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>Convert to Client</h2>
+<mat-dialog-content>
+  <p>Convert <strong>{{ leadName }}</strong> into a signed client with a new claim file.</p>
+
+  <form [formGroup]="conversionForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contract Sign Date</mat-label>
+      <input matInput [matDatepicker]="signDatePicker" formControlName="contract_sign_date">
+      <mat-datepicker-toggle matSuffix [for]="signDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #signDatePicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Fee Type</mat-label>
+      <mat-select formControlName="fee_type">
+        <mat-option value="percentage">Percentage</mat-option>
+        <mat-option value="flat">Flat / Fixed</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Fee</mat-label>
+      <input matInput type="number" formControlName="fee" step="0.5">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes (optional)</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()" [disabled]="formDisabled">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="formDisabled">
+    <mat-spinner diameter="18" *ngIf="formDisabled" class="d-inline-block me-1"></mat-spinner>
+    Convert
+  </button>
+</mat-dialog-actions>

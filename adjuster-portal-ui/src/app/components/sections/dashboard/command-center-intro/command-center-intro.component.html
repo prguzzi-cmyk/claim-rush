@@ -1,0 +1,213 @@
+<div class="intro-overlay" [class.exiting]="exiting">
+  <!-- Top-right controls -->
+  <div class="intro-controls">
+    <!-- Sound Toggle -->
+    <button class="sound-toggle" (click)="toggleSound()" *ngIf="allowAudio"
+            [matTooltip]="soundEnabled ? 'Mute intro audio' : 'Enable intro audio'">
+      <mat-icon>{{ soundEnabled ? 'volume_up' : 'volume_off' }}</mat-icon>
+      <span>{{ soundEnabled ? 'Sound On' : 'Sound Off' }}</span>
+    </button>
+
+    <!-- Skip Button -->
+    <button class="skip-btn" (click)="skip()">
+      Skip Intro
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="intro-progress">
+    <div class="intro-progress-fill" [style.width]="getProgressWidth()"></div>
+  </div>
+
+  <!-- Panel Indicators -->
+  <div class="panel-indicators">
+    <span *ngFor="let _ of [0,1,2,3]; let i = index"
+          class="indicator"
+          [class.active]="i === activePanel"
+          [class.completed]="i < activePanel">
+    </span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 1: GLOBAL INCIDENT INTELLIGENCE
+       ═══════════════════════════════════════════════ -->
+  <div class="intro-panel" [class.active]="activePanel === 0">
+    <div class="panel-bg panel-bg-map">
+      <!-- Animated map grid -->
+      <div class="map-grid">
+        <div class="grid-line grid-h" *ngFor="let _ of [1,2,3,4,5]" [style.top.%]="_ * 16.66"></div>
+        <div class="grid-line grid-v" *ngFor="let _ of [1,2,3,4,5,6,7]" [style.left.%]="_ * 12.5"></div>
+      </div>
+
+      <!-- Animated markers appearing -->
+      <div *ngFor="let m of mapMarkers"
+           class="map-marker"
+           [class.marker-fire]="m.type === 'fire'"
+           [class.marker-storm]="m.type === 'storm'"
+           [class.marker-crime]="m.type === 'crime'"
+           [style.left.%]="m.x"
+           [style.top.%]="m.y"
+           [style.animation-delay.s]="m.delay">
+        <span class="marker-ping"></span>
+      </div>
+    </div>
+
+    <div class="panel-content">
+      <div class="panel-eyebrow">Panel 1 of 4</div>
+      <h1 class="panel-title">Global Incident Intelligence</h1>
+      <p class="panel-desc">
+        Real-time monitoring of fire, storm, and crime incidents across all territories.
+        Every marker is a potential claim opportunity detected by the intelligence network.
+      </p>
+      <div class="panel-stats">
+        <div class="stat">
+          <span class="stat-icon stat-fire">🔥</span>
+          <span class="stat-label">Fire</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon stat-storm">⛈️</span>
+          <span class="stat-label">Storm</span>
+        </div>
+        <div class="stat">
+          <span class="stat-icon stat-crime">🔒</span>
+          <span class="stat-label">Crime</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 2: AI OUTREACH ENGINE
+       ═══════════════════════════════════════════════ -->
+  <div class="intro-panel" [class.active]="activePanel === 1">
+    <div class="panel-bg panel-bg-ai">
+      <div class="ai-call-list">
+        <div *ngFor="let call of aiCallRows"
+             class="ai-call-row"
+             [style.animation-delay.s]="call.delay">
+          <div class="call-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="call-info">
+            <span class="call-name">{{ call.name }}</span>
+            <span class="call-status"
+                  [class.status-qualified]="call.status === 'qualified'"
+                  [class.status-ringing]="call.status === 'ringing'"
+                  [class.status-progress]="call.status === 'in-progress'">
+              <span class="status-dot"></span>
+              {{ call.status === 'qualified' ? 'Qualified Lead' : call.status === 'ringing' ? 'Ringing...' : 'In Progress' }}
+            </span>
+          </div>
+          <div class="call-wave" *ngIf="call.status !== 'qualified'">
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+          </div>
+          <mat-icon class="call-check" *ngIf="call.status === 'qualified'">check_circle</mat-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-content">
+      <div class="panel-eyebrow">Panel 2 of 4</div>
+      <h1 class="panel-title">AI Outreach Engine</h1>
+      <p class="panel-desc">
+        Autonomous AI agents place calls, qualify leads, and schedule inspections
+        while you focus on closing deals.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 3: CLAIMS RECOVERY ENGINE
+       ═══════════════════════════════════════════════ -->
+  <div class="intro-panel" [class.active]="activePanel === 2">
+    <div class="panel-bg panel-bg-recovery">
+      <div class="recovery-display">
+        <div class="recovery-card">
+          <div class="recovery-label">Carrier Estimate</div>
+          <div class="recovery-amount carrier">$12,450</div>
+        </div>
+        <div class="recovery-arrow">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="recovery-card recovery-card-ours">
+          <div class="recovery-label">ACI Estimate</div>
+          <div class="recovery-amount ours">$38,920</div>
+        </div>
+      </div>
+      <div class="recovery-counter">
+        <span class="counter-label">Total Recovery Value</span>
+        <span class="counter-value">{{ fmtCurrency(recoveryValue) }}</span>
+      </div>
+    </div>
+
+    <div class="panel-content">
+      <div class="panel-eyebrow">Panel 3 of 4</div>
+      <h1 class="panel-title">Claims Recovery Engine</h1>
+      <p class="panel-desc">
+        AI-powered estimate comparison identifies underpayment and
+        maximizes recovery for every claim in your portfolio.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       PANEL 4: AGENT NETWORK
+       ═══════════════════════════════════════════════ -->
+  <div class="intro-panel" [class.active]="activePanel === 3">
+    <div class="panel-bg panel-bg-network">
+      <div class="territory-map">
+        <svg viewBox="0 0 100 80" class="territory-svg">
+          <!-- Connection lines between territories -->
+          <line *ngFor="let t of agentTerritories; let i = index"
+                [attr.x1]="t.cx"
+                [attr.y1]="t.cy"
+                [attr.x2]="agentTerritories[(i + 1) % agentTerritories.length].cx"
+                [attr.y2]="agentTerritories[(i + 1) % agentTerritories.length].cy"
+                class="territory-line"
+                [style.animation-delay.s]="t.delay" />
+
+          <!-- Territory circles -->
+          <g *ngFor="let t of agentTerritories">
+            <circle
+              [attr.cx]="t.cx"
+              [attr.cy]="t.cy"
+              [attr.r]="t.r"
+              class="territory-circle"
+              [style.animation-delay.s]="t.delay" />
+            <circle
+              [attr.cx]="t.cx"
+              [attr.cy]="t.cy"
+              [attr.r]="t.r + 3"
+              class="territory-pulse"
+              [style.animation-delay.s]="t.delay" />
+            <text
+              [attr.x]="t.cx"
+              [attr.y]="t.cy + 1"
+              class="territory-label"
+              [style.animation-delay.s]="t.delay">
+              {{ t.state }}
+            </text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="panel-content">
+      <div class="panel-eyebrow">Panel 4 of 4</div>
+      <h1 class="panel-title">Agent Network</h1>
+      <p class="panel-desc">
+        Your territory-assigned agent network is ready. Leads are auto-routed
+        to the nearest available agent for immediate response.
+      </p>
+    </div>
+  </div>
+
+  <!-- Logo watermark -->
+  <div class="intro-logo">
+    <span style="font-size:28px;font-weight:800;color:#fff;letter-spacing:5px;">RIN<sup style="font-size:10px;color:#00C2FF;">&trade;</sup></span>
+  </div>
+</div>

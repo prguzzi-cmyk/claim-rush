@@ -1,0 +1,232 @@
+<h1 mat-dialog-title>
+  {{
+    type == "upload"
+      ? "Upload"
+      : type == "view"
+      ? "View"
+      : type == "edit"
+      ? "Edit"
+      : "Delete"
+  }}
+  File
+</h1>
+
+<div *ngIf="type == 'upload' || type == 'edit'">
+  <form [formGroup]="fileForm">
+    <mat-form-field class="form-field">
+      <input
+        matInput
+        formControlName="name"
+        type="text"
+        placeholder="Name"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <textarea
+        matInput
+        formControlName="description"
+        placeholder="Description"
+        rows="3"
+      ></textarea>
+    </mat-form-field>
+  </form>
+
+  <div class="mb-3 tags">
+    <h6>Tags</h6>
+
+    <div class="d-flex flex-wrap">
+      <button
+        *ngFor="let tag of tags"
+        (click)="toggleTag(tag)"
+        mat-icon-button
+        class="d-flex align-items-center mr-3 w-auto"
+      >
+        <mat-icon *ngIf="isTagAppendedToFile(tag)"
+          >radio_button_checked</mat-icon
+        >
+
+        <mat-icon *ngIf="!isTagAppendedToFile(tag)">
+          radio_button_unchecked
+        </mat-icon>
+
+        <span class="ml-1">{{ tag.name }}</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center mb-3">
+    Can be removed:
+
+    <mat-slide-toggle
+      (change)="toggleCanBeRemoved($event)"
+      [checked]="canBeRemoved"
+      color="primary"
+      class="ml-3"
+    ></mat-slide-toggle>
+  </div>
+
+  <div
+    *ngIf="type == 'upload'"
+    class="select-file-box d-flex flex-column justify-content-center align-items-center rounded bg-light"
+  >
+    <input
+      (change)="selectFile($event)"
+      type="file"
+      name="file"
+      id="file-input"
+      class="d-none"
+    />
+
+    <span *ngIf="selectedFile?.name" class="mb-3"
+      >{{ selectedFile?.name }} selected</span
+    >
+
+    <button mat-raised-button color="primary">
+      <label for="file-input" class="m-0">Select file</label>
+    </button>
+  </div>
+</div>
+
+<div *ngIf="type == 'view'" mat-dialog-content>
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Name</h6>
+
+      <p>{{ file.name }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>Description</h6>
+
+      <p>{{ file.description }}</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Type</h6>
+
+      <p>{{ file.type }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>created by</h6>
+
+      <p>
+        <span *ngIf="file.created_by?.first_name || file.created_by?.last_name">
+          {{ file.created_by?.first_name }} {{ file.created_by?.last_name }}
+        </span>
+
+        <span *ngIf="!file.created_by">N/A</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Created at</h6>
+
+      <p>{{ file.created_at | date : "dd/MM/yyyy" }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>Updated by</h6>
+
+      <p>
+        <span *ngIf="file.updated_by?.first_name || file.updated_by?.last_name">
+          {{ file.updated_by?.first_name }} {{ file.updated_by?.last_name }}
+        </span>
+
+        <span *ngIf="!file.updated_by">N/A</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Updated at</h6>
+
+      <p>
+        <span *ngIf="file.updated_at">
+          {{ file.updated_at | date : "dd/MM/yyyy" }}
+        </span>
+
+        <span *ngIf="!file.updated_at">N/A</span>
+      </p>
+    </div>
+
+    <div class="d-flex align-items-center col-md-6 align-self-start mb-3">
+      <h6 class="mb-0">Can be removed:</h6>
+
+      <mat-slide-toggle
+        [checked]="file.can_be_removed"
+        disabled
+        color="primary"
+        class="ml-3"
+      ></mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="mb-3 d-flex align-items-center">
+    <h6 class="mb-0">Is removed:</h6>
+
+    <mat-slide-toggle
+      [checked]="file?.is_removed"
+      disabled
+      color="primary"
+      class="ml-3"
+    ></mat-slide-toggle>
+  </div>
+</div>
+
+<p *ngIf="type == 'delete'" mat-dialog-content>
+  Are you sure you want to delete {{ file.name.toLowerCase() }}?
+</p>
+
+<div mat-dialog-actions>
+  <button
+    *ngIf="type == 'upload'"
+    (click)="uploadFile()"
+    [disabled]="!fileForm.valid || !selectedFile?.name || fileFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="fileFormDisabled"></mat-spinner>
+    </div>
+
+    Upload file
+  </button>
+
+  <button
+    *ngIf="type == 'edit'"
+    (click)="updateFile(file.id)"
+    [disabled]="!fileForm.valid || fileTags.length < 1 || fileFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="fileFormDisabled"></mat-spinner>
+    </div>
+
+    Save file
+  </button>
+
+  <button
+    *ngIf="type == 'delete'"
+    (click)="deleteFile(file.id)"
+    [disabled]="fileFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="fileFormDisabled"></mat-spinner>
+    </div>
+
+    Yes, delete this file
+  </button>
+
+  <button mat-raised-button mat-dialog-close color="accent">Cancel</button>
+</div>

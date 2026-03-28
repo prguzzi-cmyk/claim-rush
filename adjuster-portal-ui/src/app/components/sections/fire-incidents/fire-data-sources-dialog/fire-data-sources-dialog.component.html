@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>
+  <mat-icon class="dialog-icon">cloud</mat-icon>
+  Fire Data Sources
+</h2>
+
+<mat-dialog-content>
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-row">
+    <mat-progress-spinner diameter="24" mode="indeterminate"></mat-progress-spinner>
+    <span>Loading data sources...</span>
+  </div>
+
+  <!-- Data Sources Table -->
+  <table mat-table [dataSource]="configs" class="sources-table" *ngIf="!isLoading && configs.length > 0">
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let config">
+        <div class="source-name">{{ config.name }}</div>
+        <div class="source-meta">
+          <span class="source-type-badge" [ngClass]="getSourceTypeClass(config.source_type)">
+            {{ getSourceTypeLabel(config.source_type) }}
+          </span>
+          <span class="poll-interval">Every {{ config.poll_interval_seconds }}s</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Last Polled Column -->
+    <ng-container matColumnDef="last_polled">
+      <th mat-header-cell *matHeaderCellDef>Last Polled</th>
+      <td mat-cell *matCellDef="let config">
+        {{ config.last_polled_at ? (config.last_polled_at | date:'MM/dd HH:mm') : 'Never' }}
+      </td>
+    </ng-container>
+
+    <!-- Active Column -->
+    <ng-container matColumnDef="active">
+      <th mat-header-cell *matHeaderCellDef>Active</th>
+      <td mat-cell *matCellDef="let config">
+        <mat-slide-toggle
+          [checked]="config.is_active"
+          (change)="toggleActive(config)"
+          color="primary"
+        ></mat-slide-toggle>
+      </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let config">
+        <button
+          mat-icon-button
+          matTooltip="Poll now"
+          (click)="pollNow(config)"
+          [disabled]="isPolling[config.id]"
+        >
+          <mat-icon *ngIf="!isPolling[config.id]">sync</mat-icon>
+          <mat-progress-spinner
+            *ngIf="isPolling[config.id]"
+            diameter="20"
+            mode="indeterminate"
+          ></mat-progress-spinner>
+        </button>
+        <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteConfig(config)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['name', 'last_polled', 'active', 'actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['name', 'last_polled', 'active', 'actions']"></tr>
+  </table>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && configs.length === 0" class="empty-state">
+    No data sources configured.
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

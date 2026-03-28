@@ -1,0 +1,137 @@
+<div class="ca-tab-content">
+  <div class="toolbar" *ngIf="!showBuilder">
+    <h2>Campaigns</h2>
+    <button mat-raised-button color="primary" (click)="openBuilder()">
+      <mat-icon>add</mat-icon> New Campaign
+    </button>
+  </div>
+
+  <!-- Campaign List -->
+  <div *ngIf="!showBuilder" class="table-container">
+    <table mat-table [dataSource]="campaigns" class="campaign-table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Campaign</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-badge" [style.background-color]="getStatusColor(row.status)">{{ row.status }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="audience">
+        <th mat-header-cell *matHeaderCellDef>Audience</th>
+        <td mat-cell *matCellDef="let row">{{ row.audience_segment_name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="steps">
+        <th mat-header-cell *matHeaderCellDef>Steps</th>
+        <td mat-cell *matCellDef="let row">{{ row.steps.length }}</td>
+      </ng-container>
+      <ng-container matColumnDef="sent">
+        <th mat-header-cell *matHeaderCellDef>Sent</th>
+        <td mat-cell *matCellDef="let row">{{ row.metrics.sent | number }}</td>
+      </ng-container>
+      <ng-container matColumnDef="converted">
+        <th mat-header-cell *matHeaderCellDef>Converted</th>
+        <td mat-cell *matCellDef="let row">{{ row.metrics.converted }}</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="openBuilder(row)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Campaign Builder Stepper -->
+  <div *ngIf="showBuilder">
+    <div class="builder-header">
+      <button mat-icon-button (click)="closeBuilder()"><mat-icon>arrow_back</mat-icon></button>
+      <h2>{{ editingCampaign ? 'Edit' : 'Create' }} Campaign</h2>
+    </div>
+
+    <mat-stepper [(selectedIndex)]="builderStep" linear="false">
+      <!-- Step 1: Details -->
+      <mat-step label="Details">
+        <div class="step-content">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Campaign Name</mat-label>
+            <input matInput [(ngModel)]="formData.name">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Audience Segment</mat-label>
+            <mat-select [(ngModel)]="formData.audience_segment_id">
+              <mat-option *ngFor="let seg of segments" [value]="seg.id">{{ seg.name }} ({{ seg.estimated_reach | number }} reach)</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="step-actions">
+            <button mat-raised-button color="primary" matStepperNext>Next</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- Step 2: Flow Builder -->
+      <mat-step label="Flow Builder">
+        <div class="step-content">
+          <div class="step-cards">
+            <mat-card *ngFor="let step of formData.steps; let i = index" class="flow-card">
+              <div class="flow-card-header">
+                <span class="step-num">Step {{ step.order }}</span>
+                <mat-chip>{{ step.channel }}</mat-chip>
+                <button mat-icon-button (click)="removeStep(i)"><mat-icon>close</mat-icon></button>
+              </div>
+              <div class="flow-card-body">
+                <span *ngIf="step.delay_days > 0" class="delay-badge">Wait {{ step.delay_days }} days</span>
+                <span class="template-name">{{ step.template_name || 'No template' }}</span>
+              </div>
+            </mat-card>
+          </div>
+
+          <mat-card class="add-step-card">
+            <div class="add-step-form">
+              <mat-form-field appearance="outline">
+                <mat-label>Channel</mat-label>
+                <mat-select [(ngModel)]="newStep.channel">
+                  <mat-option value="email">Email</mat-option>
+                  <mat-option value="sms">SMS</mat-option>
+                  <mat-option value="social">Social</mat-option>
+                  <mat-option value="direct_mail">Direct Mail</mat-option>
+                  <mat-option value="phone">Phone</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Delay (days)</mat-label>
+                <input matInput type="number" [(ngModel)]="newStep.delay_days">
+              </mat-form-field>
+              <button mat-raised-button (click)="addStep()"><mat-icon>add</mat-icon> Add Step</button>
+            </div>
+          </mat-card>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" matStepperNext>Next</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- Step 3: Review & Launch -->
+      <mat-step label="Review & Launch">
+        <div class="step-content">
+          <div class="review-summary">
+            <p><strong>Campaign:</strong> {{ formData.name }}</p>
+            <p><strong>Steps:</strong> {{ formData.steps?.length || 0 }}</p>
+          </div>
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" (click)="saveCampaign()">
+              {{ editingCampaign ? 'Update' : 'Launch' }} Campaign
+            </button>
+          </div>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </div>
+</div>

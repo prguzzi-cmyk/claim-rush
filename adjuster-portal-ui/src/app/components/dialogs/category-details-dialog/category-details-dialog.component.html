@@ -1,0 +1,67 @@
+<ng-container *ngIf="type==='add'">
+  <h2 mat-dialog-title>
+    Add category
+  </h2>
+  <div mat-dialog-content>
+    <form [formGroup]="cateForm" class="category-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Category Name</mat-label>
+        <input matInput placeholder="category name" formControlName="name" name="categoryName" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Parent Category Id</mat-label>
+        <mat-select formControlName="parentId">
+          <mat-option *ngFor="let item of items" [value]="item.id">{{item.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="addCategory()">
+      Add category
+    </button>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+  </div>
+</ng-container>
+
+<ng--container *ngIf="type==='delete'">
+  <h2 mat-dialog-title>
+    Delete category
+  </h2>
+  <div mat-dialog-content>
+    Are you sure you want to delete this category?
+    <p></p>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="warn" (click)="deleteCategory(category.id)">
+      Yes, delete this category
+    </button>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+  </div>
+</ng--container>
+
+<ng-container *ngIf="type==='edit'">
+  <h2 mat-dialog-title>
+    Edit category
+  </h2>
+  <div mat-dialog-content>
+    <form [formGroup]="cateForm" class="category-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Category Name</mat-label>
+        <input matInput placeholder="category name" formControlName="name" name="categoryName" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Parent Category</mat-label>
+        <mat-select formControlName="parentId">
+          <mat-option *ngFor="let item of items" [value]="item.id" >{{item.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </div>
+  <div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="updateCategory()">
+      Update category
+    </button>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+  </div>
+</ng-container>

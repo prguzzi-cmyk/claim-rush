@@ -1,0 +1,360 @@
+<div class="customer-claim-portal" *ngIf="claim">
+
+  <!-- Header -->
+  <div class="portal-header">
+    <button mat-icon-button (click)="goBack()" class="back-btn">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-info">
+      <h1>Claim {{ claim.claim_number || claim.ref_string }}</h1>
+      <p class="header-address" *ngIf="claim.claim_contact?.address_loss">
+        <mat-icon>location_on</mat-icon>
+        {{ claim.claim_contact.address_loss }},
+        {{ claim.claim_contact.city_loss ? claim.claim_contact.city_loss + ',' : '' }}
+        {{ claim.claim_contact.state_loss }}
+        {{ claim.claim_contact.zip_code_loss }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group (selectedIndexChange)="tabChange($event)" #tabGroup animationDuration="200ms">
+
+    <!-- ═══════════════════ TAB 1: OVERVIEW ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>dashboard</mat-icon>&nbsp;Overview
+      </ng-template>
+
+      <!-- Progress Tracker -->
+      <div class="progress-tracker">
+        <div class="phase-step" *ngFor="let phase of phaseMilestones; let i = index; let last = last"
+             [class.completed]="getPhaseStatus(i) === 'completed'"
+             [class.active]="getPhaseStatus(i) === 'active'"
+             [class.upcoming]="getPhaseStatus(i) === 'upcoming'">
+          <div class="step-connector" *ngIf="i > 0"
+               [class.completed]="getPhaseStatus(i) === 'completed' || getPhaseStatus(i) === 'active'">
+          </div>
+          <div class="step-circle">
+            <mat-icon *ngIf="getPhaseStatus(i) === 'completed'">check</mat-icon>
+            <mat-icon *ngIf="getPhaseStatus(i) !== 'completed'">{{ phase.icon }}</mat-icon>
+          </div>
+          <span class="step-label">{{ phase.clientLabel }}</span>
+        </div>
+      </div>
+
+      <!-- Claim Summary -->
+      <mat-card appearance="outlined" class="summary-card">
+        <mat-card-header>
+          <mat-card-title>Claim Summary</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <dt>Claim Number</dt>
+              <dd>{{ claim.claim_number || '-' }}</dd>
+            </div>
+            <div class="summary-item">
+              <dt>Reference</dt>
+              <dd>{{ claim.ref_string }}</dd>
+            </div>
+            <div class="summary-item">
+              <dt>Property Address</dt>
+              <dd>
+                {{ claim.claim_contact?.address_loss || '-' }}<br *ngIf="claim.claim_contact?.city_loss">
+                <span *ngIf="claim.claim_contact?.city_loss">
+                  {{ claim.claim_contact.city_loss }}, {{ claim.claim_contact.state_loss }} {{ claim.claim_contact.zip_code_loss }}
+                </span>
+              </dd>
+            </div>
+            <div class="summary-item">
+              <dt>Insurance Carrier</dt>
+              <dd>{{ claim.insurance_company || '-' }}</dd>
+            </div>
+            <div class="summary-item">
+              <dt>Assigned Adjuster</dt>
+              <dd>
+                <span *ngIf="claim.assigned_user">
+                  {{ claim.assigned_user.first_name }} {{ claim.assigned_user.last_name }}
+                </span>
+                <span *ngIf="!claim.assigned_user">-</span>
+              </dd>
+            </div>
+            <div class="summary-item">
+              <dt>Current Phase</dt>
+              <dd>
+                <span class="phase-indicator" [class.active-phase]="activePhaseIndex >= 0">
+                  {{ getPhaseDisplayLabel() }}
+                </span>
+              </dd>
+            </div>
+            <div class="summary-item">
+              <dt>Loss Date</dt>
+              <dd>{{ claim.loss_date | date:'MMMM dd, yyyy' }}</dd>
+            </div>
+            <div class="summary-item">
+              <dt>Peril</dt>
+              <dd>{{ claim.peril || '-' }}</dd>
+            </div>
+            <div class="summary-item">
+              <dt>Last Updated</dt>
+              <dd>{{ claim.updated_at | date:'MMMM dd, yyyy h:mm a' }}</dd>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </mat-tab>
+
+    <!-- ═══════════════════ TAB 2: PAYMENTS ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>payments</mat-icon>&nbsp;Payments
+      </ng-template>
+
+      <div class="tab-content">
+        <!-- Payments Table -->
+        <div *ngIf="claimPayments.length > 0">
+          <table mat-table [dataSource]="dataSourcePayments" matSort #paymentSort="matSort" class="portal-table">
+            <ng-container matColumnDef="payment_date">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+              <td mat-cell *matCellDef="let payment">{{ payment.payment_date | date:'MMM dd, yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="payment_type">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Payment Type</th>
+              <td mat-cell *matCellDef="let payment">{{ payment.payment_type || '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="check_amount">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+              <td mat-cell *matCellDef="let payment" class="amount-cell">
+                {{ payment.check_amount | currency:'USD':'symbol':'1.2-2' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="deposit_status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+              <td mat-cell *matCellDef="let payment">
+                <span class="status-chip" [ngClass]="payment.deposit_status?.toLowerCase()">
+                  {{ payment.deposit_status || '-' }}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsPayments"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsPayments;"></tr>
+          </table>
+
+          <!-- Total Row -->
+          <div class="payment-total">
+            <span>Total Payments:</span>
+            <strong>{{ totalPaymentsAmount | currency:'USD':'symbol':'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-tab" *ngIf="claimPayments.length === 0 && !spinner">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <p>No payments have been issued yet.</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ═══════════════════ TAB 3: DOCUMENTS ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>folder</mat-icon>&nbsp;Documents
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="tab-actions">
+          <button mat-raised-button color="primary" (click)="openFileUploadDialog()">
+            <mat-icon>upload_file</mat-icon> Upload Document
+          </button>
+        </div>
+
+        <div *ngIf="dataSourceFiles?.data?.length > 0">
+          <table mat-table [dataSource]="dataSourceFiles" class="portal-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>File Name</th>
+              <td mat-cell *matCellDef="let file">
+                <div class="file-name-cell">
+                  <mat-icon [style.color]="getFileIconColor(file)">{{ getFileIcon(file) }}</mat-icon>
+                  <span>{{ file.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let file">{{ file.description || '-' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Date Uploaded</th>
+              <td mat-cell *matCellDef="let file">{{ file.created_at | date:'MMM dd, yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_by">
+              <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
+              <td mat-cell *matCellDef="let file">
+                {{ file.created_by?.first_name || '' }} {{ file.created_by?.last_name || '' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let file">
+                <button mat-icon-button (click)="openFile(file.path, file.type)" matTooltip="View">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="downloadFile(file)" matTooltip="Download">
+                  <mat-icon>download</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsFiles"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsFiles;"></tr>
+          </table>
+
+          <mat-paginator [length]="totalRecordsFiles" [pageSize]="pageSizeFiles"
+                         [pageSizeOptions]="pageSizeOptions" (page)="changeFilesPage($event)">
+          </mat-paginator>
+        </div>
+
+        <div class="empty-tab" *ngIf="claimFiles !== null && claimFiles?.length === 0">
+          <mat-icon>cloud_upload</mat-icon>
+          <p>No documents uploaded yet. Click "Upload Document" to share files with your adjuster.</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ═══════════════════ TAB 4: MESSAGES ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>chat</mat-icon>&nbsp;Messages
+      </ng-template>
+
+      <div class="tab-content messages-tab">
+        <!-- Chat Thread -->
+        <div class="chat-container">
+          <div class="messages-list" *ngIf="claimComments.length > 0">
+            <div *ngFor="let comment of claimComments"
+                 class="message-bubble"
+                 [class.own-message]="isOwnMessage(comment)"
+                 [class.other-message]="!isOwnMessage(comment)">
+              <div class="message-header">
+                <span class="message-sender">
+                  {{ comment.created_by?.first_name || 'Unknown' }} {{ comment.created_by?.last_name || '' }}
+                </span>
+                <span class="message-time">
+                  {{ comment.created_at | date:'MMM dd, yyyy h:mm a' }}
+                </span>
+              </div>
+              <div class="message-text">{{ comment.text }}</div>
+            </div>
+            <div #messagesEnd></div>
+          </div>
+
+          <div class="empty-tab" *ngIf="claimComments.length === 0">
+            <mat-icon>forum</mat-icon>
+            <p>No messages yet. Send a message to your adjuster below.</p>
+          </div>
+        </div>
+
+        <!-- Compose Area -->
+        <div class="compose-area">
+          <form [formGroup]="messageForm" class="compose-form">
+            <mat-form-field appearance="outline" class="message-input">
+              <mat-label>Type your message...</mat-label>
+              <textarea matInput rows="3" formControlName="text"
+                        placeholder="Type your message here..."
+                        (keydown.enter)="$event.ctrlKey && sendMessage()"></textarea>
+            </mat-form-field>
+            <button mat-raised-button color="primary" (click)="sendMessage()"
+                    [disabled]="!messageForm.valid || messageFormDisabled"
+                    class="send-btn">
+              <mat-spinner diameter="20" *ngIf="messageFormDisabled"></mat-spinner>
+              <mat-icon *ngIf="!messageFormDisabled">send</mat-icon>
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ═══════════════════ TAB 5: REPORTS ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>assessment</mat-icon>&nbsp;Reports
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="reports-list" *ngIf="reportFiles.length > 0">
+          <mat-card appearance="outlined" class="report-card" *ngFor="let file of reportFiles">
+            <div class="report-info">
+              <mat-icon [style.color]="getFileIconColor(file)" class="report-icon">{{ getFileIcon(file) }}</mat-icon>
+              <div class="report-details">
+                <span class="report-name">{{ file.name }}</span>
+                <span class="report-date">{{ file.created_at | date:'MMM dd, yyyy' }}</span>
+              </div>
+            </div>
+            <div class="report-actions">
+              <button mat-icon-button (click)="openFile(file.path, file.type)" matTooltip="View">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button (click)="downloadFile(file)" matTooltip="Download">
+                <mat-icon>download</mat-icon>
+              </button>
+            </div>
+          </mat-card>
+        </div>
+
+        <div class="empty-tab" *ngIf="reportFiles.length === 0">
+          <mat-icon>description</mat-icon>
+          <p>No reports available yet. Your adjuster will upload reports as they become available.</p>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- ═══════════════════ TAB 6: TIMELINE ═══════════════════ -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>timeline</mat-icon>&nbsp;Timeline
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="timeline-container" *ngIf="claimTimeline?.length > 0">
+          <div class="timeline-event" *ngFor="let event of claimTimeline; let last = last">
+            <div class="timeline-icon-circle" [style.backgroundColor]="getActivityColor(event.activity_type)">
+              <mat-icon class="timeline-icon">{{ getActivityIcon(event.activity_type) }}</mat-icon>
+            </div>
+            <div class="timeline-line" *ngIf="!last"></div>
+            <div class="timeline-content">
+              <div class="timeline-header-row">
+                <span class="timeline-type-badge" [style.backgroundColor]="getActivityColor(event.activity_type) + '18'" [style.color]="getActivityColor(event.activity_type)">
+                  {{ getActivityLabel(event.activity_type) }}
+                </span>
+                <span class="timeline-date">{{ event.timestamp | date:'MMM dd, yyyy h:mm a' }}</span>
+              </div>
+              <div class="timeline-title">{{ event.title }}</div>
+              <div class="timeline-details" *ngIf="event.details">{{ event.details }}</div>
+              <div class="timeline-author" *ngIf="event.created_by">
+                {{ event.created_by?.first_name }} {{ event.created_by?.last_name }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-tab" *ngIf="claimTimeline !== null && claimTimeline?.length === 0">
+          <mat-icon>history</mat-icon>
+          <p>No timeline events recorded yet.</p>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

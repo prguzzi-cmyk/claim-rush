@@ -1,0 +1,74 @@
+<h2 mat-dialog-title>
+  Share Files
+</h2>
+
+<div mat-dialog-content *ngIf="this.action == 'add' || this.action == 'edit'">
+
+  <table mat-table [dataSource]="dataSource" class="template-table">
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Share Links To:</th>
+      <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+    </ng-container>
+  
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <form [formGroup]="shareFilesForm" class="claim-file-share-form">
+
+    <div class="d-flex flex-wrap mb-1 w-100">
+      <button
+        *ngFor="let shareType of shareTypes"
+        (click)="toggleShareType(shareType)"
+        mat-icon-button
+        class="d-flex align-items-center w-auto"
+        style="margin-right: 8px;"
+      >
+        <mat-icon *ngIf="isShareTypeSelected(shareType)"
+          >radio_button_checked</mat-icon
+        >
+
+        <mat-icon *ngIf="!isShareTypeSelected(shareType)">
+          radio_button_unchecked
+        </mat-icon>
+
+        <span class="ml-1">{{ shareType.name }}</span>
+      </button>
+    </div>
+
+    <mat-form-field *ngIf="this.selectedSharetype.value==1" appearance="outline" class="w-100">
+      <mat-label>Link To File</mat-label>
+      <input matInput formControlName="link_to_file">
+    </mat-form-field>
+
+    <mat-form-field *ngIf="this.selectedSharetype.value==1" appearance="outline" class="w-100">
+      <mat-label>Expiration Date</mat-label>
+      <input matInput formControlName="expiration_date" [matDatepicker]="picker">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Email Files To</mat-label>
+      <input matInput formControlName="email_files_to">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Message (optional)</mat-label>
+      <textarea matInput rows="6" formControlName="message" placeholder="Enter a message"></textarea>
+    </mat-form-field>
+  </form>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" *ngIf="this.action == 'add'" (click)="createShare()"
+    [disabled]="!shareFilesForm.valid || shareFormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="shareFormDisabled"></mat-spinner>
+    </div>
+    Share
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

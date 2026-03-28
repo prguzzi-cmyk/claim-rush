@@ -1,0 +1,62 @@
+<h2 mat-dialog-title>
+  {{ title }}
+</h2>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+
+<div mat-dialog-content *ngIf="this.action == 'multiple-delete'">
+  <p>Are you sure you want to delete {{this.selection.selected.length}} claims?</p>
+</div>
+
+<div mat-dialog-content *ngIf="this.action == 'multiple'">
+  <p>
+    <strong>{{ this.selection.selected.length }}</strong> records selected
+  </p>
+
+  <form [formGroup]="claimForm" class="claim-form">
+    <mat-form-field class="w-100">
+      <mat-label>Assigned to</mat-label>
+      <mat-select *ngIf="role == 'super-admin' || role == 'admin'" formControlName="belongs_to"
+        placeholder="Select agent assigned to" name="belongs_to">
+        <mat-option *ngFor="let agent of agents" [value]="agent.id">
+          {{ agent?.first_name }} {{ agent?.last_name }}
+        </mat-option>
+      </mat-select>
+      <mat-select *ngIf="role != 'super-admin' && role != 'admin'" formControlName="belongs_to"
+        placeholder="Select agent assigned to" name="belongs_to">
+        <mat-option [value]="user?.id">
+          {{ user?.first_name }} {{ user?.last_name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="w-100">
+      <mat-label>Claim phase</mat-label>
+      <mat-select formControlName="currentPhase" placeholder="Select status" name="currentPhase">
+        <mat-option *ngFor="let phase of phases" [value]="phase.slug">
+          {{phase.display_name}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+
+  <button mat-raised-button color="primary" *ngIf="this.action == 'multiple'" (click)="updateMultiple()"
+    [disabled]="!claimForm.valid || FormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="FormDisabled"></mat-spinner>
+    </div>
+    Save
+  </button>
+
+  <button mat-raised-button color="warn" *ngIf="this.action == 'multiple-delete'" (click)="deleteMultiple()"
+    [disabled]="!claimForm.valid || FormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="FormDisabled"></mat-spinner>
+    </div>
+    Delete
+  </button>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

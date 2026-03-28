@@ -1,0 +1,102 @@
+<h2 mat-dialog-title *ngIf="userTask?.title">{{userTask?.title}}</h2>
+<h2 mat-dialog-title *ngIf="this.type == 'add'">Task</h2>
+
+<div *ngIf="this.type == 'delete'">
+  <mat-card-content>
+    <p>Are you sure you want to delete this User Task?</p>
+  </mat-card-content>
+</div>
+
+<ng-container *ngIf="this.type != 'view' && this.type != 'delete'">
+
+  <form [formGroup]="userTaskForm" class="lead-form" (ngSubmit)="saveUserTask()">
+    <mat-card-content>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" placeholder="Title" maxlength="255" required>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Description:</mat-label>
+        <textarea matInput rows="5" formControlName="description" placeholder="Enter description"></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Due Date:</mat-label>
+        <input matInput formControlName="due_date" [matDatepicker]="picker">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Priority:</mat-label>
+        <mat-select formControlName="priority" placeholder="Select priority" name="priority">
+          <mat-option *ngFor="let priority of priorities" [value]="priority">
+            {{priority}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- <div class="d-flex align-items-center mb-3">
+        Is active:
+
+        <mat-slide-toggle (change)="toggleIsActive($event)" [checked]="isActive" color="primary"
+          class="ml-3"></mat-slide-toggle>
+      </div> -->
+
+    </mat-card-content>
+
+    
+
+  </form>
+
+</ng-container>
+
+<!-- View Container -->
+<div mat-dialog-content *ngIf="this.type == 'view'">
+
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Description</strong></div>
+    <div class="col-xs-12 col-sm-9">{{ userTask?.description }}</div>
+  </div>
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Due Date</strong></div>
+    <div class="col-xs-12 col-sm-9">{{ userTask?.due_date | date : "MMMM dd, yyyy" }}</div>
+  </div>
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Priority</strong></div>
+    <div class="col-xs-12 col-sm-9">{{ userTask?.priority.charAt(0).toUpperCase() + userTask?.priority.slice(1)}}</div>
+  </div>
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Created by</strong></div>
+    <div class="col-xs-12 col-sm-9">{{ userTask?.created_by?.first_name }} {{ userTask?.created_by?.last_name }}</div>
+  </div>
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Created at</strong></div>
+    <div class="col-xs-12 col-sm-9">{{ userTask?.created_at | date : "MMMM dd, YYYY" }}</div>
+  </div>
+  <div class="row mt-1">
+    <div class="col-xs-12 col-sm-3"><strong>Active</strong></div>
+    <div class="col-xs-12 col-sm-9"><mat-slide-toggle [checked]="!!+userTask?.is_active" disabled
+        color="primary"></mat-slide-toggle></div>
+  </div>
+
+</div>
+
+<div mat-dialog-actions>
+
+  <button mat-raised-button color="primary" [disabled]="!userService.getUserPermissions('user_task', 'create')" (click)="saveUserTask()" *ngIf="type == 'add' || type == 'edit'" type="submit" [disabled]="!userTaskForm?.valid">
+    Save
+  </button>
+
+  <button mat-raised-button color="primary" [disabled]="!userService.getUserPermissions('user_task', 'update')" (click)="edit()" *ngIf="type == 'view'">
+    Edit
+  </button>
+
+  <button mat-raised-button color="warn" [disabled]="!userService.getUserPermissions('user_task', 'remove')" (click)="deleteUserTask(userTaskId)" *ngIf="type == 'delete' || type == 'view'">
+    Delete
+  </button>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

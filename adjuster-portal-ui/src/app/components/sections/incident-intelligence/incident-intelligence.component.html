@@ -1,0 +1,531 @@
+<!-- Page Header -->
+<div class="page-header">
+  <div class="header-text">
+    <h2>
+      <mat-icon class="header-icon">radar</mat-icon>
+      Incident Intelligence
+    </h2>
+    <p class="subtitle">
+      Unified national incident feed &middot; Fire &amp; Storm
+      <span class="live-indicator" *ngIf="!liveRefreshPaused">
+        <span class="live-dot"></span>
+        LIVE
+      </span>
+      <span class="paused-badge" *ngIf="liveRefreshPaused">
+        PAUSED
+      </span>
+      <span class="last-update" *ngIf="lastRefreshTime">
+        Data updated {{ getRelativeTime(lastRefreshTime) }}
+      </span>
+    </p>
+  </div>
+  <div class="header-actions">
+    <button mat-stroked-button [matMenuTriggerFor]="exportMenu" class="export-btn">
+      <mat-icon>download</mat-icon> Export
+    </button>
+    <mat-menu #exportMenu="matMenu" class="export-menu-panel">
+      <button mat-menu-item (click)="exportToCsv()">
+        <mat-icon>description</mat-icon> Export CSV
+      </button>
+      <button mat-menu-item (click)="exportToExcel()">
+        <mat-icon>grid_on</mat-icon> Export XLSX
+      </button>
+    </mat-menu>
+    <button
+      mat-stroked-button
+      (click)="toggleLiveRefresh()"
+      class="pause-btn"
+      [class.pause-active]="liveRefreshPaused"
+      [matTooltip]="liveRefreshPaused ? 'Resume auto-refresh (every 60s)' : 'Pause auto-refresh to test filters on fixed data'">
+      <mat-icon>{{ liveRefreshPaused ? 'play_arrow' : 'pause' }}</mat-icon>
+      {{ liveRefreshPaused ? 'Resume' : 'Pause' }}
+    </button>
+    <button
+      mat-stroked-button
+      (click)="refresh()"
+      class="refresh-btn"
+      matTooltip="Re-fetch all data from APIs and reapply current filters">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+</div>
+
+<!-- Snapshot info bar — visible when paused -->
+<div class="snapshot-bar" *ngIf="liveRefreshPaused && snapshotTime">
+  <mat-icon>photo_camera</mat-icon>
+  <span>Snapshot loaded at: <strong>{{ snapshotTime | slice:0:19 }}</strong>Z &middot; Filters apply to this fixed dataset. Click <strong>Refresh</strong> to reload.</span>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-icon kpi-fire">
+      <mat-icon>local_fire_department</mat-icon>
+    </div>
+    <div class="kpi-content">
+      <span class="kpi-value">{{ fireCount }}</span>
+      <span class="kpi-label">Fire Incidents</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon kpi-storm">
+      <mat-icon>thunderstorm</mat-icon>
+    </div>
+    <div class="kpi-content">
+      <span class="kpi-value">{{ stormCount }}</span>
+      <span class="kpi-label">Storm Events</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon kpi-total">
+      <mat-icon>radar</mat-icon>
+    </div>
+    <div class="kpi-content">
+      <span class="kpi-value">{{ fireCount + stormCount }}</span>
+      <span class="kpi-label">Total Incidents</span>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-card-priority">
+    <div class="kpi-icon kpi-priority-high">
+      <mat-icon>priority_high</mat-icon>
+    </div>
+    <div class="kpi-content">
+      <span class="kpi-value">{{ highPriorityCount }}</span>
+      <span class="kpi-label">ACI Leads</span>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon kpi-priority-medium">
+      <mat-icon>campaign</mat-icon>
+    </div>
+    <div class="kpi-content">
+      <span class="kpi-value">{{ mediumPriorityCount }}</span>
+      <span class="kpi-label">UPA Outreach</span>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Incident Type</mat-label>
+    <mat-select [(ngModel)]="typeFilter" (selectionChange)="onFilterChanged()">
+      <mat-option value="">All Types</mat-option>
+      <mat-option value="fire">Fire</mat-option>
+      <mat-option value="storm">Storm</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter-field source-field">
+    <mat-label>Source</mat-label>
+    <mat-select [(ngModel)]="sourceFilter" (selectionChange)="onFilterChanged()">
+      <mat-option value="">All Sources</mat-option>
+      <mat-option *ngFor="let src of availableSources" [value]="src">{{ src }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="priority-filter-group">
+    <button
+      *ngFor="let opt of [
+        { value: 'all', label: 'All Incidents' },
+        { value: 'high-value', label: 'ACI Leads' },
+        { value: 'upa-outreach', label: 'UPA Outreach' }
+      ]"
+      class="priority-chip"
+      [class.priority-chip-active]="priorityFilter === opt.value"
+      [class.priority-chip-high]="opt.value === 'high-value' && priorityFilter === opt.value"
+      [class.priority-chip-outreach]="opt.value === 'upa-outreach' && priorityFilter === opt.value"
+      (click)="priorityFilter = opt.value; onFilterChanged()">
+      {{ opt.label }}
+    </button>
+    <span class="priority-hint" *ngIf="priorityFilter === 'high-value'">Confirmed / high-priority fire opportunities</span>
+    <span class="priority-hint" *ngIf="priorityFilter === 'upa-outreach'">Alarms / close-call educational outreach</span>
+  </div>
+
+  <div class="time-filter-group">
+    <rin-time-filter
+      [value]="selectedDateRange"
+      (valueChange)="onDateRangeChanged($event)"
+      (cleared)="clearFilters()">
+    </rin-time-filter>
+    <span class="time-filter-label">
+      <ng-container [ngSwitch]="selectedDateRange">
+        <ng-container *ngSwitchCase="'24h'">Last 24 hours</ng-container>
+        <ng-container *ngSwitchCase="'7d'">Last 7 days</ng-container>
+        <ng-container *ngSwitchCase="'30d'">Last 30 days</ng-container>
+      </ng-container>
+    </span>
+  </div>
+
+  <span class="view-count" *ngIf="!isLoading">
+    Showing {{ filteredCount }} incidents
+  </span>
+</div>
+
+<!-- Contextual note when 7d and 30d counts match -->
+<div class="range-note" *ngIf="!isLoading && debug.bucketLast7d === debug.bucketLast30d && debug.bucketLast7d > 0 && selectedDateRange === '30d'">
+  No additional incidents found between days 8 and 30.
+</div>
+
+<!-- Assertion failure banner — always visible when assertions fail -->
+<div class="debug-assertion-banner" *ngIf="assertionFailures.length > 0">
+  <mat-icon>error</mat-icon>
+  <div>
+    <strong>Data integrity issue detected ({{ assertionFailures.length }})</strong>
+    <div *ngFor="let fail of assertionFailures" class="assertion-line">{{ fail }}</div>
+  </div>
+</div>
+
+<!-- Debug toggle — hidden until Ctrl+Shift+D or assertion failure -->
+<div class="debug-toggle-bar" *ngIf="showDebugToggle || assertionFailures.length > 0">
+  <button class="debug-toggle-btn" (click)="showDebugPanel = !showDebugPanel">
+    <mat-icon>{{ showDebugPanel ? 'expand_less' : 'bug_report' }}</mat-icon>
+    {{ showDebugPanel ? 'Hide Diagnostics' : 'Show Debug Diagnostics' }}
+  </button>
+</div>
+
+<!-- Debug Panel — hidden by default, shown on toggle -->
+<div class="debug-panel" *ngIf="showDebugPanel">
+  <div class="debug-title">Pipeline Diagnostics</div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Filter State</div>
+    <table class="debug-var-table">
+      <tr><td class="var-name">selectedDateRange</td><td class="var-eq">=</td><td class="var-val">"{{ debug.selectedTimeWindow }}"</td></tr>
+      <tr><td class="var-name">typeFilter</td><td class="var-eq">=</td><td class="var-val">"{{ debug.selectedType }}"</td></tr>
+      <tr><td class="var-name">sourceFilter</td><td class="var-eq">=</td><td class="var-val">"{{ debug.selectedSource }}"</td></tr>
+      <tr><td class="var-name">lastRefreshTime</td><td class="var-eq">=</td><td class="var-val">{{ debug.lastRefreshTimestamp }}</td></tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Pipeline Stages</div>
+    <table class="debug-stage-table">
+      <tr class="stage-header">
+        <th>Stage</th>
+        <th>Variable</th>
+        <th class="num">.length</th>
+        <th class="num delta">delta</th>
+      </tr>
+      <tr [class.stage-warn-row]="debug.fireTruncated">
+        <td>Raw API fire</td>
+        <td class="var-name">rawFire[]</td>
+        <td class="num"><strong>{{ debug.rawFireCount }}</strong></td>
+        <td class="num delta">of {{ debug.fireApiTotal }}</td>
+      </tr>
+      <tr *ngIf="debug.fireTruncated" class="stage-detail-row">
+        <td colspan="4" class="stage-detail stage-detail-reject">
+          TRUNCATED: API has {{ debug.fireApiTotal }} records but only {{ debug.rawFireCount }} returned (page size limit)
+        </td>
+      </tr>
+      <tr>
+        <td>Raw API storm</td>
+        <td class="var-name">rawStorm[]</td>
+        <td class="num"><strong>{{ debug.rawStormCount }}</strong></td>
+        <td class="num delta">—</td>
+      </tr>
+      <tr class="stage-separator">
+        <td>Normalized (valid)</td>
+        <td class="var-name">valid[]</td>
+        <td class="num"><strong>{{ debug.normalizedCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.rawFireCount + debug.rawStormCount - debug.normalizedCount > 0">
+          {{ debug.normalizedCount - debug.rawFireCount - debug.rawStormCount }}
+        </td>
+      </tr>
+      <tr *ngIf="debug.rejectedCount > 0" class="stage-detail-row">
+        <td colspan="4" class="stage-detail stage-detail-reject">
+          REJECTED: {{ debug.rejectedCount }} — {{ debug.rejectedReasons }}
+        </td>
+      </tr>
+      <tr>
+        <td>Deduped</td>
+        <td class="var-name">masterRecords[]</td>
+        <td class="num"><strong>{{ debug.dedupedMasterCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.duplicatesRemoved > 0">
+          {{ debug.dedupedMasterCount - debug.normalizedCount }}
+        </td>
+      </tr>
+      <tr class="stage-separator">
+        <td>Time filter ({{ debug.selectedTimeWindow }})</td>
+        <td class="var-name">afterTimeFilter[]</td>
+        <td class="num"><strong>{{ debug.afterTimeFilterCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.afterTimeFilterCount < debug.dedupedMasterCount">
+          {{ debug.afterTimeFilterCount - debug.dedupedMasterCount }}
+        </td>
+      </tr>
+      <tr *ngIf="debug.timeFilterDroppedFire > 0 || debug.timeFilterDroppedStorm > 0" class="stage-detail-row">
+        <td colspan="4" class="stage-detail">
+          Outside {{ debug.selectedTimeWindow }} window: fire={{ debug.timeFilterDroppedFire }}, storm={{ debug.timeFilterDroppedStorm }}
+        </td>
+      </tr>
+      <tr>
+        <td>Source filter</td>
+        <td class="var-name">afterSourceFilter[]</td>
+        <td class="num"><strong>{{ debug.afterSourceFilterCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.afterSourceFilterCount < debug.afterTimeFilterCount">
+          {{ debug.afterSourceFilterCount - debug.afterTimeFilterCount }}
+        </td>
+      </tr>
+      <tr>
+        <td>Type filter</td>
+        <td class="var-name">afterTypeFilter[]</td>
+        <td class="num"><strong>{{ debug.afterTypeFilterCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.afterTypeFilterCount < debug.afterSourceFilterCount">
+          {{ debug.afterTypeFilterCount - debug.afterSourceFilterCount }}
+        </td>
+      </tr>
+      <tr class="stage-separator stage-final-row">
+        <td>Final</td>
+        <td class="var-name">filteredRecords[]</td>
+        <td class="num"><strong>{{ debug.filteredCount }}</strong></td>
+        <td class="num delta">={{ debug.afterTypeFilterCount }}</td>
+      </tr>
+      <tr class="stage-final-row">
+        <td>Table</td>
+        <td class="var-name">dataSource.data[]</td>
+        <td class="num"><strong>{{ debug.dataSourceCount }}</strong></td>
+        <td class="num delta" [class.delta-drop]="debug.dataSourceCount !== debug.filteredCount">
+          {{ debug.dataSourceCount === debug.filteredCount ? '=filtered' : 'MISMATCH' }}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">KPIs</div>
+    <table class="debug-var-table">
+      <tr><td class="var-name">fireCount</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.fireCount }}</strong></td></tr>
+      <tr><td class="var-name">stormCount</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.stormCount }}</strong></td></tr>
+      <tr><td class="var-name">fireCount + stormCount</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.totalCount }}</strong></td></tr>
+      <tr><td class="var-name">filteredCount</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.filteredCount }}</strong></td></tr>
+      <tr><td class="var-name">highSeverityCount</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.highSev }}</strong></td></tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Assertions</div>
+    <table class="debug-assert-table">
+      <tr [class.debug-ok]="debug.filteredCount === debug.dataSourceCount" [class.debug-error]="debug.filteredCount !== debug.dataSourceCount">
+        <td>filtered == dataSource</td>
+        <td class="assert-vals">{{ debug.filteredCount }} === {{ debug.dataSourceCount }}</td>
+        <td class="assert-result"><strong>{{ debug.filteredCount === debug.dataSourceCount ? 'PASS' : 'FAIL' }}</strong></td>
+      </tr>
+      <tr [class.debug-ok]="debug.totalCount === debug.filteredCount" [class.debug-error]="debug.totalCount !== debug.filteredCount">
+        <td>fire + storm == filtered</td>
+        <td class="assert-vals">{{ debug.fireCount }} + {{ debug.stormCount }} = {{ debug.totalCount }} === {{ debug.filteredCount }}</td>
+        <td class="assert-result"><strong>{{ debug.totalCount === debug.filteredCount ? 'PASS' : 'FAIL' }}</strong></td>
+      </tr>
+      <tr [class.debug-ok]="debug.selectedType !== 'fire' || debug.stormCount === 0" [class.debug-error]="debug.selectedType === 'fire' && debug.stormCount !== 0">
+        <td>fire &rarr; storm = 0</td>
+        <td class="assert-vals">type="{{ debug.selectedType }}", storm={{ debug.stormCount }}</td>
+        <td class="assert-result"><strong>{{ debug.selectedType !== 'fire' || debug.stormCount === 0 ? 'PASS' : 'FAIL' }}</strong></td>
+      </tr>
+      <tr [class.debug-ok]="debug.selectedType !== 'storm' || debug.fireCount === 0" [class.debug-error]="debug.selectedType === 'storm' && debug.fireCount !== 0">
+        <td>storm &rarr; fire = 0</td>
+        <td class="assert-vals">type="{{ debug.selectedType }}", fire={{ debug.fireCount }}</td>
+        <td class="assert-result"><strong>{{ debug.selectedType !== 'storm' || debug.fireCount === 0 ? 'PASS' : 'FAIL' }}</strong></td>
+      </tr>
+      <tr [class.debug-ok]="debug.selectedType !== 'all' || debug.fireCount + debug.stormCount === debug.filteredCount"
+          [class.debug-error]="debug.selectedType === 'all' && debug.fireCount + debug.stormCount !== debug.filteredCount">
+        <td>all &rarr; f+s = total</td>
+        <td class="assert-vals">{{ debug.fireCount }} + {{ debug.stormCount }} = {{ debug.totalCount }} === {{ debug.filteredCount }}</td>
+        <td class="assert-result"><strong>{{ debug.selectedType !== 'all' || debug.fireCount + debug.stormCount === debug.filteredCount ? 'PASS' : 'FAIL' }}</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Time Filter</div>
+    <table class="debug-var-table">
+      <tr><td class="var-name">selectedDateRange</td><td class="var-eq">=</td><td class="var-val"><strong>"{{ debug.selectedTimeWindow }}"</strong></td></tr>
+      <tr><td class="var-name">cutoffMs</td><td class="var-eq">=</td><td class="var-val">{{ debug.timeFilterCutoffMs }} ({{ debug.timeFilterCutoff }})</td></tr>
+      <tr><td class="var-name">beforeTimeFilter</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.beforeTimeFilterCount }}</strong></td></tr>
+      <tr><td class="var-name">afterTimeFilter</td><td class="var-eq">=</td><td class="var-val"><strong>{{ debug.afterTimeFilterCount }}</strong></td></tr>
+      <tr><td class="var-name">dropped</td><td class="var-eq">=</td>
+        <td class="var-val" [class.debug-warn-text]="debug.droppedByTimeFilterCount > 0">
+          <strong>{{ debug.droppedByTimeFilterCount }}</strong> (fire={{ debug.timeFilterDroppedFire }}, storm={{ debug.timeFilterDroppedStorm }})
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Timestamp Analysis</div>
+    <table class="debug-var-table">
+      <tr><td class="var-name">earliest</td><td class="var-eq">=</td><td class="var-val">{{ debug.earliestTimestampISO }}</td></tr>
+      <tr><td class="var-name">latest</td><td class="var-eq">=</td><td class="var-val">{{ debug.latestTimestampISO }}</td></tr>
+      <tr><td class="var-name">sources</td><td class="var-eq">=</td>
+        <td class="var-val">
+          received_at=<strong>{{ debug.tsSourceReceived }}</strong>,
+          reported_at=<strong>{{ debug.tsSourceReported }}</strong>,
+          fallback=<strong [class.debug-warn-text]="debug.tsSourceFallback > 0">{{ debug.tsSourceFallback }}</strong>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Range Buckets (masterRecords)</div>
+    <table class="debug-stage-table">
+      <tr class="stage-header">
+        <th>Bucket</th>
+        <th class="num">count</th>
+      </tr>
+      <tr><td>last 24h</td><td class="num"><strong>{{ debug.bucketLast24h }}</strong></td></tr>
+      <tr><td>last 7d</td><td class="num"><strong>{{ debug.bucketLast7d }}</strong></td></tr>
+      <tr><td>last 30d</td><td class="num"><strong>{{ debug.bucketLast30d }}</strong></td></tr>
+      <tr [class.stage-warn-row]="debug.bucketOlderThan30d > 0">
+        <td>older than 30d</td><td class="num"><strong>{{ debug.bucketOlderThan30d }}</strong></td>
+      </tr>
+    </table>
+    <div class="debug-diagnosis" *ngIf="debug.allRecordsWithin24h">
+      All {{ debug.dedupedMasterCount }} records fall within 24h — counts are expected to match across all ranges.
+    </div>
+  </div>
+
+  <div class="debug-section">
+    <div class="debug-section-label">Per-Type Ranges</div>
+    <table class="debug-var-table">
+      <tr><td class="var-name">fire</td><td class="var-eq">=</td><td class="var-val">{{ debug.fireTimestampRange }}</td></tr>
+      <tr><td class="var-name">storm</td><td class="var-eq">=</td><td class="var-val">{{ debug.stormTimestampRange }}</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- List / Map Tabs -->
+<mat-tab-group
+  [(selectedIndex)]="selectedTabIndex"
+  (selectedIndexChange)="onTabChanged($event)"
+  class="view-tabs"
+>
+  <!-- List View -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon>view_list</mat-icon> List View
+    </ng-template>
+
+    <div class="list-wrapper">
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="loading-row">
+        <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+        <span>Loading incidents…</span>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container" *ngIf="!isLoading">
+        <table mat-table [dataSource]="dataSource" class="incidents-table">
+
+          <!-- Incident Type -->
+          <ng-container matColumnDef="incidentType">
+            <th mat-header-cell *matHeaderCellDef>Incident Type</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="type-cell">
+                <span class="type-badge" [class.type-fire]="row.type === 'fire'" [class.type-storm]="row.type === 'storm'">
+                  <mat-icon class="type-icon">{{ row.typeIcon }}</mat-icon>
+                  {{ row.incidentType }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Location -->
+          <ng-container matColumnDef="location">
+            <th mat-header-cell *matHeaderCellDef>Location</th>
+            <td mat-cell *matCellDef="let row">{{ row.location }}</td>
+          </ng-container>
+
+          <!-- Timestamp -->
+          <ng-container matColumnDef="timestamp">
+            <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="timestamp-cell">
+                {{ row.timestamp ? (row.timestamp | date:'MM/dd/yy HH:mm') : '—' }}
+                <span class="relative-time">{{ getRelativeTime(row.timestamp) }}</span>
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Source -->
+          <ng-container matColumnDef="source">
+            <th mat-header-cell *matHeaderCellDef>Source</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="source-badge">{{ row.source }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Severity -->
+          <ng-container matColumnDef="severity">
+            <th mat-header-cell *matHeaderCellDef>Severity</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="severity-badge" [style.background]="row.severityColor">
+                {{ row.severity | uppercase }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Priority -->
+          <ng-container matColumnDef="priority">
+            <th mat-header-cell *matHeaderCellDef>Priority</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="priority-cell">
+                <span class="priority-badge"
+                      [style.background]="getPriorityColor(row.priorityTier)">
+                  {{ row.routingLabel }}
+                </span>
+                <span class="priority-score">{{ row.priorityScore }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+              <mat-icon>info_outline</mat-icon>
+              <span *ngIf="typeFilter === 'storm'">No storm events detected in the last {{ selectedDateRange }}. Try expanding the date range.</span>
+              <span *ngIf="typeFilter === 'fire'">No property fire incidents in the last {{ selectedDateRange }}.</span>
+              <span *ngIf="!typeFilter">No incidents found for the selected filters.</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        [length]="filteredCount"
+        [pageSize]="25"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        showFirstLastButtons
+      ></mat-paginator>
+    </div>
+  </mat-tab>
+
+  <!-- Map View -->
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon>map</mat-icon> Map View
+    </ng-template>
+
+    <div class="map-wrapper">
+      <google-map
+        class="intel-map"
+        height="100%"
+        width="100%"
+        [center]="mapCenter"
+        [zoom]="mapZoom"
+        [options]="mapOptions"
+        (mapInitialized)="onMapReady()">
+        <map-marker
+          *ngFor="let m of mapMarkers; let i = index"
+          [position]="m.position"
+          [options]="m.options"
+          (mapClick)="onMarkerClick(i)">
+        </map-marker>
+      </google-map>
+    </div>
+  </mat-tab>
+</mat-tab-group>

@@ -1,0 +1,209 @@
+<div class="recovery-tab-container">
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading recovery data...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && financials">
+
+    <!-- Section A: KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-aci">
+          <mat-icon>request_quote</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(financials.aciEstimateTotal) }}</span>
+          <span class="kpi-label">ACI Estimate Total</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-carrier">
+          <mat-icon>business</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(financials.carrierEstimateTotal) }}</span>
+          <span class="kpi-label">Carrier Estimate Total</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-recovered">
+          <mat-icon>payments</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(financials.paidToDate) }}</span>
+          <span class="kpi-label">Total Paid</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-recoverable">
+          <mat-icon>trending_up</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(financials.recoverableGap) }}</span>
+          <span class="kpi-label">Remaining Recoverable</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-claims">
+          <mat-icon>add_chart</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" [class.supplement-flag]="financials.supplementOpportunity">
+            {{ financials.supplementOpportunity ? 'Yes' : 'No' }}
+          </span>
+          <span class="kpi-label">Supplement Opportunity</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-pct">
+          <mat-icon>percent</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ financials.recoveryPercent | number:'1.1-1' }}%</span>
+          <span class="kpi-label">Recovery Progress</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B: Progress Bar + Claim Status -->
+    <div class="progress-status-row">
+      <!-- Progress Bar -->
+      <div class="panel-card progress-panel">
+        <div class="panel-header">
+          <mat-icon>speed</mat-icon>
+          Recovery Progress
+        </div>
+        <div class="progress-content">
+          <div class="progress-bar-wrapper" [ngClass]="progressBarClass">
+            <mat-progress-bar
+              mode="determinate"
+              [value]="recoveryProgressPct > 100 ? 100 : recoveryProgressPct">
+            </mat-progress-bar>
+          </div>
+          <div class="progress-labels">
+            <span class="progress-start">$0</span>
+            <span class="progress-current">{{ fmtCurrency(financials.paidToDate) }} paid</span>
+            <span class="progress-end">{{ fmtCurrency(financials.aciEstimateTotal) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Claim Status — now uses shared status engine -->
+      <div class="panel-card status-panel">
+        <div class="panel-header">
+          <mat-icon>info</mat-icon>
+          Claim Status
+        </div>
+        <div class="status-content">
+          <div class="status-row" *ngIf="status?.claimPhase">
+            <span class="status-label">Current Phase</span>
+            <span class="status-badge phase-badge">{{ status.claimPhase }}</span>
+          </div>
+          <div class="status-row" *ngIf="claim?.escalation_path">
+            <span class="status-label">Escalation Path</span>
+            <span class="status-value">{{ claim.escalation_path }}</span>
+          </div>
+          <div class="status-row" *ngIf="claim?.sub_status">
+            <span class="status-label">Sub-Status</span>
+            <span class="status-value">{{ claim.sub_status }}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Assigned Adjuster</span>
+            <span class="status-value">{{ assignedAdjusterName }}</span>
+          </div>
+          <div class="status-row" *ngIf="status?.pendingNextStep">
+            <span class="status-label">Next Step</span>
+            <span class="status-value next-step">{{ status.pendingNextStep }}</span>
+          </div>
+          <div class="status-row" *ngIf="lastActivityDate">
+            <span class="status-label">Last Activity</span>
+            <span class="status-value">{{ lastActivityDate | date:'MMM dd, yyyy h:mm a' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section C: Recent Payments -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <mat-icon>payments</mat-icon>
+        Recent Payments
+        <span class="header-badge">{{ recentPayments.length }}</span>
+      </div>
+      <div class="table-container" *ngIf="recentPayments.length > 0">
+        <table mat-table [dataSource]="recentPayments" class="mini-table">
+          <ng-container matColumnDef="payment_date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let p">{{ p.payment_date | date:'MMM dd, yyyy' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="ref_number">
+            <th mat-header-cell *matHeaderCellDef>Check #</th>
+            <td mat-cell *matCellDef="let p">{{ p.ref_number || '-' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="payment_type">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let p">{{ p.payment_type || '-' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="check_amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td mat-cell *matCellDef="let p" class="amount-positive">{{ fmtCurrency(p.check_amount) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="issued_by">
+            <th mat-header-cell *matHeaderCellDef>Issued By</th>
+            <td mat-cell *matCellDef="let p">{{ p.issued_by || '-' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['payment_date','ref_number','payment_type','check_amount','issued_by']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['payment_date','ref_number','payment_type','check_amount','issued_by']"></tr>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="recentPayments.length === 0">
+        <mat-icon>inbox</mat-icon>
+        <p>No payments recorded yet.</p>
+      </div>
+    </div>
+
+    <!-- Section D: Recent Activity -->
+    <div class="panel-card activity-panel">
+      <div class="panel-header">
+        <mat-icon>timeline</mat-icon>
+        Recent Activity
+        <span class="header-badge">{{ recentActivities.length }}</span>
+      </div>
+      <div class="activity-feed" *ngIf="recentActivities.length > 0">
+        <div class="activity-item" *ngFor="let event of recentActivities; let last = last">
+          <div class="activity-icon-col">
+            <div class="activity-icon-circle" [style.backgroundColor]="getActivityColor(event.activity_type)">
+              <mat-icon class="activity-icon">{{ getActivityIcon(event.activity_type) }}</mat-icon>
+            </div>
+            <div class="activity-connector" *ngIf="!last"></div>
+          </div>
+          <div class="activity-body">
+            <div class="activity-header-row">
+              <span class="activity-type-badge"
+                [style.backgroundColor]="getActivityColor(event.activity_type) + '18'"
+                [style.color]="getActivityColor(event.activity_type)">
+                {{ getActivityLabel(event.activity_type) }}
+              </span>
+              <span class="activity-timestamp">{{ event.timestamp | date:'MMM dd, yyyy h:mm a' }}</span>
+            </div>
+            <div class="activity-title">{{ event.title }}</div>
+            <div class="activity-details" *ngIf="event.details">{{ event.details }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="recentActivities.length === 0">
+        <mat-icon>history</mat-icon>
+        <p>No recent activity.</p>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

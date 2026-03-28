@@ -1,0 +1,149 @@
+<div *ngxPermissionsOnly="['super-admin']">
+  <div class="page-header">
+    <div>
+      <p class="mat-headline-4 section-title">Manual Lead Distribution</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"><mat-icon>home</mat-icon></a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Administration</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Manual Lead Distribution</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Distribute Lead Card -->
+  <mat-card appearance="outlined" class="distribute-card">
+    <mat-card-header>
+      <mat-card-title>Manual Lead Dispatch</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="page-subtitle">Manually assign a lead to agents in a territory using round-robin rotation.</p>
+      <div class="distribute-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Territory (County)</mat-label>
+          <mat-select [(ngModel)]="selectedTerritoryId" (selectionChange)="onTerritoryChange()">
+            <mat-optgroup *ngFor="let group of groupedTerritories" [label]="group.state">
+              <mat-option *ngFor="let t of group.counties" [value]="t.id">
+                {{ t.name }}
+              </mat-option>
+            </mat-optgroup>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Lead Type</mat-label>
+          <mat-select [(ngModel)]="selectedLeadType">
+            <mat-option *ngFor="let lt of leadTypes" [value]="lt.value">
+              {{ lt.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Search Lead</mat-label>
+          <input matInput [formControl]="leadSearchControl" [matAutocomplete]="autoLead"
+                 placeholder="Type ref #, name, or peril...">
+          <mat-icon matSuffix>search</mat-icon>
+          <mat-autocomplete #autoLead="matAutocomplete" [displayWith]="displayLead"
+                            (optionSelected)="onLeadSelected($event)">
+            <mat-option *ngIf="leadSearchLoading" disabled>
+              <mat-spinner diameter="20"></mat-spinner> Searching...
+            </mat-option>
+            <mat-option *ngFor="let lead of filteredLeads" [value]="lead">
+              <strong>REF-{{ lead.ref_string }}</strong> —
+              {{ lead.contact?.full_name || 'No Contact' }}
+              ({{ lead.peril || 'N/A' }})
+            </mat-option>
+            <mat-option *ngIf="!leadSearchLoading && filteredLeads.length === 0 && leadSearchControl.value && leadSearchControl.value.length >= 2" disabled>
+              No leads found
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" (click)="distribute()" [disabled]="distributing">
+          <mat-icon>send</mat-icon> Distribute
+        </button>
+      </div>
+
+      <!-- Distribution Result -->
+      <div *ngIf="distributionResult" class="distribution-result">
+        <h4>Distribution Result</h4>
+        <div class="result-details">
+          <span class="badge" [ngClass]="distributionResult.is_exclusive ? 'badge-exclusive' : 'badge-shared'">
+            {{ distributionResult.is_exclusive ? 'Exclusive' : 'Shared' }}
+          </span>
+          <div class="assigned-agents">
+            <strong>Assigned Agents:</strong>
+            <span *ngFor="let agent of distributionResult.assigned_agents; let last = last">
+              {{ agent.agent_name }}<span *ngIf="!last">, </span>
+            </span>
+            <span *ngIf="distributionResult.assigned_agents.length === 0">None</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Rotation State Card -->
+  <mat-card appearance="outlined" class="rotation-card" *ngIf="rotationState">
+    <mat-card-header>
+      <mat-card-title>Rotation State</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="rotation-details">
+        <div class="rotation-item">
+          <span class="rotation-label">Territory</span>
+          <span class="rotation-value">{{ getTerritoryName(rotationState.territory_id) }}</span>
+        </div>
+        <div class="rotation-item">
+          <span class="rotation-label">Rotation Index</span>
+          <span class="rotation-value">{{ rotationState.rotation_index }}</span>
+        </div>
+        <div class="rotation-item">
+          <span class="rotation-label">Last Assigned Agent</span>
+          <span class="rotation-value">{{ rotationState.last_assigned_agent_id || 'None' }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Distribution History Table -->
+  <mat-card appearance="outlined" class="history-card">
+    <mat-card-header>
+      <mat-card-title>Distribution History</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="historyData" class="w-100" *ngIf="historyData.length > 0">
+        <ng-container matColumnDef="lead_type">
+          <th mat-header-cell *matHeaderCellDef>Lead Type</th>
+          <td mat-cell *matCellDef="let row">{{ row.lead_type }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="territory_id">
+          <th mat-header-cell *matHeaderCellDef>Territory</th>
+          <td mat-cell *matCellDef="let row">{{ getTerritoryName(row.territory_id) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="assigned_agent_id">
+          <th mat-header-cell *matHeaderCellDef>Agent</th>
+          <td mat-cell *matCellDef="let row">{{ row.assigned_agent_id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="distributed_at">
+          <th mat-header-cell *matHeaderCellDef>Distributed At</th>
+          <td mat-cell *matCellDef="let row">{{ row.distributed_at | date:'short' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="historyColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: historyColumns;"></tr>
+      </table>
+
+      <p *ngIf="historyData.length === 0" class="empty-state">
+        {{ selectedTerritoryId ? 'No distribution history found for this territory.' : 'Select a territory to view distribution history.' }}
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

@@ -1,0 +1,190 @@
+<div class="esign-page">
+
+  <!-- LOADING -->
+  <div class="esign-loading" *ngIf="step === 'loading'">
+    <mat-spinner diameter="32"></mat-spinner>
+    <p>Loading your agreement...</p>
+  </div>
+
+  <!-- ══════ REVIEW STEP ══════ -->
+  <div class="esign-review" *ngIf="step === 'review' && agreement">
+    <div class="esign-header">
+      <mat-icon>description</mat-icon>
+      <div>
+        <h1>{{ agreement.title }}</h1>
+        <p>Review the agreement below, then sign to continue.</p>
+      </div>
+    </div>
+
+    <!-- Document Preview -->
+    <div class="esign-doc-card">
+      <div class="esign-doc-header">
+        <span class="esign-doc-title">{{ agreement.title }}</span>
+        <span class="esign-doc-version">v{{ agreement.version }}</span>
+      </div>
+      <div class="esign-doc-body">
+        <div class="esign-doc-placeholder">
+          <mat-icon>article</mat-icon>
+          <p>Document preview</p>
+          <p class="esign-doc-hint">{{ agreement.source === 'uploaded' ? 'Uploaded PDF' : 'System-generated agreement' }}</p>
+        </div>
+      </div>
+
+      <!-- Field progress -->
+      <div class="esign-field-progress">
+        <span>{{ completedCount }} of {{ fields.length }} fields complete</span>
+        <div class="esign-field-bar">
+          <div class="esign-field-fill" [style.width.%]="fields.length > 0 ? (completedCount / fields.length) * 100 : 0"></div>
+        </div>
+      </div>
+
+      <!-- Required fields list -->
+      <div class="esign-field-list">
+        <div *ngFor="let field of fields; let i = index"
+             class="esign-field-item"
+             [class.esign-field-done]="field.completed"
+             (click)="jumpToField(i)">
+          <mat-icon *ngIf="field.completed">check_circle</mat-icon>
+          <mat-icon *ngIf="!field.completed">radio_button_unchecked</mat-icon>
+          <span>{{ field.label || field.type }}</span>
+          <span class="esign-field-req" *ngIf="field.required">Required</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="esign-review-actions">
+      <button class="esign-btn esign-btn-primary" (click)="openSignModal()">
+        <mat-icon>draw</mat-icon> Sign Agreement
+      </button>
+      <button class="esign-btn esign-btn-agree" (click)="applyIAgree()">
+        <mat-icon>check</mat-icon> I Agree — Apply All Fields
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ SIGNATURE MODAL ══════ -->
+  <div class="esign-modal-overlay" *ngIf="step === 'sign_modal'">
+    <div class="esign-modal">
+      <div class="esign-modal-header">
+        <h2>Choose Signature Method</h2>
+        <button class="esign-close" (click)="step = 'review'"><mat-icon>close</mat-icon></button>
+      </div>
+
+      <!-- Method tabs -->
+      <div class="esign-method-tabs">
+        <button [class.esign-tab-active]="signatureMethod === 'draw'" (click)="selectSignatureMethod('draw')">
+          <mat-icon>draw</mat-icon> Draw
+        </button>
+        <button [class.esign-tab-active]="signatureMethod === 'type'" (click)="selectSignatureMethod('type')">
+          <mat-icon>keyboard</mat-icon> Type
+        </button>
+        <button [class.esign-tab-active]="signatureMethod === 'font'" (click)="selectSignatureMethod('font')">
+          <mat-icon>font_download</mat-icon> Choose Style
+        </button>
+      </div>
+
+      <!-- Draw -->
+      <div class="esign-draw-area" *ngIf="signatureMethod === 'draw'">
+        <p class="esign-draw-hint">Use your finger, stylus, or mouse to sign below</p>
+        <canvas #signatureCanvas width="460" height="140"
+                (mousedown)="onCanvasStart($event)" (mousemove)="onCanvasMove($event)" (mouseup)="onCanvasEnd()"
+                (touchstart)="onCanvasStart($event)" (touchmove)="onCanvasMove($event)" (touchend)="onCanvasEnd()">
+        </canvas>
+        <button class="esign-clear-btn" (click)="clearCanvas()">Clear</button>
+      </div>
+
+      <!-- Type -->
+      <div class="esign-type-area" *ngIf="signatureMethod === 'type'">
+        <input type="text" [(ngModel)]="typedSignature" [placeholder]="agreement?.signer_name || 'Type your name'"
+               class="esign-type-input">
+        <div class="esign-type-preview">
+          {{ typedSignature || agreement?.signer_name }}
+        </div>
+      </div>
+
+      <!-- Font -->
+      <div class="esign-font-area" *ngIf="signatureMethod === 'font'">
+        <div class="esign-font-grid">
+          <div *ngFor="let font of signatureFonts"
+               class="esign-font-option"
+               [class.esign-font-selected]="selectedFont.name === font.name"
+               (click)="selectFont(font)">
+            <span [style.fontFamily]="font.name">{{ agreement?.signer_name || 'Your Name' }}</span>
+            <span class="esign-font-label">{{ font.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="esign-btn esign-btn-primary esign-apply-btn" (click)="applySignature()">
+        <mat-icon>check</mat-icon> Apply Signature
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ SIGNING STEP (field completion) ══════ -->
+  <div class="esign-signing" *ngIf="step === 'signing' && agreement">
+    <div class="esign-header">
+      <mat-icon>draw</mat-icon>
+      <div>
+        <h1>Complete Your Agreement</h1>
+        <p>Review and complete each required field below.</p>
+      </div>
+    </div>
+
+    <!-- Field by field -->
+    <div class="esign-field-cards">
+      <div *ngFor="let field of fields; let i = index"
+           class="esign-field-card"
+           [class.esign-field-card-done]="field.completed">
+        <div class="esign-fc-header">
+          <mat-icon *ngIf="field.completed" style="color:#2e7d32;">check_circle</mat-icon>
+          <mat-icon *ngIf="!field.completed" style="color:#d97706;">radio_button_unchecked</mat-icon>
+          <span>{{ field.label || (field.type | titlecase) }}</span>
+          <span class="esign-fc-req" *ngIf="field.required && !field.completed">Required</span>
+        </div>
+
+        <div class="esign-fc-body" *ngIf="!field.completed">
+          <button *ngIf="field.type === 'signature' || field.type === 'initials'"
+                  class="esign-btn esign-btn-sm" (click)="completeField(field)">
+            <mat-icon>draw</mat-icon> {{ field.type === 'signature' ? 'Apply Signature' : 'Apply Initials' }}
+          </button>
+          <button *ngIf="field.type === 'date'"
+                  class="esign-btn esign-btn-sm" (click)="completeField(field)">
+            <mat-icon>today</mat-icon> Apply Date
+          </button>
+          <label *ngIf="field.type === 'checkbox'" class="esign-checkbox">
+            <input type="checkbox" (change)="completeField(field)">
+            <span>{{ field.label }}</span>
+          </label>
+        </div>
+
+        <div class="esign-fc-done" *ngIf="field.completed">
+          <mat-icon>check</mat-icon> Completed
+        </div>
+      </div>
+    </div>
+
+    <button class="esign-btn esign-btn-primary esign-submit-btn"
+            [disabled]="!allFieldsComplete || submitting"
+            (click)="submitAgreement()">
+      <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>
+      <mat-icon *ngIf="!submitting">send</mat-icon>
+      {{ submitting ? 'Submitting...' : 'Submit Signed Agreement' }}
+    </button>
+  </div>
+
+  <!-- ══════ COMPLETE ══════ -->
+  <div class="esign-complete" *ngIf="step === 'complete'">
+    <div class="esign-complete-icon">
+      <mat-icon>check_circle</mat-icon>
+    </div>
+    <h1>Agreement Signed</h1>
+    <p>Your signed agreement has been submitted. You'll receive a copy at <strong>{{ agreement?.signer_email }}</strong>.</p>
+    <p class="esign-complete-hint">Your assigned agent will also receive a copy.</p>
+    <button class="esign-btn esign-btn-primary" (click)="goToDashboard()">
+      <mat-icon>arrow_forward</mat-icon> Go to My Claim Dashboard
+    </button>
+  </div>
+
+</div>

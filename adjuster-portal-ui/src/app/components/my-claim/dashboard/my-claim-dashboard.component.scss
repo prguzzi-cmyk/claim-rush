@@ -1,0 +1,460 @@
+$navy: #0f1a2e;
+$navy-light: #1a2740;
+$gold: #c9a84c;
+$gold-light: #f5edda;
+$green: #16a34a;
+$green-bg: #ecfdf5;
+$amber: #d97706;
+$amber-bg: #fffbeb;
+$blue: #2563eb;
+$red: #dc2626;
+$text-dark: #1a1a2e;
+$text-mid: #555;
+$text-light: #999;
+$border: #e5e7eb;
+$bg: #f5f6fa;
+$white: #fff;
+
+// ── LOADING STATE ──
+.mc-loading {
+  display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px);
+  .mc-loading-inner { text-align: center; padding: 40px; }
+  .mc-loading-logo {
+    width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, $gold, #b8942f);
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
+    animation: pulse-glow 1.5s ease-in-out infinite;
+    mat-icon { font-size: 32px; width: 32px; height: 32px; color: $white; }
+  }
+  h2 { margin: 0 0 6px; font-size: 1.2rem; font-weight: 600; color: $text-dark; }
+  p { margin: 0; font-size: 0.88rem; color: $text-light; }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.96); }
+}
+
+// ── NO-CLAIM PLACEHOLDER ──
+.mc-no-claim {
+  display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px);
+  padding: 24px;
+  .mc-no-claim-inner { text-align: center; max-width: 480px; }
+  .mc-no-claim-icon {
+    width: 80px; height: 80px; border-radius: 50%; background: $gold-light;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;
+    mat-icon { font-size: 40px; width: 40px; height: 40px; color: $gold; }
+  }
+  h2 { margin: 0 0 12px; font-size: 1.3rem; font-weight: 700; color: $text-dark; line-height: 1.4; }
+  p { margin: 0 0 24px; font-size: 0.92rem; color: $text-mid; line-height: 1.6; }
+  .mc-no-claim-contact {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 20px;
+    background: $bg; border: 1px solid $border; border-radius: 14px;
+    font-size: 0.85rem; color: $text-mid;
+    mat-icon { font-size: 20px; color: $navy; }
+    strong { color: $navy; }
+  }
+}
+
+// ── MAIN DASHBOARD ──
+.mc-dash { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+
+// ── WELCOME STRIP ──
+.mc-welcome-strip {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 20px 22px; margin-bottom: 20px;
+  background: linear-gradient(135deg, #eef2ff 0%, #e3f2fd 50%, #f0fdf4 100%);
+  border: 1px solid #bbdefb; border-radius: 16px;
+  animation: welcomeIn 0.5s ease;
+}
+@keyframes welcomeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mc-welcome-left {
+  display: flex; align-items: flex-start; gap: 14px; flex: 1;
+  h2 { margin: 0 0 6px; font-size: 1.05rem; font-weight: 700; color: $navy; line-height: 1.3; }
+  p { margin: 0; font-size: 0.85rem; color: $text-mid; line-height: 1.55; }
+}
+.mc-welcome-pulse {
+  width: 12px; height: 12px; border-radius: 50%; background: $blue; flex-shrink: 0; margin-top: 4px;
+  animation: welcomePulse 2s ease-in-out infinite;
+}
+@keyframes welcomePulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37,99,235,0.35); }
+  50% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(37,99,235,0); }
+}
+.mc-welcome-close {
+  background: none; border: none; color: $text-light; cursor: pointer; padding: 4px; border-radius: 8px; flex-shrink: 0;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: rgba(0,0,0,0.06); }
+}
+
+// ── STAGE HELPER ──
+.mc-stage-helper {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; margin-top: 10px;
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+  font-size: 0.82rem; color: $green; font-weight: 500;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: $green; flex-shrink: 0; }
+}
+
+// ── ACTIONS SECTION ──
+.mc-actions-section { margin-bottom: 20px; }
+.mc-actions-intro {
+  font-size: 0.85rem; color: $text-mid; line-height: 1.5; margin: 0 0 12px;
+}
+
+// ── REASSURANCE BLOCK ──
+.mc-reassurance {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 18px 20px; margin-bottom: 24px;
+  background: #fafbfc; border: 1px solid $border; border-radius: 14px;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; color: $green; flex-shrink: 0; margin-top: 1px; }
+}
+.mc-reassure-main { font-size: 0.88rem; font-weight: 600; color: $text-dark; margin: 0 0 4px; }
+.mc-reassure-sub { font-size: 0.8rem; color: $text-mid; line-height: 1.5; margin: 0; }
+
+// ── CARD ──
+.mc-card {
+  background: $white; border-radius: 16px; border: 1px solid $border;
+  padding: 20px; margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.mc-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: $navy; }
+  h2 { margin: 0; font-size: 1rem; font-weight: 600; color: $text-dark; flex: 1; }
+  .mc-claim-number { font-family: monospace; font-size: 0.75rem; color: $text-light; background: #f3f4f6; padding: 2px 8px; border-radius: 6px; }
+}
+.mc-action-btn {
+  display: flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 10px;
+  background: $gold-light; border: 1px solid rgba(201,168,76,0.3); color: $navy;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { background: $gold; color: $white; }
+}
+
+// ── EMPTY STATE ──
+.mc-empty {
+  text-align: center; padding: 28px 16px; color: $text-light;
+  mat-icon { font-size: 32px; width: 32px; height: 32px; opacity: 0.3; margin-bottom: 8px; }
+  p { margin: 0; font-size: 0.85rem; }
+}
+
+// ── PROCESSING BANNER ──
+.mc-proc-banner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; margin-bottom: 16px;
+  background: linear-gradient(90deg, #eef2ff, #e3f2fd);
+  border: 1px solid #bbdefb; border-radius: 14px;
+  animation: bannerSlide 0.4s ease;
+}
+@keyframes bannerSlide {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mc-proc-banner-pulse {
+  width: 10px; height: 10px; border-radius: 50%; background: $blue; flex-shrink: 0;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37,99,235,0.4); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(37,99,235,0); }
+}
+.mc-proc-banner > mat-icon { font-size: 20px; width: 20px; height: 20px; color: $blue; animation: iconPulse 2s ease-in-out infinite; }
+@keyframes iconPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.mc-proc-banner-text { flex: 1; font-size: 0.85rem; color: $text-dark; line-height: 1.4;
+  strong { display: block; font-weight: 700; } }
+.mc-proc-banner-close { background: none; border: none; color: $text-light; cursor: pointer; padding: 4px; border-radius: 6px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: rgba(0,0,0,0.05); } }
+
+// ── LIVE INDICATOR ──
+.mc-live-indicator {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.72rem; font-weight: 600; color: $green;
+}
+.mc-live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: $green;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+.mc-live-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border-radius: 12px; background: #ecfdf5;
+  font-size: 0.65rem; font-weight: 700; color: $green;
+}
+.mc-live-dot-sm {
+  width: 6px; height: 6px; border-radius: 50%; background: $green;
+  animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+// ── STATUS CARD ──
+.mc-status-card { overflow: visible; }
+.mc-status-top { margin-bottom: 16px; }
+.mc-status-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: $text-light; margin-bottom: 4px; }
+.mc-status-value {
+  font-size: 1.3rem; font-weight: 800; color: $navy;
+  display: flex; align-items: center; gap: 8px;
+  &.mc-status-processing { color: $blue;
+    mat-icon { font-size: 22px; width: 22px; height: 22px; animation: iconPulse 2s ease-in-out infinite; } }
+}
+
+// ── CLAIM SUMMARY ──
+.mc-summary-grid { display: flex; flex-direction: column; gap: 14px; }
+.mc-summary-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: $navy; margin-top: 2px; flex-shrink: 0; }
+}
+.mc-sum-label { display: block; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: $text-light; }
+.mc-sum-value { display: block; font-size: 0.88rem; color: $text-dark; margin-top: 2px; }
+.mc-mono { font-family: 'SF Mono', monospace; }
+.mc-sum-adjuster { display: flex; align-items: center; gap: 8px; }
+.mc-adj-dot {
+  width: 28px; height: 28px; border-radius: 50%; background: $navy; color: $gold;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px;
+}
+
+// ── ESTIMATE RANGE ──
+.mc-estimate-card { }
+.mc-estimate-body { text-align: center; padding: 8px 0; }
+.mc-estimate-range { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.mc-est-val { font-size: 1.6rem; font-weight: 800; color: $navy; }
+.mc-est-dash { font-size: 1.2rem; color: $text-light; }
+.mc-est-note { font-size: 0.78rem; color: $text-light; margin: 8px 0 0; }
+.mc-est-pending {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; color: $text-light;
+  mat-icon { font-size: 28px; width: 28px; height: 28px; color: $amber; animation: iconPulse 2s ease-in-out infinite; }
+  p { margin: 0; font-size: 0.88rem; }
+}
+
+// ── ACTIVITY FEED ──
+.mc-activity-feed { }
+.mc-act-item { display: flex; gap: 12px; }
+.mc-act-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.mc-act-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: #fff; }
+}
+.mc-act-line { width: 2px; flex: 1; min-height: 16px; background: #e5e7eb; }
+.mc-act-content { flex: 1; padding-bottom: 16px; }
+.mc-act-header { display: flex; align-items: baseline; gap: 8px; }
+.mc-act-label { font-size: 0.88rem; font-weight: 600; color: $text-dark; }
+.mc-act-time { font-size: 0.68rem; color: $text-light; margin-left: auto; }
+.mc-act-detail { margin: 3px 0 0; font-size: 0.82rem; color: $text-mid; line-height: 1.5; }
+
+// ── DOCUMENT ACTIONS ──
+.mc-doc-actions { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.mc-doc-btn {
+  display: flex; align-items: center; gap: 6px; padding: 10px 18px;
+  border-radius: 12px; border: 1px solid $border; background: #f9fafb;
+  font-size: 0.82rem; font-weight: 600; color: $navy; cursor: pointer; transition: all 0.2s;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: #eef2ff; border-color: $blue; }
+  &.mc-doc-btn-secondary { background: $white; color: $text-mid; }
+}
+
+// ── ACTIONS PANEL ──
+.mc-actions-panel {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
+}
+.mc-action-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 20px 12px; background: $white; border: 1px solid $border;
+  border-radius: 14px; cursor: pointer; transition: all 0.2s;
+  font-size: 0.78rem; font-weight: 600; color: $text-dark; text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  &:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: $blue; }
+}
+.mc-act-card-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; }
+}
+
+// (Keep existing styles below)
+// ── CLAIM OVERVIEW (legacy, kept for compatibility) ──
+.mc-overview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.mc-overview-item { display: flex; flex-direction: column; gap: 3px; }
+.mc-ov-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: $text-light; }
+.mc-ov-value { font-size: 0.88rem; color: $text-dark; }
+.mc-ov-money { font-size: 1.2rem; font-weight: 800; color: $navy; }
+.mc-ov-desc { font-size: 0.85rem; color: $text-mid; line-height: 1.5; }
+.mc-ov-full { grid-column: 1 / -1; }
+
+// ── PROGRESS BAR ──
+.mc-progress-card { overflow: visible; }
+.mc-progress-track {
+  display: flex; align-items: flex-start; justify-content: space-between; padding: 4px 0 8px; overflow-x: auto;
+}
+.mc-stage {
+  display: flex; flex-direction: column; align-items: center; position: relative; min-width: 64px; flex: 1;
+  &.done .mc-stage-dot { background: $navy; border-color: $navy; mat-icon { color: $white; } }
+  &.done .mc-stage-label { color: $navy; font-weight: 600; }
+  &.current .mc-stage-dot { background: $gold-light; border-color: $gold; mat-icon { color: $gold; } }
+  &.current .mc-stage-label { color: $gold; font-weight: 700; }
+  &.upcoming .mc-stage-dot { background: #f9fafb; border-color: #d1d5db; mat-icon { color: #d1d5db; } }
+  &.upcoming .mc-stage-label { color: #d1d5db; }
+}
+.mc-stage-dot {
+  width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid #d1d5db;
+  display: flex; align-items: center; justify-content: center; z-index: 1; transition: all 0.3s;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+.mc-stage-label { font-size: 0.62rem; margin-top: 6px; text-align: center; line-height: 1.2; max-width: 70px; }
+.mc-stage-line {
+  position: absolute; top: 18px; left: calc(50% + 18px); width: calc(100% - 36px);
+  height: 2.5px; background: #e5e7eb; z-index: 0;
+  &.filled { background: $navy; }
+}
+.mc-phase-note {
+  display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: $gold-light;
+  border-radius: 10px; margin-top: 8px; font-size: 0.82rem; color: $navy;
+  mat-icon { font-size: 18px; color: $gold; flex-shrink: 0; }
+  strong { font-weight: 700; }
+}
+
+// ── ADJUSTER ──
+.mc-adjuster-body { display: flex; gap: 14px; align-items: center; }
+.mc-adjuster-avatar {
+  width: 50px; height: 50px; border-radius: 50%; background: $navy; color: $gold; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; letter-spacing: 1px;
+}
+.mc-adjuster-name { font-size: 1rem; font-weight: 600; color: $text-dark; margin-bottom: 4px; }
+.mc-adjuster-contact {
+  display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: $blue; text-decoration: none; margin-top: 2px;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  &:hover { text-decoration: underline; }
+}
+
+// ── CLAIM TIMELINE ──
+.mc-timeline { position: relative; }
+.mc-tl-step {
+  display: flex; gap: 14px;
+  &.completed .mc-tl-dot { background: $navy; border-color: $navy; mat-icon { color: $white; } }
+  &.completed .mc-tl-line { background: $navy; }
+  &.completed .mc-tl-label { color: $navy; font-weight: 600; }
+  &.active .mc-tl-dot { background: #fffbeb; border-color: $gold; mat-icon { color: $gold; } }
+  &.active .mc-tl-label { color: $gold; font-weight: 700; }
+}
+.mc-tl-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.mc-tl-dot {
+  width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid #d1d5db; background: #f9fafb;
+  display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #d1d5db; }
+}
+.mc-tl-line { width: 2.5px; flex: 1; min-height: 20px; background: #e5e7eb; }
+.mc-tl-content { padding-bottom: 20px; flex: 1; }
+.mc-tl-header { display: flex; align-items: baseline; gap: 10px; }
+.mc-tl-label { font-size: 0.88rem; color: $text-dark; }
+.mc-tl-date { font-size: 0.72rem; color: $text-light; }
+.mc-tl-desc { margin: 4px 0 0; font-size: 0.82rem; color: $text-mid; line-height: 1.5; }
+
+// ── DOCUMENTS ──
+.mc-upload-area {
+  display: flex; flex-direction: column; align-items: center; padding: 28px; border: 2px dashed $border; border-radius: 12px;
+  background: $bg; margin-bottom: 12px; position: relative; cursor: pointer; text-align: center;
+  mat-icon { font-size: 36px; width: 36px; height: 36px; color: $navy; margin-bottom: 6px; }
+  p { font-size: 0.85rem; color: $text-mid; margin: 0; }
+  .mc-file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+}
+.mc-doc-list { display: flex; flex-direction: column; }
+.mc-doc-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6;
+  &:last-child { border-bottom: none; }
+}
+.mc-doc-icon { width: 36px; height: 36px; border-radius: 10px; background: #eef2ff; display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 18px; color: $navy; } }
+.mc-doc-info { flex: 1; min-width: 0; }
+.mc-doc-name { font-size: 0.85rem; font-weight: 500; color: $text-dark; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-doc-meta { font-size: 0.72rem; color: $text-light; margin-top: 2px; }
+.mc-icon-btn { background: none; border: none; color: $text-light; cursor: pointer; padding: 4px;
+  mat-icon { font-size: 20px; } &:hover { color: $navy; } }
+
+// ── MESSAGES ──
+.mc-thread-list { display: flex; flex-direction: column; }
+.mc-thread-item {
+  display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #f3f4f6; cursor: pointer;
+  &:hover { background: #fafafa; margin: 0 -20px; padding-left: 20px; padding-right: 20px; border-radius: 8px; }
+  &.unread .mc-thread-subject { font-weight: 700; }
+}
+.mc-thread-dot { width: 8px; height: 8px; border-radius: 50%; background: $navy; flex-shrink: 0; }
+.mc-thread-info { flex: 1; min-width: 0; }
+.mc-thread-subject { font-size: 0.88rem; color: $text-dark; }
+.mc-thread-preview { font-size: 0.78rem; color: $text-light; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-thread-arrow { color: $text-light; font-size: 20px; }
+
+.mc-back-btn {
+  display: flex; align-items: center; gap: 6px; background: none; border: none; color: $navy;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 12px;
+  mat-icon { font-size: 18px; }
+}
+.mc-messages { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; margin-bottom: 12px; }
+.mc-msg { padding: 12px 14px; border-radius: 14px; max-width: 85%;
+  &.mc-msg-client { background: $navy; color: $white; align-self: flex-end; border-bottom-right-radius: 4px; }
+  &.mc-msg-adjuster { background: #f3f4f6; color: $text-dark; align-self: flex-start; border-bottom-left-radius: 4px; }
+  &.mc-msg-system { background: $gold-light; color: $navy; align-self: center; text-align: center; font-style: italic; }
+}
+.mc-msg-sender { font-size: 0.68rem; font-weight: 600; opacity: 0.7; margin-bottom: 4px; }
+.mc-msg-body { font-size: 0.88rem; line-height: 1.5; }
+.mc-msg-time { font-size: 0.65rem; opacity: 0.5; margin-top: 4px; text-align: right; }
+.mc-compose {
+  display: flex; gap: 8px; padding: 12px; background: #f9fafb; border-radius: 14px;
+  input { flex: 1; background: $white; border: 1px solid $border; border-radius: 10px; padding: 10px 14px; font-size: 0.88rem; color: $text-dark; outline: none;
+    &:focus { border-color: $navy; }
+    &::placeholder { color: #ccc; } }
+}
+.mc-send-btn {
+  width: 44px; height: 44px; border-radius: 12px; background: $navy; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  mat-icon { color: $white; font-size: 20px; }
+  &:disabled { opacity: 0.3; }
+}
+
+// ── PAYMENTS ──
+.mc-pay-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.mc-pay-stat { text-align: center; padding: 12px; background: $bg; border-radius: 12px; }
+.mc-pay-amount { font-size: 1.2rem; font-weight: 800;
+  &.green { color: $green; } &.amber { color: $amber; } &.navy { color: $navy; } }
+.mc-pay-label { font-size: 0.68rem; color: $text-light; text-transform: uppercase; margin-top: 2px; }
+.mc-pay-list { display: flex; flex-direction: column; }
+.mc-pay-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; &:last-child { border-bottom: none; } }
+.mc-pay-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  mat-icon { font-size: 18px; }
+  &.pay-processed { background: $green-bg; mat-icon { color: $green; } }
+  &.pay-pending { background: $amber-bg; mat-icon { color: $amber; } }
+  &.pay-denied { background: #fef2f2; mat-icon { color: $red; } } }
+.mc-pay-info { flex: 1; }
+.mc-pay-desc { font-size: 0.85rem; font-weight: 500; color: $text-dark; }
+.mc-pay-meta { font-size: 0.72rem; color: $text-light; margin-top: 2px; }
+.mc-pay-val { font-size: 1rem; font-weight: 700; white-space: nowrap;
+  &.pay-processed { color: $green; } &.pay-pending { color: $amber; } &.pay-denied { color: $red; text-decoration: line-through; } }
+
+// ── GREETING ROW ──
+.mc-greeting {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 700; color: $text-dark; }
+  p { margin: 4px 0 0; color: $text-mid; font-size: 0.9rem; }
+  padding: 8px 0 16px;
+}
+
+// ── RESPONSIVE ──
+@media (max-width: 600px) {
+  .mc-dash { padding: 16px 12px; }
+  .mc-card { padding: 16px; border-radius: 14px; margin-bottom: 14px; }
+  .mc-greeting { flex-direction: column; gap: 8px; h1 { font-size: 1.3rem; } }
+  .mc-progress-track { overflow-x: auto; padding-bottom: 4px; }
+  .mc-pay-summary { grid-template-columns: 1fr; gap: 8px; }
+  .mc-overview-grid { grid-template-columns: 1fr; }
+  .mc-actions-panel { grid-template-columns: 1fr; }
+  .mc-estimate-range { flex-direction: column; gap: 4px; }
+  .mc-est-val { font-size: 1.3rem; }
+  .mc-status-value { font-size: 1.1rem; }
+  .mc-live-indicator { font-size: 0.65rem; }
+  .mc-welcome-strip { padding: 16px; border-radius: 14px; }
+  .mc-welcome-left { flex-direction: column; gap: 0;
+    h2 { font-size: 0.95rem; }
+    p { font-size: 0.82rem; }
+  }
+  .mc-welcome-pulse { display: none; }
+  .mc-reassurance { padding: 14px 16px; border-radius: 12px; }
+}

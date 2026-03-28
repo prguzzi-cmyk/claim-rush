@@ -1,0 +1,196 @@
+<div class="opportunity-dashboard">
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1>Claim Opportunity Scoring</h1>
+      <span class="last-updated" *ngIf="lastUpdated">
+        Updated {{ timeAgo(lastUpdated.toISOString()) }}
+      </span>
+    </div>
+    <button mat-raised-button color="primary" (click)="refresh()" [disabled]="loading">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+
+  <!-- ═══ KPI CARDS ═══ -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-value">{{ metrics.total }}</div>
+      <div class="kpi-label">Total Opportunities</div>
+    </div>
+    <div class="kpi-card kpi-critical">
+      <div class="kpi-value">{{ metrics.critical }}</div>
+      <div class="kpi-label">Critical</div>
+    </div>
+    <div class="kpi-card kpi-high">
+      <div class="kpi-value">{{ metrics.high }}</div>
+      <div class="kpi-label">High Priority</div>
+    </div>
+    <div class="kpi-card kpi-value-card">
+      <div class="kpi-value">{{ fmtCurrency(metrics.totalEstimatedValue) }}</div>
+      <div class="kpi-label">Est. Pipeline Value</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ metrics.avgScore }}</div>
+      <div class="kpi-label">Avg Score</div>
+    </div>
+  </div>
+
+  <!-- ═══ FILTERS ═══ -->
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>Min Score: {{ minScore }}</label>
+      <input type="range" min="0" max="100" step="5"
+             [(ngModel)]="minScore" (change)="onMinScoreChange()" />
+    </div>
+
+    <mat-form-field appearance="outline" class="filter-select">
+      <mat-label>Event Type</mat-label>
+      <mat-select [(ngModel)]="eventTypeFilter" (selectionChange)="onFilterChange()">
+        <mat-option value="">All Types</mat-option>
+        <mat-option *ngFor="let t of uniqueEventTypes" [value]="t">{{ t | titlecase }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- ═══ SCORED OPPORTUNITIES TABLE ═══ -->
+  <div class="section-card">
+    <h2>
+      <mat-icon>analytics</mat-icon>
+      Scored Opportunities
+      <span class="count-badge">{{ filteredOpportunities.length }}</span>
+    </h2>
+
+    <div *ngIf="loading && filteredOpportunities.length === 0" class="loading-bar">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    </div>
+
+    <div class="table-wrap" *ngIf="filteredOpportunities.length > 0; else noOpps">
+      <table mat-table [dataSource]="filteredOpportunities" class="claims-table">
+
+        <ng-container matColumnDef="opp_score">
+          <th mat-header-cell *matHeaderCellDef>Score</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="score-ring" [ngClass]="'ring-' + row.priority"
+                 (click)="toggleScoreBreakdown(row)" matTooltip="Click for breakdown">
+              <span class="score-ring-val">{{ row.opportunity_score }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="priority">
+          <th mat-header-cell *matHeaderCellDef>Priority</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="priority-badge" [style.color]="getPriorityColor(row.priority)">
+              <mat-icon class="priority-icon">{{ getPriorityIcon(row.priority) }}</mat-icon>
+              {{ priorityMeta[row.priority]?.label || row.priority }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="opp_event">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="event-chip">{{ row.event_type | titlecase }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="opp_location">
+          <th mat-header-cell *matHeaderCellDef>Location</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.city || row.address }}
+            <span class="merge-badge" *ngIf="row.merge_count > 1"
+                  matTooltip="{{ row.merge_count }} source events merged">
+              {{ row.merge_count }} updates
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="opp_state">
+          <th mat-header-cell *matHeaderCellDef>State</th>
+          <td mat-cell *matCellDef="let row">{{ row.state }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="damage">
+          <th mat-header-cell *matHeaderCellDef>Damage %</th>
+          <td mat-cell *matCellDef="let row">{{ (row.damage_probability * 100) | number:'1.0-0' }}%</td>
+        </ng-container>
+
+        <ng-container matColumnDef="opp_value">
+          <th mat-header-cell *matHeaderCellDef>Est. Value</th>
+          <td mat-cell *matCellDef="let row">{{ fmtCurrency(row.estimated_claim_value) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="source">
+          <th mat-header-cell *matHeaderCellDef>Source</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="source-chip">{{ row.source }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="time">
+          <th mat-header-cell *matHeaderCellDef>Time</th>
+          <td mat-cell *matCellDef="let row">{{ timeAgo(row.timestamp) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="recommended">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let row">
+            <button *ngIf="row.recommended_action === 'assign_agent' && row.lead_status !== 'assigned'"
+                    mat-flat-button color="primary" class="assign-btn"
+                    (click)="assignAgent(row)"
+                    matTooltip="Auto-assign best agent, trigger SMS + voice + email">
+              <mat-icon class="action-badge-icon">person_add</mat-icon>
+              Assign Agent
+            </button>
+            <span *ngIf="row.recommended_action !== 'assign_agent' || row.lead_status === 'assigned'"
+                  class="action-badge"
+                  [style.background]="(actionMeta[row.recommended_action]?.color || '#64748b') + '18'"
+                  [style.color]="actionMeta[row.recommended_action]?.color || '#64748b'">
+              <mat-icon class="action-badge-icon">{{ row.lead_status === 'assigned' ? 'check_circle' : (actionMeta[row.recommended_action]?.icon || 'info') }}</mat-icon>
+              {{ row.lead_status === 'assigned' ? 'Assigned' : (actionMeta[row.recommended_action]?.label || row.recommended_action) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['opp_score','priority','opp_event','opp_location','opp_state','damage','opp_value','source','time','recommended']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['opp_score','priority','opp_event','opp_location','opp_state','damage','opp_value','source','time','recommended']"></tr>
+      </table>
+    </div>
+
+    <ng-template #noOpps>
+      <div class="empty-state" *ngIf="!loading">
+        <mat-icon>search_off</mat-icon>
+        <p>No opportunities match your filters.</p>
+      </div>
+      <div class="empty-state" *ngIf="loading">
+        <mat-icon>hourglass_empty</mat-icon>
+        <p>Loading opportunity data...</p>
+      </div>
+    </ng-template>
+
+    <div class="score-breakdown-panel" *ngIf="selectedOpp">
+      <div class="breakdown-header">
+        <mat-icon>analytics</mat-icon>
+        <span>Score Breakdown — {{ selectedOpp.city || selectedOpp.address }}, {{ selectedOpp.state }}</span>
+        <button mat-icon-button (click)="selectedOpp = null"><mat-icon>close</mat-icon></button>
+      </div>
+      <div class="breakdown-grid">
+        <div class="factor-row" *ngFor="let f of getFactorBars(selectedOpp)">
+          <span class="factor-label">{{ f.label }}</span>
+          <div class="factor-track"><div class="factor-fill" [style.width.%]="f.percent" [style.background]="f.color"></div></div>
+          <span class="factor-pct">{{ f.percent }}%</span>
+          <span class="factor-wt">&times;{{ f.weight }}</span>
+        </div>
+        <div class="breakdown-total">
+          <span>Composite Score</span>
+          <div class="score-ring score-ring-sm" [ngClass]="'ring-' + selectedOpp.priority">
+            <span class="score-ring-val">{{ selectedOpp.opportunity_score }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

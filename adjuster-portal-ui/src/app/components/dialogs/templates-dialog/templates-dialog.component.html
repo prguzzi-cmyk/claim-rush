@@ -1,0 +1,132 @@
+<h2 mat-dialog-title>
+    {{title}}
+</h2>
+
+<div *ngIf="action == 'select'">
+    <table mat-table [dataSource]="dataSource" class="template-table">
+
+        <!-- Position Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Templates</th>
+          <td mat-cell *matCellDef="let element" (click)="generate(element.path, element.name)"> {{element.name}} </td>
+        </ng-container>
+      
+      
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+      
+      
+</div>
+
+<div *ngIf="action == 'add' || action == 'edit'" mat-dialog-content>
+    <form [formGroup]="templateForm" class="file-form">
+
+        <mat-form-field appearance="outline" class="w-100">
+            <mat-label>File name</mat-label>
+            <input matInput formControlName="fileName" type="text" placeholder="Enter file name" #fileName required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" placeholder="Enter description" rows="3"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <mat-select formControlName="state" placeholder="Select state" name="state">
+                <mat-option *ngFor="let state of states" [value]="state.abbreviation">
+                    {{state.name}}
+                </mat-option>
+                <mat-option [value]="this.state" selected >All states</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+
+    <input (change)="selectFile($event)" type="file" name="file" id="file-input" class="d-none" />
+
+    <p *ngIf="file?.name" class="mb-3">{{ file?.name }} selected</p>
+
+    <button mat-raised-button color="primary" *ngIf="action == 'add'">
+        <label for="file-input" class="m-0">Select file to upload</label>
+    </button>
+    <p *ngIf="action == 'add'">&nbsp;</p>
+</div>
+
+<div mat-dialog-content *ngIf="action == 'view' || action == 'delete'">
+    <div class="row">
+        <div class="col-sm-6">
+            <dl class="row">
+                <dt class="col-sm-12">Name</dt>
+                <dd class="col-sm-12">{{template.name}}</dd>
+
+                <dt class="col-sm-12">File type</dt>
+                <dd class="col-sm-12">{{template.type}}</dd>
+
+                <dt class="col-sm-12">File size</dt>
+                <dd class="col-sm-12">{{template.size | filesize}}</dd>
+
+                <dt class="col-sm-12">Description</dt>
+                <dd class="col-sm-12">{{template.description}}</dd>
+            </dl>
+        </div>
+        <div class="col-sm-6">
+            <dl class="row">
+                <dt class="col-sm-12">Created by</dt>
+                <dd class="col-sm-12">{{template?.created_by?.first_name ? template?.created_by?.first_name + ' ' +
+                    template?.created_by?.last_name : "-"}}</dd>
+
+                <dt class="col-sm-12">Creation at</dt>
+                <dd class="col-sm-12">{{(template?.created_at !== null) ? (template?.created_at | date : "MMMM dd, yyyy
+                    hh:mm:ss
+                    a") :
+                    "-"}}</dd>
+
+                <dt class="col-sm-12">Updated by</dt>
+                <dd class="col-sm-12">{{template?.updated_by?.first_name ? template?.updated_by?.first_name + ' ' +
+                    template?.updated_by?.last_name : "-"}}</dd>
+
+                <dt class="col-sm-12">Updated at</dt>
+                <dd class="col-sm-12">{{(template?.updated_at !== null) ? (template?.updated_at | date : "MMMM dd, yyyy
+                    hh:mm:ss
+                    a") :
+                    "-"}}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div mat-dialog-actions>
+<!---
+    <button mat-raised-button color="primary" (click)="downloadTemplate()"
+         *ngIf="action == 'select'">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="fileUploadFormDisabled"></mat-spinner>
+        </div>
+        Save
+    </button>
+    --->
+    <button mat-raised-button color="primary" (click)="saveTemplate()"
+        [disabled]="!templateForm.valid || fileUploadFormDisabled || !file" *ngIf="action == 'add'">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="fileUploadFormDisabled"></mat-spinner>
+        </div>
+        Save
+    </button>
+
+    <button mat-raised-button color="primary" (click)="updateTemplate()"
+        [disabled]="!templateForm.valid || fileUploadFormDisabled" *ngIf="action == 'edit'">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="fileUploadFormDisabled"></mat-spinner>
+        </div>
+        Update
+    </button>
+    <button mat-raised-button color="warn" [hidden]="!userService.getUserPermissions('template_file','remove')"  (click)="deleteTemplate()" *ngIf="action == 'delete'">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="fileUploadFormDisabled"></mat-spinner>
+        </div>
+        Delete
+    </button>
+    <a mat-raised-button *ngIf="action == 'view'" color="primary" href="{{template?.path}}" target="_blank">Download</a>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+    <ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+</div>

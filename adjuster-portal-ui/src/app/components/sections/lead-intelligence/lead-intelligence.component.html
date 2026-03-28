@@ -1,0 +1,197 @@
+<div class="gcc-dark">
+
+  <!-- Page Header -->
+  <div class="gcc-header">
+    <div>
+      <h1>Lead Intelligence</h1>
+      <p class="gcc-subtitle">Potential claim opportunities detected from incident monitoring and property intelligence feeds.</p>
+    </div>
+  </div>
+
+  <div class="gcc-body">
+
+    <!-- ══════ KPI ROW ══════ -->
+    <div class="kpi-row">
+      <div class="kpi-dark-card" style="border-top-color: #ff1744;">
+        <mat-icon style="color: #ff1744;">local_fire_department</mat-icon>
+        <div class="kpi-dark-value">{{ fireToday }}</div>
+        <div class="kpi-dark-label">Fire Incidents Today</div>
+      </div>
+      <div class="kpi-dark-card" style="border-top-color: #2979ff;">
+        <mat-icon style="color: #2979ff;">thunderstorm</mat-icon>
+        <div class="kpi-dark-value">{{ stormToday }}</div>
+        <div class="kpi-dark-label">Storm Incidents Today</div>
+      </div>
+      <div class="kpi-dark-card" style="border-top-color: #aa00ff;">
+        <mat-icon style="color: #aa00ff;">gavel</mat-icon>
+        <div class="kpi-dark-value">{{ crimeToday }}</div>
+        <div class="kpi-dark-label">Crime Incidents Today</div>
+      </div>
+      <div class="kpi-dark-card" style="border-top-color: #00e676;">
+        <mat-icon style="color: #00e676;">roofing</mat-icon>
+        <div class="kpi-dark-value">{{ roofOpportunities }}</div>
+        <div class="kpi-dark-label">Roof Opportunities</div>
+      </div>
+      <div class="kpi-dark-card" style="border-top-color: #00e5ff;">
+        <mat-icon style="color: #00e5ff;">person_add</mat-icon>
+        <div class="kpi-dark-value">{{ totalLeads }}</div>
+        <div class="kpi-dark-label">Total Leads Generated</div>
+      </div>
+    </div>
+
+    <!-- ══════ FILTER BAR ══════ -->
+    <div class="dark-panel filter-panel">
+      <div class="dark-panel-header">
+        <mat-icon>filter_list</mat-icon> Filters
+      </div>
+      <div class="filter-bar">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Incident Type</mat-label>
+          <mat-select [(ngModel)]="filterType" (selectionChange)="applyFilters()">
+            <mat-option value="">All Types</mat-option>
+            <mat-option *ngFor="let t of incidentTypes" [value]="t">{{ t | titlecase }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>State</mat-label>
+          <mat-select [(ngModel)]="filterState" (selectionChange)="applyFilters()">
+            <mat-option value="">All States</mat-option>
+            <mat-option *ngFor="let s of states" [value]="s">{{ s }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date Detected</mat-label>
+          <input matInput type="date" [(ngModel)]="filterDate" (change)="applyFilters()">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Lead Status</mat-label>
+          <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()">
+            <mat-option value="">All Statuses</mat-option>
+            <mat-option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button class="dark-btn reset-btn" (click)="resetFilters()">
+          <mat-icon>restart_alt</mat-icon> Reset
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════ LEADS TABLE ══════ -->
+    <div class="dark-panel table-panel">
+      <div class="dark-panel-header">
+        <mat-icon>track_changes</mat-icon> Potential Claims Detected
+        <span class="lead-count">{{ filteredLeads.length }} leads</span>
+      </div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Address</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Score</th>
+              <th>Status</th>
+              <th>Compliance</th>
+              <th>Outreach</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let lead of filteredLeads">
+              <td>
+                <span class="type-cell">
+                  <mat-icon [style.color]="getTypeColor(lead.incidentType)" class="type-icon">{{ getTypeIcon(lead.incidentType) }}</mat-icon>
+                  {{ lead.incidentType | titlecase }}
+                </span>
+              </td>
+              <td>{{ lead.address }}</td>
+              <td>{{ lead.city }}</td>
+              <td>{{ lead.state }}</td>
+              <td>
+                <span class="lead-score"
+                      [ngClass]="getScoreTierClass(lead.leadScoreTier)"
+                      [matTooltip]="'Lead Score: ' + (lead.leadScore || 0) + '/100 (' + (lead.leadScoreTier || 'N/A') + ')'">
+                  {{ lead.leadScore || '—' }}
+                  <span class="score-fire" *ngIf="lead.leadScoreTier === 'HIGH'">&#128293;</span>
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(lead.leadStatus)">
+                  {{ getStatusLabel(lead.leadStatus) }}
+                </span>
+              </td>
+              <!-- Compliance column -->
+              <td class="compliance-cell">
+                <div class="compliance-row">
+                  <span class="compliance-label">Consent:</span>
+                  <select class="compliance-select" [ngModel]="lead.consentStatus || 'unknown'" (ngModelChange)="setConsent(lead, $event)">
+                    <option value="unknown">Unknown</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div class="compliance-row">
+                  <span class="compliance-label">DNC:</span>
+                  <button *ngIf="!lead.dncChecked" class="dnc-check-btn" (click)="markDncChecked(lead)">Check DNC</button>
+                  <select *ngIf="lead.dncChecked" class="compliance-select" [ngModel]="lead.dncStatus || 'unknown'" (ngModelChange)="setDncStatus(lead, $event)">
+                    <option value="clear">Clear</option>
+                    <option value="listed">Listed</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </div>
+                <span *ngIf="lead.outreachBlockedReason" class="blocked-reason">
+                  <mat-icon>block</mat-icon> {{ lead.outreachBlockedReason }}
+                </span>
+              </td>
+              <!-- Outreach status -->
+              <td>
+                <span class="outreach-badge" [ngClass]="getOutreachClass(lead.outreachStatus)">
+                  {{ getOutreachLabel(lead.outreachStatus) }}
+                </span>
+              </td>
+              <!-- Action buttons -->
+              <td>
+                <button
+                  *ngIf="lead.outreachStatus !== 'in-progress' && lead.outreachStatus !== 'completed'"
+                  class="outreach-btn"
+                  (click)="startOutreach(lead)"
+                  matTooltip="Activate lead — auto-assigns agent via rotation"
+                >
+                  <mat-icon>campaign</mat-icon> Start Outreach
+                </button>
+                <button
+                  *ngIf="lead.outreachStatus === 'in-progress' && lead.leadStatus === 'new'"
+                  class="ai-outreach-btn"
+                  (click)="runAiOutreach(lead)"
+                  matTooltip="Run AI outreach on this lead"
+                >
+                  <mat-icon>smart_toy</mat-icon> Run AI Outreach
+                </button>
+                <span *ngIf="lead.outreachStatus === 'in-progress'" class="outreach-active-chip">
+                  <mat-icon>phone_in_talk</mat-icon> Active{{ lead.assignedAgent ? ' — ' + lead.assignedAgent : '' }}
+                </span>
+                <span *ngIf="lead.outreachStatus === 'completed'" class="outreach-done-chip">
+                  <mat-icon>check_circle</mat-icon> Done
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-empty" *ngIf="filteredLeads.length === 0 && allLeads.length > 0">
+        <mat-icon>search_off</mat-icon>
+        <span>No leads match the current filters</span>
+      </div>
+      <div class="table-empty" *ngIf="allLeads.length === 0">
+        <mat-icon>assignment</mat-icon>
+        <span>No leads yet. Use "Assign Agent" in Opportunity Scoring to create leads.</span>
+      </div>
+    </div>
+
+  </div>
+</div>

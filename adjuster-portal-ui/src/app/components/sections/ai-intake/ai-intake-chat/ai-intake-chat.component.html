@@ -1,0 +1,194 @@
+<div class="ai-intake-container">
+
+  <!-- Header -->
+  <div class="intake-header">
+    <div class="header-left">
+      <mat-icon class="header-icon">smart_toy</mat-icon>
+      <div>
+        <h2>{{ collectedData['homeowner_name'] || 'AI Claim Intake' }}</h2>
+        <span class="subtitle" *ngIf="sessionId && !isComplete">
+          <span class="status-dot-active"></span> Intake in Progress — {{ getStepLabel(currentStep) }}
+        </span>
+        <span class="subtitle" *ngIf="isComplete">
+          <mat-icon class="subtitle-icon">check_circle</mat-icon> Intake Complete
+        </span>
+        <span class="subtitle" *ngIf="!sessionId && messages.length === 0">
+          Conversations &amp; qualification
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a mat-stroked-button routerLink="/app/claim-intake" matTooltip="Switch to form-based intake">
+        <mat-icon>description</mat-icon> Form Mode
+      </a>
+      <button mat-raised-button color="primary" (click)="startNewConversation()" [disabled]="isLoading">
+        <mat-icon>add</mat-icon> New Conversation
+      </button>
+    </div>
+  </div>
+
+  <div class="inbox-layout">
+
+    <!-- LEFT: Conversation List -->
+    <div class="conversation-list">
+      <div class="list-header">
+        <mat-icon>forum</mat-icon> Conversations
+        <span class="list-count">{{ sessions.length }}</span>
+      </div>
+
+      <div class="conv-items" *ngIf="sessions.length > 0">
+        <div
+          *ngFor="let s of sessions"
+          class="conv-item"
+          [class.conv-active]="activeSession?.id === s.id"
+          (click)="openSession(s)"
+        >
+          <div class="conv-top">
+            <span class="conv-name">{{ s.homeowner_name || 'New Lead' }}</span>
+            <span class="conv-status" [ngClass]="getStatusClass(getSessionStatus(s))">
+              {{ getSessionStatus(s) }}
+            </span>
+          </div>
+          <div class="conv-address" *ngIf="s.property_address">{{ s.property_address }}</div>
+          <div class="conv-preview">{{ getLastMessage(s) }}</div>
+          <ng-container *ngIf="getAssignmentForSession(s) as assign">
+            <div class="conv-agent">
+              <mat-icon>person</mat-icon>
+              Assigned to: {{ assign.agent }}
+              <span class="auto-badge" *ngIf="assign.auto" [matTooltip]="'Reason: ' + assign.reason">Auto-assigned</span>
+            </div>
+          </ng-container>
+          <div class="conv-time">{{ s.created_at | date:'short' }}</div>
+        </div>
+      </div>
+
+      <!-- Empty list -->
+      <div class="list-empty" *ngIf="sessions.length === 0">
+        <div class="empty-icon-ring">
+          <mat-icon>forum</mat-icon>
+        </div>
+        <h4>No active conversations yet</h4>
+        <p>Start an intake or run outreach to begin.</p>
+        <div class="empty-actions">
+          <button mat-raised-button color="primary" (click)="startNewConversation()">
+            <mat-icon>add</mat-icon> New Intake
+          </button>
+          <a mat-stroked-button routerLink="/app/voice-outreach-agent">
+            <mat-icon>phone_forwarded</mat-icon> Start Outreach
+          </a>
+          <a mat-stroked-button routerLink="/app/leads">
+            <mat-icon>people</mat-icon> View Leads
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Chat Thread -->
+    <div class="chat-area">
+
+      <!-- No session selected -->
+      <div class="chat-placeholder" *ngIf="!sessionId && messages.length === 0">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <h3>Select a conversation</h3>
+        <p>Pick a conversation from the list or start a new one.</p>
+      </div>
+
+      <!-- Active chat -->
+      <ng-container *ngIf="sessionId || messages.length > 0">
+
+        <!-- Progress bar -->
+        <div class="progress-section" *ngIf="currentStep && !isComplete">
+          <div class="progress-label">
+            <span>Step: {{ getStepLabel(currentStep) }}</span>
+            <span>{{ getProgressPercent() }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getProgressPercent()"></div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" #chatContainer>
+          <div *ngFor="let msg of messages" class="message" [ngClass]="msg.role">
+            <div class="message-avatar">
+              <mat-icon *ngIf="msg.role === 'ai'">smart_toy</mat-icon>
+              <mat-icon *ngIf="msg.role === 'user'">person</mat-icon>
+            </div>
+            <div class="message-content">
+              <div class="message-bubble">{{ msg.text }}</div>
+              <div class="message-time">{{ msg.timestamp | date:'shortTime' }}</div>
+            </div>
+          </div>
+
+          <!-- Typing indicator -->
+          <div class="message ai" *ngIf="isLoading">
+            <div class="message-avatar"><mat-icon>smart_toy</mat-icon></div>
+            <div class="message-content">
+              <div class="message-bubble typing">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick-reply buttons for appointment step -->
+        <div class="quick-replies" *ngIf="currentStep === 'appointment' && !isComplete && !isLoading">
+          <span class="quick-reply-label">Choose an option:</span>
+          <div class="quick-reply-buttons">
+            <button class="quick-reply-btn qr-schedule" (click)="quickReply('1')">
+              <mat-icon>home</mat-icon> In-Person Inspection
+            </button>
+            <button class="quick-reply-btn qr-schedule" (click)="quickReply('2')">
+              <mat-icon>videocam</mat-icon> Zoom Consultation
+            </button>
+            <button class="quick-reply-btn qr-schedule" (click)="quickReply('3')">
+              <mat-icon>groups</mat-icon> Teams Consultation
+            </button>
+            <button class="quick-reply-btn qr-callback" (click)="quickReply('no')">
+              <mat-icon>phone_callback</mat-icon> Have Someone Call Me
+            </button>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input" *ngIf="!isComplete">
+          <mat-form-field appearance="outline" class="input-field">
+            <input matInput placeholder="Type your response..." [(ngModel)]="userInput"
+                   (keydown)="onKeyDown($event)" [disabled]="isLoading" autocomplete="off" />
+          </mat-form-field>
+          <button mat-fab color="primary" (click)="sendMessage()"
+                  [disabled]="!userInput.trim() || isLoading" class="send-btn">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="chat-actions" *ngIf="sessionId">
+          <button mat-stroked-button class="action-qualified" (click)="markQualified()">
+            <mat-icon>verified</mat-icon> Mark Qualified
+          </button>
+          <button mat-stroked-button class="action-book" (click)="bookAppointment()">
+            <mat-icon>event</mat-icon> Book Appointment
+          </button>
+          <button mat-stroked-button class="action-assign" (click)="assignToAdjuster()">
+            <mat-icon>person_add</mat-icon> Assign Adjuster
+          </button>
+          <button mat-stroked-button class="action-decline" (click)="markNotInterested()">
+            <mat-icon>cancel</mat-icon> Not Interested
+          </button>
+        </div>
+
+        <!-- Completion Banner -->
+        <div class="completion-banner" *ngIf="isComplete">
+          <mat-icon>check_circle</mat-icon>
+          <div>
+            <strong>Intake Complete</strong>
+            <p *ngIf="isQualified">Claim qualified — lead created.</p>
+            <p *ngIf="isQualified === false">Claim may need further review.</p>
+          </div>
+          <button mat-raised-button color="primary" (click)="startNewConversation()">New Intake</button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

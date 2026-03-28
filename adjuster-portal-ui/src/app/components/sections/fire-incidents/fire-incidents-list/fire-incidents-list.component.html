@@ -1,0 +1,150 @@
+<div class="list-wrapper">
+  <!-- Action bar -->
+  <div class="action-bar">
+    <span class="record-count">{{ totalRecords }} records</span>
+
+    <div class="spacer"></div>
+
+    <button
+      mat-stroked-button
+      *ngIf="userService.getUserPermissions('fire_agency', 'update')"
+      (click)="openAgenciesDialog()"
+      class="manage-btn"
+    >
+      <mat-icon>settings</mat-icon> Manage Agencies
+    </button>
+
+    <button
+      mat-stroked-button
+      *ngIf="userService.getUserPermissions('fire_data_source_config', 'update')"
+      (click)="openDataSourcesDialog()"
+      class="manage-btn"
+    >
+      <mat-icon>cloud</mat-icon> Manage Sources
+    </button>
+
+    <button mat-stroked-button [matMenuTriggerFor]="exportMenu" class="export-btn">
+      <mat-icon>download</mat-icon> Export
+    </button>
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportToExcel()">
+        <mat-icon>table_chart</mat-icon> Export to Excel
+      </button>
+      <button mat-menu-item (click)="exportToCsv()">
+        <mat-icon>description</mat-icon> Export to CSV
+      </button>
+    </mat-menu>
+  </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-row">
+    <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+    <span>Loading incidents…</span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table mat-table [dataSource]="dataSource" class="incidents-table">
+
+      <!-- Call Type Column -->
+      <ng-container matColumnDef="call_type">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let incident">
+          <span class="call-badge" [ngClass]="getCallTypeBadgeClass(incident.call_type)">
+            {{ incident.call_type }}
+          </span>
+          <span class="call-desc">{{ incident.call_type_description }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Address Column -->
+      <ng-container matColumnDef="address">
+        <th mat-header-cell *matHeaderCellDef>Address</th>
+        <td mat-cell *matCellDef="let incident">{{ incident.address || '—' }}</td>
+      </ng-container>
+
+      <!-- Received At Column -->
+      <ng-container matColumnDef="received_at">
+        <th mat-header-cell *matHeaderCellDef>Received</th>
+        <td mat-cell *matCellDef="let incident">
+          {{ incident.received_at ? (incident.received_at | date:'MM/dd/yy HH:mm') : '—' }}
+        </td>
+      </ng-container>
+
+      <!-- Source Column -->
+      <ng-container matColumnDef="source">
+        <th mat-header-cell *matHeaderCellDef>Source</th>
+        <td mat-cell *matCellDef="let incident">
+          <span class="source-badge source-rin">
+            UPA Incident Intelligence Network
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Agency Column -->
+      <ng-container matColumnDef="agency">
+        <th mat-header-cell *matHeaderCellDef>Agency</th>
+        <td mat-cell *matCellDef="let incident">{{ incident.agency?.name || '—' }}</td>
+      </ng-container>
+
+      <!-- Units Column -->
+      <ng-container matColumnDef="units">
+        <th mat-header-cell *matHeaderCellDef>Units</th>
+        <td mat-cell *matCellDef="let incident">
+          <span class="units-text">{{ getUnitsDisplay(incident.units) }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let incident">
+          <button mat-icon-button (click)="showIncidentDetails(incident)" matTooltip="View details">
+            <mat-icon>info_outline</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            matTooltip="Show on Map"
+            (click)="onShowOnMap(incident, $event)"
+          >
+            <mat-icon>map</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            *ngIf="userService.getUserPermissions('lead', 'create') && !incident.lead_id"
+            (click)="openConvertToLeadDialog(incident, $event)"
+            matTooltip="Convert to Lead"
+          >
+            <mat-icon>person_add</mat-icon>
+          </button>
+          <mat-icon
+            *ngIf="incident.lead_id"
+            class="converted-icon"
+            matTooltip="Converted to Lead"
+          >check_circle</mat-icon>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="onRowClick(row)" class="clickable-row"></tr>
+
+      <!-- Empty state -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="displayedColumns.length">
+          <mat-icon>info_outline</mat-icon>
+          No incidents found. Try adjusting the filters or poll an agency.
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Paginator -->
+  <mat-paginator
+    [length]="totalRecords"
+    [pageIndex]="pageIndex - 1"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 25, 50, 100]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons
+  ></mat-paginator>
+</div>

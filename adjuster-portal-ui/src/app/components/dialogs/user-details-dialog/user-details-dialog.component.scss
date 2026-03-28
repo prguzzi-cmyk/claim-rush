@@ -1,0 +1,24 @@
+.user-form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    mat-form-field {
+        width: 48%;
+    }
+}
+
+
+
+.permissions-table {
+  width: 100%;
+
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+}

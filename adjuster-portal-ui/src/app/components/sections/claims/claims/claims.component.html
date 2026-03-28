@@ -1,0 +1,417 @@
+
+
+<mat-card appearance="outlined" [hidden]="this.userService.getUserPermissions('claim','read')">
+    You don't have permissions to view claims.
+</mat-card>
+
+<mat-card appearance="outlined" [hidden]="!this.userService.getUserPermissions('claim','read')">
+    <div class="row">
+        <div class="col-10">
+            <span class="mat-headline-4 section-title">{{title}}</span>
+            <span *ngIf="title != 'Claims Dashboard'"><a (click)="clearSearch()"><mat-icon matTooltip="Clear filters">clear</mat-icon></a></span>
+
+<ul class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+    </li>
+    <li class="breadcrumb-item"><a href="javascript:">Claims</a></li>
+</ul>
+        </div>
+        <div class="col-2 text-end">
+            <button mat-mini-fab matTooltip="Add a new claim" matTooltipPosition="left" color="primary" class="m-1" [disabled]="
+            !userService.getUserPermissions('claim', 'create')
+        " (click)="openClaimAddDialog()">
+        <mat-icon>add</mat-icon>
+    </button>
+        </div>
+
+
+    </div>
+
+    <mat-card-content>
+
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-12">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Period</mat-label>
+                        <mat-select (selectionChange)="filterClaims($event.value)" controlName="period_type"
+                            [(ngModel)]="period_type" name="period" #clientPeriod>
+                            <mat-option value>Current Month</mat-option>
+                            <mat-option *ngFor="let period of periods" [value]="period">
+                                {{ period.replace('-', ' ') | titlecase }}
+                            </mat-option>
+                            <mat-option value="all-time">All time</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <form [formGroup]="searchFormGroup">
+                <div class="row">
+                    <div class="col-md-8">
+                        <mat-form-field>
+                            <mat-label>Search claims</mat-label>
+                            <input matInput formControlName="search_string" placeholder="Enter search keyword" />
+                        </mat-form-field>
+
+                        <button style="margin-right: 5px;" mat-raised-button color="primary"
+                            (click)="searchClaims()" [disabled]=" 
+                                !this.searchFormGroup.get('search_string').value
+                            ">
+                            <mat-icon color="white">search</mat-icon>
+                        </button>
+                        <button mat-raised-button color="accent" (click)="clearSearch()" [hidden]="
+                                !this.searchFormGroup.get('search_string').value
+                            ">
+                            <mat-icon color="white">close</mat-icon>
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <mat-form-field class="w-100">
+                            <mat-label>Filter claims</mat-label>
+                            <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter claims" />
+                        </mat-form-field>
+                    </div>
+                </div>
+            </form>
+
+            <div class="mat-table-scroll-container">
+
+                <table mat-table [dataSource]="dataSourceClaims" class="claim-table" matSort matSortActive="created_at"
+                    matSortDirection="desc" matSortDisableClear>
+                    <!-- Checkbox Column -->
+                    <ng-container matColumnDef="select">
+                        <th mat-header-cell *matHeaderCellDef>
+                            <mat-checkbox (change)="$event ? masterToggle() : null"
+                                [checked]="selection.hasValue() && isAllSelected()" [indeterminate]="
+                                    selection.hasValue() && !isAllSelected()
+                                ">
+                            </mat-checkbox>
+                        </th>
+                        <td mat-cell *matCellDef="let row">
+                            <mat-checkbox (click)="$event.stopPropagation()"
+                                (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+                            </mat-checkbox>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="sn">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element; let i = index">
+                            {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="ref_number">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Ref. #</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a type="button" class="link-ref"
+                                (click)="onClaimDetail(claim?.id, claim?.client?.full_name + '-' + claim?.ref_string.slice(-3))">{{claim?.ref_string}}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <!-- <a [routerLink]="['/client/', claim?.client_id]" routerLinkActive="router-link-active" (click)="onNavigate('Leads')">{{
+                            claim?.client?.full_name }}</a> -->
+                            <a type="button" class="link-ref"
+                                (click)="onClientDetail(claim?.client_id, claim?.client?.full_name )">{{claim?.client?.full_name}}</a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="address_loss">
+                        <th mat-header-cell *matHeaderCellDef>Loss address</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{
+                            claim?.claim_contact.address_loss
+                            ? claim?.claim_contact.address_loss
+                            : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="city_loss">
+                        <th mat-header-cell *matHeaderCellDef>City</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+         
+                            {{
+                            claim?.claim_contact.city_loss
+                            ? claim?.claim_contact.city_loss
+                            : '-'
+                            }}
+                            
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="state_loss">
+                        <th mat-header-cell *matHeaderCellDef>State</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                           
+                            {{
+                            claim?.claim_contact.state_loss
+                            ? claim?.claim_contact.state_loss
+                            : '-'
+                            }}
+                           
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="zip_code_loss">
+                        <th mat-header-cell *matHeaderCellDef>Zip code</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.claim_contact.zip_code_loss }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone_number">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Phone</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.client?.phone_number? (claim?.client?.phone_number | phoneNumberFormat) : '-'}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Email</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.client?.email ?? '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="loss_date">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Loss date</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.loss_date | date : 'MMMM dd, yyyy' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="peril">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Peril</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.peril ?? '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="anticipated_amount">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef class="text-nowrap">Claim estimate</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.anticipated_amount ? (claim?.anticipated_amount |
+                            currency:'USD':'symbol-narrow':'1.2-2':'en-US') : '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="fee">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Fee</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.fee_type == 'percentage' ? (claim?.fee ? claim?.fee + '%' : '-') :
+                            '$'+claim?.fee}}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="current_phase">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Current phase</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.current_phase }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="origin_type">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Origin</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.origin_type ? (claim?.origin_type | titlecase) : '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="source">
+                        <th mat-header-cell mat-sort-header="sourced_user_full_name" *matHeaderCellDef>Sourced by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a href="javascript:void(0)" (click)="filterClaimsByAgent(claim?.source_user, 'source')" class="link">
+                                {{ claim?.source_user?.first_name }} {{ claim?.source_user?.last_name }}
+                              </a>
+                              
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="signed_by">
+                        <th mat-header-cell mat-sort-header="signed_user_full_name" *matHeaderCellDef>Signed by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a href="javascript:void(0)" (click)="filterClaimsByAgent(claim?.signed_by_user, 'sign')" class="link">
+                                {{ claim?.signed_by_user?.first_name }} {{ claim?.signed_by_user?.last_name }}
+                              </a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="adjusted_by">
+                        <th mat-header-cell mat-sort-header="adjusted_user_full_name" *matHeaderCellDef>Adjusted by</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a href="javascript:void(0)" (click)="filterClaimsByAgent(claim?.adjusted_by_user, 'adjust')" class="link">
+                                {{ claim?.adjusted_by_user?.first_name }} {{ claim?.adjusted_by_user?.last_name }}
+                              </a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="assigned_to">
+                        <th mat-header-cell mat-sort-header="assigned_user_full_name" *matHeaderCellDef>Assigned to</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <a href="javascript:void(0)" (click)="filterClaimsByAgent(claim?.assigned_user, 'assign')" class="link">
+                            {{ claim?.assigned_user?.first_name }}
+                            {{ claim?.assigned_user?.last_name }}
+                            </a>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="insurance_company">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Insurance company</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.insurance_company ?? '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_number">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Policy #</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.policy_number?.trim() == '' ? '-' : claim?.policy_number }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="policy_type">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Policy type</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.policy_type?.trim() == '' ? '-' : claim?.policy_type }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="sub_policy_type">
+                        <th mat-header-cell *matHeaderCellDef>Sub policy type</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.sub_policy_type?.trim() == '' ? '-' : claim?.sub_policy_type }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="claim_number">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Claim #</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.claim_number ?? '-' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="fema_claim">
+                        <th mat-header-cell  *matHeaderCellDef>FEMA claim</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.fema_claim ? 'Yes' : 'No'  }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="state_of_emergency">
+                        <th mat-header-cell  *matHeaderCellDef>State of emergency</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.state_of_emergency ? 'Yes' : 'No' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="inhabitable">
+                        <th mat-header-cell  *matHeaderCellDef>Inhabitable</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            {{ claim?.inhabitable ? 'Yes' : 'No'  }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_by">
+                        <th mat-header-cell *matHeaderCellDef>
+                            Created by
+                        </th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{
+                            claim.created_by?.first_name +
+                            ' ' +
+                            claim.created_by?.last_name
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="created_at">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Created at</th>
+                        <td mat-cell *matCellDef="let claim" class="expiry-date-cell text-nowrap">
+                            {{ claim.created_at | date : 'MMMM dd, yyyy HH:mm:ss' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_by">
+                        <th mat-header-cell *matHeaderCellDef>
+                            Updated by
+                        </th>
+                        <td mat-cell *matCellDef="let claim">
+                            {{ claim.updated_by ? 
+                            claim.updated_by?.first_name +
+                            ' ' +
+                            claim.updated_by?.last_name : '-'
+                            }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="updated_at">
+                        <th mat-header-cell mat-sort-header *matHeaderCellDef>Updated at</th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <span *ngIf="!claim.updated_at">-</span>{{ claim.updated_at | date : 'MMMM dd, yyyy HH:mm:ss' }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="edit">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let claim" class="text-nowrap">
+                            <button mat-icon-button (click)="openClaimEditDialog(claim)" matTooltip="Edit {{ claim.first_name }} {{
+                                    claim.last_name
+                                }}">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" [disabled]="
+                                    !claim.can_be_removed || !!+claim.is_removed || !this.userService.getUserPermissions('claim','remove')
+                                " (click)="openClaimDeleteDialog(claim)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumnsClaims"></tr>
+                    <tr mat-row *matRowDef="
+                            let claim;
+                            columns: displayedColumnsClaims
+                        "></tr>
+                </table>
+
+            </div>
+
+            <mat-paginator [length]="totalRecords" #paginator showFirstLastButtons [pageSize]="pageSize"
+                [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)">
+            </mat-paginator>
+            
+            <div class="row" [style.visibility]="
+                    dataSourceClaims?.data?.length <= 0 ? 'hidden' : 'visible'
+                ">
+                <div class="col-md-12">
+                    <button mat-raised-button csvLink color="primary" (click)="downloadExcel()">
+                        <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                    <button mat-raised-button csvLink color="primary" (click)="downloadCsv()">
+                        <mat-icon>download</mat-icon>Csv</button>&nbsp;
+                    <button [hidden]="!userService.getUserPermissions('claim', 'bulk-update')" mat-raised-button
+                        [disabled]="selectionLength == 0" color="primary" (click)="openClaimMultipleEditDialog()">
+                        <mat-icon>edit</mat-icon>Edit</button>&nbsp;
+                    <button [hidden]="!userService.getUserPermissions('claim', 'bulk-delete')" mat-raised-button
+                        [disabled]="selectionLength == 0" color="warn" (click)="openClaimMultipleDeleteDialog()">
+                        <mat-icon>delete</mat-icon>Delete
+                    </button>
+                    &nbsp;
+                    <button mat-raised-button color="primary" (click)="import()">
+                        <mat-icon>add_to_photos</mat-icon>
+                        <span>Import</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </mat-card-content>
+
+    <mat-card-actions> </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

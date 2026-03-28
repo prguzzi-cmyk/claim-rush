@@ -1,0 +1,60 @@
+<h2 mat-dialog-title>
+  <mat-icon>email</mat-icon>
+  Supplement Email Preview
+</h2>
+
+<mat-dialog-content>
+  <!-- Warning when no email detected -->
+  <div class="email-warning" *ngIf="!emailDetected">
+    <mat-icon>warning</mat-icon>
+    No adjuster email detected. Please enter the carrier contact email.
+  </div>
+
+  <!-- Auto-detected badge -->
+  <div class="email-detected" *ngIf="emailDetected">
+    <mat-icon>check_circle</mat-icon>
+    Email auto-filled from {{ emailSource }}.
+  </div>
+
+  <mat-form-field appearance="outline" class="email-field">
+    <mat-label>To</mat-label>
+    <input matInput [(ngModel)]="to" placeholder="carrier-adjuster@example.com" />
+    <mat-hint>This email will be saved for future supplement requests.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="email-field">
+    <mat-label>Subject</mat-label>
+    <input matInput [(ngModel)]="subject" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="email-field">
+    <mat-label>Body</mat-label>
+    <textarea matInput [(ngModel)]="body" rows="18" class="email-body"></textarea>
+  </mat-form-field>
+
+  <!-- Financial summary cards -->
+  <div class="email-summary-cards">
+    <div class="summary-card">
+      <span class="summary-label">Carrier Total</span>
+      <span class="summary-value">{{ data.carrierTotal | currency }}</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">ACI Total</span>
+      <span class="summary-value">{{ data.aciTotal | currency }}</span>
+    </div>
+    <div class="summary-card supplement-card">
+      <span class="summary-label">Supplement</span>
+      <span class="summary-value">{{ data.supplementTotal | currency }}</span>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-stroked-button (click)="copyEmail()">
+    <mat-icon>content_copy</mat-icon> Copy Email
+  </button>
+  <button mat-raised-button color="primary" (click)="sendEmail()">
+    <mat-icon>send</mat-icon> Send Email
+  </button>
+</mat-dialog-actions>

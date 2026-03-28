@@ -1,0 +1,8 @@
+# Base NodeJs Image
+FROM node:20.0-alpine3.17
+
+# Setup current working directory
+WORKDIR /app/
+
+# Install packages
+RUN npm install mjml --global

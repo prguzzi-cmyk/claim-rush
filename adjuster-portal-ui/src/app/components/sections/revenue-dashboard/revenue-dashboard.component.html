@@ -1,0 +1,171 @@
+<div class="rev-dark">
+
+  <!-- ── HEADER ── -->
+  <div class="rev-header">
+    <div>
+      <h1>Revenue & Performance</h1>
+      <p>Platform-wide business intelligence and conversion metrics.</p>
+    </div>
+    <div class="rev-header-right">
+      <div class="rev-time-filters">
+        <button *ngFor="let f of ['today','7d','30d','90d']"
+                [class.rev-tf-active]="timeFilter === f"
+                (click)="setTimeFilter(f)">{{ f === 'today' ? 'Today' : f }}</button>
+      </div>
+      <span class="rev-clock">Updated {{ lastUpdated }}</span>
+    </div>
+  </div>
+
+  <!-- ══════ KPI ROW ══════ -->
+  <div class="rev-kpi-row">
+    <div class="rev-kpi" *ngFor="let k of kpis" [style.borderTopColor]="k.color">
+      <mat-icon [style.color]="k.color">{{ k.icon }}</mat-icon>
+      <div class="rev-kpi-val">{{ k.value }}</div>
+      <div class="rev-kpi-lbl">{{ k.label }}</div>
+      <div class="rev-kpi-trend" *ngIf="k.trend">{{ k.trend }}</div>
+    </div>
+  </div>
+
+  <!-- ══════ REVENUE ROW ══════ -->
+  <div class="rev-revenue-row">
+    <div class="rev-rev-card" *ngFor="let r of revenueKpis">
+      <div class="rev-rev-val" [style.color]="r.color">{{ r.value }}</div>
+      <div class="rev-rev-lbl">{{ r.label }}</div>
+    </div>
+  </div>
+
+  <!-- ══════ FUNNEL + ACTIVITY ══════ -->
+  <div class="rev-grid-2">
+
+    <!-- Funnel -->
+    <div class="rev-panel">
+      <div class="rev-panel-header"><mat-icon>filter_alt</mat-icon> Conversion Funnel</div>
+      <div class="rev-funnel">
+        <div class="rev-funnel-step" *ngFor="let s of funnel; let i = index">
+          <div class="rev-funnel-bar-wrap">
+            <div class="rev-funnel-bar" [style.width.%]="(s.count / funnelMaxCount) * 100" [style.backgroundColor]="s.color"></div>
+          </div>
+          <div class="rev-funnel-info">
+            <span class="rev-funnel-label">{{ s.label }}</span>
+            <span class="rev-funnel-count">{{ s.count | number }}</span>
+            <span class="rev-funnel-pct">{{ s.pct }}%</span>
+          </div>
+          <div class="rev-funnel-drop" *ngIf="s.dropOff > 0">
+            <mat-icon>arrow_downward</mat-icon> {{ s.dropOff }}% drop-off
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="rev-panel">
+      <div class="rev-panel-header"><mat-icon>timeline</mat-icon> Live Activity <span class="rev-live-dot"></span></div>
+      <div class="rev-activity-scroll">
+        <div class="rev-act-item" *ngFor="let a of activities">
+          <div class="rev-act-dot" [style.backgroundColor]="a.color">
+            <mat-icon>{{ a.icon }}</mat-icon>
+          </div>
+          <div class="rev-act-body">
+            <span class="rev-act-text">{{ a.text }}</span>
+            <span class="rev-act-time">{{ a.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ AGENT PERFORMANCE ══════ -->
+  <div class="rev-panel rev-full">
+    <div class="rev-panel-header"><mat-icon>leaderboard</mat-icon> Agent Performance</div>
+    <div class="rev-table-scroll">
+      <table class="rev-table">
+        <thead>
+          <tr>
+            <th>Agent</th><th>Leads</th><th>Calls</th><th>Appointments</th><th>Sent</th><th>Signed</th><th>Closing %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of agents">
+            <td><strong>{{ a.name }}</strong></td>
+            <td>{{ a.leads }}</td>
+            <td>{{ a.calls }}</td>
+            <td>{{ a.appointments }}</td>
+            <td>{{ a.sent }}</td>
+            <td class="rev-val-green">{{ a.signed }}</td>
+            <td>
+              <span class="rev-rate-badge" [style.backgroundColor]="a.rate >= 20 ? '#dcfce71A' : a.rate >= 15 ? '#fef3c71A' : '#fef2f21A'"
+                    [style.color]="a.rate >= 20 ? '#16a34a' : a.rate >= 15 ? '#d97706' : '#dc2626'">
+                {{ a.rate }}%
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════ SOURCE + VOICE + CERTIFIED ══════ -->
+  <div class="rev-grid-3">
+
+    <!-- Lead Sources -->
+    <div class="rev-panel">
+      <div class="rev-panel-header"><mat-icon>source</mat-icon> Lead Sources</div>
+      <div class="rev-source-list">
+        <div class="rev-source-row" *ngFor="let s of sources">
+          <mat-icon [style.color]="s.color">{{ s.icon }}</mat-icon>
+          <span class="rev-src-name">{{ s.source }}</span>
+          <span class="rev-src-count">{{ s.count }}</span>
+          <span class="rev-src-conv">{{ s.converted }} conv</span>
+          <span class="rev-src-rate" [style.color]="s.rate >= 15 ? '#16a34a' : '#d97706'">{{ s.rate }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voice + AI -->
+    <div class="rev-panel">
+      <div class="rev-panel-header"><mat-icon>phone_in_talk</mat-icon> Voice & AI</div>
+      <div class="rev-metric-grid">
+        <div class="rev-metric">
+          <span class="rev-m-val">{{ voiceMetrics.answered }}</span>
+          <span class="rev-m-lbl">Calls Answered</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val">{{ voiceMetrics.connectionRate }}%</span>
+          <span class="rev-m-lbl">Connection Rate</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val">{{ voiceMetrics.bookingsFromCalls }}</span>
+          <span class="rev-m-lbl">Bookings from Calls</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val" style="color:#7c3aed;">{{ voiceMetrics.aiPerformance }}%</span>
+          <span class="rev-m-lbl">AI Conversion</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val">{{ voiceMetrics.manualPerformance }}%</span>
+          <span class="rev-m-lbl">Manual Conversion</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Certified -->
+    <div class="rev-panel">
+      <div class="rev-panel-header"><mat-icon>verified</mat-icon> Certified Signatures</div>
+      <div class="rev-metric-grid">
+        <div class="rev-metric">
+          <span class="rev-m-val" style="color:#7c3aed;">{{ certifiedMetrics.certifiedPct }}%</span>
+          <span class="rev-m-lbl">Using Certified</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val" style="color:#16a34a;">{{ certifiedMetrics.certifiedCompletion }}%</span>
+          <span class="rev-m-lbl">Certified Completion</span>
+        </div>
+        <div class="rev-metric">
+          <span class="rev-m-val">{{ certifiedMetrics.standardCompletion }}%</span>
+          <span class="rev-m-lbl">Standard Completion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

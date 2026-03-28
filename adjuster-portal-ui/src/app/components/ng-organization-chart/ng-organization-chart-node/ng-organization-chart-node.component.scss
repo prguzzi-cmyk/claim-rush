@@ -1,0 +1,152 @@
+app-ng-organization-chart-list {
+  padding-top: 20px;
+  position: relative;
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  -moz-transition: all 0.5s;
+  display: flex;
+}
+
+/*Time to add downward connectors from parents*/
+app-ng-organization-chart-list::before{
+  content: '';
+  position: absolute; top: 0; left: 50%;
+  border-left: 1px solid #ccc;
+  width: 0; height: 20px;
+}
+
+.container{
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  padding: 15px 20px;
+  max-width: 200px;
+  width: 160px;
+  height: auto;
+
+  text-decoration: none;
+  font-family: arial, verdana, tahoma;
+  font-size: 11px;
+  display: inline-block;
+  background-color: #172b4d;
+
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  -moz-transition: all 0.5s;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px; /* Adjust margin as needed */
+}
+
+.user-info mat-icon {
+  font-size: 40px; /* Adjust size as needed */
+  margin-right: 8px; /* Space between icon and text */
+}
+
+.text-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Ensure the text info container grows with the parent */
+  min-width: 0; /* Prevent overflow issues with flex items */
+  color: white !important;
+}
+
+.responsive-title {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 1.5em;
+  text-overflow: ellipsis;
+  max-width: 100%; /* Ensure it doesn't overflow the container */
+}
+
+/* styles.css or component specific stylesheet */
+.button-container {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  gap: 8px; /* Add space between buttons */
+  padding: 8px; /* Optional: Add padding around the container */
+}
+
+button[mat-icon-button] {
+  border-radius: 50%; /* Make buttons circular */
+  width: 48px; /* Set width */
+  height: 48px; /* Set height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(16, 4, 4, 0.2); /* Add a subtle shadow */
+}
+
+button[mat-icon-button] mat-icon {
+  font-size: 24px; /* Adjust icon size */
+}
+
+button[mat-icon-button]:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Add a hover effect */
+}
+
+.add-button {
+  background-color: #dc4f13; /* Use Angular Material green color */
+  color: white;
+}
+
+.add-button:hover {
+  background-color:  red;
+}
+
+.delete-button {
+  background-color: #eae9e3;
+}
+
+.delete-button:hover {
+  background-color: white;
+}
+
+.mat-mdc-card-subtitle {
+  /* color: rgba(0, 0, 0, 0.54); */
+  color: white;
+  font-size: 1.0em;
+}
+
+.icon-container {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.staff-icon {
+  color: #4caf50; /* Green for staff */
+}
+.company-icon {
+  color: #2196f3; /* Blue for company */
+}
+
+.evaluate-button {
+  background-color: #ff9800; /* Bright orange */
+  color: white; /* White icon for contrast */
+  border-radius: 50%; /* Make the button circular */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.evaluate-button:hover {
+  background-color: #e68900; /* Slightly darker orange on hover */
+  transform: scale(1.1); /* Slightly enlarge on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
+}
+
+.evaluate-button:focus {
+  outline: none; /* Remove focus outline */
+  box-shadow: 0 4px 8px rgba(255, 152, 0, 0.7); /* Bright focus shadow */
+}
+
+
+
+

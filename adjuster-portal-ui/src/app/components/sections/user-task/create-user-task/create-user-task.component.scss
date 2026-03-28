@@ -1,0 +1,29 @@
+
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+mat-card-content {
+    display: flex;
+    flex-direction: column;
+  }
+  
+
+  ::ng-deep .mat-mdc-select-panel{
+    margin-top: 8px;
+  }
+
+  /* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
+  ::ng-deep .mat-select-panel-wrap {
+    flex-basis: 95% !important;
+    margin-left: 30px !important;
+  }
+
+  ::ng-deep .cdk-overlay-pane{
+    margin-top: 40px;
+  }
+  .ml-1rem{
+    margin-left: 1rem;
+  }
+  .flex-pr{
+    display: flex;
+    padding-right: 2rem;
+  }
+  

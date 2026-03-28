@@ -1,0 +1,84 @@
+<div *ngxPermissionsOnly="['super-admin']">
+
+  <mat-card appearance="outlined">
+    <div class="row">
+      <div class="col-8">
+        <p class="mat-headline-4 section-title">Territory Records</p>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+          </li>
+          <li class="breadcrumb-item"><a href="javascript:">Administration</a></li>
+          <li class="breadcrumb-item"><a>Territory Records</a></li>
+        </ul>
+      </div>
+      <div class="col-4 text-end" style="display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+        <a mat-stroked-button color="primary" [routerLink]="['/app/administration/territory-control']">
+          <mat-icon>tune</mat-icon> Open Map Control
+        </a>
+        <button mat-mini-fab matTooltip="Add new territory" color="primary" (click)="openTerritoryAddDialog()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-card-content>
+      <table mat-table [dataSource]="territories" class="territories-table" style="margin-top:12px;">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index;">{{i+1}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.name}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="territory_type">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.territory_type | titlecase}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="state">
+          <th mat-header-cell *matHeaderCellDef>State</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.state || '-'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="county">
+          <th mat-header-cell *matHeaderCellDef>County</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.county || '-'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="zip_code">
+          <th mat-header-cell *matHeaderCellDef>ZIP</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.zip_code || '-'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="is_active">
+          <th mat-header-cell *matHeaderCellDef>Active</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">
+            <mat-slide-toggle [checked]="t.is_active" disabled color="primary"></mat-slide-toggle>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let t" (click)="openTerritoryViewDialog(t)">{{t.created_at | date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="edit">
+          <th mat-header-cell *matHeaderCellDef>Edit</th>
+          <td mat-cell *matCellDef="let t">
+            <button mat-icon-button (click)="openTerritoryEditDialog(t)" matTooltip="Edit {{t.name}}">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

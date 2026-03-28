@@ -1,0 +1,283 @@
+<div class="cs-page">
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 1: INTRO — Conversational Opening
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="cs-step" *ngIf="step === 'intro'">
+
+    <div class="cs-icon-wrap">
+      <mat-icon>support_agent</mat-icon>
+    </div>
+
+    <h1>Let's Take a Closer Look at Your Claim</h1>
+
+    <div class="cs-message-flow">
+      <div class="cs-bubble">
+        <p>Based on what we've seen so far, there are often additional details that can impact how a claim is evaluated.</p>
+      </div>
+
+      <div class="cs-bubble">
+        <p>Many claims are initially reviewed at a surface level. A more detailed evaluation can help ensure all damage is properly considered.</p>
+      </div>
+
+      <div class="cs-prompt">
+        <p>Would you like us to take a closer look at your claim with you?</p>
+      </div>
+    </div>
+
+    <div class="cs-actions">
+      <button mat-raised-button class="cs-btn cs-btn-primary" (click)="acceptReview()">
+        <mat-icon>check</mat-icon>
+        Yes — Review My Claim
+      </button>
+      <button mat-stroked-button class="cs-btn cs-btn-secondary" (click)="declineReview()">
+        Not Right Now
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 2: QUALIFICATION — Positioning + Reassurance
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="cs-step" *ngIf="step === 'qualify'">
+
+    <div class="cs-icon-wrap cs-icon-shield">
+      <mat-icon>verified_user</mat-icon>
+    </div>
+
+    <h1>Before We Proceed</h1>
+
+    <div class="cs-message-flow">
+      <div class="cs-bubble">
+        <p>We work with clients whose claims may benefit from a more detailed evaluation.</p>
+      </div>
+
+      <div class="cs-bubble">
+        <p>We'll take a quick look to determine if your claim is a good fit for our review process.</p>
+      </div>
+    </div>
+
+    <!-- Rights-Based Reassurance -->
+    <div class="cs-info-card cs-rights">
+      <mat-icon>gavel</mat-icon>
+      <div>
+        <h4>Your Rights as a Policyholder</h4>
+        <p>As a policyholder, you have the right to have your claim reviewed and supported through the process.</p>
+      </div>
+    </div>
+
+    <!-- Compensation Framing -->
+    <div class="cs-info-card cs-comp">
+      <mat-icon>account_balance</mat-icon>
+      <div>
+        <h4>How This Works</h4>
+        <p>If we move forward, our role is to help ensure your claim is fully evaluated. Any compensation is tied to the outcome of the claim — not an upfront cost.</p>
+      </div>
+    </div>
+
+    <!-- CTA prompt -->
+    <div class="cs-cta-prompt">
+      <p>We can walk through your claim with you and explain what to expect.</p>
+    </div>
+
+    <!-- Action Options -->
+    <div class="cs-action-cards">
+
+      <div class="cs-action-card cs-action-primary">
+        <div class="cs-action-card-icon">
+          <mat-icon>phone_in_talk</mat-icon>
+        </div>
+        <h3>Schedule a Call</h3>
+        <p>Speak with a claim specialist who can walk through the details with you.</p>
+        <button mat-raised-button class="cs-btn cs-btn-primary" (click)="scheduleCall()">
+          <mat-icon>event</mat-icon>
+          Schedule My Claim Review
+        </button>
+      </div>
+
+      <div class="cs-action-card">
+        <div class="cs-action-card-icon cs-action-icon-alt">
+          <mat-icon>laptop_mac</mat-icon>
+        </div>
+        <h3>Continue Online</h3>
+        <p>Complete the review process online at your own pace.</p>
+        <button mat-stroked-button class="cs-btn cs-btn-outline" (click)="continueOnline()">
+          Continue Review Online
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 3: SCHEDULE — Calendar + Time Selection
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="cs-step cs-schedule-step" *ngIf="step === 'schedule'">
+
+    <div class="cs-icon-wrap">
+      <mat-icon>event_available</mat-icon>
+    </div>
+
+    <h1>Schedule Your Claim Review</h1>
+    <p class="cs-schedule-intro">Choose a time that works best for you. We'll walk through your claim and answer your questions.</p>
+
+    <div class="cs-schedule-card">
+
+      <!-- Date Picker -->
+      <div class="cs-sched-section">
+        <h3>Select a Date</h3>
+        <div class="cs-date-row">
+          <button *ngFor="let day of availableDays"
+                  class="cs-date-btn"
+                  [class.cs-date-selected]="selectedDay === day"
+                  (click)="selectDay(day)">
+            <span class="cs-date-day">{{ day.dayName }}</span>
+            <span class="cs-date-num">{{ day.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Time Slots -->
+      <div class="cs-sched-section" *ngIf="selectedDay">
+        <h3>Select a Time</h3>
+        <div class="cs-tz-note">
+          <mat-icon>language</mat-icon> {{ detectedTimezone }}
+        </div>
+
+        <div class="cs-slot-group" *ngIf="morningSlots.length > 0">
+          <span class="cs-slot-period">Morning</span>
+          <div class="cs-slot-row">
+            <button *ngFor="let slot of morningSlots"
+                    class="cs-slot-btn"
+                    [class.cs-slot-selected]="selectedSlot === slot"
+                    [class.cs-slot-unavailable]="!slot.available"
+                    [disabled]="!slot.available"
+                    (click)="selectSlot(slot)">
+              {{ slot.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="cs-slot-group" *ngIf="afternoonSlots.length > 0">
+          <span class="cs-slot-period">Afternoon</span>
+          <div class="cs-slot-row">
+            <button *ngFor="let slot of afternoonSlots"
+                    class="cs-slot-btn"
+                    [class.cs-slot-selected]="selectedSlot === slot"
+                    [class.cs-slot-unavailable]="!slot.available"
+                    [disabled]="!slot.available"
+                    (click)="selectSlot(slot)">
+              {{ slot.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="cs-slot-group" *ngIf="eveningSlots.length > 0">
+          <span class="cs-slot-period">Evening</span>
+          <div class="cs-slot-row">
+            <button *ngFor="let slot of eveningSlots"
+                    class="cs-slot-btn"
+                    [class.cs-slot-selected]="selectedSlot === slot"
+                    [class.cs-slot-unavailable]="!slot.available"
+                    [disabled]="!slot.available"
+                    (click)="selectSlot(slot)">
+              {{ slot.label }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="cs-sched-section" *ngIf="selectedSlot">
+        <h3>Your Contact Information</h3>
+        <div class="cs-form-fields">
+          <div class="cs-field">
+            <label>Name</label>
+            <div class="cs-input-wrap">
+              <mat-icon>person</mat-icon>
+              <input type="text" [(ngModel)]="clientName" placeholder="Your full name">
+            </div>
+          </div>
+          <div class="cs-field">
+            <label>Phone Number</label>
+            <div class="cs-input-wrap">
+              <mat-icon>phone</mat-icon>
+              <input type="tel" [(ngModel)]="clientPhone" placeholder="(555) 123-4567" autocomplete="tel">
+            </div>
+          </div>
+          <div class="cs-field">
+            <label>Email</label>
+            <div class="cs-input-wrap">
+              <mat-icon>mail_outline</mat-icon>
+              <input type="email" [(ngModel)]="clientEmail" placeholder="you@example.com" autocomplete="email">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirm Button -->
+      <div class="cs-sched-confirm" *ngIf="selectedSlot">
+        <div class="cs-sched-summary" *ngIf="confirmationDate">
+          <mat-icon>event</mat-icon>
+          <span>{{ confirmationDate }}</span>
+        </div>
+        <button mat-raised-button class="cs-btn cs-btn-primary cs-confirm-btn"
+                [disabled]="!canConfirm || submitting"
+                (click)="confirmAppointment()">
+          <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>
+          <mat-icon *ngIf="!submitting">check</mat-icon>
+          {{ submitting ? 'Scheduling...' : 'Confirm My Appointment' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STEP 4: CONFIRMED — Success + Follow-Up Triggered
+       ══════════════════════════════════════════════════════════════ -->
+  <div class="cs-step cs-confirmed-step" *ngIf="step === 'confirmed'">
+
+    <div class="cs-confirmed-icon">
+      <mat-icon>check_circle</mat-icon>
+    </div>
+
+    <h1>You're All Set</h1>
+
+    <p class="cs-confirmed-text">We'll reach out at your scheduled time.</p>
+
+    <div class="cs-confirmed-detail" *ngIf="confirmationDate">
+      <mat-icon>event</mat-icon>
+      <span>{{ confirmationDate }}</span>
+    </div>
+
+    <p class="cs-confirmed-subtext">You may also receive a quick confirmation call to go over a few details.</p>
+
+    <!-- Follow-up status indicators (subtle, non-blocking) -->
+    <div class="cs-followup-status">
+      <div class="cs-followup-item" *ngIf="calendarEventId">
+        <mat-icon>event_available</mat-icon>
+        <span>Added to calendar</span>
+      </div>
+      <div class="cs-followup-item" *ngIf="emailSent">
+        <mat-icon>mark_email_read</mat-icon>
+        <span>Confirmation email sent</span>
+      </div>
+      <div class="cs-followup-item" *ngIf="followUpTriggered">
+        <mat-icon>phone_callback</mat-icon>
+        <span>Confirmation call scheduled</span>
+      </div>
+    </div>
+
+    <p class="cs-confirmed-note">You'll receive a confirmation email with your appointment details.</p>
+
+    <button mat-raised-button class="cs-btn cs-btn-primary" (click)="goToDashboard()">
+      <mat-icon>arrow_forward</mat-icon>
+      Go to My Claim Dashboard
+    </button>
+
+  </div>
+
+</div>

@@ -1,0 +1,158 @@
+<h2 mat-dialog-title>
+  {{
+  action == "add"
+  ? "Add task"
+  : action == "view"
+  ? this.clientTask?.title
+  : action == "delete"
+  ? this.clientTask?.title
+  : this.clientTask?.title
+  }}
+</h2>
+
+<div mat-dialog-content *ngIf="this.action == 'view'">
+
+      <dl class="row">
+        <dt class="col-sm-12">Title</dt>
+        <dd class="col-sm-12">{{ clientTask?.title }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Task description</dt>
+        <dd class="col-sm-12">{{ clientTask?.description }}</dd>
+      </dl>
+  <div class="row">
+    <div class="col-md-6">
+
+      <dl class="row">
+        <dt class="col-sm-12">Status</dt>
+        <dd class="col-sm-12">{{ clientTask?.status }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Priority</dt>
+        <dd class="col-sm-12">{{ clientTask.priority }}</dd>
+      </dl>
+      <dl class="row">
+        <dt class="col-sm-12">Due date</dt>
+        <dd class="col-sm-12">{{ this.clientTask?.due_date | date : "MMMM dd, yyyy" }}</dd>
+      </dl>
+    </div>
+    <div class="col-md-6">
+
+      <dl class="row">
+        <dt class="col-sm-12">Created by</dt>
+        <dd class="col-sm-12">{{ this.clientTask?.created_by.first_name }}</dd>
+      </dl>
+      <dl class="row">
+        <dt class="col-sm-12">Created at</dt>
+        <dd class="col-sm-12">
+          {{
+          this.clientTask?.created_at
+          ? (this.clientTask?.created_at | date : "MMMM dd, yyyy h:mm:ssa")
+          : "-"
+          }}
+        </dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Updated by</dt>
+        <dd class="col-sm-12">{{ this.clientTask?.updated_by?.first_name }}</dd>
+      </dl>
+      <dl class="row">
+        <dt class="col-sm-12">Updated at</dt>
+        <dd class="col-sm-12">
+          {{
+          this.clientTask.updated_at
+          ? (this.clientTask?.updated_at | date : "MMMM dd, yyyy h:mm:ssa")
+          : "-"
+          }}
+        </dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<div mat-dialog-content *ngIf="this.action == 'add' || this.action == 'edit'">
+
+  <form [formGroup]="clientTaskForm" class="client-task-form">
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Lead Task type</mat-label>
+      <mat-select formControlName="task_type" placeholder="Select task type" name="task_type">
+        <mat-option *ngFor="let type of types" [value]="type">
+          {{type}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Task title</mat-label>
+      <input matInput formControlName="title">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Task description</mat-label>
+      <textarea matInput rows="6" formControlName="description" placeholder="Enter task description"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" *ngIf="this.action == 'edit'">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status" placeholder="Select task status" name="status">
+        <mat-option *ngFor="let status of statuses" [value]="status">
+          {{status}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Task priority</mat-label>
+      <mat-select formControlName="priority" placeholder="Select task priority" name="priority">
+        <mat-option *ngFor="let priority of properties" [value]="priority">
+          {{priority}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Task due date</mat-label>
+      <input matInput formControlName="due_date" placeholder="MMMM dd, yyyy" [matDatepicker]="due_date"
+        aria-label="Task due date">
+      <mat-datepicker-toggle matSuffix [for]="due_date"></mat-datepicker-toggle>
+      <mat-datepicker #due_date></mat-datepicker>
+    </mat-form-field>
+
+  </form>
+</div>
+
+<div mat-dialog-content *ngIf="this.action == 'delete'">
+  Are you sure you want to delete this task?
+  <p></p>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" *ngIf="this.action == 'add'" (click)="addTask()"
+    [disabled]="!clientTaskForm.valid || clientTaskFormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="clientTaskFormDisabled"></mat-spinner>
+    </div>
+    Save task
+  </button>
+
+  <button mat-raised-button color="primary" *ngIf="this.action == 'edit'" (click)="updateTask()"
+    [disabled]="!clientTaskForm.valid || clientTaskFormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="clientTaskFormDisabled"></mat-spinner>
+    </div>
+    <mat-icon>save</mat-icon> Save
+  </button>
+
+  <button mat-raised-button color="warn" [disabled]="!this.userService.getUserPermissions('client_task','remove')" (click)="deleteTask()" *ngIf="action == 'delete'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="clientTaskFormDisabled"></mat-spinner>
+    </div>
+    Delete
+  </button>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

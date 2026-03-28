@@ -1,0 +1,246 @@
+<div class="sit-dark">
+
+  <div class="sit-header">
+    <div>
+      <h1>Storm Impact Targeting</h1>
+      <p class="sit-subtitle">Identify ZIP codes affected by recent storms and generate targeted claim opportunities.</p>
+      <p class="sit-meta" *ngIf="lastUpdated">
+        <mat-icon>schedule</mat-icon> Updated {{ timeAgo(lastUpdated.toISOString()) }}
+        &middot; {{ sourceEventCount }} source events
+        &middot; {{ filteredZips.length }} ZIPs matched
+      </p>
+    </div>
+    <button mat-stroked-button class="dark-btn" (click)="loadData()" [disabled]="loading">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <mat-form-field appearance="outline" class="dark-field">
+      <mat-label>Event Type</mat-label>
+      <mat-select [(ngModel)]="eventType" (selectionChange)="onFilterChange()">
+        <mat-option *ngFor="let t of eventTypes" [value]="t.value">{{ t.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="dark-field">
+      <mat-label>Time Window</mat-label>
+      <mat-select [(ngModel)]="timeWindow" (selectionChange)="onFilterChange()">
+        <mat-option *ngFor="let w of timeWindows" [value]="w.value">{{ w.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="dark-field">
+      <mat-label>State</mat-label>
+      <input matInput [(ngModel)]="stateFilter" (ngModelChange)="onFilterChange()" placeholder="TX" maxlength="2">
+    </mat-form-field>
+    <div class="filter-summary">
+      <span class="fs-item"><strong>{{ filteredZips.length }}</strong> ZIPs</span>
+      <span class="fs-item"><strong>{{ totalClaims | number }}</strong> est. claims</span>
+      <span class="fs-item fs-high"><strong>{{ highImpactCount }}</strong> high impact</span>
+    </div>
+  </div>
+
+  <!-- Loading skeleton -->
+  <div class="loading-container" *ngIf="loading">
+    <div class="skeleton-kpi-row">
+      <div class="skeleton-kpi" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+    <div class="skeleton-map"></div>
+    <div class="skeleton-table">
+      <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-dark">
+        <span class="kpi-val">{{ filteredZips.length }}</span>
+        <span class="kpi-lbl">Affected ZIPs</span>
+      </div>
+      <div class="kpi-dark">
+        <span class="kpi-val">{{ totalProperties | number }}</span>
+        <span class="kpi-lbl">Total Properties</span>
+      </div>
+      <div class="kpi-dark">
+        <span class="kpi-val">{{ totalClaims | number }}</span>
+        <span class="kpi-lbl">Potential Claims <span class="kpi-est">est.</span></span>
+      </div>
+      <div class="kpi-dark kpi-accent">
+        <span class="kpi-val">{{ fmtCurrency(totalValue) }}</span>
+        <span class="kpi-lbl">Modeled Value <span class="kpi-est">est.</span></span>
+      </div>
+    </div>
+
+    <!-- Map + Detail -->
+    <div class="map-row">
+      <div class="map-panel dark-panel">
+        <div class="dark-panel-header">
+          <mat-icon>map</mat-icon> Storm Impact Map
+          <div class="impact-legend">
+            <span><span class="legend-dot" style="background:#ff1744;"></span> High</span>
+            <span><span class="legend-dot" style="background:#ff6d00;"></span> Medium</span>
+            <span><span class="legend-dot" style="background:#ffd600;"></span> Low</span>
+          </div>
+        </div>
+        <div class="map-area">
+          <google-map
+            height="100%"
+            width="100%"
+            [center]="mapCenter"
+            [zoom]="mapZoom"
+            [options]="mapOptions"
+            (mapInitialized)="onMapReady()">
+
+            <!-- Impact halo circles -->
+            <map-circle
+              *ngFor="let c of impactCircles"
+              [center]="c.center"
+              [radius]="c.radius"
+              [options]="c.options">
+            </map-circle>
+
+            <!-- Storm markers -->
+            <map-marker
+              *ngFor="let m of stormMarkers; let i = index"
+              [position]="m.position"
+              [options]="m.options"
+              (mapClick)="onMapMarkerClick(i)">
+            </map-marker>
+          </google-map>
+          <div class="map-empty" *ngIf="filteredZips.length === 0 && !loading">
+            <mat-icon>cloud_off</mat-icon>
+            <span>No storm events match current filters</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div class="detail-panel dark-panel" *ngIf="selectedZip">
+        <div class="dark-panel-header">
+          <mat-icon [style.color]="getImpactColor(selectedZip.impactLevel)">location_on</mat-icon> ZIP {{ selectedZip.zip }}
+          <button mat-icon-button class="close-btn" (click)="closeZipPanel()"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="detail-body">
+          <div class="detail-field"><span class="dl">ZIP Code</span><span class="dv">{{ selectedZip.zip }}</span></div>
+          <div class="detail-field"><span class="dl">State</span><span class="dv">{{ selectedZip.state }}</span></div>
+          <div class="detail-field"><span class="dl">Storm Type</span><span class="dv" [style.color]="getImpactColor(selectedZip.impactLevel)">{{ selectedZip.stormType | titlecase }}</span></div>
+          <div class="detail-field"><span class="dl">Impact</span><span class="dv impact-badge" [style.backgroundColor]="getImpactBg(selectedZip.impactLevel)" [style.color]="getImpactColor(selectedZip.impactLevel)">{{ selectedZip.impactLevel | uppercase }}</span></div>
+          <div class="detail-field"><span class="dl">Est. Properties</span><span class="dv">{{ selectedZip.properties | number }}</span></div>
+          <div class="detail-field"><span class="dl">Potential Claims</span><span class="dv val-cyan">{{ selectedZip.potentialClaims }} <small class="est-label">est.</small></span></div>
+          <div class="detail-field"><span class="dl">Avg Home Value</span><span class="dv">{{ fmtCurrency(selectedZip.avgHomeValue) }}</span></div>
+          <div class="detail-field"><span class="dl">Last Storm</span><span class="dv">{{ timeAgo(selectedZip.lastStormTime) }}</span></div>
+
+          <button mat-raised-button class="gen-btn" (click)="generateLeadsFromZip(selectedZip)">
+            <mat-icon>person_add</mat-icon> Generate Leads From ZIP
+          </button>
+
+          <div class="campaign-section">
+            <h4>Launch Campaign</h4>
+            <mat-form-field appearance="outline" class="dark-field full-width">
+              <mat-label>Channel</mat-label>
+              <mat-select [(ngModel)]="campaignChannel">
+                <mat-option value="sms"><mat-icon>sms</mat-icon> SMS</mat-option>
+                <mat-option value="voice"><mat-icon>phone</mat-icon> AI Voice</mat-option>
+                <mat-option value="email"><mat-icon>email</mat-icon> Email</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="dark-field full-width">
+              <mat-label>Territory</mat-label>
+              <input matInput [(ngModel)]="campaignTerritory" placeholder="Territory name">
+            </mat-form-field>
+            <button mat-raised-button class="launch-btn" (click)="launchCampaign()" [disabled]="launching">
+              <mat-icon>{{ launching ? 'hourglass_empty' : 'rocket_launch' }}</mat-icon>
+              {{ launching ? 'Launching...' : 'Launch Campaign' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lead Generation Modal -->
+    <div class="preview-overlay" *ngIf="previewZip">
+      <div class="preview-card">
+        <ng-container *ngIf="!generationResult && !generating">
+          <h3>Lead Generation Preview — ZIP {{ previewZip.zip }}</h3>
+          <div class="preview-stats">
+            <div class="ps"><span class="ps-val">{{ previewZip.properties | number }}</span><span class="ps-lbl">Properties Detected</span></div>
+            <div class="ps"><span class="ps-val">{{ fmtCurrency(previewZip.estimatedClaimValue) }}</span><span class="ps-lbl">Modeled Claim Value</span></div>
+            <div class="ps"><span class="ps-val">{{ previewZip.potentialClaims }}</span><span class="ps-lbl">Estimated Lead Count</span></div>
+          </div>
+          <p class="estimate-disclaimer"><mat-icon>info</mat-icon> Potential claims and values are modeled estimates based on storm severity and property data. Not guaranteed outcomes.</p>
+          <div class="preview-tags">
+            <span class="tag">storm: {{ previewZip.stormType }}</span>
+            <span class="tag">impact: {{ previewZip.impactLevel }}</span>
+            <span class="tag">probability: {{ (previewZip.estimatedClaimProbability || 0) * 100 | number:'1.0-0' }}%</span>
+            <span class="tag">source: storm_intelligence</span>
+          </div>
+          <div class="preview-actions">
+            <button mat-stroked-button class="dark-btn" (click)="cancelPreview()">Cancel</button>
+            <button mat-raised-button class="gen-btn" (click)="confirmGenerateLeads()">
+              <mat-icon>person_add</mat-icon> Generate {{ previewZip.potentialClaims > 50 ? 50 : previewZip.potentialClaims }} Leads
+            </button>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="generating">
+          <div class="generating-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <h3>Generating Leads...</h3>
+            <p>Creating lead records and assigning to adjusters via Lead Rotation Engine</p>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="generationResult && !generating">
+          <h3><mat-icon class="result-check">check_circle</mat-icon> Leads Generated Successfully</h3>
+          <div class="preview-stats">
+            <div class="ps"><span class="ps-val val-green">{{ generationResult.leadsGenerated }}</span><span class="ps-lbl">Leads Created</span></div>
+            <div class="ps"><span class="ps-val val-cyan">{{ generationResult.adjustersAssigned.length }}</span><span class="ps-lbl">Adjusters Assigned</span></div>
+            <div class="ps"><span class="ps-val">{{ fmtCurrency(generationResult.estimatedClaimValue) }}</span><span class="ps-lbl">Modeled Value</span></div>
+          </div>
+          <div class="adjuster-assignments" *ngIf="generationResult.adjustersAssigned.length > 0">
+            <h4>Adjuster Assignments</h4>
+            <div class="adj-row" *ngFor="let a of generationResult.adjustersAssigned">
+              <mat-icon>person</mat-icon> <span>{{ a.name }}</span> <span class="adj-count">{{ a.count }} leads</span>
+            </div>
+          </div>
+          <div class="preview-actions">
+            <button mat-stroked-button class="dark-btn" (click)="dismissResult()">Close</button>
+            <button mat-raised-button class="gen-btn" (click)="viewGeneratedLeads()">
+              <mat-icon>open_in_new</mat-icon> View in Lead Operations
+            </button>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- ZIP Impact Table -->
+    <div class="dark-panel table-panel" #tableSection>
+      <div class="dark-panel-header">
+        <mat-icon>table_chart</mat-icon> ZIP Impact Analysis
+        <span class="badge">{{ filteredZips.length }}</span>
+      </div>
+      <div class="table-wrap" *ngIf="filteredZips.length > 0">
+        <table mat-table [dataSource]="filteredZips" class="dark-table">
+          <ng-container matColumnDef="zip"><th mat-header-cell *matHeaderCellDef>ZIP</th><td mat-cell *matCellDef="let z"><strong>{{ z.zip }}</strong></td></ng-container>
+          <ng-container matColumnDef="state"><th mat-header-cell *matHeaderCellDef>State</th><td mat-cell *matCellDef="let z">{{ z.state }}</td></ng-container>
+          <ng-container matColumnDef="storm_type"><th mat-header-cell *matHeaderCellDef>Storm</th><td mat-cell *matCellDef="let z">{{ z.stormType | titlecase }}</td></ng-container>
+          <ng-container matColumnDef="impact"><th mat-header-cell *matHeaderCellDef>Impact</th><td mat-cell *matCellDef="let z"><span class="impact-badge" [style.backgroundColor]="getImpactBg(z.impactLevel)" [style.color]="getImpactColor(z.impactLevel)">{{ z.impactLevel | uppercase }}</span></td></ng-container>
+          <ng-container matColumnDef="properties"><th mat-header-cell *matHeaderCellDef>Properties</th><td mat-cell *matCellDef="let z">{{ z.properties | number }}</td></ng-container>
+          <ng-container matColumnDef="claims"><th mat-header-cell *matHeaderCellDef>Est. Claims</th><td mat-cell *matCellDef="let z" class="val-cyan">{{ z.potentialClaims }}</td></ng-container>
+          <ng-container matColumnDef="value"><th mat-header-cell *matHeaderCellDef>Modeled Value</th><td mat-cell *matCellDef="let z">{{ fmtCurrency(z.estimatedClaimValue) }}</td></ng-container>
+          <ng-container matColumnDef="action"><th mat-header-cell *matHeaderCellDef></th><td mat-cell *matCellDef="let z"><button mat-stroked-button class="table-gen-btn" (click)="generateLeadsFromZip(z); $event.stopPropagation()"><mat-icon>person_add</mat-icon> Generate</button></td></ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              [id]="'zip-row-' + row.zip"
+              class="clickable-row"
+              [class.row-selected]="isSelectedZip(row)"
+              (click)="selectZipFromTable(row)"></tr>
+        </table>
+      </div>
+      <div class="table-empty" *ngIf="filteredZips.length === 0">
+        <mat-icon>cloud_off</mat-icon>
+        <span>No storm events match current filters. Try widening the time window or clearing filters.</span>
+      </div>
+    </div>
+  </ng-container>
+</div>

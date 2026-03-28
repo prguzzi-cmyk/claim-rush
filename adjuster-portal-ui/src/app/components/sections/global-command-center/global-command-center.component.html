@@ -1,0 +1,463 @@
+<div class="gcc-dark">
+
+  <!-- ══════ SECTION 1: LIVE INCIDENT TICKER ══════ -->
+  <div class="ticker-bar">
+    <div class="ticker-live"><span class="live-pulse"></span> LIVE</div>
+    <div class="ticker-track">
+      <div class="ticker-scroll">
+        <ng-container *ngFor="let _ of [1,2]">
+          <span class="ticker-item" *ngFor="let ev of tickerEvents">
+            <span class="ticker-emoji">{{ ev.emoji }}</span>
+            <span class="ticker-text">{{ ev.text }}</span>
+          </span>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Header -->
+  <div class="gcc-header">
+    <div>
+      <h1>Global Intelligence Command Center</h1>
+      <p class="gcc-subtitle">Real-time national incident monitoring, lead generation intelligence, and claim recovery analytics.</p>
+    </div>
+    <div class="gcc-meta">
+      <span class="gcc-clock">Last update: {{ lastUpdated }}</span>
+      <span class="gcc-status"><span class="status-dot"></span> Systems Online</span>
+    </div>
+  </div>
+
+  <div class="gcc-body">
+
+    <!-- ══════ SECTION 3: LEAD GENERATION MONITOR (KPI row) ══════ -->
+    <div class="kpi-row">
+      <div class="kpi-dark-card" *ngFor="let kpi of kpiCards" [style.borderTopColor]="kpi.color">
+        <mat-icon [style.color]="kpi.color">{{ kpi.icon }}</mat-icon>
+        <div class="kpi-dark-value">{{ kpi.value }}</div>
+        <div class="kpi-dark-label">{{ kpi.label }}</div>
+        <div class="kpi-dark-trend" [class.trend-up]="kpi.trend === 'up'" [class.trend-down]="kpi.trend === 'down'">
+          <mat-icon>{{ kpi.trend === 'up' ? 'trending_up' : kpi.trend === 'down' ? 'trending_down' : 'trending_flat' }}</mat-icon>
+          +{{ kpi.change }} last 24h
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ HIGH PROBABILITY CLAIMS PANEL ══════ -->
+    <div class="dark-panel opp-panel">
+      <div class="dark-panel-header">
+        <mat-icon>analytics</mat-icon> High Probability Claims
+        <div class="opp-filter">
+          <span class="opp-filter-label">Min Score: {{ oppMinScore }}</span>
+          <input type="range" min="40" max="100" step="5" [value]="oppMinScore"
+                 (input)="onOppScoreChange($any($event.target).value)" class="opp-slider">
+        </div>
+      </div>
+      <div class="opp-table-wrap" *ngIf="highProbClaims.length > 0; else noOppClaims">
+        <table class="dark-table opp-table">
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>City, State</th>
+              <th>Score</th>
+              <th>Est. Claim Value</th>
+              <th>Event Type</th>
+              <th>Impact</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of highProbClaims">
+              <td>{{ c.property_address }}</td>
+              <td>{{ c.city || '—' }}, {{ c.state }}</td>
+              <td>
+                <span class="score-badge" [ngClass]="getScoreBadgeClass(c.claim_probability_score)">
+                  {{ c.claim_probability_score }}
+                </span>
+              </td>
+              <td class="val-cyan">{{ fmtCurrency(c.estimated_claim_value) }}</td>
+              <td>{{ c.event_type | titlecase }}</td>
+              <td>
+                <span class="impact-badge" [style.color]="getImpactColor(c.impact_level)"
+                      [style.borderColor]="getImpactColor(c.impact_level)">
+                  {{ c.impact_level | titlecase }}
+                </span>
+              </td>
+              <td class="opp-actions">
+                <button mat-raised-button class="generate-lead-btn-sm" (click)="generateLead(c.id)">
+                  <mat-icon>person_add</mat-icon> Generate Lead
+                </button>
+                <button mat-icon-button class="dismiss-btn" (click)="dismissClaim(c.id)" matTooltip="Dismiss">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noOppClaims>
+        <div class="opp-empty">
+          <mat-icon>check_circle</mat-icon>
+          <span>No high-probability claims above score {{ oppMinScore }}</span>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- ══════ SECTION 2: NATIONAL INCIDENT MAP ══════ -->
+    <div class="map-row">
+      <div class="map-panel dark-panel">
+        <div class="dark-panel-header">
+          <mat-icon>public</mat-icon> National Incident Intelligence Map
+          <div class="map-legend-bar">
+            <span class="legend-item"><span class="legend-dot" style="background:#ff1744;"></span>Fire</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#2979ff;"></span>Hail</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ff6d00;"></span>Wind</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#ffd600;"></span>Lightning</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#aa00ff;"></span>Crime</span>
+          </div>
+        </div>
+        <div class="map-area">
+          <!-- Marker grid visualization -->
+          <div class="marker-grid">
+            <div class="map-marker" *ngFor="let m of incidents"
+                 [style.left]="((m.longitude + 125) / 65 * 100) + '%'"
+                 [style.top]="((50 - m.latitude) / 30 * 100) + '%'"
+                 [style.backgroundColor]="getMarkerColor(m.type)"
+                 (click)="selectIncident(m)"
+                 [matTooltip]="m.type + ' — ' + m.address + ', ' + m.city + ' ' + m.state">
+            </div>
+          </div>
+          <div class="map-nav-row">
+            <button mat-stroked-button class="dark-btn" (click)="nav('/app/storm-intelligence')"><mat-icon>thunderstorm</mat-icon> Storm Map</button>
+            <button mat-stroked-button class="dark-btn" (click)="nav('/app/roof-intelligence')"><mat-icon>roofing</mat-icon> Roof Intel</button>
+            <button mat-stroked-button class="dark-btn" (click)="nav('/app/fire-incidents')"><mat-icon>local_fire_department</mat-icon> Fire Map</button>
+          </div>
+        </div>
+        <div class="map-stats-bar">
+          <span class="map-stat-item"><mat-icon>thunderstorm</mat-icon> {{ incidents.length }} incidents tracked</span>
+          <span class="map-stat-item"><mat-icon>gps_fixed</mat-icon> {{ kpiCards.length > 0 ? kpiCards[2].value : 0 }} potential claims</span>
+          <span class="map-stat-item"><mat-icon>schedule</mat-icon> Updated {{ lastUpdated }}</span>
+        </div>
+      </div>
+
+      <!-- Incident Detail Panel -->
+      <div class="incident-panel dark-panel" *ngIf="selectedIncident">
+        <div class="dark-panel-header">
+          <mat-icon [style.color]="getMarkerColor(selectedIncident.type)">location_on</mat-icon> Incident Detail
+          <button mat-icon-button class="close-btn" (click)="closeIncidentPanel()"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="incident-body">
+          <div class="incident-field"><span class="incident-label">Type</span><span class="incident-value" [style.color]="getMarkerColor(selectedIncident.type)">{{ selectedIncident.type }}</span></div>
+          <div class="incident-field"><span class="incident-label">Address</span><span class="incident-value">{{ selectedIncident.address }}, {{ selectedIncident.city }} {{ selectedIncident.state }}</span></div>
+          <div class="incident-field"><span class="incident-label">ZIP Code</span><span class="incident-value">{{ selectedIncident.zip || '—' }}</span></div>
+          <div class="incident-field"><span class="incident-label">Time Reported</span><span class="incident-value">{{ timeAgo(selectedIncident.timestamp) }}</span></div>
+          <div class="incident-field"><span class="incident-label">Est. Property Value</span><span class="incident-value">{{ selectedIncident.estimated_property_value ? fmtCurrency(selectedIncident.estimated_property_value) : '$185K – $320K' }}</span></div>
+          <div class="incident-field"><span class="incident-label">Lead Status</span>
+            <span class="incident-value" [ngClass]="getLeadStatusClass(selectedIncident.lead_status)">{{ getLeadStatusLabel(selectedIncident.lead_status) }}</span>
+          </div>
+          <button mat-raised-button class="generate-lead-btn" (click)="nav('/app/rotation-leads')">
+            <mat-icon>person_add</mat-icon> Generate Lead
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ CLAIM OPPORTUNITIES INTELLIGENCE ══════ -->
+    <div class="opp-section dark-panel" *ngIf="opportunities.length > 0">
+      <div class="dark-panel-header">
+        <mat-icon>track_changes</mat-icon> Claim Opportunity Intelligence
+        <div class="opp-header-kpis" *ngIf="opportunityMetrics">
+          <span class="opp-hkpi critical">{{ opportunityMetrics.critical }} Critical</span>
+          <span class="opp-hkpi high">{{ opportunityMetrics.high }} High</span>
+          <span class="opp-hkpi medium">{{ opportunityMetrics.medium }} Medium</span>
+          <span class="opp-hkpi">{{ opportunityMetrics.total }} Total</span>
+          <span class="opp-hkpi val">{{ fmtCurrency(opportunityMetrics.totalEstimatedValue) }} Est. Value</span>
+          <span class="opp-hkpi action-assign"><mat-icon>person_add</mat-icon> {{ opportunityMetrics.actionBreakdown.assign_agent }} Assign</span>
+          <span class="opp-hkpi action-outreach"><mat-icon>campaign</mat-icon> {{ opportunityMetrics.actionBreakdown.outreach }} Outreach</span>
+        </div>
+      </div>
+
+      <div class="opp-intel-scroll">
+        <table class="dark-table opp-intel-table">
+          <thead>
+            <tr>
+              <th>Score</th>
+              <th>Priority</th>
+              <th>Type</th>
+              <th>Location</th>
+              <th>State</th>
+              <th>Dmg%</th>
+              <th>Value</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Recommended</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let opp of getDisplayedOpportunities()"
+                [class.opp-critical]="opp.priority === 'critical'"
+                [class.opp-high]="opp.priority === 'high'">
+              <td>
+                <div class="score-ring" [ngClass]="'ring-' + opp.priority"
+                     (click)="toggleScoreBreakdown(opp)" matTooltip="Click for breakdown">
+                  <span class="score-ring-val">{{ opp.opportunity_score }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="opp-priority-chip"
+                      [style.background]="getPriorityColor(opp.priority) + '22'"
+                      [style.color]="getPriorityColor(opp.priority)">
+                  <mat-icon>{{ getPriorityIcon(opp.priority) }}</mat-icon>
+                  {{ opp.priority | titlecase }}
+                </span>
+              </td>
+              <td>
+                <mat-icon [style.color]="getMarkerColor(opp.event_type)"
+                          style="font-size:16px;width:16px;height:16px;">
+                  {{ getEventIcon(opp.event_type) }}
+                </mat-icon>
+                {{ opp.event_type | titlecase }}
+              </td>
+              <td class="opp-col-location">{{ opp.address ? opp.address + ', ' : '' }}{{ opp.city }}</td>
+              <td>{{ opp.state }}</td>
+              <td>{{ (opp.damage_probability * 100) | number:'1.0-0' }}%</td>
+              <td class="val-cyan">{{ fmtCurrency(opp.estimated_claim_value) }}</td>
+              <td>
+                <span [ngClass]="getLeadStatusClass(opp.lead_status)">
+                  {{ getLeadStatusLabel(opp.lead_status) }}
+                </span>
+              </td>
+              <td class="feed-time">{{ timeAgo(opp.timestamp) }}</td>
+              <td>
+                <span class="action-badge"
+                      [style.background]="actionMeta[opp.recommended_action].color + '18'"
+                      [style.color]="actionMeta[opp.recommended_action].color">
+                  <mat-icon>{{ actionMeta[opp.recommended_action].icon }}</mat-icon>
+                  {{ actionMeta[opp.recommended_action].label }}
+                </span>
+              </td>
+              <td>
+                <button mat-icon-button matTooltip="Generate Lead" (click)="nav('/app/rotation-leads')">
+                  <mat-icon style="color:#00e5ff">person_add</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="score-breakdown" *ngIf="selectedOpp">
+        <div class="dark-panel-header">
+          <mat-icon>analytics</mat-icon> Score Breakdown — {{ selectedOpp.city || selectedOpp.address }}, {{ selectedOpp.state }}
+          <button mat-icon-button class="close-btn" (click)="selectedOpp = null"><mat-icon>close</mat-icon></button>
+        </div>
+        <div class="breakdown-grid">
+          <div class="factor-row" *ngFor="let f of getFactorBars(selectedOpp)">
+            <span class="factor-label">{{ f.label }}</span>
+            <div class="factor-track"><div class="factor-fill" [style.width.%]="f.percent" [style.background]="f.color"></div></div>
+            <span class="factor-pct">{{ f.percent }}%</span>
+            <span class="factor-wt">&times;{{ f.weight }}</span>
+          </div>
+          <div class="breakdown-total">
+            <span>Composite Score</span>
+            <span class="score-ring-inline" [ngClass]="'ring-' + selectedOpp.priority">{{ selectedOpp.opportunity_score }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="opp-intel-footer">
+        <button mat-button class="dark-btn" (click)="toggleOpportunityView()">
+          {{ showAllOpportunities ? 'Show Top 5' : 'View All (' + opportunities.length + ')' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════ ADJUSTER PERFORMANCE ══════ -->
+    <div class="dark-panel adj-panel" style="margin-bottom:20px;">
+      <div class="dark-panel-header"><mat-icon>leaderboard</mat-icon> Adjuster Activity Monitor</div>
+      <div class="adj-kpi-row">
+        <div class="adj-kpi"><span class="adj-kpi-val">{{ adjLeadsToday }}</span><span class="adj-kpi-lbl">Leads Assigned</span></div>
+        <div class="adj-kpi"><span class="adj-kpi-val">{{ adjCallsCompleted }}</span><span class="adj-kpi-lbl">Calls Completed</span></div>
+        <div class="adj-kpi"><span class="adj-kpi-val">{{ adjIntakes }}</span><span class="adj-kpi-lbl">Intakes Done</span></div>
+        <div class="adj-kpi"><span class="adj-kpi-val">{{ adjSigned }}</span><span class="adj-kpi-lbl">Claims Signed</span></div>
+        <div class="adj-kpi"><span class="adj-kpi-val">{{ adjConvRate }}%</span><span class="adj-kpi-lbl">Conversion</span></div>
+      </div>
+      <table class="dark-table">
+        <thead><tr><th>Adjuster</th><th>Leads</th><th>Calls</th><th>Intakes</th><th>Signed</th><th>Conv %</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let a of adjusterRows">
+            <td><strong>{{ a.name }}</strong></td>
+            <td>{{ a.leads }}</td>
+            <td>{{ a.calls }}</td>
+            <td>{{ a.intakes }}</td>
+            <td class="val-green">{{ a.signed }}</td>
+            <td>{{ a.convPct }}%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══════ CLAIM RECOVERY DASHBOARD ══════ -->
+    <div class="dark-panel recovery-dashboard" style="margin-bottom:20px;">
+      <div class="dark-panel-header">
+        <mat-icon>account_balance</mat-icon> Claim Recovery
+        <button mat-stroked-button class="dark-btn recovery-full-link" (click)="nav('/app/claim-recovery')">
+          <mat-icon>open_in_new</mat-icon> Full Dashboard
+        </button>
+      </div>
+
+      <!-- 1. Claim Comparison Panel -->
+      <div class="recovery-comparison">
+        <div class="recovery-compare-card carrier">
+          <mat-icon>business</mat-icon>
+          <div class="compare-label">Carrier Estimate</div>
+          <div class="compare-value">{{ fmtCurrency(carrierTotal) }}</div>
+        </div>
+        <div class="recovery-compare-vs">
+          <mat-icon>compare_arrows</mat-icon>
+          <span>VS</span>
+        </div>
+        <div class="recovery-compare-card aci">
+          <mat-icon>verified</mat-icon>
+          <div class="compare-label">ACI Estimate</div>
+          <div class="compare-value">{{ fmtCurrency(aciTotal) }}</div>
+        </div>
+        <div class="recovery-compare-card difference">
+          <mat-icon>trending_up</mat-icon>
+          <div class="compare-label">Additional Recovery</div>
+          <div class="compare-value">+{{ fmtCurrency(recoveryGap) }}</div>
+        </div>
+      </div>
+
+      <!-- 2. Recovery Metrics -->
+      <div class="recovery-metrics-row">
+        <div class="recovery-metric">
+          <span class="recovery-metric-val">{{ recoveryClaims.length || totalClaimsOpen }}</span>
+          <span class="recovery-metric-lbl">Total Claims</span>
+        </div>
+        <div class="recovery-metric">
+          <span class="recovery-metric-val">{{ fmtCurrency(carrierTotal) }}</span>
+          <span class="recovery-metric-lbl">Total Carrier Estimates</span>
+        </div>
+        <div class="recovery-metric">
+          <span class="recovery-metric-val">{{ fmtCurrency(aciTotal) }}</span>
+          <span class="recovery-metric-lbl">Total ACI Estimates</span>
+        </div>
+        <div class="recovery-metric">
+          <span class="recovery-metric-val val-green">{{ fmtCurrency(recoveryGap) }}</span>
+          <span class="recovery-metric-lbl">Total Additional Recovery</span>
+        </div>
+      </div>
+
+      <!-- 3. Visual Chart + Claims Table side-by-side -->
+      <div class="recovery-body-grid">
+        <!-- 4. Bar Chart -->
+        <div class="recovery-chart-section">
+          <div class="recovery-chart-title">Carrier vs ACI Estimates</div>
+          <div class="recovery-chart" *ngIf="recoveryBarData.length > 0">
+            <ngx-charts-bar-vertical [results]="recoveryBarData" [scheme]="colorScheme"
+              [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+              [gradient]="true" [roundDomains]="true" [yAxisTickFormatting]="fmtCurrency.bind(this)">
+            </ngx-charts-bar-vertical>
+          </div>
+          <div class="recovery-chart-legend">
+            <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#ff6d00;"></span> Carrier Estimate</span>
+            <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#00e5ff;"></span> ACI Estimate</span>
+          </div>
+        </div>
+
+        <!-- 5. Sortable Claims Table -->
+        <div class="recovery-table-section">
+          <div class="recovery-table-scroll">
+            <table class="dark-table recovery-table">
+              <thead>
+                <tr>
+                  <th class="sortable" (click)="onRecoverySort('clientName')">
+                    Client <mat-icon class="sort-icon">{{ getRecoverySortIcon('clientName') }}</mat-icon>
+                  </th>
+                  <th class="sortable" (click)="onRecoverySort('claimNumber')">
+                    Claim # <mat-icon class="sort-icon">{{ getRecoverySortIcon('claimNumber') }}</mat-icon>
+                  </th>
+                  <th class="sortable num" (click)="onRecoverySort('carrierEstimateTotal')">
+                    Carrier Est. <mat-icon class="sort-icon">{{ getRecoverySortIcon('carrierEstimateTotal') }}</mat-icon>
+                  </th>
+                  <th class="sortable num" (click)="onRecoverySort('aciEstimateTotal')">
+                    ACI Est. <mat-icon class="sort-icon">{{ getRecoverySortIcon('aciEstimateTotal') }}</mat-icon>
+                  </th>
+                  <th class="sortable num" (click)="onRecoverySort('totalRecoveryAboveCarrier')">
+                    Recovery <mat-icon class="sort-icon">{{ getRecoverySortIcon('totalRecoveryAboveCarrier') }}</mat-icon>
+                  </th>
+                  <th class="sortable" (click)="onRecoverySort('recoveryStatus')">
+                    Status <mat-icon class="sort-icon">{{ getRecoverySortIcon('recoveryStatus') }}</mat-icon>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let claim of recoveryClaims">
+                  <td><strong>{{ claim.clientName }}</strong></td>
+                  <td class="mono">{{ claim.claimNumber }}</td>
+                  <td class="num">{{ fmtCurrency(claim.carrierEstimateTotal) }}</td>
+                  <td class="num val-cyan">{{ fmtCurrency(claim.aciEstimateTotal) }}</td>
+                  <td class="num val-green">+{{ fmtCurrency(claim.totalRecoveryAboveCarrier) }}</td>
+                  <td>
+                    <span class="recovery-status-chip"
+                          [style.color]="getRecoveryStatusColor(claim.recoveryStatus)"
+                          [style.background]="getRecoveryStatusColor(claim.recoveryStatus) + '18'">
+                      <mat-icon>{{ getRecoveryStatusIcon(claim.recoveryStatus) }}</mat-icon>
+                      {{ getRecoveryStatusLabel(claim.recoveryStatus) }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/storm-intelligence')"><mat-icon>thunderstorm</mat-icon> Storm Intel</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/roof-intelligence')"><mat-icon>roofing</mat-icon> Roof Intel</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/rotation-leads')"><mat-icon>autorenew</mat-icon> Lead Rotation</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/workflow-queues')"><mat-icon>dashboard</mat-icon> Workflow Queues</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/claim-recovery')"><mat-icon>account_balance</mat-icon> Claim Recovery</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/revenue-intelligence')"><mat-icon>monetization_on</mat-icon> Revenue Intel</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/agent-performance')"><mat-icon>emoji_events</mat-icon> Agent Performance</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/outreach-campaigns')"><mat-icon>campaign</mat-icon> Outreach</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/potential-claims')"><mat-icon>analytics</mat-icon> Claim Scoring</button>
+      <button mat-stroked-button class="dark-btn" (click)="nav('/app/agreements')"><mat-icon>draw</mat-icon> UPASign</button>
+    </div>
+  </div>
+
+  <!-- ══════ FIXED RIGHT-SIDE: REAL-TIME ACTIVITY FEED ══════ -->
+  <div class="live-feed-panel">
+    <div class="live-feed-header">
+      <mat-icon>timeline</mat-icon>
+      <span>Real-Time Activity</span>
+      <span class="live-pulse-small"></span>
+      <span class="feed-count" *ngIf="activityFeed.length">{{ activityFeed.length }}</span>
+    </div>
+    <div class="live-feed-scroll">
+      <div class="live-feed-item" *ngFor="let item of activityFeed" (click)="navigateToEvent(item)">
+        <div class="live-feed-left">
+          <div class="live-feed-dot" [style.backgroundColor]="getActivityColor(item.event_type)" [style.boxShadow]="'0 0 8px ' + getActivityColor(item.event_type)"></div>
+          <div class="live-feed-connector"></div>
+        </div>
+        <div class="live-feed-content">
+          <div class="live-feed-row-top">
+            <mat-icon [style.color]="getActivityColor(item.event_type)" class="live-feed-icon">{{ getActivityIcon(item.event_type) }}</mat-icon>
+            <span class="live-feed-type" [style.color]="getActivityColor(item.event_type)">{{ getActivityLabel(item.event_type) }}</span>
+          </div>
+          <span class="live-feed-title">{{ item.title }}</span>
+          <span class="live-feed-detail">{{ item.detail }}</span>
+          <div class="live-feed-meta">
+            <span class="live-feed-time"><mat-icon>schedule</mat-icon> {{ timeAgo(item.timestamp) }}</span>
+            <span *ngIf="item.location" class="live-feed-loc"><mat-icon>location_on</mat-icon> {{ item.location }}</span>
+            <span *ngIf="item.assigned_agent" class="live-feed-agent"><mat-icon>person</mat-icon> {{ item.assigned_agent }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

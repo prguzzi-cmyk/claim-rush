@@ -1,0 +1,125 @@
+<div class="asa-dark">
+
+  <div class="asa-header">
+    <div>
+      <h1>AI Sales Script Manager</h1>
+      <p class="asa-subtitle">Editable AI conversation scripts for fire, water, storm, and vandalism claims.</p>
+    </div>
+  </div>
+
+  <div class="asa-body">
+    <div class="scripts-layout">
+
+      <!-- ═══ LEFT: SCRIPT LIST ═══ -->
+      <div class="scripts-list">
+        <!-- Filter Tabs -->
+        <div class="type-tabs">
+          <button *ngFor="let t of claimTypes" class="type-tab" [class.active]="filterType === t.value" (click)="filterType = t.value">
+            <mat-icon>{{ t.icon }}</mat-icon> {{ t.label }}
+          </button>
+        </div>
+
+        <div class="dark-panel">
+          <div class="dark-panel-header">
+            <mat-icon>description</mat-icon> Scripts
+            <span class="header-count">{{ filteredScripts.length }}</span>
+          </div>
+          <div class="script-items">
+            <div
+              *ngFor="let s of filteredScripts"
+              class="script-item"
+              [class.selected]="selectedScript?.id === s.id"
+              (click)="selectScript(s)"
+            >
+              <div class="script-item-top">
+                <mat-icon class="script-type-icon">{{ getClaimIcon(s.claimType) }}</mat-icon>
+                <span class="script-name">{{ s.name }}</span>
+                <span class="active-dot" [class.active]="s.isActive" [class.inactive]="!s.isActive"></span>
+              </div>
+              <div class="script-meta">
+                <span>{{ s.claimType | titlecase }}</span>
+                <span>{{ s.stages.length }} stages</span>
+                <span>{{ formatDate(s.lastModified) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ RIGHT: SCRIPT EDITOR ═══ -->
+      <div class="script-editor" *ngIf="selectedScript">
+        <div class="dark-panel">
+          <div class="dark-panel-header">
+            <mat-icon>edit</mat-icon> {{ selectedScript.name }}
+            <div class="editor-actions">
+              <button mat-stroked-button class="toggle-btn" [class.active-toggle]="selectedScript.isActive" (click)="toggleActive()">
+                {{ selectedScript.isActive ? 'Active' : 'Inactive' }}
+              </button>
+              <button mat-raised-button class="save-btn" (click)="saveScript()">
+                <mat-icon>save</mat-icon> Save
+              </button>
+            </div>
+          </div>
+
+          <div class="editor-body">
+            <!-- Script Name -->
+            <div class="editor-field">
+              <label>Script Name</label>
+              <input type="text" [(ngModel)]="selectedScript.name" class="dark-input" />
+            </div>
+
+            <!-- Stages -->
+            <div class="stages-section">
+              <div class="stages-header">
+                <span class="stages-title">Conversation Stages</span>
+                <button mat-stroked-button class="add-stage-btn" (click)="addStage()">
+                  <mat-icon>add</mat-icon> Add Stage
+                </button>
+              </div>
+
+              <div *ngFor="let stage of selectedScript.stages; let i = index" class="stage-card" [class.editing]="editingStageIndex === i">
+                <div class="stage-header" (click)="editStage(i)">
+                  <span class="stage-number">{{ i + 1 }}</span>
+                  <input type="text" [(ngModel)]="stage.label" class="stage-label-input" (click)="$event.stopPropagation()" />
+                  <mat-icon class="stage-chevron" [class.open]="editingStageIndex === i">expand_more</mat-icon>
+                  <button mat-icon-button class="remove-stage-btn" (click)="removeStage(i); $event.stopPropagation()" *ngIf="selectedScript.stages.length > 1">
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                </div>
+
+                <div class="stage-body" *ngIf="editingStageIndex === i">
+                  <div class="editor-field">
+                    <label>AI Prompt</label>
+                    <textarea class="dark-textarea" rows="3" [(ngModel)]="stage.prompt"></textarea>
+                  </div>
+
+                  <div class="editor-field">
+                    <label>Response Options</label>
+                    <div class="response-options">
+                      <div *ngFor="let opt of stage.responseOptions; let j = index; trackBy: trackByIndex" class="response-option">
+                        <input type="text" [(ngModel)]="stage.responseOptions[j]" class="dark-input small" />
+                        <button mat-icon-button class="remove-opt-btn" (click)="removeResponseOption(i, j)">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                      <button mat-stroked-button class="add-opt-btn" (click)="addResponseOption(i)">
+                        <mat-icon>add</mat-icon> Add Option
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Selection -->
+      <div class="no-selection" *ngIf="!selectedScript">
+        <mat-icon>description</mat-icon>
+        <p>Select a script to edit</p>
+      </div>
+
+    </div>
+  </div>
+</div>

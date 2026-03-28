@@ -1,0 +1,225 @@
+<div class="templates-container">
+
+  <!-- ══════ LIST VIEW ══════ -->
+  <ng-container *ngIf="view === 'list'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">message</mat-icon> Message Templates</h2>
+        <p class="subtitle">Outreach message templates for voice, SMS, and email</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="openNewTemplate()">
+        <mat-icon>add</mat-icon> New Template
+      </button>
+    </div>
+
+    <!-- Channel Filter -->
+    <div class="channel-filter-bar">
+      <button mat-stroked-button [class.filter-active]="!channelFilter" (click)="channelFilter = null">
+        All Channels
+      </button>
+      <button mat-stroked-button *ngFor="let ch of channelOptions"
+        [class.filter-active]="channelFilter === ch.value"
+        (click)="channelFilter = ch.value">
+        <mat-icon>{{ ch.icon }}</mat-icon> {{ ch.label }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-container" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <!-- Template Table -->
+    <div class="table-panel panel-card" *ngIf="!loading">
+      <div class="panel-header">
+        <mat-icon>list</mat-icon> Templates
+        <span class="header-badge">{{ filteredTemplates.length }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="filteredTemplates" class="tpl-table">
+
+          <ng-container matColumnDef="channel">
+            <th mat-header-cell *matHeaderCellDef>Channel</th>
+            <td mat-cell *matCellDef="let t">
+              <span class="channel-chip" [style.backgroundColor]="getChannelColor(t.channel) + '18'" [style.color]="getChannelColor(t.channel)">
+                <mat-icon>{{ getChannelIcon(t.channel) }}</mat-icon> {{ getChannelLabel(t.channel) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Template Name</th>
+            <td mat-cell *matCellDef="let t"><strong>{{ t.name }}</strong></td>
+          </ng-container>
+
+          <ng-container matColumnDef="category">
+            <th mat-header-cell *matHeaderCellDef>Category</th>
+            <td mat-cell *matCellDef="let t">{{ formatCategory(t.category) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let t">
+              <span class="status-dot" [class.active]="t.isActive"></span>
+              {{ t.isActive ? 'Active' : 'Draft' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="variables">
+            <th mat-header-cell *matHeaderCellDef>Variables</th>
+            <td mat-cell *matCellDef="let t">{{ t.variables?.length || 0 }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let t">
+              <button mat-icon-button matTooltip="Edit" (click)="openEditTemplate(t)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteTemplate(t)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['channel','name','category','status','variables','actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['channel','name','category','status','variables','actions'];"
+              class="clickable-row" (click)="openEditTemplate(row)"></tr>
+        </table>
+
+        <div class="empty-state" *ngIf="filteredTemplates.length === 0">
+          <mat-icon>message</mat-icon>
+          <p>No templates match the current filter.</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════ EDITOR VIEW ══════ -->
+  <ng-container *ngIf="view === 'editor'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">edit</mat-icon> {{ isNew ? 'New Template' : 'Edit Template' }}</h2>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="cancelEdit()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveTemplate()" [disabled]="!tplName || !tplBody">
+          <mat-icon>save</mat-icon> Save Template
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-layout">
+      <!-- Left: Editor -->
+      <div class="editor-panel panel-card">
+        <div class="panel-header"><mat-icon>edit_note</mat-icon> Template Content</div>
+        <div class="editor-form">
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="field-grow">
+              <mat-label>Template Name</mat-label>
+              <input matInput [(ngModel)]="tplName" placeholder="e.g. Storm Damage Introduction">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="field-channel">
+              <mat-label>Channel</mat-label>
+              <mat-select [(ngModel)]="tplChannel">
+                <mat-option *ngFor="let ch of channelOptions" [value]="ch.value">
+                  <mat-icon>{{ ch.icon }}</mat-icon> {{ ch.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="field-grow">
+              <mat-label>Category</mat-label>
+              <mat-select [(ngModel)]="tplCategory">
+                <mat-option *ngFor="let cat of categoryOptions" [value]="cat">{{ formatCategory(cat) }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <div class="active-toggle">
+              <mat-slide-toggle [(ngModel)]="tplIsActive">{{ tplIsActive ? 'Active' : 'Draft' }}</mat-slide-toggle>
+            </div>
+          </div>
+
+          <!-- Subject (email only) -->
+          <mat-form-field appearance="outline" class="full-width" *ngIf="tplChannel === 'email'">
+            <mat-label>Subject Line</mat-label>
+            <input matInput [(ngModel)]="tplSubject" placeholder="e.g. Free Roof Inspection — Recent Storm">
+          </mat-form-field>
+
+          <!-- Body -->
+          <div class="body-editor-header">
+            <span class="body-label">Message Body</span>
+            <div class="variable-chips">
+              <button mat-stroked-button class="var-chip" *ngFor="let v of availableVariables"
+                (click)="insertVariable(v)" matTooltip="Insert {{ v }}">
+                {{ v }}
+              </button>
+            </div>
+          </div>
+          <textarea class="body-textarea" [(ngModel)]="tplBody" rows="8"
+            placeholder="Write your message here. Use {{variables}} for personalization."></textarea>
+
+          <!-- SMS character counter -->
+          <div class="sms-counter" *ngIf="tplChannel === 'sms'" [ngClass]="smsCharClass">
+            {{ smsCharCount }} characters &middot; {{ smsSegments }} SMS segment{{ smsSegments !== 1 ? 's' : '' }}
+          </div>
+
+          <!-- Voice script (voice only) -->
+          <ng-container *ngIf="tplChannel === 'voice'">
+            <div class="body-editor-header" style="margin-top: 16px;">
+              <span class="body-label">AI Voice Script</span>
+            </div>
+            <textarea class="body-textarea script-textarea" [(ngModel)]="tplCallScript" rows="6"
+              placeholder="Write the AI agent's spoken script. Use {{variables}} for personalization."></textarea>
+          </ng-container>
+
+          <!-- Test Send -->
+          <div class="test-section">
+            <mat-form-field appearance="outline" class="test-field">
+              <mat-label>{{ tplChannel === 'email' ? 'Test Email' : 'Test Phone' }}</mat-label>
+              <input matInput [(ngModel)]="testRecipient"
+                [placeholder]="tplChannel === 'email' ? 'you@example.com' : '+1234567890'">
+            </mat-form-field>
+            <button mat-stroked-button (click)="sendTest()" [disabled]="!testRecipient || testSending">
+              <mat-icon>{{ testSending ? 'hourglass_empty' : 'send' }}</mat-icon>
+              {{ testSending ? 'Sending...' : 'Send Test' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Preview + History -->
+      <div class="preview-column">
+        <!-- Live Preview -->
+        <div class="preview-panel panel-card">
+          <div class="panel-header">
+            <mat-icon [style.color]="getChannelColor(tplChannel)">{{ getChannelIcon(tplChannel) }}</mat-icon>
+            Live Preview
+          </div>
+          <div class="preview-content">
+            <div class="preview-device" [ngClass]="'device-' + tplChannel">
+              <div class="preview-subject" *ngIf="tplChannel === 'email' && previewSubject">
+                <strong>Subject:</strong> {{ previewSubject }}
+              </div>
+              <div class="preview-body" [innerText]="previewBody"></div>
+              <div class="preview-script" *ngIf="tplChannel === 'voice' && previewCallScript">
+                <div class="script-label">AI Script:</div>
+                <div [innerText]="previewCallScript"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Version History -->
+        <div class="version-panel panel-card" *ngIf="versionHistory.length > 0">
+          <div class="panel-header"><mat-icon>history</mat-icon> Version History</div>
+          <div class="version-list">
+            <div class="version-row" *ngFor="let v of versionHistory">
+              <span class="version-num">v{{ v.version }}</span>
+              <span class="version-date">{{ v.savedAt | date:'MMM dd, h:mm a' }}</span>
+              <button mat-stroked-button class="version-restore" (click)="restoreVersion(v)">Restore</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

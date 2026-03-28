@@ -1,0 +1,83 @@
+<div class="ca-tab-content">
+  <div class="toolbar">
+    <div class="filter-bar">
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select [(ngModel)]="selectedCategory" (selectionChange)="applyFilters()">
+          <mat-option *ngFor="let cat of categories" [value]="cat">{{ getCategoryLabel(cat) }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Sort By</mat-label>
+        <mat-select [(ngModel)]="sortBy" (selectionChange)="applyFilters()">
+          <mat-option value="redemptions">Most Redeemed</mat-option>
+          <mat-option value="name">Name</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <button mat-raised-button color="primary" (click)="openForm()">
+      <mat-icon>add</mat-icon> Add Offer
+    </button>
+  </div>
+
+  <!-- Offer Cards -->
+  <div class="offer-grid" *ngIf="!showForm">
+    <mat-card *ngFor="let offer of filteredOffers" class="offer-card" [class.inactive]="!offer.is_active">
+      <div class="offer-header">
+        <mat-icon class="category-icon">{{ getCategoryIcon(offer.category) }}</mat-icon>
+        <div>
+          <h3>{{ offer.title }}</h3>
+          <span class="partner-name">{{ offer.partner_name }}</span>
+        </div>
+        <span class="discount-badge">{{ offer.discount_value }}</span>
+      </div>
+      <p class="offer-desc">{{ offer.description }}</p>
+      <div class="offer-footer">
+        <span class="redemptions">{{ offer.redemptions }} redemptions</span>
+        <span class="expiry">Expires: {{ offer.expiry_date }}</span>
+        <button mat-icon-button (click)="openForm(offer)"><mat-icon>edit</mat-icon></button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Add/Edit Form -->
+  <mat-card *ngIf="showForm" class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ editingOffer ? 'Edit' : 'Add' }} Partner Offer</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Partner Name</mat-label>
+          <input matInput [(ngModel)]="offerForm.partner_name">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="offerForm.category">
+            <mat-option *ngFor="let cat of categories" [value]="cat" [hidden]="cat === 'all'">{{ getCategoryLabel(cat) }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Offer Title</mat-label>
+          <input matInput [(ngModel)]="offerForm.title">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Discount Value</mat-label>
+          <input matInput [(ngModel)]="offerForm.discount_value">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea matInput [(ngModel)]="offerForm.description" rows="3"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Expiry Date</mat-label>
+          <input matInput [(ngModel)]="offerForm.expiry_date" placeholder="YYYY-MM-DD">
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeForm()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveOffer()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

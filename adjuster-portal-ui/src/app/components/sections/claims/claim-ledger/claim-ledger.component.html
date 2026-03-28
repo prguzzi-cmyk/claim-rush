@@ -1,0 +1,160 @@
+<div class="payment-header">
+  <h3>Payments</h3>
+  <button mat-raised-button color="primary" (click)="openClaimPaymentAddDialog()"
+    *ngIf="userService.getUserPermissions('claim_payment','create')">
+    <mat-icon>add</mat-icon> Add Payment
+  </button>
+</div>
+
+<div class="payment-summary-grid">
+  <div class="summary-box blue">
+    <div class="summary-label">Total Claim Value</div>
+    <div class="summary-value">${{aciEstimateTotal | number:'1.2-2'}}</div>
+  </div>
+  <div class="summary-box green">
+    <div class="summary-label">Total Payments Received</div>
+    <div class="summary-value">${{totalPaid | number:'1.2-2'}}</div>
+  </div>
+  <div class="summary-box red">
+    <div class="summary-label">Remaining Balance</div>
+    <div class="summary-value">${{remainingRecoverable | number:'1.2-2'}}</div>
+  </div>
+  <div class="summary-box purple">
+    <div class="summary-label">Adjuster Fee Earned</div>
+    <div class="summary-value">${{adjusterFeeEarned | number:'1.2-2'}}</div>
+  </div>
+  <div class="summary-box orange">
+    <div class="summary-label">Carrier Estimate</div>
+    <div class="summary-value">${{carrierEstimateTotal | number:'1.2-2'}}</div>
+  </div>
+</div>
+
+<!-- Recovery Progress -->
+<div class="recovery-progress-bar" *ngIf="aciEstimateTotal > 0">
+  <mat-progress-bar mode="determinate" [value]="recoveryPercent > 100 ? 100 : recoveryPercent"
+    [color]="recoveryPercent >= 70 ? 'primary' : 'accent'"></mat-progress-bar>
+  <span class="recovery-pct-label">{{ recoveryPercent | number:'1.1-1' }}% recovered</span>
+</div>
+
+<div class="mortgage-info-note">
+  <mat-icon>info</mat-icon>
+  <span>Mortgage-endorsed checks may require additional endorsement and deposit steps before funds are available.</span>
+</div>
+
+<p *ngIf="!dataSourcePayments?.data.length" class="no-payments-msg">No payments found.</p>
+
+<div class="table-responsive" *ngIf="dataSourcePayments?.data.length">
+  <table mat-table [dataSource]="dataSourcePayments" class="payments-table"
+    matSort matSortActive="created_at" matSortDirection="desc" matSortDisableClear #sort1="matSort"
+    (matSortChange)="sort($event)">
+
+    <ng-container matColumnDef="sn">
+      <th mat-header-cell *matHeaderCellDef>#</th>
+      <td mat-cell *matCellDef="let element; let i = index;">{{i+1}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="payment_date">
+      <th mat-header-cell mat-sort-header *matHeaderCellDef>Date</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.payment_date | date : "MM/dd/yyyy"}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="ref_number">
+      <th mat-header-cell *matHeaderCellDef>Check #</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.ref_number || '-'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="payment_type">
+      <th mat-header-cell *matHeaderCellDef>Payment Type</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        <span class="payment-type-badge" [style.backgroundColor]="getPaymentTypeColor(element?.payment_type) + '18'" [style.color]="getPaymentTypeColor(element?.payment_type)">
+          <mat-icon class="payment-type-icon">{{ getPaymentTypeIcon(element?.payment_type) }}</mat-icon>
+          {{element?.payment_type || '-'}}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        ${{element?.check_amount | number:'1.2-2'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="issued_by">
+      <th mat-header-cell *matHeaderCellDef>Issued By</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.issued_by || '-'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="payee">
+      <th mat-header-cell *matHeaderCellDef>Payee / Check To</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.payee || '-'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="deposit_status">
+      <th mat-header-cell *matHeaderCellDef>Deposit Status</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.deposit_status || '-'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="related_coverage">
+      <th mat-header-cell *matHeaderCellDef>Related Coverage</th>
+      <td mat-cell *matCellDef="let element" (click)="openClaimPaymentViewDialog(element)">
+        {{element?.related_coverage || '-'}}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="edit">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button [disabled]="!userService.getUserPermissions('claim_payment','update')"
+          (click)="openClaimPaymentEditDialog(element)"><mat-icon>edit</mat-icon></button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="delete">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button color="warn" mat-icon-button [disabled]="!userService.getUserPermissions('claim_payment','remove')"
+          (click)="openClaimPaymentDeleteDialog(element)"><mat-icon>delete</mat-icon></button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>
+
+<mat-paginator [length]="totalRecords" #paginator showFirstLastButtons [pageSize]="pageSize"
+  [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)">
+</mat-paginator>
+
+<!-- Payment Timeline -->
+<div class="payment-timeline" *ngIf="dataSourcePayments?.data.length > 0">
+  <h4 class="timeline-title"><mat-icon>timeline</mat-icon> Payment Timeline</h4>
+  <div class="timeline-list">
+    <div class="timeline-item" *ngFor="let p of dataSourcePayments?.data; let last = last">
+      <div class="timeline-dot" [style.backgroundColor]="getPaymentTypeColor(p.payment_type)"></div>
+      <div class="timeline-connector" *ngIf="!last"></div>
+      <div class="timeline-content">
+        <div class="timeline-header">
+          <span class="timeline-type" [style.color]="getPaymentTypeColor(p.payment_type)">{{ p.payment_type || 'Payment' }}</span>
+          <span class="timeline-date">{{ p.payment_date | date:'MMM dd, yyyy' }}</span>
+        </div>
+        <div class="timeline-amount">${{ p.check_amount | number:'1.2-2' }}</div>
+        <div class="timeline-meta" *ngIf="p.issued_by || p.payee">
+          <span *ngIf="p.issued_by">From: {{ p.issued_by }}</span>
+          <span *ngIf="p.payee"> &middot; To: {{ p.payee }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

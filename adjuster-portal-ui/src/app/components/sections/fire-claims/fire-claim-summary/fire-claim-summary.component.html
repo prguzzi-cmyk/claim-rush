@@ -1,0 +1,402 @@
+<div class="summary-container" *ngIf="claim">
+  <!-- Header -->
+  <div class="summary-header">
+    <div class="header-left">
+      <button mat-icon-button routerLink="/app/fire-claims">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h2>Fire Claim Details</h2>
+      <span
+        class="status-badge"
+        [ngClass]="{
+          'badge-new': claim.status === 'new',
+          'badge-complete': claim.status === 'intake_complete'
+        }"
+      >
+        {{ getStatusLabel(claim.status!) }}
+      </span>
+    </div>
+    <div class="header-right">
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="analyzeDamage()"
+        [disabled]="analyzing"
+      >
+        <mat-icon>{{ analyzing ? 'hourglass_empty' : 'psychology' }}</mat-icon>
+        {{ analyzing ? 'Running ' + brandName + '\u2026' : 'Run ' + brandName }}
+      </button>
+      <button
+        mat-raised-button
+        (click)="generateCarrierReport()"
+        [disabled]="generatingCarrier"
+      >
+        <mat-icon>{{ generatingCarrier ? 'hourglass_empty' : 'description' }}</mat-icon>
+        {{ generatingCarrier ? 'Generating\u2026' : 'Generate Carrier Report' }}
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="openEstimate()"
+        [disabled]="openingEstimate"
+      >
+        <mat-icon>{{ openingEstimate ? 'hourglass_empty' : 'assignment' }}</mat-icon>
+        {{ openingEstimate ? 'Opening\u2026' : 'Open Estimate' }}
+      </button>
+      <button
+        *ngIf="claim.status === 'new'"
+        mat-raised-button
+        color="primary"
+        (click)="markComplete()"
+      >
+        <mat-icon>check_circle</mat-icon> Mark Intake Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- Details Cards -->
+  <div class="cards-grid">
+    <!-- Loss Info -->
+    <mat-card>
+      <mat-card-header><h3>Loss Information</h3></mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Loss Date</span>
+          <span class="value">{{ claim.loss_date | date: 'MM/dd/yyyy' }}</span>
+        </div>
+        <div class="detail-row" *ngIf="claim.claim_number">
+          <span class="label">Claim Number</span>
+          <span class="value">{{ claim.claim_number }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Property Address -->
+    <mat-card>
+      <mat-card-header><h3>Property Address</h3></mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Address</span>
+          <span class="value">
+            {{ claim.address_line1 }}
+            <span *ngIf="claim.address_line2"><br />{{ claim.address_line2 }}</span>
+            <br />{{ claim.city }}, {{ claim.state }} {{ claim.zip }}
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Insured Info -->
+    <mat-card>
+      <mat-card-header><h3>Insured Information</h3></mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Name</span>
+          <span class="value">{{ claim.insured_name }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Phone</span>
+          <span class="value">{{ claim.insured_phone }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Email</span>
+          <span class="value">{{ claim.insured_email }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Carrier Info -->
+    <mat-card *ngIf="claim.carrier_name || claim.policy_number">
+      <mat-card-header><h3>Carrier Information</h3></mat-card-header>
+      <mat-card-content>
+        <div class="detail-row" *ngIf="claim.carrier_name">
+          <span class="label">Carrier</span>
+          <span class="value">{{ claim.carrier_name }}</span>
+        </div>
+        <div class="detail-row" *ngIf="claim.policy_number">
+          <span class="label">Policy #</span>
+          <span class="value">{{ claim.policy_number }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Policy Intelligence -->
+    <mat-card class="full-width-card policy-intel-card">
+      <mat-card-header class="policy-header">
+        <h3><mat-icon class="header-icon">shield</mat-icon> Policy Intelligence</h3>
+        <span class="policy-status-badge" [ngClass]="{
+          'not-analyzed': analysisStatus === 'not_analyzed',
+          'analyzing': analysisStatus === 'analyzing',
+          'complete': analysisStatus === 'complete',
+          'failed': analysisStatus === 'failed'
+        }">
+          <ng-container [ngSwitch]="analysisStatus">
+            <span *ngSwitchCase="'not_analyzed'">Not Analyzed</span>
+            <span *ngSwitchCase="'analyzing'">Analyzing…</span>
+            <span *ngSwitchCase="'complete'">Analysis Complete</span>
+            <span *ngSwitchCase="'failed'">Analysis Failed</span>
+          </ng-container>
+        </span>
+        <button
+          mat-raised-button
+          color="primary"
+          class="analyze-btn"
+          (click)="analyzePolicy()"
+          [disabled]="!policyDoc || policyAnalyzing"
+          *ngIf="policyDoc"
+        >
+          <mat-icon>{{ policyAnalyzing ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+          {{ policyAnalyzing ? 'Analyzing…' : 'Analyze Policy' }}
+        </button>
+      </mat-card-header>
+
+      <mat-card-content *ngIf="policyDoc">
+        <!-- Coverage Snapshot -->
+        <div class="coverage-snapshot">
+          <div class="coverage-item" *ngIf="intel?.carrier || policyDoc.carrier">
+            <span class="label">Carrier</span>
+            <span class="value">{{ intel?.carrier || policyDoc.carrier }}</span>
+          </div>
+          <div class="coverage-item" *ngIf="intel?.insured_name || policyDoc.insured_name">
+            <span class="label">Insured</span>
+            <span class="value">{{ intel?.insured_name || policyDoc.insured_name }}</span>
+          </div>
+          <div class="coverage-item" *ngIf="intel?.policy_number || policyDoc.policy_number">
+            <span class="label">Policy #</span>
+            <span class="value">{{ intel?.policy_number || policyDoc.policy_number }}</span>
+          </div>
+          <div class="coverage-item" *ngIf="policyDoc.effective_date || policyDoc.expiration_date">
+            <span class="label">Policy Period</span>
+            <span class="value">
+              {{ policyDoc.effective_date | date: 'MM/dd/yyyy' }}
+              <span *ngIf="policyDoc.expiration_date"> – {{ policyDoc.expiration_date | date: 'MM/dd/yyyy' }}</span>
+            </span>
+          </div>
+          <div class="coverage-item full-width" *ngIf="policyDoc.property_address">
+            <span class="label">Property Address</span>
+            <span class="value">
+              {{ policyDoc.property_address }}
+              <span *ngIf="policyDoc.property_city">, {{ policyDoc.property_city }}</span>
+              <span *ngIf="policyDoc.property_state"> {{ policyDoc.property_state }}</span>
+              <span *ngIf="policyDoc.property_zip"> {{ policyDoc.property_zip }}</span>
+            </span>
+          </div>
+
+          <ng-container *ngIf="intel">
+            <div class="coverage-item" *ngIf="intel.coverage_a_dwelling">
+              <span class="label">Coverage A (Dwelling)</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.coverage_a_dwelling) }}</span>
+            </div>
+            <div class="coverage-item" *ngIf="intel.coverage_b_other_structures">
+              <span class="label">Coverage B (Other Structures)</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.coverage_b_other_structures) }}</span>
+            </div>
+            <div class="coverage-item" *ngIf="intel.coverage_c_personal_property">
+              <span class="label">Coverage C (Personal Property)</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.coverage_c_personal_property) }}</span>
+            </div>
+            <div class="coverage-item" *ngIf="intel.coverage_d_loss_of_use">
+              <span class="label">Coverage D (Loss of Use)</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.coverage_d_loss_of_use) }}</span>
+            </div>
+            <div class="coverage-item" *ngIf="intel.deductible_amount">
+              <span class="label">Deductible</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.deductible_amount) }}</span>
+            </div>
+            <div class="coverage-item" *ngIf="intel.deductible_wind_hail">
+              <span class="label">Wind/Hail Deductible</span>
+              <span class="value coverage-amount">{{ formatCurrency(intel.deductible_wind_hail) }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Key Claim Provisions -->
+        <div class="provisions-section" *ngIf="intel">
+          <h4>Key Claim Provisions</h4>
+          <div class="provisions-grid">
+            <div class="provision-card" *ngIf="intel.duties_after_loss">
+              <div class="provision-title">Duties After Loss</div>
+              <div class="provision-text">{{ intel.duties_after_loss }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.loss_settlement_clause">
+              <div class="provision-title">Loss Settlement</div>
+              <div class="provision-text">{{ intel.loss_settlement_clause }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.ordinance_and_law">
+              <div class="provision-title">Ordinance &amp; Law</div>
+              <div class="provision-text">{{ intel.ordinance_and_law }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.ale_loss_of_use_details">
+              <div class="provision-title">ALE / Loss of Use</div>
+              <div class="provision-text">{{ intel.ale_loss_of_use_details }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.exclusions_json">
+              <div class="provision-title">Exclusions</div>
+              <div class="provision-text">{{ intel.exclusions_json }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.endorsements_json">
+              <div class="provision-title">Endorsements</div>
+              <div class="provision-text">{{ intel.endorsements_json }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.appraisal_clause">
+              <div class="provision-title">Appraisal</div>
+              <div class="provision-text">{{ intel.appraisal_clause }}</div>
+            </div>
+            <div class="provision-card" *ngIf="intel.deadline_notice_details">
+              <div class="provision-title">Suit Limitation</div>
+              <div class="provision-text">{{ intel.deadline_notice_details }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Extracted Clauses by Type -->
+        <div class="provisions-section" *ngIf="policyClauses.length > 0 && !intel">
+          <h4>Extracted Clauses</h4>
+          <div class="provisions-grid">
+            <div class="provision-card" *ngFor="let clause of policyClauses">
+              <div class="provision-title">{{ clause.title }}</div>
+              <div class="provision-type">{{ clause.clause_type }}</div>
+              <div class="provision-text">{{ clause.summary || clause.raw_text }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policy Notes (collapsible) -->
+        <div class="policy-notes-section" *ngIf="policyDoc.ai_summary || policyDoc.claim_guidance_notes">
+          <button mat-button class="notes-toggle" (click)="togglePolicyNotes()">
+            <mat-icon>{{ policyNotesExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            Extracted Policy Notes
+          </button>
+          <div class="notes-content" *ngIf="policyNotesExpanded">
+            <div *ngIf="policyDoc.ai_summary" class="notes-block">
+              <h5>AI Summary</h5>
+              <p>{{ policyDoc.ai_summary }}</p>
+            </div>
+            <div *ngIf="policyDoc.claim_guidance_notes" class="notes-block">
+              <h5>Claim Guidance Notes</h5>
+              <p>{{ policyDoc.claim_guidance_notes }}</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- No Policy State -->
+      <mat-card-content *ngIf="!policyDoc && !policyLoading">
+        <div class="no-policy-message">
+          <mat-icon>info_outline</mat-icon>
+          <p>No policy document linked to this claim. Upload a policy in the Policy Vault to enable intelligence.</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Fire Details -->
+    <mat-card class="full-width-card">
+      <mat-card-header><h3>Fire Damage Details</h3></mat-card-header>
+      <mat-card-content>
+        <div class="details-grid">
+          <div class="detail-row">
+            <span class="label">Area of Origin</span>
+            <span class="value">
+              {{ getOriginAreaLabel(claim.origin_area!) }}
+              <span *ngIf="claim.origin_area === 'other' && claim.origin_area_other">
+                 ({{ claim.origin_area_other }})
+              </span>
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Smoke Level</span>
+            <span class="value">{{ getSmokeLevelLabel(claim.smoke_level!) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Water from Suppression</span>
+            <span class="value">{{ boolLabel(claim.water_from_suppression) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Roof Opened by Firefighters</span>
+            <span class="value">{{ boolLabel(claim.roof_opened_by_firefighters) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Power Shut Off</span>
+            <span class="value">{{ boolLabel(claim.power_shut_off) }}</span>
+          </div>
+        </div>
+        <div class="detail-row">
+          <span class="label">Rooms Affected</span>
+          <span class="value multiline">{{ claim.rooms_affected }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Notes -->
+    <mat-card class="full-width-card" *ngIf="claim.notes">
+      <mat-card-header><h3>Additional Notes</h3></mat-card-header>
+      <mat-card-content>
+        <p class="notes-text">{{ claim.notes }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Internal Report -->
+    <mat-card class="full-width-card ai-analysis-card" *ngIf="claim.ai_analysis">
+      <mat-card-header>
+        <h3><mat-icon class="header-icon">psychology</mat-icon> {{ brandName }} Report</h3>
+      </mat-card-header>
+      <mat-card-content>
+        <pre class="analysis-report">{{ claim.ai_analysis }}</pre>
+        <div class="analysis-timestamp" *ngIf="claim.ai_analysis_at">
+          Report run {{ claim.ai_analysis_at | date: 'MM/dd/yyyy h:mm a' }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Carrier Report -->
+    <mat-card class="full-width-card carrier-report-card" *ngIf="claim.carrier_report">
+      <mat-card-header>
+        <h3><mat-icon class="header-icon">description</mat-icon> Property Damage Assessment</h3>
+        <button mat-icon-button class="print-btn" (click)="printCarrierReport()" matTooltip="Print carrier report">
+          <mat-icon>print</mat-icon>
+        </button>
+      </mat-card-header>
+      <mat-card-content>
+        <pre class="analysis-report carrier-report-content">{{ claim.carrier_report }}</pre>
+        <div class="analysis-timestamp" *ngIf="claim.carrier_report_at">
+          Prepared {{ claim.carrier_report_at | date: 'MM/dd/yyyy h:mm a' }}
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Media Gallery -->
+  <div class="media-section" *ngIf="claim.media && claim.media.length > 0">
+    <h3>Photos &amp; Videos</h3>
+
+    <div class="media-gallery" *ngIf="getPhotos().length > 0">
+      <h4>Photos</h4>
+      <div class="photo-grid">
+        <div class="photo-item" *ngFor="let photo of getPhotos()">
+          <img [src]="photo.file_url" [alt]="photo.caption || 'Photo'" />
+          <div class="photo-overlay">
+            <span *ngIf="photo.caption">{{ photo.caption }}</span>
+            <button mat-icon-button color="warn" (click)="deleteMedia(photo)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="media-gallery" *ngIf="getVideos().length > 0">
+      <h4>Videos</h4>
+      <div class="video-list">
+        <div class="video-item" *ngFor="let video of getVideos()">
+          <mat-icon>videocam</mat-icon>
+          <a [href]="video.file_url" target="_blank">
+            {{ video.caption || 'Video' }}
+          </a>
+          <button mat-icon-button color="warn" (click)="deleteMedia(video)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

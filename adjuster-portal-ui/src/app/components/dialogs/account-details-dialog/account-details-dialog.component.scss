@@ -1,0 +1,30 @@
+.account-form {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    mat-form-field {
+        width: 48%;
+    }
+}
+
+
+.credit-table {
+    width: 100%;
+
+    .last-active-cell {
+        &:first-letter {
+            text-transform: uppercase;
+        }
+    }
+
+}
+
+
+.mat-mdc-table-scroll-container {
+    overflow-x: auto;
+    max-width: 100%;
+    /* Adjust the max-width as needed */
+}

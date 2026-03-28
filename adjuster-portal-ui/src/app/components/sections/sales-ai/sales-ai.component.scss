@@ -1,0 +1,188 @@
+// ══════════════════════════════════════════════════════════════════
+// SALES AI — Mission Control Dark Theme (matches GCC)
+// ══════════════════════════════════════════════════════════════════
+
+$bg-primary: #0a0e17;
+$bg-panel: #111827;
+$bg-panel-header: #1a2332;
+$border: #1e293b;
+$text-primary: #e2e8f0;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+$accent-cyan: #00e5ff;
+$accent-green: #00e676;
+$accent-red: #ff1744;
+$accent-orange: #ff6d00;
+$accent-yellow: #ffd600;
+$accent-purple: #aa00ff;
+$accent-blue: #2979ff;
+
+.sales-ai-dark { min-height: calc(100vh - 64px); background: $bg-primary; color: $text-primary; display: flex; flex-direction: column; }
+
+// ── HEADER ──
+.sai-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 28px 16px;
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+  .sai-subtitle { margin: 4px 0 0; font-size: 0.82rem; color: $text-secondary; } }
+.sai-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.sai-status { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: $accent-green; font-weight: 600; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: $accent-green; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+// ── BODY ──
+.sai-body { padding: 0 28px 28px; flex: 1; }
+
+// ── WORKFLOW BAR ──
+.workflow-bar {
+  display: flex; align-items: flex-start; justify-content: center; gap: 0;
+  padding: 20px 0 28px; position: relative;
+}
+.workflow-node {
+  display: flex; flex-direction: column; align-items: center; position: relative; min-width: 120px;
+}
+.node-circle {
+  width: 48px; height: 48px; border-radius: 50%; border: 2px solid $border;
+  display: flex; align-items: center; justify-content: center; background: $bg-panel;
+  transition: all 0.3s; z-index: 1;
+  mat-icon { font-size: 22px; width: 22px; height: 22px; color: $text-muted; }
+  &.active { border-color: $accent-cyan; background: rgba(0, 229, 255, 0.08);
+    mat-icon { color: $accent-cyan; } }
+}
+.node-label { font-size: 0.68rem; color: $text-secondary; margin-top: 8px; text-align: center; white-space: nowrap; }
+.node-count {
+  position: absolute; top: -4px; right: calc(50% - 32px);
+  background: $accent-cyan; color: #000; font-size: 0.6rem; font-weight: 800;
+  width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.connector {
+  position: absolute; top: 23px; left: calc(50% + 24px); width: calc(100% - 48px);
+  height: 2px; background: $border;
+  &::after { content: ''; position: absolute; right: 0; top: -3px; width: 0; height: 0;
+    border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid $border; }
+}
+
+// ── DARK PANEL ──
+.dark-panel { background: $bg-panel; border: 1px solid $border; border-radius: 10px; overflow: hidden; }
+.dark-panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: $bg-panel-header; border-bottom: 1px solid $border; font-weight: 600; font-size: 0.82rem; color: $text-primary;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $accent-cyan; } }
+.panel-section { margin-bottom: 20px; }
+
+// ── DARK TABLE ──
+.table-wrap { overflow-x: auto; }
+.dark-table { width: 100%; border-collapse: collapse;
+  th { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid $border; }
+  td { font-size: 0.78rem; color: $text-primary; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; }
+  tr:hover td { background: rgba(0,229,255,0.04); }
+  tr.row-selected td { background: rgba(0,229,255,0.08); border-left: 2px solid $accent-cyan; }
+}
+
+// ── STATUS BADGES ──
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+.badge-orange { background: rgba(255,109,0,0.15); color: $accent-orange; }
+.badge-cyan { background: rgba(0,229,255,0.15); color: $accent-cyan; }
+.badge-green { background: rgba(0,230,118,0.15); color: $accent-green; }
+.badge-red { background: rgba(255,23,68,0.15); color: $accent-red; }
+.badge-yellow { background: rgba(255,214,0,0.15); color: $accent-yellow; }
+.badge-purple { background: rgba(170,0,255,0.15); color: $accent-purple; }
+.badge-muted { background: rgba(100,116,139,0.15); color: $text-muted; }
+
+// ── AI SCORE ──
+.ai-score { font-size: 1rem; font-weight: 800; color: $accent-cyan; font-family: 'SF Mono', monospace; }
+.score-pending { color: $text-muted; }
+.qualifying-spinner { display: inline-flex; }
+.spin-icon { animation: spin 1s linear infinite; color: $accent-cyan; font-size: 18px !important; width: 18px !important; height: 18px !important; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+// ── BUTTONS ──
+.dark-btn { border-color: $border !important; color: $text-secondary !important; font-size: 0.72rem !important;
+  mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; margin-right: 4px; color: $accent-cyan; }
+  &:hover { background: rgba(0,229,255,0.08) !important; color: $text-primary !important; }
+  &:disabled { opacity: 0.35 !important; cursor: not-allowed; } }
+
+.action-btn-cyan { background: $accent-cyan !important; color: #000 !important; font-weight: 700 !important; font-size: 0.72rem !important;
+  mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; margin-right: 4px; }
+  &:disabled { opacity: 0.35 !important; } }
+
+.action-btn-green { background: $accent-green !important; color: #000 !important; font-weight: 700 !important; font-size: 0.72rem !important;
+  mat-icon { font-size: 15px !important; width: 15px !important; height: 15px !important; margin-right: 4px; }
+  &:disabled { opacity: 0.35 !important; } }
+
+// ── NOTES STRIP ──
+.notes-strip { padding: 12px 16px; border-top: 1px solid $border; background: rgba(0,0,0,0.2); }
+.notes-strip-header { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: $text-primary; margin-bottom: 6px;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: $accent-cyan; } }
+.notes-agent { margin-left: auto; font-size: 0.68rem; color: $text-muted; font-weight: 400; }
+.notes-text { font-size: 0.76rem; color: $text-secondary; margin: 0; line-height: 1.5; }
+
+// ── MEETING FORM ──
+.meeting-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.meeting-form { padding: 16px; border-right: 1px solid $border; }
+.form-disabled { opacity: 0.5; }
+.form-hint { font-size: 0.78rem; color: $text-muted; padding: 24px; text-align: center; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column;
+  label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; } }
+.form-static { font-size: 0.82rem; color: $accent-cyan; font-weight: 600; padding: 8px 0; }
+.full-width { grid-column: 1 / -1; }
+.form-actions { display: flex; justify-content: flex-end; padding-top: 4px; }
+
+// Dark Material form fields
+.dark-input {
+  background: rgba(255,255,255,0.04); border: 1px solid $border; border-radius: 6px; padding: 8px 12px;
+  color: $text-primary; font-size: 0.82rem; width: 100%; box-sizing: border-box;
+  &:focus { outline: none; border-color: $accent-cyan; }
+}
+.dark-textarea { resize: vertical; min-height: 48px; font-family: inherit; }
+
+.dark-mat-field {
+  width: 100%;
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper { background: rgba(255,255,255,0.04) !important; }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing { border-color: $border !important; }
+    .mat-mdc-select-value-text { color: $text-primary !important; font-size: 0.82rem; }
+    .mat-mdc-select-placeholder { color: $text-muted !important; }
+    .mat-mdc-form-field-subscript-wrapper { display: none; }
+    .mat-mdc-select-arrow { color: $text-muted !important; }
+  }
+}
+
+// ── MEETINGS LIST ──
+.meetings-list { padding: 16px; }
+.meetings-list-header { font-size: 0.72rem; color: $text-muted; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+.meeting-card { background: rgba(255,255,255,0.02); border: 1px solid $border; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.meeting-card-top { display: flex; align-items: center; gap: 10px; }
+.meeting-icon { color: $accent-cyan; font-size: 20px; width: 20px; height: 20px; }
+.meeting-info { flex: 1; }
+.meeting-lead { font-size: 0.82rem; font-weight: 600; color: $text-primary; }
+.meeting-datetime { font-size: 0.72rem; color: $text-secondary; }
+.meeting-card-details { display: flex; gap: 16px; margin-top: 8px; font-size: 0.72rem; color: $text-muted;
+  span { display: flex; align-items: center; gap: 4px; }
+  mat-icon { font-size: 14px; width: 14px; height: 14px; } }
+.meeting-card-notes { margin-top: 6px; font-size: 0.72rem; color: $text-secondary; font-style: italic; }
+
+// ── CONTRACT CARDS ──
+.contracts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; padding: 16px; }
+.contract-card { background: rgba(255,255,255,0.02); border: 1px solid $border; border-radius: 8px; padding: 16px; }
+.contract-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.contract-lead { font-size: 0.92rem; font-weight: 700; color: #fff; }
+.contract-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; font-size: 0.72rem; color: $text-secondary;
+  span { display: flex; align-items: center; gap: 4px; }
+  mat-icon { font-size: 14px; width: 14px; height: 14px; color: $text-muted; } }
+.contract-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+// ── RESPONSIVE ──
+@media (max-width: 1024px) {
+  .meeting-content { grid-template-columns: 1fr; }
+  .meeting-form { border-right: none; border-bottom: 1px solid $border; }
+  .contracts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .sai-header { flex-direction: column; gap: 8px; }
+  .workflow-bar { flex-wrap: wrap; gap: 8px; }
+  .connector { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .sai-body { padding: 0 16px 16px; }
+}

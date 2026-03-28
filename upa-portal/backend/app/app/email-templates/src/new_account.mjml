@@ -1,0 +1,93 @@
+<mjml>
+  <!-- Include HTML Head section -->
+  <mj-include path="./partials/head.mjml"/>
+
+  <mj-body mj-class="body-background">
+    <!-- Include Header section -->
+    <mj-include path="./partials/header.mjml"/>
+
+    <mj-section mj-class="message-background">
+      <mj-column width="100%">
+        <mj-image css-class="line-shadow" alt="" align="center" border="none"
+                  padding="0px"></mj-image>
+
+        <mj-text padding="50px 40px 0 40px">
+          Dear {{ full_name }},
+        </mj-text>
+
+        <mj-text padding="30px 40px 0 40px">
+          Welcome to the <b>{{ project_name }}</b>! We are thrilled to have you as part of our growing community.
+        </mj-text>
+
+        <mj-text padding="30px 40px 0 40px">
+          At <b>{{ project_name }}</b>, we are committed to helping you manage your leads, clients, and claims
+          efficiently, ensuring you have access to all the tools and resources you need to succeed in your journey.
+          Whether you’re tracking leads, managing client information, or handling claims, we’ve designed this platform
+          to simplify and streamline your process.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          <b>What you can do:</b>
+        </mj-text>
+
+        <mj-text padding="0px 40px 10px 40px">
+          <ul>
+            <li>
+              <b>Track and manage leads:</b>
+              Easily add new leads, follow up with prospects, and convert them to clients when they are ready to move
+              forward.
+            </li>
+            <li>
+              <b>Manage client information:</b>
+              Keep all your client details organized in one place, with a comprehensive view of their history,
+              preferences, and needs.
+            </li>
+            <li>
+              <b>File and manage claims:</b>
+              Our user-friendly interface allows you to create, manage, and track claims, making the process seamless
+              and transparent.
+            </li>
+            <li>
+              <b>Collaborate effortlessly:</b>
+              Connect with adjusters, managers, and other stakeholders, ensuring smooth communication and clear updates
+              on every case.
+            </li>
+            <li>
+              <b>Stay updated:</b>
+              Get real-time notifications so you never miss important updates on your leads, clients, or claims.
+            </li>
+          </ul>
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          To get started, simply log in using the credentials set up during registration. We’ve also provided a
+          comprehensive <b>User Guide</b> and <b>FAQs</b> that will help you navigate the platform with ease.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          If you have any questions or need assistance, don’t hesitate to reach out to our support team at
+          <a href="mailto:{{ project_contact_email }}" style="color:#172b4d;text-decoration:none;">{{
+            project_contact_email }}
+          </a>
+          or
+          <a href="tel:{{ project_contact_phone }}" style="color:#172b4d;text-decoration: none;">{{
+            project_contact_phone }}
+          </a>.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          Thank you for trusting us with your adjustment needs. We look forward to being a valuable part of your
+          success!
+        </mj-text>
+
+        <!-- Include Signature section -->
+        <mj-include path="./partials/signature.mjml"/>
+
+        <mj-spacer height="20px"></mj-spacer>
+      </mj-column>
+    </mj-section>
+
+    <!-- Include Footer section -->
+    <mj-include path="./partials/footer.mjml"/>
+  </mj-body>
+</mjml>

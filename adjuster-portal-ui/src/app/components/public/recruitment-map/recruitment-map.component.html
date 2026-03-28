@@ -1,0 +1,353 @@
+<section class="tp">
+
+  <!-- ── Ticker ── -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <span class="ticker-item" *ngFor="let msg of tickerMessages">
+        <span class="ticker-dot"></span>{{ msg }}
+      </span>
+      <span class="ticker-item" *ngFor="let msg of tickerMessages">
+        <span class="ticker-dot"></span>{{ msg }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       HERO
+       ══════════════════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-glow hero-glow--l"></div>
+    <div class="hero-glow hero-glow--r"></div>
+
+    <div class="hero-inner">
+      <span class="hero-badge">TERRITORY OWNERSHIP PROGRAM</span>
+      <h1>Own a Territory.<br>Build an Empire.</h1>
+      <p class="hero-lead">
+        Exclusive territories with one Chapter President per territory.
+        Full platform access, a 100-person dedicated marketing team behind you,
+        and recurring revenue from every claim in your region.
+      </p>
+      <div class="hero-ctas">
+        <a class="cta cta--fill" (click)="scrollToForm()">
+          <span class="material-icons">description</span> Apply for Territory
+        </a>
+        <a class="cta cta--outline" (click)="scrollToMap()">
+          <span class="material-icons">map</span> View Territory Map
+        </a>
+        <a class="cta cta--ghost" href="mailto:pguzzi@upaclaim.org">
+          <span class="material-icons">phone_in_talk</span> Schedule a Call
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-stats-strip">
+      <div class="hstat">
+        <span class="hstat-val">{{ availableTerritoryCount }}</span>
+        <span class="hstat-lbl">Territories Available</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-val hstat-val--text">Full Stack</span>
+        <span class="hstat-lbl">Revenue-Generating Infrastructure</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-val">100+</span>
+        <span class="hstat-lbl">Person Marketing Team</span>
+      </div>
+      <div class="hstat-divider"></div>
+      <div class="hstat">
+        <span class="hstat-val">1</span>
+        <span class="hstat-lbl">CP Per Territory</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MARKETING FIREPOWER — bold orange accent section
+       ══════════════════════════════════════════════════════ -->
+  <div class="mktg-section">
+    <div class="wide">
+      <div class="mktg-split">
+        <div class="mktg-copy">
+          <span class="overline overline--white">YOUR UNFAIR ADVANTAGE</span>
+          <h2 class="mktg-title">A 100-Person Dedicated Marketing Team. Working for You.</h2>
+          <p class="mktg-lead">
+            Most independent adjusters struggle alone. As a Chapter President, you get
+            an entire marketing army behind your territory &mdash; generating leads, running
+            campaigns, tracking storms, and filling your pipeline 24/7. You focus on
+            closing claims. We focus on filling your calendar.
+          </p>
+          <div class="mktg-bullets">
+            <div class="mktg-bullet">
+              <span class="material-icons">storm</span>
+              <div>
+                <strong>Storm &amp; disaster tracking</strong>
+                <span>AI monitors weather events and routes affected homeowners directly to your territory.</span>
+              </div>
+            </div>
+            <div class="mktg-bullet">
+              <span class="material-icons">campaign</span>
+              <div>
+                <strong>Multi-channel outreach</strong>
+                <span>Voice, SMS, email, and direct mail campaigns — all automated, all branded to your territory.</span>
+              </div>
+            </div>
+            <div class="mktg-bullet">
+              <span class="material-icons">smart_toy</span>
+              <div>
+                <strong>AI-powered intake</strong>
+                <span>Our AI sales agent qualifies leads 24/7 and books inspections on your team's calendar.</span>
+              </div>
+            </div>
+            <div class="mktg-bullet">
+              <span class="material-icons">analytics</span>
+              <div>
+                <strong>Performance intelligence</strong>
+                <span>Real-time dashboards showing lead flow, conversion rates, and revenue by territory.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mktg-stats">
+          <div class="mktg-stat-card" *ngFor="let s of marketingStats">
+            <span class="material-icons mktg-stat-icon">{{ s.icon }}</span>
+            <div class="mktg-stat-val">{{ s.value }}</div>
+            <div class="mktg-stat-lbl">{{ s.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       PLATFORM MODULES — what you get (no company names)
+       ══════════════════════════════════════════════════════ -->
+  <div class="section section--alt">
+    <div class="wide">
+      <span class="overline">THE PLATFORM</span>
+      <h2 class="sec-title">Revenue-Generating Infrastructure</h2>
+      <p class="sec-sub">Built to support consistent claim flow and scalable growth within your territory.</p>
+
+      <div class="plat-grid">
+        <div class="plat-card" *ngFor="let m of platformModules">
+          <div class="plat-ic"><span class="material-icons">{{ m.icon }}</span></div>
+          <h3>{{ m.title }}</h3>
+          <p>{{ m.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       ECOSYSTEM — company structure only
+       ══════════════════════════════════════════════════════ -->
+  <div class="eco-section">
+    <div class="wide">
+      <span class="overline">THE ECOSYSTEM</span>
+      <h2 class="sec-title">Five Companies. One Network.</h2>
+      <p class="sec-sub">Each entity in the ecosystem serves a distinct role. Together they power your territory.</p>
+
+      <div class="eco-row-clean">
+        <div class="eco-chip" *ngFor="let b of ecosystemBrands" [style.--brand-color]="b.color">
+          <span class="eco-chip-letter">{{ b.letter }}</span>
+          <div class="eco-chip-text">
+            <div class="eco-chip-name">{{ b.name }}</div>
+            <div class="eco-chip-tag">{{ b.tagline }}</div>
+          </div>
+          <div class="eco-chip-bar"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       WHAT YOU GET — feature cards
+       ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="wide">
+      <span class="overline">WHAT YOU GET</span>
+      <h2 class="sec-title">Built for Chapter Presidents</h2>
+
+      <div class="feat-grid">
+        <div class="feat" *ngFor="let f of features">
+          <div class="feat-ic"><span class="material-icons">{{ f.icon }}</span></div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SOCIAL PROOF — urgency bar
+       ══════════════════════════════════════════════════════ -->
+  <div class="proof-bar">
+    <div class="wide">
+      <div class="proof-inner">
+        <div class="proof-item">
+          <span class="material-icons">verified</span>
+          <span>Licensed in 50 states</span>
+        </div>
+        <div class="proof-item">
+          <span class="material-icons">speed</span>
+          <span>Territories closing fast</span>
+        </div>
+        <div class="proof-item">
+          <span class="material-icons">workspace_premium</span>
+          <span>First-qualified, first-awarded</span>
+        </div>
+        <div class="proof-item">
+          <span class="material-icons">support_agent</span>
+          <span>Dedicated onboarding team</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       MAP
+       ══════════════════════════════════════════════════════ -->
+  <div class="section section--alt" id="territory-map">
+    <div class="wide">
+      <span class="overline">LIVE AVAILABILITY</span>
+      <h2 class="sec-title">Territory Map</h2>
+      <p class="sec-sub">Click any state to check territory availability. Territories are assigned based on market size, not just state boundaries.</p>
+    </div>
+    <div class="map-outer">
+      <div class="map-wrap">
+        <div class="map-controls">
+          <button *ngIf="currentView === 'counties'" class="map-back" (click)="backToNational()">&#8592; Back to US</button>
+          <span class="map-view-label" *ngIf="currentView === 'counties'">{{ currentStateName }} Counties</span>
+        </div>
+        <div class="map-loading" *ngIf="loading">
+          <mat-spinner diameter="44"></mat-spinner>
+          <span>Loading territories&hellip;</span>
+        </div>
+        <google-map class="gmap" height="100%" width="100%"
+          [center]="mapCenter" [zoom]="mapZoom" [options]="mapOptions"
+          (mapInitialized)="onMapReady()">
+        </google-map>
+        <div class="ipanel" *ngIf="selectedTerritory">
+          <div class="ipanel-head">
+            <span class="ipanel-title">{{ selectedTerritory.name }}</span>
+            <button class="ipanel-x" (click)="closeInfoPanel()">&times;</button>
+          </div>
+          <div class="ipanel-body">
+            <div class="ipanel-row" *ngIf="selectedTerritory.state">
+              <span class="ipanel-lbl">State</span>
+              <span class="ipanel-val">{{ selectedTerritory.state }}</span>
+            </div>
+            <div class="ipanel-row">
+              <span class="ipanel-lbl">Availability</span>
+              <span class="ipanel-badge" [ngClass]="getPublicStatusClass(selectedTerritory)">{{ getPublicStatus(selectedTerritory) }}</span>
+            </div>
+            <div class="ipanel-sep"></div>
+            <p class="ipanel-hint">Interested? Submit your inquiry below.</p>
+            <button class="ipanel-cta" (click)="selectTerritoryFromMap(selectedTerritory)">Apply for This Territory</button>
+            <button class="ipanel-drill" *ngIf="selectedTerritory.territory_type === 'state' && selectedTerritory.state" (click)="drillIntoState(selectedTerritory.state!)">View Counties</button>
+          </div>
+        </div>
+        <div class="map-legend">
+          <div class="lg"><span class="lgd" style="background:#22C55E"></span>Fully Available</div>
+          <div class="lg"><span class="lgd" style="background:#EAB308"></span>Partially Available</div>
+          <div class="lg"><span class="lgd" style="background:#EF4444"></span>Fully Claimed</div>
+          <div class="lg-note">Territories are assigned based on market size, not just state boundaries.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       INVESTMENT & ROI
+       ══════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="wide">
+      <span class="overline">THE INVESTMENT</span>
+      <h2 class="sec-title">Investment Structure</h2>
+      <p class="sec-sub">Transparent pricing. No hidden fees. One-time territory acquisition plus a flat monthly platform fee.</p>
+
+      <div class="inv-row">
+        <div class="inv-card">
+          <div class="inv-label">Territory Acquisition</div>
+          <div class="inv-amt">$50,000</div>
+          <div class="inv-note">One-time &middot; Exclusive state rights</div>
+        </div>
+        <div class="inv-card">
+          <div class="inv-label">Monthly Platform Fee</div>
+          <div class="inv-amt">$2,000</div>
+          <div class="inv-note">Full system + marketing + support</div>
+        </div>
+        <div class="inv-card inv-card--infra">
+          <div class="inv-label">Included Infrastructure</div>
+          <div class="inv-amt inv-amt--icon"><span class="material-icons">verified</span></div>
+          <div class="inv-note">Marketing system, lead engine, AI tools</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       FORM — copy left, form right
+       ══════════════════════════════════════════════════════ -->
+  <div class="section section--alt" id="application-form">
+    <div class="wide">
+      <div class="form-split">
+        <div class="form-copy">
+          <span class="overline">GET STARTED</span>
+          <h2 class="form-copy-title">Territory Inquiry</h2>
+          <p>Submit your interest and our recruiting team will schedule a call to discuss availability, investment details, and next steps.</p>
+          <ul class="form-checks">
+            <li><span class="material-icons">check_circle</span>No obligation &mdash; just a conversation</li>
+            <li><span class="material-icons">check_circle</span>Typical callback within 24 hours</li>
+            <li><span class="material-icons">check_circle</span>Full territory economics walkthrough on the call</li>
+            <li><span class="material-icons">check_circle</span>Questions answered by our recruiting leadership</li>
+          </ul>
+          <div class="form-copy-contact">
+            <span class="material-icons">email</span>
+            <a href="mailto:pguzzi@upaclaim.org">pguzzi&#64;upaclaim.org</a>
+          </div>
+        </div>
+        <div class="form-pane">
+          <form *ngIf="!submitted" [formGroup]="applyForm" (ngSubmit)="onSubmitApplication()" class="inquiry-form">
+            <div class="fg2">
+              <mat-form-field appearance="outline"><mat-label>First Name</mat-label><input matInput formControlName="firstName" /><mat-error *ngIf="applyForm.controls.firstName.hasError('required')">Required</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Last Name</mat-label><input matInput formControlName="lastName" /><mat-error *ngIf="applyForm.controls.lastName.hasError('required')">Required</mat-error></mat-form-field>
+            </div>
+            <div class="fg2">
+              <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" type="email" /><mat-error *ngIf="applyForm.controls.email.hasError('required')">Required</mat-error><mat-error *ngIf="applyForm.controls.email.hasError('email')">Invalid email</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Phone</mat-label><input matInput formControlName="phone" type="tel" /><mat-error *ngIf="applyForm.controls.phone.hasError('required')">Required</mat-error></mat-form-field>
+            </div>
+            <div class="fg2">
+              <mat-form-field appearance="outline"><mat-label>State of Interest</mat-label><mat-select formControlName="stateOfInterest"><mat-option *ngFor="let st of availableStates" [value]="st">{{ st }}</mat-option></mat-select><mat-error *ngIf="applyForm.controls.stateOfInterest.hasError('required')">Required</mat-error></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>City / County</mat-label><input matInput formControlName="cityCountyOfInterest" /></mat-form-field>
+            </div>
+            <mat-form-field appearance="outline" class="fw"><mat-label>Experience / Background</mat-label><textarea matInput formControlName="experienceBackground" rows="3" placeholder="Public adjusting, insurance, sales, or related experience."></textarea></mat-form-field>
+            <mat-form-field appearance="outline" class="fw"><mat-label>Additional Notes</mat-label><textarea matInput formControlName="notes" rows="2" placeholder="Anything else you'd like us to know?"></textarea></mat-form-field>
+            <button type="submit" mat-flat-button class="btn-submit" [disabled]="applyForm.invalid || submitting">{{ submitting ? 'Submitting...' : 'Submit Inquiry' }}</button>
+          </form>
+          <div *ngIf="submitted" class="success-state">
+            <div class="success-check">&#10003;</div>
+            <h3>Inquiry Received</h3>
+            <p>Our recruiting team will review your submission and reach out to schedule a call.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       FINAL CTA
+       ══════════════════════════════════════════════════════ -->
+  <div class="final-cta" *ngIf="!submitted">
+    <div class="final-cta-glow"></div>
+    <h2>Territories Are Limited.<br>Move Fast.</h2>
+    <p>Each territory is awarded to one Chapter President on a first-qualified basis. Once it's claimed, it's gone.</p>
+    <div class="final-cta-btns">
+      <a class="cta cta--fill cta--lg" (click)="scrollToForm()"><span class="material-icons">description</span> Apply for Territory</a>
+      <a class="cta cta--outline cta--lg" (click)="scrollToMap()"><span class="material-icons">map</span> View Territory Map</a>
+      <a class="cta cta--ghost cta--lg" href="mailto:pguzzi@upaclaim.org"><span class="material-icons">phone_in_talk</span> Schedule a Call</a>
+    </div>
+  </div>
+
+</section>

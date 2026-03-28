@@ -1,0 +1,68 @@
+@use '../../../../../styles/variables' as vars;
+
+.claim-table {
+  width: 100%;
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+}
+
+.mat-mdc-table-scroll-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.green {
+  color: green;
+}
+
+.mat-mdc-card-content a {
+  color:  vars.$primary-color !important;
+}
+
+.mat-mdc-card-content a:hover {
+  color: vars.$accent-color !important;
+}
+
+.comments-table {
+  width: 100%;
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .green {
+    background-color: #368136bc;
+
+    .mat-mdc-cell {
+      color: #fff !important;
+    }
+  }
+}
+
+.leads-table {
+  width: 100%;
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .green {
+    background-color: #368136bc;
+
+    .mat-mdc-cell {
+      color: #fff !important;
+    }
+  }
+}
+
+.mat-mdc-form-field {
+  margin-right: 5px;
+}

@@ -1,0 +1,127 @@
+<div class="intake-dashboard">
+  <div class="dashboard-header">
+    <h2>AI Intake Dashboard</h2>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" routerLink="/app/ai-intake">
+        <mat-icon>smart_toy</mat-icon> Open Intake Assistant
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid">
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon conversations">forum</mat-icon>
+      <div class="metric-value">{{ metrics.conversations_started }}</div>
+      <div class="metric-label">Conversations Started</div>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon completed">task_alt</mat-icon>
+      <div class="metric-value">{{ metrics.completed_intakes }}</div>
+      <div class="metric-label">Completed Intakes</div>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon appointments">event</mat-icon>
+      <div class="metric-value">{{ metrics.appointments_booked }}</div>
+      <div class="metric-label">Appointments Booked</div>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon signed">verified_user</mat-icon>
+      <div class="metric-value">{{ metrics.clients_signed }}</div>
+      <div class="metric-label">Clients Signed</div>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon rate">percent</mat-icon>
+      <div class="metric-value">{{ metrics.qualification_rate }}%</div>
+      <div class="metric-label">Qualification Rate</div>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-icon class="metric-icon score">speed</mat-icon>
+      <div class="metric-value">{{ metrics.avg_qualification_score }}</div>
+      <div class="metric-label">Avg. Qual. Score</div>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-tables">
+    <!-- Recent Sessions -->
+    <div class="table-section">
+      <h3>Recent Intake Sessions</h3>
+      <table mat-table [dataSource]="recentSessions" class="mat-elevation-z1">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Homeowner</th>
+          <td mat-cell *matCellDef="let s">{{ s.homeowner_name || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="incident">
+          <th mat-header-cell *matHeaderCellDef>Incident</th>
+          <td mat-cell *matCellDef="let s">{{ s.incident_type || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="insurance">
+          <th mat-header-cell *matHeaderCellDef>Insurance</th>
+          <td mat-cell *matCellDef="let s">{{ s.insurance_company || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="status-badge" [ngClass]="getStatusClass(s.status)">{{ s.status }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="qualified">
+          <th mat-header-cell *matHeaderCellDef>Qualified</th>
+          <td mat-cell *matCellDef="let s">
+            <mat-icon *ngIf="s.is_qualified === true" class="qual-yes">check_circle</mat-icon>
+            <mat-icon *ngIf="s.is_qualified === false" class="qual-no">cancel</mat-icon>
+            <span *ngIf="s.is_qualified === null">—</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="score">
+          <th mat-header-cell *matHeaderCellDef>Score</th>
+          <td mat-cell *matCellDef="let s">{{ s.qualification_score ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let s">{{ s.created_at | date: 'short' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['name','incident','insurance','status','qualified','score','date']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['name','incident','insurance','status','qualified','score','date'];"></tr>
+      </table>
+    </div>
+
+    <!-- Appointments -->
+    <div class="table-section">
+      <h3>Booked Appointments</h3>
+      <div class="appointments-list" *ngIf="appointments.length > 0; else noAppts">
+        <div class="appt-card" *ngFor="let a of appointments">
+          <div class="appt-icon">
+            <mat-icon>{{ getApptTypeIcon(a.appointment_type) }}</mat-icon>
+          </div>
+          <div class="appt-details">
+            <strong>{{ a.homeowner_name || 'Unknown' }}</strong>
+            <span class="appt-type">{{ a.appointment_type | titlecase }} Consultation</span>
+            <span class="appt-meta">{{ a.homeowner_phone }} &bull; {{ a.homeowner_email }}</span>
+          </div>
+          <div class="appt-status">
+            <span class="status-badge" [ngClass]="getStatusClass(a.status)">{{ a.status }}</span>
+          </div>
+        </div>
+      </div>
+      <ng-template #noAppts>
+        <div class="empty-state">
+          <mat-icon>event_busy</mat-icon>
+          <p>No appointments booked yet.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

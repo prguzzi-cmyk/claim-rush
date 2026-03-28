@@ -1,0 +1,42 @@
+<div class="reports-container">
+  <div class="section-card">
+    <div class="reports-header">
+      <h3>Claim Reports</h3>
+      <p class="reports-subtitle">Download claim reports, inspection reports, estimates, and supplement documentation.</p>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-chips">
+      <span class="filter-label">Filter:</span>
+      <button class="filter-chip" [class.active]="!activeFilter" (click)="activeFilter = null">All</button>
+      <button *ngFor="let t of reportTypes" class="filter-chip" [class.active]="activeFilter === t.value" (click)="toggleFilter(t.value)">
+        <mat-icon class="chip-icon">{{ t.icon }}</mat-icon> {{ t.label }}
+      </button>
+    </div>
+
+    <!-- Report Cards -->
+    <div class="reports-grid">
+      <div *ngFor="let r of filteredReports" class="report-card">
+        <div class="report-icon-wrap" [attr.data-type]="r.type">
+          <mat-icon>{{ getTypeIcon(r.type) }}</mat-icon>
+        </div>
+        <div class="report-info">
+          <div class="report-name">{{ r.name }}</div>
+          <div class="report-meta">
+            <span class="report-type-label">{{ getTypeLabel(r.type) }}</span>
+            <span class="report-date">{{ r.generatedAt }}</span>
+            <span class="report-size">{{ r.size }}</span>
+          </div>
+        </div>
+        <button mat-icon-button class="download-btn" matTooltip="Download Report" (click)="downloadReport(r)">
+          <mat-icon>download</mat-icon>
+        </button>
+      </div>
+
+      <div *ngIf="filteredReports.length === 0" class="empty-state">
+        <mat-icon>assessment</mat-icon>
+        <p>No reports match this filter.</p>
+      </div>
+    </div>
+  </div>
+</div>

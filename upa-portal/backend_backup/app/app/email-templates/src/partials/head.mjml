@@ -1,0 +1,20 @@
+<mj-head>
+  <mj-attributes>
+    <mj-class name="app-color" color="#062451"/>
+    <mj-class name="app-background-color" background-color="#062451"/>
+    <mj-class name="body-background" background-color="#172b4d"/>
+    <mj-class name="message-background" background-url="https://images.unsplash.com/photo-1508161250369-a7ecbdfb67fe"
+              padding="0px" background-size="auto" background-repeat="no-repeat"/>
+
+    <mj-all font-size="16px" line-height="22px"></mj-all>
+  </mj-attributes>
+
+  <mj-html-attributes>
+    <mj-selector path=".line-shadow img">
+      <mj-html-attribute name="src">http://nimus.de/share/tpl-card/lineshadow.png</mj-html-attribute>
+    </mj-selector>
+  </mj-html-attributes>
+
+  <mj-font name="Ubuntu"
+           href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700"/>
+</mj-head>

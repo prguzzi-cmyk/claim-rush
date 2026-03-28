@@ -1,0 +1,82 @@
+<div class="voa-dark">
+  <div class="voa-header">
+    <div>
+      <h1>AI Voice Call Engine</h1>
+      <p class="voa-subtitle">Outbound calls with real-time transcription, conversation analysis, and intent detection.</p>
+    </div>
+    <div class="voa-meta">
+      <span class="voa-status"><span class="status-dot"></span> Engine Active</span>
+    </div>
+  </div>
+
+  <div class="voa-body">
+    <!-- ══════ FILTERS ══════ -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <select [(ngModel)]="campaignFilter" (ngModelChange)="applyFilters()" class="dark-select">
+          <option value="all">All Campaigns</option>
+          <option *ngFor="let c of campaigns" [value]="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <select [(ngModel)]="outcomeFilter" (ngModelChange)="applyFilters()" class="dark-select">
+          <option *ngFor="let o of outcomeOptions" [value]="o.value">{{ o.label }}</option>
+        </select>
+      </div>
+      <div class="filter-group search-group">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input type="text" class="dark-input search" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by name or address..." />
+      </div>
+    </div>
+
+    <!-- ══════ CALLS TABLE ══════ -->
+    <div class="dark-panel">
+      <div class="dark-panel-header"><mat-icon>phone_in_talk</mat-icon> Call Records <span class="header-count">{{ filteredCalls.length }} calls</span></div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Lead</th>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Campaign</th>
+              <th>Outcome</th>
+              <th>Duration</th>
+              <th>AI Score</th>
+              <th>Intent</th>
+              <th>Routed</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredCalls" class="clickable-row" (click)="openTimeline(c)">
+              <td>
+                <div class="cell-name">{{ c.leadName }}</div>
+                <div class="cell-sub">{{ c.leadPhone }}</div>
+              </td>
+              <td>
+                <div class="cell-name">{{ c.propertyAddress }}</div>
+                <div class="cell-sub">{{ c.city }}, {{ c.state }}</div>
+              </td>
+              <td><span class="claim-chip"><mat-icon>{{ getClaimIcon(c.claimType) }}</mat-icon> {{ c.claimType | titlecase }}</span></td>
+              <td class="cell-campaign">{{ c.campaignName }}</td>
+              <td><span class="status-badge" [ngClass]="getOutcomeBadgeClass(c.outcome)">{{ formatOutcome(c.outcome) }}</span></td>
+              <td>{{ formatDuration(c.duration) }}</td>
+              <td>
+                <span *ngIf="c.aiQualificationScore !== null" class="score" [class.score-high]="c.aiQualificationScore! >= 80" [class.score-mid]="c.aiQualificationScore! >= 50 && c.aiQualificationScore! < 80" [class.score-low]="c.aiQualificationScore! < 50">{{ c.aiQualificationScore }}</span>
+                <span *ngIf="c.aiQualificationScore === null" class="cell-sub">—</span>
+              </td>
+              <td class="cell-intent">{{ c.intentDetected || '—' }}</td>
+              <td>
+                <mat-icon *ngIf="c.routedToSalesAgent" class="routed-icon">check_circle</mat-icon>
+                <span *ngIf="!c.routedToSalesAgent" class="cell-sub">—</span>
+              </td>
+              <td class="cell-sub">{{ formatTime(c.calledAt) }}</td>
+            </tr>
+            <tr *ngIf="filteredCalls.length === 0"><td colspan="10" class="empty-state">No calls match your filters</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,23 @@
+<p class="mat-headline-4 section-title">Learn</p>
+
+<ul class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">Resources</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">Learn</a>
+  </li>
+</ul>
+
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <div class="row">
+      <app-resource [resource]="learnResource" class="col-4"></app-resource>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<router-outlet></router-outlet>

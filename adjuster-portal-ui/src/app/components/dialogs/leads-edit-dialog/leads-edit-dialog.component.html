@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>
+    {{ title }}
+</h2>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+
+<div mat-dialog-content *ngIf="this.action == 'multiple'">
+    <p>
+        <strong>{{ this.selection.selected.length }}</strong> records selected
+    </p>
+
+    <form [formGroup]="leadForm" class="lead-form">
+        <mat-form-field class="w-100">
+            <mat-label>Assigned to</mat-label>
+            <mat-select *ngIf="role == 'super-admin' || role == 'admin'" formControlName="assign_to"
+                placeholder="Select agent assigned to" name="assign_to">
+                <mat-option value=""></mat-option>
+                <mat-option *ngFor="let agent of agents" [value]="agent.id">
+                    {{ agent?.first_name }} {{ agent?.last_name }}
+                </mat-option>
+            </mat-select>
+            <mat-select *ngIf="role != 'super-admin' && role != 'admin'" formControlName="assign_to"
+                placeholder="Select agent assigned to" name="assign_to">
+                <mat-option value=""></mat-option>
+                <mat-option [value]="user?.id">
+                    {{ user?.first_name }} {{ user?.last_name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-100">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status" placeholder="Select status" name="status">
+                <mat-option value=""></mat-option>
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                    {{status}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- <mat-form-field class="w-100">
+            <mat-label>Source</mat-label>
+            <mat-select formControlName="source" placeholder="Select source" name="source">
+                <mat-option value=""></mat-option>
+                <mat-option *ngFor="let source of sources" [value]="source">
+                    {{ source }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field> -->
+
+        <mat-form-field>
+            <mat-label>Source by</mat-label>
+            <mat-select formControlName="source" placeholder="Select source by"
+              name="source">
+              <mat-option *ngFor="let agent of agents" [value]="agent.id">
+                {{agent?.first_name}} {{agent?.last_name}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+    </form>
+</div>
+<div mat-dialog-actions>
+
+    <button mat-raised-button color="primary" *ngIf="this.action == 'multiple'" (click)="updateMultiple()"
+        [disabled]="!leadForm.valid || FormDisabled || leadForm.errors?.atLeastOneRequired">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="FormDisabled"></mat-spinner>
+        </div>
+        Save
+    </button>
+
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

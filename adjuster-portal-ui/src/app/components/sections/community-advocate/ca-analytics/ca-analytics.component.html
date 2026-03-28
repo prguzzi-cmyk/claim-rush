@@ -1,0 +1,120 @@
+<div class="ca-tab-content">
+  <!-- Date Range -->
+  <div class="date-range-bar">
+    <mat-form-field appearance="outline">
+      <mat-label>Date Range</mat-label>
+      <mat-select [(ngModel)]="dateRange">
+        <mat-option value="last_30_days">Last 30 Days</mat-option>
+        <mat-option value="last_3_months">Last 3 Months</mat-option>
+        <mat-option value="last_6_months">Last 6 Months</mat-option>
+        <mat-option value="last_year">Last Year</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row" *ngIf="kpiSummary">
+    <mat-card class="kpi-card">
+      <span class="kpi-value">{{ kpiSummary.total_referrals }}</span>
+      <span class="kpi-label">{{ caRole === 'advocate' ? 'My Referrals' : 'Total Referrals' }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-value">{{ kpiSummary.homeowners_reached | number }}</span>
+      <span class="kpi-label">Homeowners Reached</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-value">{{ kpiSummary.active_campaigns }}</span>
+      <span class="kpi-label">Active Campaigns</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-value">{{ kpiSummary.avg_satisfaction | number:'1.1-1' }}</span>
+      <span class="kpi-label">Avg Satisfaction</span>
+    </mat-card>
+  </div>
+
+  <div class="charts-grid">
+    <!-- Referral Trend Line Chart -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>{{ caRole === 'advocate' ? 'My Referral Trend' : 'Referral Trend' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ngx-charts-line-chart
+          *ngIf="referralTrendData.length"
+          [view]="chartView"
+          [results]="referralTrendData"
+          [scheme]="colorScheme"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="true"
+          [showYAxisLabel]="true"
+          xAxisLabel="Month"
+          yAxisLabel="Referrals"
+          [autoScale]="true">
+        </ngx-charts-line-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Conversion Funnel Bar Chart -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Conversion Funnel</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ngx-charts-bar-vertical
+          *ngIf="funnelData.length"
+          [view]="funnelView"
+          [results]="funnelData"
+          [scheme]="colorScheme"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="true"
+          xAxisLabel="Stage"
+          [showYAxisLabel]="true"
+          yAxisLabel="Count">
+        </ngx-charts-bar-vertical>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Channel Performance Table -->
+  <mat-card class="perf-card">
+    <mat-card-header>
+      <mat-card-title>Channel Performance</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="channelPerformance" class="perf-table">
+        <ng-container matColumnDef="channel">
+          <th mat-header-cell *matHeaderCellDef>Channel</th>
+          <td mat-cell *matCellDef="let row">{{ row.channel }}</td>
+        </ng-container>
+        <ng-container matColumnDef="sent">
+          <th mat-header-cell *matHeaderCellDef>Sent</th>
+          <td mat-cell *matCellDef="let row">{{ row.sent | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="delivered">
+          <th mat-header-cell *matHeaderCellDef>Delivered</th>
+          <td mat-cell *matCellDef="let row">{{ row.delivered | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="opened">
+          <th mat-header-cell *matHeaderCellDef>Opened</th>
+          <td mat-cell *matCellDef="let row">{{ row.opened | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="clicked">
+          <th mat-header-cell *matHeaderCellDef>Clicked</th>
+          <td mat-cell *matCellDef="let row">{{ row.clicked | number }}</td>
+        </ng-container>
+        <ng-container matColumnDef="converted">
+          <th mat-header-cell *matHeaderCellDef>Converted</th>
+          <td mat-cell *matCellDef="let row">{{ row.converted }}</td>
+        </ng-container>
+        <ng-container matColumnDef="conversion_rate">
+          <th mat-header-cell *matHeaderCellDef>Conv. Rate</th>
+          <td mat-cell *matCellDef="let row">{{ row.conversion_rate }}%</td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="channelColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: channelColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

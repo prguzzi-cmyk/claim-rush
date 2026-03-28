@@ -1,0 +1,245 @@
+<div class="rotation-engine-dark">
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <div class="re-header">
+    <div>
+      <h1>Lead Rotation Engine</h1>
+      <p class="re-subtitle">Automated lead assignment &amp; agent pool management</p>
+    </div>
+    <div class="re-meta">
+      <span class="re-status"><span class="status-dot"></span> Engine Active</span>
+      <span class="re-timestamp">Last run: {{ lastRunTimestamp }}</span>
+    </div>
+  </div>
+
+  <div class="re-body">
+
+    <!-- ═══════════ KPI DASHBOARD STRIP ═══════════ -->
+    <div class="kpi-strip">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.totalLeadsToday }}</div>
+        <div class="kpi-label">Total Leads Today</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value accent-green">{{ kpis.leadsAssigned }}</div>
+        <div class="kpi-label">Leads Assigned</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value accent-orange">{{ kpis.unassignedQueue }}</div>
+        <div class="kpi-label">Unassigned Queue</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.conversionRate }}%</div>
+        <div class="kpi-label">Conversion Rate</div>
+      </div>
+      <div class="kpi-card" *ngIf="kpis.topAgent">
+        <div class="kpi-value accent-purple">{{ kpis.topAgent.closingRate }}%</div>
+        <div class="kpi-label">Top Agent: {{ kpis.topAgent.name }}</div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL 1: LEAD QUEUE ═══════════ -->
+    <div class="dark-panel panel-section">
+      <div class="dark-panel-header">
+        <mat-icon>queue</mat-icon>
+        <span>Lead Queue</span>
+        <div class="header-filters">
+          <mat-form-field class="dark-mat-field filter-field" appearance="outline">
+            <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()" placeholder="Status">
+              <mat-option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="dark-mat-field filter-field" appearance="outline">
+            <mat-select [(ngModel)]="filterSource" (selectionChange)="applyFilters()" placeholder="Source">
+              <mat-option *ngFor="let opt of sourceOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="dark-mat-field filter-field" appearance="outline">
+            <mat-select [(ngModel)]="filterTerritory" (selectionChange)="applyFilters()" placeholder="Territory">
+              <mat-option value="">All Territories</mat-option>
+              <mat-option *ngFor="let t of territoryOptions" [value]="t">{{ t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Owner</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Source</th>
+              <th>Territory</th>
+              <th>Status</th>
+              <th>Score</th>
+              <th>Assigned Agent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let lead of filteredLeads"
+                [class.row-selected]="isLeadSelected(lead)"
+                (click)="selectLead(lead)">
+              <td>{{ lead.ownerName }}</td>
+              <td class="mono">{{ lead.phone }}</td>
+              <td>{{ lead.propertyAddress }}, {{ lead.city }}</td>
+              <td>
+                <mat-icon class="source-icon" [style.color]="LEAD_SOURCE_META[lead.leadSource]?.color">{{ getSourceIcon(lead.leadSource) }}</mat-icon>
+                {{ getSourceLabel(lead.leadSource) }}
+              </td>
+              <td>{{ lead.territory }}</td>
+              <td><span class="status-badge" [ngClass]="getStatusBadge(lead.status)">{{ getStatusLabel(lead.status) }}</span></td>
+              <td class="mono score-cell">{{ lead.priorityScore }}</td>
+              <td>{{ lead.assignedAgentName || '—' }}</td>
+            </tr>
+            <tr *ngIf="!filteredLeads.length">
+              <td colspan="8" class="empty-row">No leads match current filters</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════ TWO-COL LAYOUT: AGENT POOL + ASSIGNMENT LOG ═══════════ -->
+    <div class="two-col">
+
+      <!-- ═══════════ PANEL 2: AGENT POOL ═══════════ -->
+      <div class="dark-panel panel-section">
+        <div class="dark-panel-header">
+          <mat-icon>groups</mat-icon>
+          <span>Active Agent Pool</span>
+        </div>
+        <div class="table-wrap">
+          <table class="dark-table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Territory</th>
+                <th>Status</th>
+                <th>Rank</th>
+                <th>Cap</th>
+                <th>Today</th>
+                <th>Close %</th>
+                <th>Score</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let agent of agents">
+                <td class="agent-name">{{ agent.name }}</td>
+                <td>{{ agent.territory }}</td>
+                <td>
+                  <span class="status-badge clickable"
+                        [ngClass]="agent.isAvailable ? 'badge-green' : 'badge-red'"
+                        (click)="toggleAvailability(agent)">
+                    {{ agent.isAvailable ? 'Online' : 'Offline' }}
+                  </span>
+                </td>
+                <td class="mono">#{{ agent.rank }}</td>
+                <td class="mono">{{ agent.dailyLimit }}</td>
+                <td class="mono">{{ agent.leadsToday }}</td>
+                <td class="mono">{{ agent.closingRate }}%</td>
+                <td class="mono score-cell">{{ agent.compositeScore }}</td>
+                <td>
+                  <button mat-icon-button class="assign-btn"
+                          [disabled]="!selectedLeadId || !agent.isAvailable"
+                          (click)="manualAssign(agent)"
+                          matTooltip="Assign selected lead to this agent">
+                    <mat-icon>person_add</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════ PANEL 3: ASSIGNMENT TRACKER ═══════════ -->
+      <div class="dark-panel panel-section">
+        <div class="dark-panel-header">
+          <mat-icon>assignment</mat-icon>
+          <span>Assignment Log</span>
+          <span class="log-count">{{ assignmentLog.length }} records</span>
+        </div>
+        <div class="log-scroll">
+          <table class="dark-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Lead</th>
+                <th>Agent</th>
+                <th>Territory</th>
+                <th>Method</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rec of assignmentLog">
+                <td class="mono ts-cell">{{ formatTimestamp(rec.timestamp) }}</td>
+                <td>{{ rec.leadName }}</td>
+                <td>{{ rec.agentName }}</td>
+                <td>{{ rec.territory }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="rec.method === 'auto' ? 'badge-cyan' : 'badge-yellow'">
+                    {{ rec.method }}
+                  </span>
+                </td>
+                <td class="reason-cell">{{ rec.reason }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ PANEL 4: ROTATION CONTROLS ═══════════ -->
+    <div class="dark-panel panel-section">
+      <div class="dark-panel-header">
+        <mat-icon>tune</mat-icon>
+        <span>Rotation Logic</span>
+      </div>
+      <div class="controls-body">
+        <div class="controls-row">
+          <div class="control-group">
+            <label>Territory Match</label>
+            <mat-slide-toggle [(ngModel)]="enforceTerritoryMatch" color="primary"></mat-slide-toggle>
+            <span class="control-hint">{{ enforceTerritoryMatch ? 'Enforced' : 'Disabled' }}</span>
+          </div>
+          <div class="control-group">
+            <label>Performance Weighting</label>
+            <mat-slide-toggle [(ngModel)]="usePerformanceWeighting" color="primary"></mat-slide-toggle>
+            <span class="control-hint">{{ usePerformanceWeighting ? 'Active' : 'Off' }}</span>
+          </div>
+        </div>
+
+        <div class="weight-sliders" *ngIf="usePerformanceWeighting">
+          <div class="slider-group">
+            <label>Closing Rate</label>
+            <input type="range" min="0" max="100" [(ngModel)]="weightClosingRate" class="dark-slider" />
+            <span class="slider-val">{{ weightClosingRate }}%</span>
+          </div>
+          <div class="slider-group">
+            <label>Response Speed</label>
+            <input type="range" min="0" max="100" [(ngModel)]="weightResponseSpeed" class="dark-slider" />
+            <span class="slider-val">{{ weightResponseSpeed }}%</span>
+          </div>
+          <div class="slider-group">
+            <label>Satisfaction</label>
+            <input type="range" min="0" max="100" [(ngModel)]="weightSatisfaction" class="dark-slider" />
+            <span class="slider-val">{{ weightSatisfaction }}%</span>
+          </div>
+        </div>
+
+        <div class="controls-actions">
+          <button mat-raised-button class="action-btn-cyan" (click)="recalcCompositeScores()">
+            <mat-icon>refresh</mat-icon> Recalculate Scores
+          </button>
+          <button mat-raised-button class="action-btn-green" (click)="runRotation()">
+            <mat-icon>play_arrow</mat-icon> Run Rotation
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

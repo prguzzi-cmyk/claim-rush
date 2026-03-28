@@ -1,0 +1,68 @@
+.ca-tab-content { padding: 20px 0; }
+
+.channel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.channel-card {
+  border-radius: 12px;
+  transition: opacity 0.2s;
+
+  &.disabled { opacity: 0.5; }
+
+  .channel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    mat-icon { color: #1a237e; font-size: 28px; width: 28px; height: 28px; }
+    .channel-label { font-weight: 600; font-size: 16px; flex: 1; }
+  }
+
+  .channel-desc { font-size: 13px; color: #666; margin: 0 0 12px 0; }
+
+  .channel-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+  }
+}
+
+.templates-section { margin-top: 16px; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  h3 { margin: 0; }
+}
+
+.template-table { width: 100%; }
+
+.editor-card {
+  border-radius: 12px;
+  mat-card-header {
+    display: flex;
+    align-items: center;
+    .spacer { flex: 1; }
+  }
+}
+
+.editor-form {
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; .flex-1 { flex: 1; } }
+  .full-width { width: 100%; }
+}
+
+.preview-panel {
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  .preview-subject { margin-bottom: 12px; font-size: 15px; }
+  .preview-body { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+}

@@ -1,0 +1,120 @@
+<p class="mat-headline-4 section-title">Schedules</p>
+
+
+<ng-container *ngIf="this.type != 'view' && this.type != 'delete'">
+
+<form [formGroup]="scheduleForm" class="lead-form" (ngSubmit)="saveSchedule()">
+  <mat-card-content>  
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tasks</mat-label>
+      <mat-select formControlName="tasks" multiple placeholder="Select tasks" name="tasks">
+        <mat-option *ngFor="let task of taskList" [value]="task.id">
+          {{task.value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" placeholder="Title"  maxlength="60" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>goal</mat-label>
+      <input matInput formControlName="goal" placeholder="goal" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Day Number</mat-label>
+      <input matInput formControlName="day_number" placeholder="Day Number" required>
+    </mat-form-field>
+
+    <div class="d-flex align-items-center mb-3">
+      Is active:
+
+      <mat-slide-toggle
+        (change)="toggleIsActive($event)"
+        [checked]="isActive"
+        color="primary"
+        class="ml-3"
+      ></mat-slide-toggle>
+    </div>
+
+    <div class="d-flex align-items-center mb-3">
+      Can be removed:
+
+      <mat-slide-toggle
+        (change)="toggleCanBeRemoved($event)"
+        [checked]="canBeRemoved"
+        color="primary"
+        class="ml-3"
+      ></mat-slide-toggle>
+    </div>
+    
+  </mat-card-content>
+
+  <button mat-raised-button color="primary" type="submit" [disabled]="!scheduleForm?.valid">
+    Save
+    <!-- <mat-icon *ngIf="leadFormDisabled"><mat-spinner color="accent" diameter="20">
+      </mat-spinner></mat-icon> -->
+  </button>
+  <button class="ml-1rem" color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+
+</form>
+
+  <!-- <mat-card-actions>
+    <button mat-raised-button color="primary" (click)="saveSchedule()" [disabled]="">
+     Save
+    </button>
+
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</mat-card-actions> -->
+
+</ng-container>
+
+<div mat-dialog-content *ngIf="this.type == 'view'">
+  <table>
+    <td>
+      <!-- <p><strong>Task</strong></p>
+      <p>{{ getTaskTitle(schedule?.tasks) }}</p> -->
+
+      <p><strong>Title</strong></p>
+      <p>{{ schedule?.title }}</p>
+
+      <p><strong>Goal</strong></p>
+      <p>{{ schedule?.goal }}</p>
+
+      <p><strong>Day Number</strong></p>
+      <p>{{ schedule?.day_number}}</p>
+
+      <div>
+        <p class="flex-pr"><strong>Is Active</strong></p>
+        <mat-slide-toggle [checked]="!!+schedule.is_active" disabled color="primary"></mat-slide-toggle>
+      </div>
+
+      <div>
+        <p><strong>Is Removed</strong></p>
+        <mat-slide-toggle [checked]="!!+schedule.can_be_removed" disabled color="primary"></mat-slide-toggle>
+      </div>        
+
+    </td>
+  </table>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>
+
+
+
+<div mat-dialog-content *ngIf="this.type == 'delete'">
+  Are you sure you want to delete this schedule?
+  <p></p>
+
+  <button mat-raised-button color="warn" (click)="deleteSchedule(scheduleId)" *ngIf="type == 'delete'">
+    <!-- <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="roleFormDisabled"></mat-spinner>
+    </div> -->
+    Yes, delete this schedule
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

@@ -1,0 +1,58 @@
+/**
+ * Colours
+ **/
+$primary-color: #00C2FF;
+$accent-color: #00A3D9;
+$error-color: #ef4444;
+
+$gray-100: #f8f9fa !default;
+$gray-200: #e9ecef !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;
+$gray-600: #6c757d !default;
+$gray-700: #495057 !default;
+$gray-800: #343a40 !default;
+$gray-900: #212529 !default;
+
+$white: #fff;
+$black: #000;
+
+$bg-color: #0B0F14;
+$bg-alternative-color: #111820;
+
+$copy-color: rgba(255, 255, 255, 0.7);
+$highlight-color: rgba(255, 255, 255, 1);
+
+$color-1: #349d9f;
+$color-2: #00b2a9;
+$color-3: #c63663;
+$color-4: #0090da;
+$color-5: #ff9e1b;
+$color-6: #87189d;
+$color-7: #78be20;
+$color-8: #fbe122;
+$color-9: #004c97;
+$color-10: #8a2a2b;
+$color-11: #00573f;
+$color-12: #e35205;
+$color-13: #f6be00;
+$color-14: #71c5e8;
+$color-15: #d50032;
+$color-16: #cedc00;
+$color-17: #642667;
+$color-18: #88dbdf;
+
+/**
+ * Typography
+ **/
+$primary-font: 'Inter', sans-serif;
+
+/**
+ * Grid Breakpoints
+ **/
+$grid-breakpoint-sm: 576px;
+$grid-breakpoint-md: 768px;
+$grid-breakpoint-lg: 992px;
+$grid-breakpoint-xl: 1200px;
+$grid-breakpoint-xxl: 1400px;

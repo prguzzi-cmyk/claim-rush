@@ -1,0 +1,34 @@
+@import '../_voa-shared';
+
+// ── OUTCOME STRIP ──
+.outcome-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.outcome-card {
+  background: $bg-panel; border: 1px solid $border; border-radius: 10px; padding: 16px; text-align: center;
+  mat-icon { font-size: 24px; width: 24px; height: 24px; margin-bottom: 6px; }
+  .outcome-count { font-size: 1.6rem; font-weight: 800; color: #fff; }
+  .outcome-label { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; margin-top: 2px; }
+  .outcome-pct { font-size: 0.72rem; font-weight: 600; margin-top: 4px; }
+  .outcome-bar { height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .outcome-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  &.card-muted { mat-icon, .outcome-pct { color: $text-muted; } .outcome-bar-fill { background: $text-muted; } }
+  &.card-blue { mat-icon, .outcome-pct { color: $accent-blue; } .outcome-bar-fill { background: $accent-blue; } }
+  &.card-red { mat-icon, .outcome-pct { color: $accent-red; } .outcome-bar-fill { background: $accent-red; } }
+  &.card-yellow { mat-icon, .outcome-pct { color: $accent-yellow; } .outcome-bar-fill { background: $accent-yellow; } }
+  &.card-cyan { mat-icon, .outcome-pct { color: $accent-cyan; } .outcome-bar-fill { background: $accent-cyan; } }
+  &.card-green { mat-icon, .outcome-pct { color: $accent-green; } .outcome-bar-fill { background: $accent-green; } }
+}
+
+.cell-intent { font-size: 0.7rem; color: $text-secondary; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score { font-weight: 700; font-size: 0.82rem; }
+.score-high { color: $accent-green; }
+.score-mid { color: $accent-yellow; }
+.score-low { color: $accent-red; }
+.routed-icon { font-size: 18px; color: $accent-green; }
+
+.dark-select-mini {
+  background: rgba(255,255,255,0.05); border: 1px solid $border; border-radius: 4px; padding: 4px 6px;
+  color: $text-primary; font-size: 0.7rem; outline: none;
+  &:focus { border-color: $accent-cyan; }
+  option { background: $bg-panel; color: $text-primary; } }
+.view-btn { color: $text-muted; &:hover { color: $accent-cyan; } }

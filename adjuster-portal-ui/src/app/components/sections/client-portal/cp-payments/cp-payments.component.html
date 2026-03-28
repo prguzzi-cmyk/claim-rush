@@ -1,0 +1,69 @@
+<div class="payments-container">
+  <!-- Summary Cards -->
+  <div class="summary-row">
+    <div class="summary-card paid">
+      <mat-icon>check_circle</mat-icon>
+      <div class="summary-content">
+        <span class="summary-value">{{ totalPaid | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span class="summary-label">Total Paid</span>
+      </div>
+    </div>
+    <div class="summary-card pending">
+      <mat-icon>hourglass_empty</mat-icon>
+      <div class="summary-content">
+        <span class="summary-value">{{ totalPending | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span class="summary-label">Pending</span>
+      </div>
+    </div>
+    <div class="summary-card remaining">
+      <mat-icon>account_balance</mat-icon>
+      <div class="summary-content">
+        <span class="summary-value">{{ estimatedRemaining | currency:'USD':'symbol':'1.0-0' }}</span>
+        <span class="summary-label">Estimated Remaining</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payments Table -->
+  <div class="section-card">
+    <h3>Payment History</h3>
+    <table mat-table [dataSource]="payments" class="payments-table">
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef>Date</th>
+        <td mat-cell *matCellDef="let p">{{ p.date }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Description</th>
+        <td mat-cell *matCellDef="let p">{{ p.description }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef>Amount</th>
+        <td mat-cell *matCellDef="let p" class="amount-cell">{{ p.amount | currency:'USD':'symbol':'1.0-0' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="payment-status" [ngClass]="'ps-' + p.status">
+            {{ p.status | titlecase }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="method">
+        <th mat-header-cell *matHeaderCellDef>Method</th>
+        <td mat-cell *matCellDef="let p">{{ p.method }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="referenceNumber">
+        <th mat-header-cell *matHeaderCellDef>Reference</th>
+        <td mat-cell *matCellDef="let p" class="mono">{{ p.referenceNumber }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

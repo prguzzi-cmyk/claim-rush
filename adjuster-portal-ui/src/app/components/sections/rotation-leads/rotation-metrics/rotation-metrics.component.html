@@ -1,0 +1,110 @@
+<div class="rotation-metrics-page">
+  <div class="page-header">
+    <h2><mat-icon class="header-icon">bar_chart</mat-icon> Rotation Metrics</h2>
+    <button mat-icon-button (click)="loadMetrics()" matTooltip="Refresh">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading metrics...</span>
+  </div>
+
+  <div *ngIf="!loading && metrics">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <mat-card appearance="outlined" class="summary-card">
+        <div class="card-value">{{ metrics.total_leads }}</div>
+        <div class="card-label">Total Leads</div>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="summary-card">
+        <div class="card-value">{{ metrics.assigned_leads }}</div>
+        <div class="card-label">Assigned</div>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="summary-card signed">
+        <div class="card-value">{{ metrics.signed_clients }}</div>
+        <div class="card-label">Signed Clients</div>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="summary-card conversion">
+        <div class="card-value">{{ metrics.conversion_rate }}%</div>
+        <div class="card-label">Conversion Rate</div>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="summary-card">
+        <div class="card-value">{{ metrics.avg_response_hours ? (metrics.avg_response_hours | number:'1.1-1') + 'h' : '—' }}</div>
+        <div class="card-label">Avg Response Time</div>
+      </mat-card>
+    </div>
+
+    <!-- Status Breakdown -->
+    <mat-card appearance="outlined" class="mt-4">
+      <mat-card-header>
+        <mat-card-title>Status Breakdown</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-bars" *ngIf="metrics.status_breakdown.length > 0">
+          <div class="status-bar-item" *ngFor="let sb of metrics.status_breakdown">
+            <div class="bar-label">{{ getStatusLabel(sb.status) }}</div>
+            <div class="bar-track">
+              <div class="bar-fill"
+                   [style.width.%]="metrics.total_leads > 0 ? (sb.count / metrics.total_leads * 100) : 0">
+              </div>
+            </div>
+            <div class="bar-count">{{ sb.count }}</div>
+          </div>
+        </div>
+        <p *ngIf="metrics.status_breakdown.length === 0" class="empty-text">No data yet.</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Agent Performance -->
+    <mat-card appearance="outlined" class="mt-4">
+      <mat-card-header>
+        <mat-card-title>Agent Performance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="metrics.agent_breakdown" *ngIf="metrics.agent_breakdown.length > 0">
+          <ng-container matColumnDef="agent_name">
+            <th mat-header-cell *matHeaderCellDef>Agent</th>
+            <td mat-cell *matCellDef="let a">{{ a.agent_name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="leads_assigned">
+            <th mat-header-cell *matHeaderCellDef>Assigned</th>
+            <td mat-cell *matCellDef="let a">{{ a.leads_assigned }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="leads_contacted">
+            <th mat-header-cell *matHeaderCellDef>Contacted</th>
+            <td mat-cell *matCellDef="let a">{{ a.leads_contacted }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="leads_signed">
+            <th mat-header-cell *matHeaderCellDef>Signed</th>
+            <td mat-cell *matCellDef="let a">{{ a.leads_signed }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="closing_rate">
+            <th mat-header-cell *matHeaderCellDef>Closing Rate</th>
+            <td mat-cell *matCellDef="let a">
+              {{ a.leads_assigned > 0 ? ((a.leads_signed / a.leads_assigned) * 100 | number:'1.1-1') + '%' : '—' }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="avg_response_hours">
+            <th mat-header-cell *matHeaderCellDef>Avg Response</th>
+            <td mat-cell *matCellDef="let a">{{ a.avg_response_hours != null ? (a.avg_response_hours | number:'1.1-1') + 'h' : '—' }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedAgentColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedAgentColumns"></tr>
+        </table>
+        <p *ngIf="metrics.agent_breakdown.length === 0" class="empty-text">No agent data yet.</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

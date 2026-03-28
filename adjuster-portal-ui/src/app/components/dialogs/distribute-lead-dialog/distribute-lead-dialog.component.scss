@@ -1,0 +1,47 @@
+.distribute-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 400px;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.distribution-result {
+  margin-top: 8px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+
+  h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .badge-exclusive {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .badge-shared {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .assigned-agents {
+    font-size: 14px;
+  }
+}

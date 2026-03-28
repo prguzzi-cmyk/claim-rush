@@ -1,0 +1,107 @@
+
+  <mat-card appearance="outlined">
+    <div class="row">
+      <div class="col-10">
+        <p class="mat-headline-4 section-title">User Tasks</p>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+          </li>
+
+          <li class="breadcrumb-item"><a href="javascript:">Tasks</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-2 text-end">
+        <button mat-mini-fab color="primary" [disabled]="!userService.getUserPermissions('user_task', 'create')" (click)="addUserTask()" matTooltip="Add new task">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+
+
+    <mat-card-header>
+
+    </mat-card-header>
+
+    <mat-card-content>
+
+      <mat-drawer-container class="example-container" autosize>
+      <mat-drawer #drawer mode="over" position="end" class="drawer bg-light">
+        <ng-container *ngIf="task">
+          <h2>{{ task.title }}</h2>
+          <p>{{ task.description }}</p>
+          <p><strong>Due Date:</strong> {{ task.due_date | date : "MMMM dd, yyyy" }}</p>
+          <p><strong>Priority:</strong> {{ task.priority }}</p>
+          <p><strong>Status:</strong> {{ task.status }}</p>
+          <!-- Add more task details as needed -->
+        </ng-container>
+      </mat-drawer>
+      
+      <div cdkDropListGroup class="row">
+        <div class="col-xs-12 col-md-3 col-lg-3 p-0 border border-0" *ngFor="let status of statuses">
+          <h5 class="text-center pt-3">{{ status.charAt(0).toUpperCase() + status.slice(1) }}</h5>
+          <div cdkDropList [id]="status" [cdkDropListData]="getTasksByStatus(status)" class="task-list"
+            (cdkDropListDropped)="drop($event)">
+            <div class="task-item" *ngFor="let task of getTasksByStatus(status)" cdkDrag>
+              <button matTooltip="Click here to view task" 
+                [disabled]="!userService.getUserPermissions('user_task', 'read')" 
+                (click)="showTask(task, drawer)"
+                mat-raised-button 
+                [ngClass]="getButtonClass(task)"
+                class="wrapped-button">{{ task.title }}</button>
+              <div class="row ps-2 pe-2 pt-3" *ngIf="status!='done'">
+                <div class="col-5" [ngClass]="getPriorityClass(task)">{{task.priority.charAt(0).toUpperCase() + task?.priority.slice(1) }}</div>
+                <div class="col-7 text-end" *ngIf="task.due_date">Due: {{task.due_date | date : "MMM dd, YYYY" }}</div>
+              </div>  
+              <div class="col-12 ps-2 pe-2">
+                <p class="text-end" *ngIf="task.due_date"></p>
+                <p class="mt-3">{{ task.description | slice:0:60 }} {{ (task?.description?.length > 60 ? '...' : '')}}
+                </p>
+              </div>
+                <!-- <div class="row" *ngIf="task.due_date">
+                  <div class="col-5"><strong>Due:</strong></div>
+                  <div class="col-7">{{task.due_date | date : "MMMM dd, yyyy"}}</div>
+                </div> -->
+                <!-- <div class="row" *ngIf="task.priority">
+                  <div class="col-5"><strong>Priority:</strong></div>
+                  <div class="col-7" [ngClass]="task.priority === 'high' ? 'priority-high' : ''">
+                    {{task.priority.charAt(0).toUpperCase() + task?.priority.slice(1) }}</div>
+                </div>
+                <div class="row" *ngIf="task.task_type">
+                  <div class="col-5"><strong>Type:</strong></div>
+                  <div class="col-7">{{task.task_type.charAt(0).toUpperCase() + task?.task_type.slice(1)}}</div>
+                </div> -->
+                <!-- <div class="row" *ngIf="task.status">
+                  <div class="col-5"><strong>Status:</strong></div>
+                  <div class="col-7">{{task.status.charAt(0).toUpperCase() + task?.status.slice(1)}}</div>
+                </div> -->
+                <div class="row ps-2 pe-2">
+                  <div class="col-7 user" *ngIf="task.created_by">{{task.created_by?.first_name}} {{task.created_by?.last_name}}</div>
+                  <div class="col-5 text-end" *ngIf="task?.client_id || task?.claim_id || task?.lead_id">
+                    <span *ngIf="task?.client_id"><a type="button" class="link-ref"
+                        (click)="onClientDetail(task?.client_id)">Client</a></span>
+                    <span *ngIf="task?.claim_id"><a type="button" class="link-ref"
+                        (click)="onClaimDetail(task?.claim_id)">Claim</a></span>
+                    <span *ngIf="task?.lead_id"><a type="button" class="link-ref"
+                        (click)="onLeadDetail(task?.lead_id)">Lead</a></span>
+                  </div>
+                </div>
+                <!-- <div class="row" *ngIf="task.created_by">
+                  <div class="col-5"><strong>Owner:</strong></div>
+                  <div class="col-7">{{task.created_by?.first_name}} {{task.created_by?.last_name}}</div>
+                </div> -->
+              
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="load-more" *ngIf="totalRecords > 10 && totalPages > pageIndex">
+        <button mat-raised-button (click)="loadMoreTasks()">Load More</button>
+      </div>
+      <p></p>
+    </mat-drawer-container>
+    </mat-card-content>
+  </mat-card>
+
+  <ngx-spinner type="ball-scale-multiple"></ngx-spinner>

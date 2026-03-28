@@ -1,0 +1,181 @@
+<div class="rotation-config-page">
+  <div class="page-header">
+    <h2><mat-icon class="header-icon">tune</mat-icon> Rotation Config</h2>
+    <p class="subtitle">Configure lead rotation timeouts, reassignment rules, and performance weighting per territory</p>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="createGlobalDefault()">
+        <mat-icon>add</mat-icon> Add Config
+      </button>
+      <button mat-icon-button (click)="loadConfigs()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading configs...</span>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && configs.length === 0">
+    <mat-icon class="empty-icon">settings</mat-icon>
+    <h3>No Rotation Configs</h3>
+    <p>Click "Add Config" to create a global default configuration.</p>
+  </div>
+
+  <div *ngIf="!loading && configs.length > 0" class="config-cards">
+    <mat-card *ngFor="let config of configs" class="config-card">
+      <!-- Card Header -->
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="config-avatar">
+          {{ config.territory_id ? 'map' : 'public' }}
+        </mat-icon>
+        <mat-card-title>{{ getTerritoryName(config) }}</mat-card-title>
+        <mat-card-subtitle>
+          Rotation Index: {{ config.rotation_index }}
+        </mat-card-subtitle>
+        <div class="card-actions" *ngIf="editingId !== config.id">
+          <button mat-icon-button (click)="startEdit(config)" matTooltip="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </div>
+        <div class="card-actions" *ngIf="editingId === config.id">
+          <button mat-icon-button color="primary" (click)="saveEdit(config.id)" matTooltip="Save">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button (click)="cancelEdit()" matTooltip="Cancel">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- ── Timeout & Reassignment Section ── -->
+        <div class="config-section">
+          <h4 class="section-title">
+            <mat-icon>timer</mat-icon> Timeout & Reassignment
+          </h4>
+          <div class="field-grid">
+            <!-- Timeout Hours -->
+            <div class="field-item">
+              <span class="field-label">Timeout (hrs)</span>
+              <span class="field-value" *ngIf="editingId !== config.id">{{ config.contact_timeout_hours }}</span>
+              <mat-form-field appearance="outline" *ngIf="editingId === config.id" class="edit-field">
+                <input matInput type="number" [(ngModel)]="editTimeout" min="1">
+              </mat-form-field>
+            </div>
+
+            <!-- Max Attempts -->
+            <div class="field-item">
+              <span class="field-label">Max Attempts</span>
+              <span class="field-value" *ngIf="editingId !== config.id">{{ config.max_contact_attempts }}</span>
+              <mat-form-field appearance="outline" *ngIf="editingId === config.id" class="edit-field">
+                <input matInput type="number" [(ngModel)]="editMaxAttempts" min="1">
+              </mat-form-field>
+            </div>
+
+            <!-- Auto Reassign -->
+            <div class="field-item">
+              <span class="field-label">Auto Reassign</span>
+              <span class="field-value" *ngIf="editingId !== config.id">
+                <mat-icon [style.color]="config.auto_reassign_enabled ? '#22c55e' : '#ef4444'" style="font-size: 20px;">
+                  {{ config.auto_reassign_enabled ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+              </span>
+              <mat-slide-toggle *ngIf="editingId === config.id" [(ngModel)]="editAutoReassign">
+              </mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Performance Weighting Section ── -->
+        <div class="config-section">
+          <h4 class="section-title">
+            <mat-icon>insights</mat-icon> Performance Weighting
+          </h4>
+
+          <!-- Read-only view -->
+          <div *ngIf="editingId !== config.id">
+            <div class="perf-toggle-row">
+              <mat-icon [style.color]="config.use_performance_weighting ? '#22c55e' : '#94a3b8'" style="font-size: 20px;">
+                {{ config.use_performance_weighting ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <span class="perf-status">
+                {{ config.use_performance_weighting ? 'Enabled' : 'Disabled' }}
+              </span>
+              <span class="perf-hint" *ngIf="!config.use_performance_weighting">
+                — Round-robin uses stable positional order
+              </span>
+              <span class="perf-hint" *ngIf="config.use_performance_weighting">
+                — Agents sorted by composite score before rotation
+              </span>
+            </div>
+
+            <div class="weight-bars" *ngIf="config.use_performance_weighting">
+              <div class="weight-bar-item">
+                <span class="weight-label">Closing Rate</span>
+                <div class="weight-bar-track">
+                  <div class="weight-bar-fill closing" [style.width.%]="config.weight_closing_rate * 100"></div>
+                </div>
+                <span class="weight-pct">{{ config.weight_closing_rate * 100 | number:'1.0-0' }}%</span>
+              </div>
+              <div class="weight-bar-item">
+                <span class="weight-label">Response Speed</span>
+                <div class="weight-bar-track">
+                  <div class="weight-bar-fill response" [style.width.%]="config.weight_response_speed * 100"></div>
+                </div>
+                <span class="weight-pct">{{ config.weight_response_speed * 100 | number:'1.0-0' }}%</span>
+              </div>
+              <div class="weight-bar-item">
+                <span class="weight-label">Satisfaction</span>
+                <div class="weight-bar-track">
+                  <div class="weight-bar-fill satisfaction" [style.width.%]="config.weight_satisfaction * 100"></div>
+                </div>
+                <span class="weight-pct">{{ config.weight_satisfaction * 100 | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Edit view -->
+          <div *ngIf="editingId === config.id" class="perf-edit">
+            <div class="perf-toggle-row">
+              <mat-slide-toggle [(ngModel)]="editUsePerformanceWeighting">
+                Enable Performance Weighting
+              </mat-slide-toggle>
+            </div>
+
+            <div class="weight-sliders" *ngIf="editUsePerformanceWeighting">
+              <div class="weight-slider-item">
+                <span class="weight-label">Closing Rate</span>
+                <mat-slider min="0" max="1" step="0.05" discrete [displayWith]="formatWeightLabel">
+                  <input matSliderThumb [(ngModel)]="editWeightClosingRate">
+                </mat-slider>
+                <span class="weight-pct">{{ editWeightClosingRate * 100 | number:'1.0-0' }}%</span>
+              </div>
+              <div class="weight-slider-item">
+                <span class="weight-label">Response Speed</span>
+                <mat-slider min="0" max="1" step="0.05" discrete [displayWith]="formatWeightLabel">
+                  <input matSliderThumb [(ngModel)]="editWeightResponseSpeed">
+                </mat-slider>
+                <span class="weight-pct">{{ editWeightResponseSpeed * 100 | number:'1.0-0' }}%</span>
+              </div>
+              <div class="weight-slider-item">
+                <span class="weight-label">Satisfaction</span>
+                <mat-slider min="0" max="1" step="0.05" discrete [displayWith]="formatWeightLabel">
+                  <input matSliderThumb [(ngModel)]="editWeightSatisfaction">
+                </mat-slider>
+                <span class="weight-pct">{{ editWeightSatisfaction * 100 | number:'1.0-0' }}%</span>
+              </div>
+              <div class="weight-total" [class.warning]="getWeightTotal() !== 1">
+                <span>Total: {{ getWeightTotal() * 100 | number:'1.0-0' }}%</span>
+                <span class="weight-total-hint" *ngIf="getWeightTotal() !== 1">
+                  (weights should sum to 100%)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

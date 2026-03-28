@@ -1,0 +1,96 @@
+<div class="ca-tab-content">
+  <div class="toolbar" *ngIf="!showBuilder">
+    <h3>Automation Rules</h3>
+    <button mat-raised-button color="primary" (click)="openBuilder()">
+      <mat-icon>add</mat-icon> New Rule
+    </button>
+  </div>
+
+  <!-- Rules Table -->
+  <div class="table-container" *ngIf="!showBuilder">
+    <table mat-table [dataSource]="rules" class="rules-table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Rule Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="trigger">
+        <th mat-header-cell *matHeaderCellDef>Trigger</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-chip>{{ row.trigger_label }}</mat-chip>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let row">
+          <span *ngFor="let a of row.actions; let last = last">{{ a.label }}{{ last ? '' : ', ' }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="executions">
+        <th mat-header-cell *matHeaderCellDef>Executions</th>
+        <td mat-cell *matCellDef="let row">{{ row.executions }}</td>
+      </ng-container>
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Active</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-slide-toggle [checked]="row.is_active" (change)="toggleActive(row)"></mat-slide-toggle>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="controls">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="openBuilder(row)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Rule Builder -->
+  <div *ngIf="showBuilder">
+    <div class="builder-header">
+      <button mat-icon-button (click)="closeBuilder()"><mat-icon>arrow_back</mat-icon></button>
+      <h3>{{ editingRule ? 'Edit' : 'New' }} Automation Rule</h3>
+    </div>
+
+    <mat-card class="builder-card">
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rule Name</mat-label>
+          <input matInput [(ngModel)]="ruleForm.name">
+        </mat-form-field>
+
+        <h4>Trigger</h4>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>When this happens...</mat-label>
+          <mat-select [(ngModel)]="ruleForm.trigger">
+            <mat-option *ngFor="let t of triggerOptions" [value]="t.value">{{ t.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <h4>Actions</h4>
+        <div class="action-list">
+          <div class="action-item" *ngFor="let action of ruleForm.actions; let i = index">
+            <mat-icon>arrow_forward</mat-icon>
+            <span>{{ action.label }}</span>
+            <button mat-icon-button (click)="removeAction(i)"><mat-icon>close</mat-icon></button>
+          </div>
+        </div>
+
+        <div class="add-action-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Add Action</mat-label>
+            <mat-select [(ngModel)]="newAction.type">
+              <mat-option *ngFor="let a of actionTypes" [value]="a.value">{{ a.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button (click)="addAction()"><mat-icon>add</mat-icon> Add</button>
+        </div>
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <button mat-button (click)="closeBuilder()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveRule()">Save Rule</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

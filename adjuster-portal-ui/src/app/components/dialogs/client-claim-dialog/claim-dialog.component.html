@@ -1,0 +1,483 @@
+<h2 mat-dialog-title>
+  {{
+  action == "add"
+  ? "Add new claim"
+  : action == "view"
+  ? 'Claim Summary'
+  : action == "delete"
+  ? "Delete"
+  : claim?.ref_string
+  }}
+</h2>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+
+<div mat-dialog-content *ngIf="this.action == 'view'">
+
+  <div class="row">
+    <div class="col-md-6">
+
+      <dl class="row">
+        <dt class="col-sm-12">File ref#</dt>
+        <dd class="col-sm-12">{{ this.claim?.ref_string }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Loss date</dt>
+        <dd class="col-sm-12">{{ this.claim?.loss_date }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Peril</dt>
+        <dd class="col-sm-12">{{ this.claim.peril }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Insurance company</dt>
+        <dd class="col-sm-12">{{ this.claim.insurance_company }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Claim #</dt>
+        <dd class="col-sm-12">{{ this.claim?.claim_number }}</dd>
+      </dl>
+
+      <dl class="row">
+        <dt class="col-sm-12">Policy #</dt>
+        <dd class="col-sm-12">{{ this.claim.policy_number }}</dd>
+      </dl>
+
+    </div>
+
+    <div class="col-md-6">
+
+      <dt class="col-sm-12">Current phase</dt>
+      <dd class="col-sm-12">{{claim?.current_phase}}</dd>
+
+      <dt class="col-sm-12">Source</dt>
+      <dd class="col-sm-12">{{claim?.source}}</dd>
+
+      <dt class="col-sm-12">Source info</dt>
+      <dd class="col-sm-12">{{claim?.source_info}}</dd>
+
+      <dt class="col-sm-12">Instructions / notes</dt>
+      <dd class="col-sm-12">{{claim?.instructions_or_notes}}</dd>
+
+      <dt class="col-sm-12">Loss address</dt>
+      <dd class="col-sm-12">{{claim?.claim_contact.address_loss}}<br>
+        {{claim?.claim_contact.city_loss? claim?.claim_contact.city_loss + ',' : ''}}
+        {{claim?.claim_contact.state_loss}}
+        {{claim?.claim_contact.zip_code_loss}}
+      </dd>
+
+      <dt class="col-sm-12">Assigned to</dt>
+      <dd class="col-sm-12">{{claim?.assigned_user.first_name}} {{claim?.assigned_user.last_name}}</dd>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div mat-dialog-content *ngIf="this.action == 'add' || this.action == 'edit'">
+
+  <form [formGroup]="claimForm" class="claim-form" (ngSubmit)="saveClaim()">
+
+    <!-- Client Information -->
+    <div *ngIf="showClients" class="form-section client-select-section">
+      <h6 class="section-title">Client Information</h6>
+
+      <div class="client-search-wrapper">
+        <input type="text" class="form-control"
+          [value]="clientSearchTerm"
+          (input)="onClientSearchInput($event)"
+          (focus)="onClientSearchFocus()"
+          (blur)="onClientSearchBlur()"
+          placeholder="Search clients by name..."
+          autocomplete="off" />
+
+        <div *ngIf="showClientDropdown && filteredClientList.length > 0" class="autocomplete-dropdown client-dropdown">
+          <div *ngFor="let c of filteredClientList" class="autocomplete-option"
+            (mousedown)="$event.preventDefault(); selectClient(c)">
+            <strong>{{ c.full_name }}</strong>
+            <span *ngIf="c.phone_number || c.email" class="client-meta">
+              — {{ c.phone_number || c.email }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="client_id && clientSearchTerm" class="selected-client-badge">
+        Selected: <strong>{{ clientSearchTerm }}</strong>
+      </div>
+
+      <div *ngIf="clients && clients.length === 0 && !showNewClientForm" class="no-clients-msg">
+        No clients found. Create a client first.
+      </div>
+
+      <button type="button" class="btn btn-sm create-client-btn"
+        [class.btn-outline-secondary]="showNewClientForm"
+        [class.btn-outline-primary]="!showNewClientForm"
+        (click)="toggleNewClientForm()">
+        {{ showNewClientForm ? 'Cancel' : '+ Create Client' }}
+      </button>
+
+      <div *ngIf="showNewClientForm" class="new-client-form">
+        <div class="new-client-row">
+          <div class="new-client-field full-width">
+            <label>Full Name *</label>
+            <input type="text" class="form-control" [formControl]="newClientForm.get('full_name')" />
+            <div *ngIf="newClientForm.get('full_name')?.invalid && newClientForm.get('full_name')?.touched" class="text-danger" style="font-size:11px;">
+              Required.
+            </div>
+          </div>
+        </div>
+        <div class="new-client-row">
+          <div class="new-client-field">
+            <label>Phone *</label>
+            <input type="text" class="form-control" [formControl]="newClientForm.get('phone_number')" />
+            <div *ngIf="newClientForm.get('phone_number')?.invalid && newClientForm.get('phone_number')?.touched" class="text-danger" style="font-size:11px;">
+              Required.
+            </div>
+          </div>
+          <div class="new-client-field">
+            <label>Email</label>
+            <input type="email" class="form-control" [formControl]="newClientForm.get('email')" />
+          </div>
+        </div>
+        <div class="new-client-row">
+          <div class="new-client-field full-width">
+            <label>Address *</label>
+            <input type="text" class="form-control" [formControl]="newClientForm.get('address')" />
+            <div *ngIf="newClientForm.get('address')?.invalid && newClientForm.get('address')?.touched" class="text-danger" style="font-size:11px;">
+              Required.
+            </div>
+          </div>
+        </div>
+        <div class="new-client-row">
+          <div class="new-client-field">
+            <label>City *</label>
+            <input type="text" class="form-control" [formControl]="newClientForm.get('city')" />
+            <div *ngIf="newClientForm.get('city')?.invalid && newClientForm.get('city')?.touched" class="text-danger" style="font-size:11px;">
+              Required.
+            </div>
+          </div>
+          <div class="new-client-field">
+            <label>State *</label>
+            <select class="form-control" [formControl]="newClientForm.get('state')">
+              <option value="">Select</option>
+              <option *ngFor="let s of states" [value]="s.abbreviation">{{ s.name }}</option>
+            </select>
+            <div *ngIf="newClientForm.get('state')?.invalid && newClientForm.get('state')?.touched" class="text-danger" style="font-size:11px;">
+              Required.
+            </div>
+          </div>
+          <div class="new-client-field">
+            <label>ZIP *</label>
+            <input type="text" class="form-control" [formControl]="newClientForm.get('zip_code')" maxlength="5" />
+            <div *ngIf="newClientForm.get('zip_code')?.invalid && newClientForm.get('zip_code')?.touched" class="text-danger" style="font-size:11px;">
+              5-digit ZIP required.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="createClient()" [disabled]="creatingClient">
+          {{ creatingClient ? 'Creating...' : 'Create & Select' }}
+        </button>
+      </div>
+
+      <div *ngIf="claimForm.get('client')?.invalid && claimForm.get('client')?.touched && !showNewClientForm" class="text-danger">
+        Client is required.
+      </div>
+    </div>
+
+    <!-- Claim Details -->
+    <div class="form-section">
+      <h6 class="section-title">Claim Details</h6>
+      <div class="grid-2col">
+        <div class="custom-control">
+          <label>Loss Date</label>
+          <input type="date" formControlName="lossDate" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Peril</label>
+          <input type="text" formControlName="peril" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Insurance Company</label>
+          <input type="text" formControlName="insuranceCompany" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Mortgage Company</label>
+          <input type="text" formControlName="mortgageCompany" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Policy #</label>
+          <input type="text" formControlName="policyNumber" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Claim #</label>
+          <input type="text" formControlName="claimNumber" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Policy Type</label>
+          <select formControlName="policyType" (change)="getSubPolicyTypes($event.target.value)" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let policy of policyTypes" [value]="policy.slug">{{ policy.name }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Sub Policy Type</label>
+          <select formControlName="subPolicyType" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let subPolicy of subPolicyTypes" [value]="subPolicy.slug">{{ subPolicy.name }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Current Phase</label>
+          <select formControlName="currentPhase" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let phase of phases" [value]="phase.slug">{{ phase.display_name }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Claim Estimate</label>
+          <input type="number" formControlName="anticipated_amount" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Fee Type</label>
+          <select formControlName="feeType" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let ft of feeTypes" [value]="ft">{{ ft }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Fee Amount</label>
+          <input type="number" formControlName="fee" class="form-control">
+        </div>
+      </div>
+
+      <!-- Coverages -->
+      <div formArrayName="coverages" *ngIf="coverages.length > 0" style="margin-top:8px;">
+        <div *ngFor="let coverage of coverages.controls; let i = index" [formGroupName]="i" class="grid-2col coverage-row">
+          <div class="custom-control">
+            <label>Coverage Type</label>
+            <select formControlName="coverage_type" class="form-control">
+              <option *ngFor="let type of coverageTypes" [value]="type.slug">{{ type.name }}</option>
+            </select>
+          </div>
+          <div class="custom-control" style="display:flex; gap:8px; align-items:flex-end;">
+            <div style="flex:1;">
+              <label>Policy Limit</label>
+              <input type="number" formControlName="policy_limit" class="form-control">
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeCoverage(i)" style="margin-bottom:2px;">Remove</button>
+          </div>
+        </div>
+      </div>
+      <a href="javascript:void(0)" (click)="addCoverage()" style="font-size:12px;">+ Add coverage type</a>
+    </div>
+
+    <!-- Claim Origin -->
+    <div class="form-section">
+      <h6 class="section-title">Claim Origin</h6>
+      <div class="grid-2col">
+        <div class="custom-control">
+          <label>Origin Type</label>
+          <select formControlName="originType" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let ot of originTypes" [value]="ot.slug">{{ ot.display_name }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Date ACI Entered</label>
+          <input type="date" formControlName="dateAciEntered" class="form-control">
+        </div>
+        <div class="custom-control" *ngIf="claimForm.get('originType')?.value === 'post-payment-underpaid' || claimForm.get('originType')?.value === 'reopened-claim'">
+          <label>Prior Carrier Payments</label>
+          <input type="number" formControlName="priorCarrierPayments" class="form-control">
+        </div>
+        <div class="custom-control" *ngIf="claimForm.get('originType')?.value === 'post-payment-underpaid' || claimForm.get('originType')?.value === 'reopened-claim'">
+          <label>Recovery Mode</label>
+          <select formControlName="recoveryMode" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let rm of recoveryModes" [value]="rm.slug">{{ rm.display_name }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loss Location -->
+    <div class="form-section">
+      <h6 class="section-title">Loss Location</h6>
+      <div class="grid-2col">
+        <div class="custom-control span-full">
+          <label>Loss Address</label>
+          <input type="text" formControlName="addressLoss" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>City</label>
+          <input type="text" formControlName="cityLoss" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>State</label>
+          <select formControlName="stateLoss" class="form-control">
+            <option value="">Select</option>
+            <option *ngFor="let state of states" [value]="state.abbreviation">{{ state.name }}</option>
+          </select>
+        </div>
+        <div class="custom-control">
+          <label>Zip Code</label>
+          <input type="text" formControlName="zipCodeLoss" maxlength="5" class="form-control">
+        </div>
+      </div>
+      <div class="grid-3col" style="margin-top:6px;">
+        <div class="custom-control checkbox-control">
+          <input type="checkbox" formControlName="femaClaim" id="femaClaim">&nbsp;
+          <label for="femaClaim">FEMA Claim</label>
+        </div>
+        <div class="custom-control checkbox-control">
+          <input type="checkbox" formControlName="stateOfEmergency" id="stateOfEmergency">&nbsp;
+          <label for="stateOfEmergency">State of Emergency</label>
+        </div>
+        <div class="custom-control checkbox-control">
+          <input type="checkbox" formControlName="inhabitable" id="inhabitable">&nbsp;
+          <label for="inhabitable">Uninhabitable</label>
+        </div>
+      </div>
+      <div class="grid-2col" style="margin-top:6px;">
+        <div class="custom-control">
+          <label>Date Logged</label>
+          <input type="date" formControlName="dateLodged" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Lawsuit Deadline</label>
+          <input type="date" formControlName="lawsuitDeadline" class="form-control">
+        </div>
+        <div class="custom-control">
+          <label>Contract Sign Date</label>
+          <input type="date" formControlName="contractSignDate" class="form-control">
+        </div>
+      </div>
+    </div>
+
+    <!-- Internal Assignment -->
+    <div class="form-section">
+      <h6 class="section-title">Internal Assignment</h6>
+      <div class="grid-2col">
+
+        <div class="custom-control">
+          <label>Source By</label>
+          <input *ngIf="userService.getUserPermissions('user', 'read')"
+            type="text" [formControl]="sourceByControl"
+            (input)="onSourceByInput($event)" (blur)="onSourceByBlur()" (change)="onSourceByAutocomplete($event)"
+            autocomplete="off" class="form-control">
+          <div *ngIf="showSourceDropdown && filteredAgents.length > 0" class="autocomplete-dropdown">
+            <div *ngFor="let agent of filteredAgents" class="autocomplete-option"
+              (click)="$event.preventDefault(); selectAgent(agent)">
+              {{ agent.first_name }} {{ agent.last_name }}
+            </div>
+          </div>
+          <select *ngIf="!userService.getUserPermissions('user', 'read')" formControlName="source" class="form-control">
+            <option [value]="user?.id">{{ user?.first_name }} {{ user?.last_name }}</option>
+          </select>
+        </div>
+
+        <div class="custom-control">
+          <label>Source Info</label>
+          <input type="text" formControlName="sourceInfo" class="form-control">
+        </div>
+
+        <div class="custom-control">
+          <label>Signed By</label>
+          <input *ngIf="userService.getUserPermissions('user', 'read')"
+            type="text" [formControl]="signedByControl"
+            (input)="onSginedByInput($event)" (blur)="onSignedByBlur()" (change)="onSignedByAutocomplete($event)"
+            autocomplete="off" class="form-control">
+          <div *ngIf="showSignedByDropdown && filteredSignedByAgents.length > 0" class="autocomplete-dropdown">
+            <div *ngFor="let agent of filteredSignedByAgents" class="autocomplete-option"
+              (click)="$event.preventDefault(); selectSignedBy(agent)">
+              {{ agent.first_name }} {{ agent.last_name }}
+            </div>
+          </div>
+          <select *ngIf="!userService.getUserPermissions('user', 'read')" formControlName="signedBy" class="form-control">
+            <option [value]="user?.id">{{ user?.first_name }} {{ user?.last_name }}</option>
+          </select>
+        </div>
+
+        <div class="custom-control">
+          <label>Adjusted By</label>
+          <input *ngIf="userService.getUserPermissions('user', 'read')"
+            type="text" [formControl]="adjustedByControl"
+            (input)="onAdjustedByInput($event)" (blur)="onAdjustedByBlur()" (change)="onAdjustedByAutocomplete($event)"
+            autocomplete="off" class="form-control">
+          <div *ngIf="showAdjustedByDropdown && filteredAdjustedByAgents.length > 0" class="autocomplete-dropdown">
+            <div *ngFor="let agent of filteredAdjustedByAgents" class="autocomplete-option"
+              (click)="$event.preventDefault(); selectAdjustedBy(agent)">
+              {{ agent.first_name }} {{ agent.last_name }}
+            </div>
+          </div>
+          <select *ngIf="!userService.getUserPermissions('user', 'read')" formControlName="adjustedBy" class="form-control">
+            <option [value]="user?.id">{{ user?.first_name }} {{ user?.last_name }}</option>
+          </select>
+        </div>
+
+        <div class="custom-control">
+          <label>Assigned To</label>
+          <input *ngIf="userService.getUserPermissions('user', 'read')"
+            type="text" [formControl]="assignedToControl"
+            (input)="onAssignedToInput($event)" (blur)="onAssignedToBlur()" (change)="onAssignedToAutocomplete($event)"
+            autocomplete="off" class="form-control">
+          <div *ngIf="showAssignedToDropdown && filteredAssignedtoAgents.length > 0" class="autocomplete-dropdown">
+            <div *ngFor="let agent of filteredAssignedtoAgents" class="autocomplete-option"
+              (click)="$event.preventDefault(); selectAssignedTo(agent)">
+              {{ agent.first_name }} {{ agent.last_name }}
+            </div>
+          </div>
+          <select *ngIf="!userService.getUserPermissions('user', 'read')" formControlName="assignedTo" class="form-control">
+            <option [value]="user?.id">{{ user?.first_name }} {{ user?.last_name }}</option>
+          </select>
+        </div>
+
+        <div class="custom-control">
+          <label>Instructions / Notes</label>
+          <input type="text" formControlName="instructionsOrNotes" class="form-control">
+        </div>
+
+      </div>
+    </div>
+
+  </form>
+
+</div>
+
+<div mat-dialog-content *ngIf="this.action == 'delete'">
+  Are you sure you want to delete this claim?
+  <p></p>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" *ngIf="this.action == 'add'" (click)="saveClaim()"
+    [disabled]="claimFormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="claimFormDisabled"></mat-spinner>
+    </div>
+    Save
+  </button>
+
+  <button mat-raised-button color="primary" *ngIf="this.action == 'edit'" (click)="saveClaim()"
+    [disabled]="claimFormDisabled">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="claimFormDisabled"></mat-spinner>
+    </div>
+    Update
+  </button>
+
+  <button mat-raised-button color="warn" [disabled]="" (click)="deleteClaim()" *ngIf="action == 'delete'">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="claimFormDisabled"></mat-spinner>
+    </div>
+    Delete
+  </button>
+
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

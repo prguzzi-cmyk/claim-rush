@@ -1,0 +1,61 @@
+<p class="mat-headline-4 section-title">Tasks</p>
+
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10"><p class="mat-headline-4 section-title">Tasks</p>
+    </div>
+    <div class="col-2 text-end">
+      
+    </div>
+  </div>
+  <mat-card-header class="d-flex">
+    <mat-card-title class="m-top-5 pr-25">Tasks</mat-card-title>
+    <mat-card-title class="m-top-5">Days</mat-card-title>
+    <!-- <mat-card-subtitle>Leads</mat-card-subtitle> -->
+    <mat-card-actions class="adjust-days" *ngFor="let day of days">
+        <button [style]="day.active?'background:#172b4d;color:white':'background:transparent;color:black'" (click)="selectDay(day)" mat-mini-fab >{{day.text}}</button>
+      <!-- </div> -->
+    </mat-card-actions>
+
+  </mat-card-header>
+
+  <mat-card-header>
+    <mat-card-actions>
+      <button mat-raised-button color="primary" [routerLink]="['/app/tasks/create']" >Add new Task</button>
+    </mat-card-actions>
+  </mat-card-header>
+
+  <mat-card-header>
+
+    <mat-card-title class="m-top-5">Day {{selectedDay}}: </mat-card-title>
+
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="split-report-container overview">
+
+      <div class="width-31">
+        <mat-card appearance="outlined" class="d-flex-col-center height-25">
+          <p class="mat-h3 justify-center">To-Do</p>
+          <button class="width-60 mr-10" mat-raised-button color="primary" routerLink="/app/tasks">Review UPA TM</button>
+          <button class="width-60 mr-10" mat-raised-button color="primary" routerLink="/app/tasks">Review UPA Investor</button>
+          <button class="width-60 mr-10" mat-raised-button color="primary" routerLink="/app/tasks">Study Industry</button>
+        </mat-card>
+      </div>
+
+      <div class="width-31">
+        <mat-card appearance="outlined" class="d-flex-col-center height-25">
+          <p class="mat-h3">In-Progress</p>
+        </mat-card>
+      </div>
+
+      <div class="width-31">
+        <mat-card appearance="outlined" class="d-flex-col-center height-25">
+          <p class="mat-h3">Done</p>
+        </mat-card>
+      </div>
+
+
+    </div>
+  </mat-card-content>
+</mat-card>

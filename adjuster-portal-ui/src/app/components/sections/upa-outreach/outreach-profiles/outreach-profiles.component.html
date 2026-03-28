@@ -1,0 +1,234 @@
+<mat-card appearance="outlined" class="page-card">
+
+  <!-- ════════ Header ════════ -->
+  <div class="page-header">
+    <div>
+      <p class="mat-headline-4 section-title">Outreach Profiles</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item"><a [routerLink]="['/app/dashboard']">Home</a></li>
+        <li class="breadcrumb-item"><a [routerLink]="['/app/communications-hub']">Communications Hub</a></li>
+        <li class="breadcrumb-item">Outreach Profiles</li>
+      </ul>
+    </div>
+    <div class="header-actions" *ngIf="!loading">
+      <button mat-stroked-button (click)="seedDefaults()" type="button" class="btn-seed" matTooltip="Seed default templates">
+        <mat-icon>auto_fix_high</mat-icon> Seed Defaults
+      </button>
+      <button mat-raised-button color="primary" (click)="openCreateForm()" type="button">
+        <mat-icon>add</mat-icon> New Profile
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════ Summary bar ════════ -->
+  <div class="summary-bar" *ngIf="profiles.length > 0">
+    <div class="summary-card">
+      <div class="summary-value" [textContent]="totalCount"></div>
+      <div class="summary-label">Total</div>
+    </div>
+    <div class="summary-card card-sms">
+      <div class="summary-value" [textContent]="smsCount"></div>
+      <div class="summary-label"><mat-icon class="summary-icon">sms</mat-icon> SMS</div>
+    </div>
+    <div class="summary-card card-email">
+      <div class="summary-value" [textContent]="emailCount"></div>
+      <div class="summary-label"><mat-icon class="summary-icon">email</mat-icon> Email</div>
+    </div>
+    <div class="summary-card card-voice">
+      <div class="summary-value" [textContent]="voiceCount"></div>
+      <div class="summary-label"><mat-icon class="summary-icon">phone</mat-icon> Voice</div>
+    </div>
+    <div class="summary-card card-active">
+      <div class="summary-value" [textContent]="activeCount"></div>
+      <div class="summary-label"><mat-icon class="summary-icon">check_circle</mat-icon> Active</div>
+    </div>
+  </div>
+
+  <!-- ════════ Filters ════════ -->
+  <div class="filter-bar" *ngIf="profiles.length > 0">
+    <mat-form-field appearance="outline" class="filter-search">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput name="searchProfiles" [(ngModel)]="searchText" (ngModelChange)="applyFilters()"
+             placeholder="Search profiles..." />
+      <button mat-icon-button matSuffix *ngIf="searchText" (click)="searchText = ''; applyFilters()" type="button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+    <mat-button-toggle-group [(ngModel)]="filterChannel" (ngModelChange)="applyFilters()" name="channelFilter" class="filter-toggle">
+      <mat-button-toggle value="">All</mat-button-toggle>
+      <mat-button-toggle value="sms">SMS</mat-button-toggle>
+      <mat-button-toggle value="email">Email</mat-button-toggle>
+      <mat-button-toggle value="voice">Voice</mat-button-toggle>
+    </mat-button-toggle-group>
+    <mat-button-toggle-group [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" name="statusFilter" class="filter-toggle">
+      <mat-button-toggle value="">All</mat-button-toggle>
+      <mat-button-toggle value="active">Active</mat-button-toggle>
+      <mat-button-toggle value="inactive">Inactive</mat-button-toggle>
+    </mat-button-toggle-group>
+    <button mat-icon-button (click)="clearFilters()" type="button" matTooltip="Clear filters" *ngIf="searchText || filterChannel || filterStatus">
+      <mat-icon>filter_alt_off</mat-icon>
+    </button>
+  </div>
+
+  <!-- ════════ Status banner ════════ -->
+  <div *ngIf="statusMessage" class="status-banner"
+       [class.status-success]="statusType === 'success'"
+       [class.status-error]="statusType === 'error'">
+    <span>
+      <mat-icon *ngIf="statusType === 'success'" class="status-icon">check_circle</mat-icon>
+      <mat-icon *ngIf="statusType === 'error'" class="status-icon">error</mat-icon>
+      {{ statusMessage }}
+    </span>
+    <button mat-icon-button (click)="clearStatus()" type="button"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <!-- ════════ Editor form ════════ -->
+  <div *ngIf="showForm" class="editor-card">
+    <div class="editor-header">
+      <span *ngIf="!editingId">New Profile</span>
+      <span *ngIf="editingId">Edit Profile</span>
+      <button mat-icon-button (click)="cancelForm()" type="button"><mat-icon>close</mat-icon></button>
+    </div>
+    <div class="editor-body">
+      <div class="editor-row">
+        <mat-form-field appearance="outline" class="field-name">
+          <mat-label>Profile Name</mat-label>
+          <input matInput name="profileName" [(ngModel)]="form.name" placeholder="e.g. UPA Initial SMS" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="field-channel">
+          <mat-label>Channel</mat-label>
+          <mat-select name="profileChannel" [(ngModel)]="form.channel">
+            <mat-option value="sms">SMS</mat-option>
+            <mat-option value="email">Email</mat-option>
+            <mat-option value="voice">Voice</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" *ngIf="form.channel === 'email'" class="field-full">
+        <mat-label>Subject</mat-label>
+        <input matInput name="profileSubject" [(ngModel)]="form.subject" />
+      </mat-form-field>
+
+      <div class="var-buttons">
+        <span class="var-label">Variables:</span>
+        <button mat-stroked-button *ngFor="let key of variableKeys" (click)="insertVariable(key)" type="button" class="var-btn">
+          <span [textContent]="key"></span>
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" class="field-full">
+        <mat-label>Message Body</mat-label>
+        <textarea matInput name="profileBody" [(ngModel)]="bodyText" rows="5" placeholder="Type your message..."></textarea>
+      </mat-form-field>
+
+      <div class="editor-row" style="align-items: center;">
+        <mat-slide-toggle name="profileActive" [(ngModel)]="form.is_active" color="primary">Active</mat-slide-toggle>
+        <div class="editor-actions">
+          <button mat-stroked-button (click)="previewTemplate()" [disabled]="isPreviewing" type="button">
+            <mat-icon>visibility</mat-icon> Preview
+          </button>
+          <button mat-raised-button color="primary" (click)="saveProfile()" [disabled]="isCreating" type="button">
+            <mat-icon *ngIf="isCreating">hourglass_empty</mat-icon>
+            <span *ngIf="editingId">Update</span><span *ngIf="!editingId">Create</span>
+          </button>
+          <button mat-button (click)="cancelForm()" [disabled]="isCreating" type="button">Cancel</button>
+        </div>
+      </div>
+
+      <div *ngIf="showPreviewBox" class="preview-panel">
+        <div class="preview-label">Preview</div>
+        <pre class="preview-text">{{ previewText }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ Content ════════ -->
+  <mat-card-content *ngIf="!loading">
+
+    <!-- Empty state -->
+    <div *ngIf="profiles.length === 0 && !showForm" class="empty-state">
+      <mat-icon>mail_outline</mat-icon>
+      <p>No outreach profiles yet.</p>
+      <p>Click <strong>Seed Defaults</strong> to create the standard UPA templates, or <strong>New Profile</strong> to create one from scratch.</p>
+    </div>
+
+    <!-- No filter results -->
+    <div *ngIf="profiles.length > 0 && filteredProfiles.length === 0" class="empty-state" style="padding: 24px;">
+      <mat-icon>search_off</mat-icon>
+      <p>No profiles match your filters.</p>
+      <button mat-stroked-button (click)="clearFilters()" type="button">Clear Filters</button>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="filteredProfiles.length > 0" class="table-wrap">
+      <table mat-table [dataSource]="dataSource" class="profiles-table">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef class="col-sn">#</th>
+          <td mat-cell *matCellDef="let row; let i = index" class="col-sn">
+            <span [textContent]="i + 1"></span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef class="col-name">Profile Name</th>
+          <td mat-cell *matCellDef="let row" class="col-name">
+            <span class="profile-name" (click)="openEditForm(row)" [textContent]="row.name || '(untitled)'"></span>
+            <span *ngIf="row.subject" class="profile-subject" [textContent]="row.subject"></span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="channel">
+          <th mat-header-cell *matHeaderCellDef class="col-channel">Channel</th>
+          <td mat-cell *matCellDef="let row" class="col-channel">
+            <span class="channel-badge" [class.ch-sms]="row.channel === 'sms'"
+                  [class.ch-email]="row.channel === 'email'" [class.ch-voice]="row.channel === 'voice'">
+              <mat-icon class="ch-icon">
+                <ng-container *ngIf="row.channel === 'sms'">sms</ng-container>
+                <ng-container *ngIf="row.channel === 'email'">email</ng-container>
+                <ng-container *ngIf="row.channel === 'voice'">phone</ng-container>
+              </mat-icon>
+              <span [textContent]="channelLabel(row.channel)"></span>
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="body_preview">
+          <th mat-header-cell *matHeaderCellDef class="col-body">Message Preview</th>
+          <td mat-cell *matCellDef="let row" class="col-body">
+            <span class="body-preview" [textContent]="truncateBody(row.body, 90)"></span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="is_active">
+          <th mat-header-cell *matHeaderCellDef class="col-status">Status</th>
+          <td mat-cell *matCellDef="let row" class="col-status">
+            <mat-slide-toggle [checked]="row.is_active" color="primary"
+              (change)="toggleActive(row)" matTooltip="Toggle active"></mat-slide-toggle>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef class="col-date">Created</th>
+          <td mat-cell *matCellDef="let row" class="col-date">
+            <span [textContent]="row.created_at | date:'MMM d, y'"></span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
+          <td mat-cell *matCellDef="let row" class="col-actions">
+            <button mat-icon-button (click)="openEditForm(row)" matTooltip="Edit" type="button"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="duplicateProfile(row)" matTooltip="Duplicate" type="button"><mat-icon>content_copy</mat-icon></button>
+            <button mat-icon-button (click)="deleteProfile(row.id)" matTooltip="Delete" type="button" class="btn-delete"><mat-icon>delete</mat-icon></button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

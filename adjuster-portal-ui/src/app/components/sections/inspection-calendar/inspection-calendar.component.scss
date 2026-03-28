@@ -1,0 +1,91 @@
+.calendar-container { min-height: calc(100vh - 64px); padding: 24px; }
+
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px;
+  .header-text { h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.5rem; font-weight: 700;
+    .header-icon { font-size: 28px; width: 28px; height: 28px; color: #1565c0; } }
+    .subtitle { margin: 0; font-size: 0.875rem; color: #6b7280; } }
+  .header-actions { display: flex; gap: 8px; } }
+
+.loading-container { display: flex; justify-content: center; padding: 60px; }
+
+.stats-bar { display: flex; gap: 10px; margin-bottom: 16px; }
+.stat-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 600; background: #f3f4f6; color: #374151;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &.stat-confirmed { background: #e8f5e9; color: #2e7d32; }
+  &.stat-completed { background: #e3f2fd; color: #1565c0; } }
+
+.calendar-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.nav-group { display: flex; align-items: center; gap: 4px; }
+.today-btn { font-size: 0.75rem !important; min-height: 32px !important; }
+.current-date-label { font-size: 0.9rem; font-weight: 600; color: #111827; margin-left: 8px; }
+.status-filter { width: 160px;
+  &.mat-mdc-form-field { margin-bottom: 0; }
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+  ::ng-deep .mat-mdc-text-field-wrapper { height: 36px !important; padding: 0 10px !important; }
+  ::ng-deep .mat-mdc-form-field-infix { padding: 4px 0 !important; min-height: 36px !important; } }
+
+// ── Calendar Grid ──
+.calendar-grid { display: grid; gap: 1px; background: #e5e7eb; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+  &.view-day { grid-template-columns: 1fr; }
+  &.view-week { grid-template-columns: repeat(7, 1fr); }
+  &.view-month { grid-template-columns: repeat(7, 1fr); } }
+
+.calendar-col { background: #fff; min-height: 120px; }
+.day-header { padding: 8px 10px; background: #f9fafb; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; gap: 6px;
+  &.is-today { background: #e3f2fd; .day-number { background: #1565c0; color: #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; } } }
+.day-name { font-size: 0.68rem; font-weight: 600; color: #6b7280; text-transform: uppercase; }
+.day-number { font-size: 0.82rem; font-weight: 700; color: #111827; }
+.day-body { padding: 6px; min-height: 80px; }
+
+.inspection-card { border-left: 3px solid #2196f3; background: #fafafa; border-radius: 6px; padding: 6px 8px; margin-bottom: 4px; font-size: 0.72rem; cursor: default; transition: background 0.15s;
+  &:hover { background: #f0f7ff; } }
+.insp-time { font-weight: 700; color: #1565c0; font-size: 0.7rem; }
+.insp-name { font-weight: 600; color: #111827; margin-top: 2px; }
+.insp-address { color: #6b7280; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.insp-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.insp-adjuster { font-size: 0.62rem; color: #6b7280; }
+.insp-status-badge { padding: 1px 6px; border-radius: 4px; font-size: 0.55rem; font-weight: 700; color: #fff; text-transform: uppercase; }
+.insp-actions { display: flex; gap: 0; margin-top: 2px;
+  button { width: 24px; height: 24px; line-height: 24px; mat-icon { font-size: 14px; width: 14px; height: 14px; } } }
+
+.day-empty { display: flex; align-items: center; justify-content: center; min-height: 60px; cursor: pointer; color: #d1d5db; transition: color 0.2s;
+  &:hover { color: #1565c0; }
+  mat-icon { font-size: 24px; width: 24px; height: 24px; } }
+
+// ── Upcoming Panel ──
+.panel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-top: 16px; }
+.panel-header { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.875rem;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: #1565c0; } }
+.upcoming-list { padding: 8px 0; }
+.upcoming-row { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid #f3f4f6;
+  &:last-child { border-bottom: none; }
+  mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+.upcoming-info { flex: 1; min-width: 0;
+  strong { font-size: 0.82rem; display: block; }
+  span { font-size: 0.72rem; color: #6b7280; } }
+.upcoming-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.upcoming-date { font-size: 0.75rem; font-weight: 600; color: #111827; }
+.upcoming-adjuster { font-size: 0.68rem; color: #6b7280; }
+
+// ── Create Form ──
+.create-form { margin-bottom: 24px; }
+.form-body { padding: 18px; }
+.form-row { display: flex; gap: 12px; }
+.field-half { flex: 1; }
+.field-third { flex: 1; }
+.full-width { width: 100%; }
+.conflict-warning { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; color: #e65100; font-size: 0.8rem; margin-top: 8px;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+
+// ── Availability ──
+.avail-panel { margin-bottom: 16px; }
+.day-toggles { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
+  button { min-width: 48px; font-size: 0.75rem !important;
+    &.day-active { background: #1565c0 !important; color: #fff !important; border-color: #1565c0 !important; } } }
+.block-list { margin-top: 12px; }
+.block-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.78rem;
+  .block-reason { color: #6b7280; font-style: italic; flex: 1; } }
+
+@media (max-width: 1024px) { .calendar-grid.view-week { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px) { .page-header { flex-direction: column; gap: 12px; } .calendar-grid.view-week { grid-template-columns: repeat(2, 1fr); } .form-row { flex-direction: column; gap: 0; } }
+@media (max-width: 600px) { .calendar-container { padding: 16px; } .calendar-grid.view-week, .calendar-grid.view-month { grid-template-columns: 1fr; } }

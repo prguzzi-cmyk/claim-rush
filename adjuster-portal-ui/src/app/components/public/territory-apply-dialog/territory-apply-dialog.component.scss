@@ -1,0 +1,168 @@
+// ── Root container ──
+.territory-apply-dialog {
+  max-width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+// ── Header bar (keep as-is) ──
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 32px;
+  margin: -32px -32px 0;
+  background: var(--color-primary-500, #800020);
+  color: #fff;
+  min-height: 64px;
+
+  h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    flex: 1;
+    letter-spacing: 0.1px;
+  }
+
+  .btn-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  }
+}
+
+// ── Territory info banner ──
+.territory-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 22px 0 20px;
+  margin-top: 32px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #e0d6cf;
+
+  .banner-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-primary-500, #800020);
+  }
+
+  .banner-value {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .banner-tag {
+    background: var(--surface-page, #fbf6f3);
+    border: 1px solid #e0d6cf;
+    border-radius: 12px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #555;
+  }
+}
+
+// ── Form ──
+.apply-form {
+  padding-top: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 28px;
+}
+
+.full-width {
+  width: 100%;
+  margin-top: 12px;
+}
+
+// ── Actions ──
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 28px;
+  padding-bottom: 8px;
+  margin-top: 28px;
+  border-top: 1px solid #eee;
+}
+
+.btn-submit {
+  background-color: var(--color-gold, #c9a96e) !important;
+  color: #fff !important;
+  padding: 10px 32px !important;
+  font-size: 14px !important;
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+// ── Success state ──
+.success-state {
+  text-align: center;
+  padding: 48px 24px;
+
+  .success-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #4caf50;
+    color: #fff;
+    font-size: 32px;
+    line-height: 64px;
+    margin: 0 auto 16px;
+  }
+
+  h3 {
+    color: var(--color-primary-500, #800020);
+    margin-bottom: 8px;
+  }
+
+  p {
+    color: #555;
+    margin-bottom: 24px;
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 600px) {
+  .territory-apply-dialog {
+    width: 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 8px 0;
+  }
+
+  .dialog-header {
+    padding: 18px 20px;
+    margin: -32px -32px 0;
+
+    h2 {
+      font-size: 17px;
+    }
+  }
+}

@@ -1,0 +1,105 @@
+.green {
+  color: green;
+}
+
+.owner-intel-card {
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+
+  h5 {
+    font-weight: 600;
+    color: #333;
+  }
+
+  dl {
+    margin-bottom: 0;
+
+    dt {
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    dd {
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.followup-table {
+  width: 100%;
+
+  th,
+  td {
+    overflow: hidden;
+    max-width: 300px;
+  }
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .green {
+    background-color: #368136bc;
+
+    .mat-mdc-cell {
+      color: #fff !important;
+    }
+  }
+}
+
+// Rescue info card
+.rescue-info-card {
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.04);
+  padding: 12px;
+  margin: 12px 0;
+
+  .rescue-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+
+    strong {
+      font-size: 13px;
+      color: #dc2626;
+    }
+  }
+
+  .rescue-level-chip {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-left: 4px;
+  }
+
+  .rescue-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+  }
+
+  .rescue-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rescue-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .rescue-value {
+    font-size: 13px;
+    color: #333;
+  }
+}

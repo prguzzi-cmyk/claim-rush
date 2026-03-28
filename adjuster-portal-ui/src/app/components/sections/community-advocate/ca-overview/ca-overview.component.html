@@ -1,0 +1,146 @@
+<div class="ca-tab-content">
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <button mat-raised-button color="primary" (click)="goToTab(3)">
+      <mat-icon>add</mat-icon> New Campaign
+    </button>
+    <button mat-stroked-button (click)="goToTab(1)" *ngIf="caRole !== 'advocate'">
+      <mat-icon>person_add</mat-icon> Add Advocate
+    </button>
+    <button mat-stroked-button (click)="goToTab(10)">
+      <mat-icon>analytics</mat-icon> View Analytics
+    </button>
+  </div>
+
+  <div class="overview-grid">
+    <!-- Referral Trend Chart -->
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>{{ caRole === 'advocate' ? 'My Referrals' : 'Referral Trend' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <ngx-charts-line-chart
+          *ngIf="referralTrendData.length"
+          [view]="chartView"
+          [results]="referralTrendData"
+          [scheme]="colorScheme"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="true"
+          [showYAxisLabel]="true"
+          [xAxisLabel]="xAxisLabel"
+          [yAxisLabel]="yAxisLabel"
+          [autoScale]="true">
+        </ngx-charts-line-chart>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Top Advocates Leaderboard (hidden for advocates) -->
+    <mat-card class="leaderboard-card" *ngIf="caRole !== 'advocate'">
+      <mat-card-header>
+        <mat-card-title>Top Advocates</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="leaderboard-list">
+          <div class="leaderboard-item" *ngFor="let adv of topAdvocates; let i = index">
+            <span class="rank">#{{ i + 1 }}</span>
+            <div class="adv-info">
+              <span class="adv-name">{{ adv.name }}</span>
+              <span class="adv-territory">{{ adv.territories[0] }}</span>
+            </div>
+            <div class="adv-stats">
+              <span class="stat-value">{{ adv.metrics.referrals_generated }}</span>
+              <span class="stat-label">referrals</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Personal summary card (advocate only) -->
+    <mat-card class="leaderboard-card" *ngIf="caRole === 'advocate' && myProfile">
+      <mat-card-header>
+        <mat-card-title>My Outreach Summary</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="leaderboard-list">
+          <div class="leaderboard-item">
+            <mat-icon style="color: #1a237e; margin-right: 8px;">share</mat-icon>
+            <div class="adv-info">
+              <span class="adv-name">Referrals Generated</span>
+            </div>
+            <div class="adv-stats">
+              <span class="stat-value">{{ myProfile.metrics.referrals_generated }}</span>
+            </div>
+          </div>
+          <div class="leaderboard-item">
+            <mat-icon style="color: #1a237e; margin-right: 8px;">home</mat-icon>
+            <div class="adv-info">
+              <span class="adv-name">Homeowners Helped</span>
+            </div>
+            <div class="adv-stats">
+              <span class="stat-value">{{ myProfile.metrics.homeowners_helped }}</span>
+            </div>
+          </div>
+          <div class="leaderboard-item">
+            <mat-icon style="color: #1a237e; margin-right: 8px;">event</mat-icon>
+            <div class="adv-info">
+              <span class="adv-name">Community Events</span>
+            </div>
+            <div class="adv-stats">
+              <span class="stat-value">{{ myProfile.metrics.community_events }}</span>
+            </div>
+          </div>
+          <div class="leaderboard-item">
+            <mat-icon style="color: #1a237e; margin-right: 8px;">star</mat-icon>
+            <div class="adv-info">
+              <span class="adv-name">Satisfaction Score</span>
+            </div>
+            <div class="adv-stats">
+              <span class="stat-value">{{ myProfile.metrics.satisfaction_score }}/5</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Activity Feed -->
+  <mat-card class="activity-card">
+    <mat-card-header>
+      <mat-card-title>Recent Activity</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="activity-list">
+        <div class="activity-item">
+          <mat-icon class="activity-icon" color="primary">campaign</mat-icon>
+          <div class="activity-text">
+            <strong>Hurricane Season Prep</strong> campaign sent 4,200 emails
+            <span class="activity-time">2 hours ago</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <mat-icon class="activity-icon" style="color: #4caf50;">person_add</mat-icon>
+          <div class="activity-text">
+            <strong>Maria Santos</strong> generated 3 new referrals
+            <span class="activity-time">5 hours ago</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <mat-icon class="activity-icon" style="color: #ff9800;">event</mat-icon>
+          <div class="activity-text">
+            <strong>Community Workshop</strong> — 28 RSVPs received
+            <span class="activity-time">1 day ago</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <mat-icon class="activity-icon" style="color: #2196f3;">star</mat-icon>
+          <div class="activity-text">
+            <strong>James Blackwell</strong> received a 5-star review
+            <span class="activity-time">2 days ago</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

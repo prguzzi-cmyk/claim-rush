@@ -1,0 +1,410 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2><mat-icon>campaign</mat-icon> Voice Campaigns</h2>
+    <p>Manage AI-powered voice outreach campaigns</p>
+  </div>
+  <div class="header-actions">
+    <button mat-icon-button (click)="manualRefresh()" matTooltip="Refresh data" aria-label="Refresh campaign data">
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <button mat-raised-button color="primary" (click)="navigateToBuilder()">
+      <mat-icon>add</mat-icon> New Campaign
+    </button>
+  </div>
+</div>
+
+<!-- Stale Data Warning -->
+<div class="stale-data-banner" *ngIf="isDataStale" role="alert">
+  <mat-icon>info</mat-icon>
+  <span>Data may be outdated. Last refreshed {{ lastRefreshTime | date:'shortTime' }}</span>
+  <button mat-button color="primary" (click)="manualRefresh()">
+    <mat-icon>refresh</mat-icon> Refresh Now
+  </button>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row">
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #e3f2fd"><mat-icon aria-hidden="true" style="color: #1565c0">campaign</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ totalCampaigns }}</span><span class="kpi-label">Campaigns</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #e8f5e9"><mat-icon aria-hidden="true" style="color: #2e7d32">play_circle</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ activeCampaigns }}</span><span class="kpi-label">Active</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #fff3e0"><mat-icon aria-hidden="true" style="color: #e65100">phone</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ totalCalls }}</span><span class="kpi-label">Total Calls</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #e8f5e9"><mat-icon aria-hidden="true" style="color: #2e7d32">phone_callback</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ totalAnswered }}</span><span class="kpi-label">Answered</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #e3f2fd"><mat-icon aria-hidden="true" style="color: #1565c0">event_available</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ totalBooked }}</span><span class="kpi-label">Booked</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="kpi-card">
+    <div class="kpi-icon-wrap" style="background: #fce4ec"><mat-icon aria-hidden="true" style="color: #c62828">trending_up</mat-icon></div>
+    <div class="kpi-data"><span class="kpi-value">{{ overallConversion }}%</span><span class="kpi-label">Conversion</span></div>
+  </mat-card>
+</div>
+
+<!-- Status Filter -->
+<div class="filter-row">
+  <mat-form-field appearance="outline" class="status-filter">
+    <mat-label>Filter by Status</mat-label>
+    <mat-select [(value)]="statusFilter" (selectionChange)="onStatusFilterChange()">
+      <mat-option value="">All</mat-option>
+      <mat-option value="draft">Draft</mat-option>
+      <mat-option value="active">Active</mat-option>
+      <mat-option value="paused">Paused</mat-option>
+      <mat-option value="completed">Completed</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="campaign-search">
+    <mat-label>Search campaigns</mat-label>
+    <input matInput [(ngModel)]="campaignSearchTerm" (keyup)="applyCampaignSearch()" placeholder="Search by name or description..." />
+    <button mat-icon-button matSuffix *ngIf="campaignSearchTerm" (click)="clearCampaignSearch()" aria-label="Clear search">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-icon matSuffix *ngIf="!campaignSearchTerm">search</mat-icon>
+  </mat-form-field>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading">
+  <mat-spinner diameter="36"></mat-spinner>
+</div>
+
+<!-- Error State -->
+<div class="error-state" *ngIf="!loading && loadError">
+  <mat-icon>error_outline</mat-icon>
+  <p>Failed to load campaigns</p>
+  <button mat-stroked-button color="primary" (click)="manualRefresh()">
+    <mat-icon>refresh</mat-icon> Retry
+  </button>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && !loadError && campaigns.length === 0">
+  <mat-icon>campaign</mat-icon>
+  <p>No voice campaigns yet. Create your first campaign to start AI-powered outreach.</p>
+  <button mat-stroked-button color="primary" (click)="navigateToBuilder()">
+    <mat-icon>add</mat-icon> Create Campaign
+  </button>
+</div>
+
+<!-- Campaigns Table with Expandable Rows -->
+<div class="table-container" *ngIf="!loading && campaigns.length > 0">
+  <table mat-table [dataSource]="dataSource" multiTemplateDataRows matSort class="campaigns-table">
+    <!-- Campaign Name -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Campaign</th>
+      <td mat-cell *matCellDef="let row">
+        <div class="campaign-name-cell">
+          <div class="campaign-name-row">
+            <a class="campaign-name-link" (click)="viewCampaignDetail(row, $event)">{{ row.name }}</a>
+            <span class="health-dot" *ngIf="getCampaignHealth(row) as health"
+              [style.background]="health.color" [matTooltip]="health.label"></span>
+          </div>
+          <span class="campaign-desc" *ngIf="row.description">{{ row.description }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+      <td mat-cell *matCellDef="let row">
+        <span class="status-chip" [style.background]="getStatusColor(row.status)">{{ row.status }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Progress -->
+    <ng-container matColumnDef="progress">
+      <th mat-header-cell *matHeaderCellDef>Progress</th>
+      <td mat-cell *matCellDef="let row">
+        <div class="progress-cell" *ngIf="row.total_leads_targeted > 0">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="getProgressPercent(row)" [style.background]="getProgressColor(row)"></div>
+          </div>
+          <span class="progress-text">{{ getProgressPercent(row) }}%</span>
+          <span class="completion-badge" *ngIf="getProjectedDays(row) as days" [matTooltip]="'~' + days + ' day' + (days !== 1 ? 's' : '') + ' to complete'">~{{ days }}d</span>
+        </div>
+        <span *ngIf="!row.total_leads_targeted" class="no-progress">—</span>
+      </td>
+    </ng-container>
+
+    <!-- Leads -->
+    <ng-container matColumnDef="total_leads_targeted">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Leads</th>
+      <td mat-cell *matCellDef="let row">{{ row.total_leads_targeted }}</td>
+    </ng-container>
+
+    <!-- Calls Placed -->
+    <ng-container matColumnDef="total_calls_placed">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Calls</th>
+      <td mat-cell *matCellDef="let row">{{ row.total_calls_placed }}</td>
+    </ng-container>
+
+    <!-- Calls Answered -->
+    <ng-container matColumnDef="total_calls_answered">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Answered</th>
+      <td mat-cell *matCellDef="let row">{{ row.total_calls_answered }}</td>
+    </ng-container>
+
+    <!-- Appointments Booked -->
+    <ng-container matColumnDef="total_appointments_booked">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Booked</th>
+      <td mat-cell *matCellDef="let row">{{ row.total_appointments_booked }}</td>
+    </ng-container>
+
+    <!-- Conversion -->
+    <ng-container matColumnDef="conversion">
+      <th mat-header-cell *matHeaderCellDef>Conv.</th>
+      <td mat-cell *matCellDef="let row">
+        <span class="conversion-rate">{{ getConversionRate(row) }}%</span>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        <div class="action-buttons">
+          <!-- Start Campaign (draft only) -->
+          <button
+            mat-raised-button
+            color="primary"
+            class="start-btn"
+            *ngIf="row.status === 'draft'"
+            (click)="startCampaign(row, $event)"
+            [disabled]="actionInProgress === row.id"
+            [attr.aria-disabled]="actionInProgress === row.id"
+            matTooltip="Select leads and start outreach"
+            [attr.aria-label]="'Start campaign ' + row.name"
+          >
+            <mat-spinner diameter="16" *ngIf="actionInProgress === row.id"></mat-spinner>
+            <mat-icon *ngIf="actionInProgress !== row.id">rocket_launch</mat-icon>
+            {{ actionInProgress === row.id ? 'Starting...' : 'Start' }}
+          </button>
+
+          <!-- Resume (paused only) -->
+          <button
+            mat-raised-button
+            color="primary"
+            class="start-btn"
+            *ngIf="row.status === 'paused'"
+            (click)="resumeCampaign(row, $event)"
+            [disabled]="actionInProgress === row.id"
+            [attr.aria-disabled]="actionInProgress === row.id"
+            matTooltip="Resume campaign"
+            [attr.aria-label]="'Resume campaign ' + row.name"
+          >
+            <mat-spinner diameter="16" *ngIf="actionInProgress === row.id"></mat-spinner>
+            <mat-icon *ngIf="actionInProgress !== row.id">play_arrow</mat-icon>
+            {{ actionInProgress === row.id ? 'Resuming...' : 'Resume' }}
+          </button>
+
+          <!-- Pause (active only) -->
+          <button
+            mat-stroked-button
+            color="warn"
+            class="start-btn"
+            *ngIf="row.status === 'active'"
+            (click)="pauseCampaign(row, $event)"
+            [disabled]="actionInProgress === row.id"
+            [attr.aria-disabled]="actionInProgress === row.id"
+            matTooltip="Pause campaign"
+            [attr.aria-label]="'Pause campaign ' + row.name"
+          >
+            <mat-spinner diameter="16" *ngIf="actionInProgress === row.id"></mat-spinner>
+            <mat-icon *ngIf="actionInProgress !== row.id">pause</mat-icon>
+            {{ actionInProgress === row.id ? 'Pausing...' : 'Pause' }}
+          </button>
+
+          <!-- Edit -->
+          <button mat-icon-button (click)="editCampaign(row, $event)" matTooltip="Edit Campaign" [attr.aria-label]="'Edit campaign ' + row.name" [disabled]="actionInProgress === row.id" [attr.aria-disabled]="actionInProgress === row.id">
+            <mat-icon>edit</mat-icon>
+          </button>
+
+          <!-- Duplicate -->
+          <button mat-icon-button (click)="duplicateCampaign(row, $event)" matTooltip="Duplicate Campaign" [attr.aria-label]="'Duplicate campaign ' + row.name" [disabled]="actionInProgress === row.id" [attr.aria-disabled]="actionInProgress === row.id">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+
+          <!-- Analytics -->
+          <button mat-icon-button (click)="viewAnalytics(row, $event)" matTooltip="View Analytics" aria-label="View analytics">
+            <mat-icon>analytics</mat-icon>
+          </button>
+
+          <!-- Delete (draft only) -->
+          <button mat-icon-button color="warn" *ngIf="row.status === 'draft'" (click)="deleteCampaign(row, $event)" matTooltip="Delete Campaign" [attr.aria-label]="'Delete campaign ' + row.name" [disabled]="actionInProgress === row.id" [attr.aria-disabled]="actionInProgress === row.id">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Expanded Detail Row -->
+    <ng-container matColumnDef="expandedDetail">
+      <td mat-cell *matCellDef="let row" [attr.colspan]="displayedColumns.length">
+        <div class="detail-container" [@detailExpand]="row === expandedCampaign ? 'expanded' : 'collapsed'">
+          <div class="detail-content" *ngIf="row === expandedCampaign">
+            <h4><mat-icon>call</mat-icon> Call Activity for "{{ row.name }}"</h4>
+
+            <div class="call-log-loading" *ngIf="loadingCallLogs">
+              <mat-spinner diameter="24"></mat-spinner>
+            </div>
+
+            <div class="call-log-empty" *ngIf="!loadingCallLogs && campaignCallLogs.length === 0">
+              <mat-icon>phone_disabled</mat-icon>
+              <p *ngIf="row.status === 'draft'">No calls placed yet. Launch this campaign to start outreach.</p>
+              <p *ngIf="row.status === 'active'">Calls are being placed. Check back shortly.</p>
+              <p *ngIf="row.status !== 'draft' && row.status !== 'active'">No calls placed for this campaign.</p>
+              <button mat-stroked-button color="primary" *ngIf="row.status === 'draft'" (click)="startCampaign(row, $event)">
+                <mat-icon>rocket_launch</mat-icon> Launch Campaign
+              </button>
+            </div>
+
+            <table mat-table [dataSource]="campaignCallLogs" class="call-logs-sub-table" *ngIf="!loadingCallLogs && campaignCallLogs.length > 0">
+              <ng-container matColumnDef="lead_name">
+                <th mat-header-cell *matHeaderCellDef>Lead</th>
+                <td mat-cell *matCellDef="let call">{{ call.lead_name || 'Unknown' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="phone_number">
+                <th mat-header-cell *matHeaderCellDef>Phone</th>
+                <td mat-cell *matCellDef="let call">{{ call.phone_number | phoneFormat }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let call">
+                  <div class="call-status-cell">
+                    <mat-icon [style.color]="getCallStatusColor(call.status)" class="status-icon">{{ getCallStatusIcon(call.status) }}</mat-icon>
+                    <span class="status-text" [style.color]="getCallStatusColor(call.status)">{{ call.status }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="duration">
+                <th mat-header-cell *matHeaderCellDef>Duration</th>
+                <td mat-cell *matCellDef="let call">{{ call.duration_seconds | durationFormat }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="outcome">
+                <th mat-header-cell *matHeaderCellDef>Outcome</th>
+                <td mat-cell *matCellDef="let call">
+                  <span class="outcome-badge" *ngIf="call.outcome" [style.background]="getOutcomeColor(call.outcome)">
+                    {{ getOutcomeLabel(call.outcome) }}
+                  </span>
+                  <span *ngIf="!call.outcome" class="no-outcome">—</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="created_at">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let call">{{ call.created_at | date:'short' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="call_actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let call">
+                  <button mat-icon-button matTooltip="View Transcript" aria-label="View transcript" (click)="viewTranscript(call, $event)">
+                    <mat-icon>article</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="callLogColumns"></tr>
+              <tr mat-row *matRowDef="let call; columns: callLogColumns;" class="call-log-row"></tr>
+            </table>
+          </div>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        class="campaign-row"
+        [class.expanded-row]="expandedCampaign === row"
+        (click)="toggleExpand(row)">
+    </tr>
+    <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+  </table>
+  <mat-paginator #campaignPaginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+</div>
+
+<!-- ──── Recent Call Activity ──── -->
+<div class="recent-activity-section" *ngIf="!loading">
+  <h3><mat-icon>history</mat-icon> Recent Call Activity</h3>
+
+  <div class="loading-state" *ngIf="loadingRecent">
+    <mat-spinner diameter="28"></mat-spinner>
+  </div>
+
+  <div class="empty-state-small" *ngIf="!loadingRecent && recentCalls.length === 0">
+    <mat-icon>phone_disabled</mat-icon>
+    <p>No call activity yet. Start a campaign to begin AI outreach.</p>
+  </div>
+
+  <div class="table-container" *ngIf="!loadingRecent && recentCalls.length > 0">
+    <table mat-table [dataSource]="recentDataSource" class="recent-table">
+      <ng-container matColumnDef="lead_name">
+        <th mat-header-cell *matHeaderCellDef>Lead</th>
+        <td mat-cell *matCellDef="let call">{{ call.lead_name || 'Unknown' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone_number">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let call">{{ call.phone_number | phoneFormat }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let call">
+          <div class="call-status-cell">
+            <mat-icon [style.color]="getCallStatusColor(call.status)" class="status-icon">{{ getCallStatusIcon(call.status) }}</mat-icon>
+            <span class="status-text" [style.color]="getCallStatusColor(call.status)">{{ call.status }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="duration">
+        <th mat-header-cell *matHeaderCellDef>Duration</th>
+        <td mat-cell *matCellDef="let call">{{ call.duration_seconds | durationFormat }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="outcome">
+        <th mat-header-cell *matHeaderCellDef>Outcome</th>
+        <td mat-cell *matCellDef="let call">
+          <span class="outcome-badge" *ngIf="call.outcome" [style.background]="getOutcomeColor(call.outcome)">
+            {{ getOutcomeLabel(call.outcome) }}
+          </span>
+          <span *ngIf="!call.outcome" class="no-outcome">—</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Date</th>
+        <td mat-cell *matCellDef="let call">{{ call.created_at | date:'short' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="call_actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let call">
+          <button mat-icon-button matTooltip="View Transcript" aria-label="View transcript" (click)="viewTranscript(call)">
+            <mat-icon>article</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
+      <tr mat-row *matRowDef="let call; columns: recentColumns;" class="call-log-row"></tr>
+    </table>
+    <mat-paginator #recentPaginator [pageSize]="10" [pageSizeOptions]="[10, 25]" showFirstLastButtons></mat-paginator>
+  </div>
+</div>

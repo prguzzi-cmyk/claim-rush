@@ -1,0 +1,40 @@
+.reports-container { padding: 24px 0; }
+
+.section-card {
+  background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; padding: 24px;
+  h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #1a237e; } }
+
+.reports-header { margin-bottom: 16px; }
+.reports-subtitle { margin: 0; font-size: 13px; color: #666; }
+
+.filter-chips { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 4px 14px; border-radius: 16px; border: 1px solid #ddd; background: #fafafa;
+  font-size: 12px; font-weight: 500; color: #555; cursor: pointer; transition: all 0.15s;
+  &:hover { border-color: #1a237e; color: #1a237e; }
+  &.active { background: #1a237e; border-color: #1a237e; color: #fff; } }
+.chip-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+
+.reports-grid { display: flex; flex-direction: column; gap: 12px; }
+.report-card {
+  display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #eee; border-radius: 10px;
+  transition: border-color 0.15s;
+  &:hover { border-color: #1a237e; } }
+.report-icon-wrap {
+  width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  mat-icon { font-size: 24px; width: 24px; height: 24px; }
+  &[data-type='claim_report'] { background: #e3f2fd; mat-icon { color: #1565c0; } }
+  &[data-type='supplement_report'] { background: #fce4ec; mat-icon { color: #c62828; } }
+  &[data-type='inspection_report'] { background: #e8f5e9; mat-icon { color: #2e7d32; } }
+  &[data-type='estimate_report'] { background: #f3e5f5; mat-icon { color: #7b1fa2; } } }
+.report-info { flex: 1; }
+.report-name { font-size: 14px; font-weight: 600; color: #333; }
+.report-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 12px; color: #999; }
+.report-type-label { font-weight: 500; color: #1a237e; }
+.download-btn { color: #1a237e; }
+
+.empty-state { text-align: center; padding: 40px; color: #999;
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.3; }
+  p { font-size: 14px; margin-top: 8px; } }

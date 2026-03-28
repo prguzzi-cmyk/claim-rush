@@ -1,0 +1,450 @@
+<!-- fw-bold -->
+<h1 mat-dialog-title class="">
+  {{
+    dialogType == "create"
+      ? "Create"
+      : dialogType == "view"
+      ? "View"
+      : dialogType == "edit"
+      ? "Update"
+      : dialogType == "delete"
+      ? "Delete"
+      : dialogType == "restore"
+      ? "Restore"
+      : dialogTitle
+  }}
+
+  {{ dialogType == "create" ? source.displayName : null }}
+  {{ dialogType == "location" ? "Enter Location" : null }}
+
+  <!-- {{ type == "create" ? source.displayName : sourceItem?.title }} -->
+</h1>
+
+<div *ngIf="dialogType == 'create' || dialogType == 'edit'" mat-dialog-content>
+  <form [formGroup]="sourceItemForm">
+    <mat-form-field class="form-field">
+      <input
+        matInput
+        formControlName="title"
+        type="text"
+        placeholder="Title"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="form-field"
+    >
+      <textarea
+        matInput
+        formControlName="target"
+        placeholder="Target"
+        rows="3"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-form-field
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="form-field"
+    >
+      <textarea
+        matInput
+        formControlName="mission"
+        placeholder="Mission"
+        rows="5"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="isElementDisplayed(['network'])" class="w-100">
+      <mat-label>Environment</mat-label>
+
+      <mat-select
+        [(value)]="sourceItemForm.value.environment"
+        formControlName="environment"
+      >
+        <mat-option
+          *ngFor="let selectOption of selectOptions.environment"
+          value="{{ selectOption.name }}"
+          >{{ selectOption.displayName }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="isElementDisplayed(['network'])" class="form-field">
+      <textarea
+        matInput
+        formControlName="summary"
+        placeholder="Summary"
+        rows="3"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <textarea
+        matInput
+        formControlName="keyElements"
+        placeholder="Key elements(Each statement must start with a *)"
+        rows="10"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-form-field
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="form-field"
+    >
+      <input
+        matInput
+        formControlName="searchTerm"
+        type="text"
+        placeholder="Search term"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field *ngIf="isElementDisplayed(['network'])" class="w-100">
+      <mat-label>Exploration type</mat-label>
+
+      <mat-select
+        [(value)]="sourceItemForm.value.explorationType"
+        formControlName="explorationType"
+      >
+        <mat-option
+          *ngFor="let selectOption of selectOptions.explorationType"
+          value="{{ selectOption.name }}"
+          >{{ selectOption.displayName }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="isElementDisplayed(['network'])" class="form-field">
+      <textarea
+        matInput
+        formControlName="explorationTerm"
+        placeholder="Exploration term"
+        rows="3"
+      ></textarea>
+    </mat-form-field>
+  </form>
+
+  <div class="d-flex align-items-center mb-3">
+    Is active:
+
+    <mat-slide-toggle
+      (change)="toggleIsActive($event)"
+      [checked]="isActive"
+      color="primary"
+      class="ml-3"
+    ></mat-slide-toggle>
+  </div>
+
+  <div class="d-flex align-items-center mb-3">
+    Can be removed:
+
+    <mat-slide-toggle
+      (change)="toggleCanBeRemoved($event)"
+      [checked]="canBeRemoved"
+      color="primary"
+      class="ml-3"
+    ></mat-slide-toggle>
+  </div>
+</div>
+
+<div *ngIf="dialogType == 'view'" mat-dialog-content>
+  <div class="row">
+    <div class="col-md-6">
+      <h6 class="fw-bold">Title</h6>
+
+      <p>{{ sourceItem?.title }}</p>
+    </div>
+
+    <div
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="col-md-6"
+    >
+      <h6 class="fw-bold">Target</h6>
+
+      <p>{{ sourceItem?.target }}</p>
+    </div>
+
+    <div
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="col-md-6"
+    >
+      <h6 class="fw-bold">Mission</h6>
+
+      <p>{{ sourceItem?.mission }}</p>
+    </div>
+
+    <div *ngIf="isElementDisplayed(['network'])" class="col-md-6">
+      <h6 class="fw-bold">Environment</h6>
+
+      <p>{{ sourceItem?.environment }}</p>
+    </div>
+
+    <div *ngIf="isElementDisplayed(['network'])" class="col-md-6">
+      <h6 class="fw-bold">Exploration type</h6>
+
+      <p>{{ sourceItem?.exploration_type }}</p>
+    </div>
+
+    <div *ngIf="isElementDisplayed(['network'])" class="col-md-6">
+      <h6 class="fw-bold">Exploration term</h6>
+
+      <p>{{ sourceItem?.exploration_term }}</p>
+    </div>
+
+    <div
+      *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+      class="col-md-6"
+    >
+      <h6 class="fw-bold">Search term</h6>
+
+      <p>{{ sourceItem?.search_term }}</p>
+    </div>
+
+    <div class="col-md-12">
+      <h6 class="fw-bold">Key elements</h6>
+
+      <p
+        *ngFor="
+          let item of getArrayFromString(sourceItem?.key_elements);
+          let itemIndex = index
+        "
+        class="d-flex"
+      >
+        {{ itemIndex + 1 }}.
+
+        <span class="ml-2">
+          {{ item }}
+        </span>
+      </p>
+    </div>
+
+    <div *ngIf="isElementDisplayed(['network'])" class="col-md-6">
+      <h6 class="fw-bold">Summary</h6>
+
+      <p>{{ sourceItem?.summary }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6 class="fw-bold">Created by</h6>
+
+      <p>
+        <span
+          *ngIf="
+            sourceItem?.created_by?.first_name ||
+            sourceItem?.created_by?.last_name
+          "
+        >
+          {{ sourceItem.created_by?.first_name }}
+          {{ sourceItem.created_by?.last_name }}
+        </span>
+
+        <span *ngIf="!sourceItem?.created_by">N/A</span>
+      </p>
+    </div>
+
+    <div class="col-md-6">
+      <h6 class="fw-bold">Created at</h6>
+
+      <p>{{ sourceItem?.created_at | date : "dd/MM/yyyy" }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6 class="fw-bold">Updated by</h6>
+
+      <p>
+        <span
+          *ngIf="
+            sourceItem?.updated_by?.first_name ||
+            sourceItem?.updated_by?.last_name
+          "
+        >
+          {{ sourceItem.updated_by?.first_name }}
+          {{ sourceItem.updated_by?.last_name }}
+        </span>
+
+        <span *ngIf="!sourceItem?.updated_by">N/A</span>
+      </p>
+    </div>
+
+    <div class="col-md-6">
+      <h6 class="fw-bold">Updated at</h6>
+
+      <p>
+        <span *ngIf="sourceItem?.updated_at">
+          {{ sourceItem?.updated_at | date : "dd/MM/yyyy" }}
+        </span>
+
+        <span *ngIf="!sourceItem?.updated_at">N/A</span>
+      </p>
+    </div>
+
+    <div class="mb-3 col-md-6">
+      <div class="d-flex align-items-center">
+        <h6 class="fw-bold mb-0">Can be removed:</h6>
+
+        <mat-slide-toggle
+          [checked]="sourceItem?.can_be_removed"
+          disabled
+          color="primary"
+          class="ml-3"
+        ></mat-slide-toggle>
+      </div>
+    </div>
+
+    <div class="mb-3 col-md-6">
+      <div class="d-flex align-items-center">
+        <h6 class="fw-bold mb-0">Is removed:</h6>
+
+        <mat-slide-toggle
+          [checked]="sourceItem?.is_removed"
+          disabled
+          color="primary"
+          class="ml-3"
+        ></mat-slide-toggle>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="dialogType == 'delete'" mat-dialog-content>
+  Are you sure you want to delete {{ sourceItem.title }}?
+</div>
+
+<div *ngIf="dialogType == 'restore'" mat-dialog-content>
+  Are you sure you want to restore {{ sourceItem.title.toLowerCase() }}?
+</div>
+
+<div *ngIf="dialogType == 'location'" mat-dialog-content>
+  <div>Location format: city, state</div>
+
+  <mat-form-field class="form-field">
+    <input
+      [(ngModel)]="leadsLocation"
+      matInput
+      name="location"
+      type="text"
+      placeholder="Location"
+      required
+    />
+  </mat-form-field>
+</div>
+
+<div *ngIf="dialogType == 'leads'" mat-dialog-content>
+  <div *ngFor="let lead of leads">
+    <div class="mb-3">
+      <div>{{ lead?.displayName.text }}</div>
+      <div>{{ lead?.formattedAddress }}</div>
+      <div>{{ lead?.nationalPhoneNumber }}</div>
+    </div>
+  </div>
+
+  <span [innerHtml]="chatgptMessageContent"></span>
+</div>
+
+<div mat-dialog-actions>
+  <button
+    *ngIf="dialogType == 'create'"
+    (click)="createSourceItem()"
+    [disabled]="!sourceItemForm.valid || sourceItemFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="sourceItemFormDisabled"></mat-spinner>
+    </div>
+    Create
+
+    <span class="text-lowercase">
+      {{ source.displayName }}
+    </span>
+  </button>
+
+  <a
+    *ngIf="dialogType == 'view'"
+    mat-raised-button
+    color="primary"
+    href="{{
+      sourceItem?.search_term
+        ? 'https://www.google.com/search?q=' + sourceItem.search_term
+        : sourceItem?.exploration_type == 'hyperlink'
+        ? sourceItem.exploration_term
+        : 'https://www.google.com/search?q=' + sourceItem?.exploration_term
+    }}"
+    target="_blank"
+  >
+    {{ sourceItem?.search_term ? "Google search term" : "Visit exploration" }}
+  </a>
+
+  <button
+    *ngIf="dialogType == 'edit'"
+    (click)="updateSourceItem(sourceItem.id)"
+    [disabled]="!sourceItemForm.valid || sourceItemFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="sourceItemFormDisabled"></mat-spinner>
+    </div>
+    Update
+
+    <span class="text-lowercase">
+      {{ source.displayName }}
+    </span>
+  </button>
+
+  <button
+    *ngIf="dialogType == 'delete'"
+    (click)="deleteSourceItem(sourceItem.id)"
+    [disabled]="sourceItemFormDisabled"
+    mat-raised-button
+    color="warn"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="sourceItemFormDisabled"></mat-spinner>
+    </div>
+
+    Delete
+  </button>
+
+  <button
+    *ngIf="dialogType == 'restore'"
+    (click)="restoreSourceItem(sourceItem.id)"
+    [disabled]="sourceItemFormDisabled"
+    mat-raised-button
+    color="primary"
+  >
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="sourceItemFormDisabled"></mat-spinner>
+    </div>
+    Restore
+  </button>
+
+  <button
+    *ngIf="dialogType == 'location'"
+    (click)="openLeadsDialog(sourceItem?.title)"
+    [disabled]="!leadsLocation"
+    mat-raised-button
+    color="primary"
+  >
+    Ok
+  </button>
+
+  <button
+    *ngIf="dialogType == 'leads'"
+    (click)="addLeads(this.location)"
+    mat-raised-button
+    color="primary"
+  >
+    <!-- <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="sourceItemFormDisabled"></mat-spinner>
+    </div> -->
+    Add To Leads
+  </button>
+
+  <button mat-raised-button mat-dialog-close color="accent">Cancel</button>
+</div>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

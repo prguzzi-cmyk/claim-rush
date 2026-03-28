@@ -1,0 +1,32 @@
+.claim-table {
+  table-layout: fixed;
+  width: auto !important;
+  min-width: 100%;
+}
+
+.mat-mdc-form-field {
+  margin-right: 5px;
+}
+
+.mat-mdc-cell {
+  padding: 0px 10px 0px 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.mat-mdc-header-cell {
+  padding: 0px 10px 0px 10px;
+  white-space: nowrap;
+}
+
+.mat-column-edit {
+  text-align: right;
+}
+
+.mat-mdc-table-scroll-container {
+  overflow-x: auto;
+  max-width: 100%; /* Adjust the max-width as needed */
+}
+
+.mat-mdc-card-content {
+  padding: 0; /* Adjust padding as needed */
+}

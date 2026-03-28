@@ -1,0 +1,890 @@
+<mat-card>
+  <mat-card-header>
+    <div class="header-row">
+      <div class="title-section">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h2 *ngIf="isNew">New Adjuster Case</h2>
+        <h2 *ngIf="!isNew && adjCase">Case {{ adjCase.case_number }}</h2>
+      </div>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Step guard warning (shown when navigating to a step with missing prerequisites) -->
+    <div class="step-guard-banner" *ngIf="stepGuardMessage">
+      <mat-icon>warning</mat-icon>
+      <span>{{ stepGuardMessage }}</span>
+    </div>
+
+    <mat-stepper #stepper [linear]="false" orientation="horizontal"
+      (selectionChange)="onStepChange($event)">
+      <!-- ── STEP 0: INTAKE ── -->
+      <mat-step label="Intake">
+        <div class="step-content">
+          <h3>Claim Intake Information</h3>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Loss Date</mat-label>
+              <input matInput type="date" [(ngModel)]="intakeLossDate" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Loss Type</mat-label>
+              <mat-select [(ngModel)]="intakeLossType">
+                <mat-option *ngFor="let t of lossTypes" [value]="t">{{ t }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Property Address</mat-label>
+              <input matInput [(ngModel)]="intakeAddress" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Insured Name</mat-label>
+              <input matInput [(ngModel)]="intakeInsuredName" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Carrier</mat-label>
+              <input matInput [(ngModel)]="intakeCarrier" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Policy Number</mat-label>
+              <input matInput [(ngModel)]="intakePolicyNumber" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Claim Number</mat-label>
+              <input matInput [(ngModel)]="intakeClaimNumber" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Notes</mat-label>
+              <textarea matInput [(ngModel)]="intakeNotes" rows="3"></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Document upload for intake -->
+          <div class="doc-section" *ngIf="!isNew">
+            <h4>Documents</h4>
+            <input type="file" #intakeFileInput hidden (change)="onFileSelected($event, 'other', 'intake')" />
+            <button mat-stroked-button (click)="intakeFileInput.click()">
+              <mat-icon>upload_file</mat-icon> Upload Document
+            </button>
+            <div class="doc-list" *ngIf="getDocsByStep('intake').length">
+              <div class="doc-item" *ngFor="let doc of getDocsByStep('intake')">
+                <mat-icon>description</mat-icon>
+                <span>{{ doc.file_name }}</span>
+                <button mat-icon-button color="warn" (click)="deleteDocument(doc.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button mat-raised-button color="primary" *ngIf="isNew" (click)="createCase()" [disabled]="saving">
+              Create Case
+            </button>
+            <button mat-stroked-button *ngIf="!isNew" (click)="saveIntake()" [disabled]="saving">
+              Save Intake
+            </button>
+            <button mat-raised-button color="primary" *ngIf="!isNew" (click)="advanceStep()" [disabled]="advancing">
+              Next: Policy Analysis
+            </button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 1: POLICY ANALYSIS ── -->
+      <mat-step label="Policy Analysis">
+        <div class="step-content policy-step">
+          <h3>Policy Analysis</h3>
+          <p class="step-description">
+            Upload the insurance policy PDF to automatically extract coverage details, deductibles, exclusions, and key provisions.
+          </p>
+
+          <!-- Upload Section -->
+          <div class="policy-upload-section">
+            <input type="file" #vaultPolicyInput hidden accept=".pdf" (change)="uploadPolicyToVault($event)" />
+            <button
+              mat-raised-button
+              class="upload-policy-btn"
+              (click)="vaultPolicyInput.click()"
+              [disabled]="uploadingToVault || vaultAnalyzing"
+            >
+              <mat-icon>upload_file</mat-icon>
+              {{ uploadingToVault ? 'Uploading...' : 'Upload Policy PDF' }}
+            </button>
+            <button
+              mat-stroked-button
+              *ngIf="isVaultAnalyzed"
+              (click)="reAnalyzeVaultPolicy()"
+              [disabled]="vaultAnalyzing"
+            >
+              <mat-icon>refresh</mat-icon> Re-Analyze
+            </button>
+          </div>
+
+          <!-- Linked Policies -->
+          <div class="vault-policies-list" *ngIf="vaultPolicies.length > 0 && !isVaultAnalyzed">
+            <div class="vault-policy-item" *ngFor="let p of vaultPolicies">
+              <mat-icon>picture_as_pdf</mat-icon>
+              <span class="vault-policy-name">{{ p.file_name }}</span>
+              <span class="vault-status-badge" [ngClass]="p.extraction_status">{{ p.extraction_status }}</span>
+              <mat-icon *ngIf="p.assistant_ready" class="vault-ready-icon">check_circle</mat-icon>
+            </div>
+          </div>
+
+          <!-- Analysis Progress -->
+          <div class="vault-analysis-progress" *ngIf="vaultAnalyzing">
+            <div class="vault-progress-bar">
+              <div class="vault-progress-fill" [style.width.%]="vaultAnalysisProgress"></div>
+            </div>
+            <div class="vault-progress-label">
+              <mat-icon class="vault-spinner">autorenew</mat-icon>
+              {{ vaultAnalysisStep }}
+            </div>
+          </div>
+
+          <!-- ── POLICY INTELLIGENCE RESULTS ── -->
+          <div *ngIf="isVaultAnalyzed" class="policy-intel-results">
+
+            <!-- Policy Summary -->
+            <div class="pi-card pi-summary" *ngIf="vaultPolicy?.ai_summary">
+              <h4><mat-icon>summarize</mat-icon> Coverage Summary</h4>
+              <div class="pi-summary-text">{{ vaultPolicy!.ai_summary }}</div>
+            </div>
+
+            <!-- Coverage + Deductibles Grid -->
+            <div class="pi-grid" *ngIf="vaultIntel">
+              <div class="pi-card" *ngIf="hasVaultCoverage">
+                <h4><mat-icon>shield</mat-icon> Coverage Limits</h4>
+                <table class="pi-table">
+                  <tbody>
+                    <tr *ngIf="vaultIntel.coverage_a_dwelling">
+                      <td>Cov A — Dwelling</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_a_dwelling | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.coverage_b_other_structures">
+                      <td>Cov B — Other Structures</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_b_other_structures | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.coverage_c_personal_property">
+                      <td>Cov C — Personal Property</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_c_personal_property | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.coverage_d_loss_of_use">
+                      <td>Cov D — Loss of Use / ALE</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_d_loss_of_use | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.coverage_e_liability">
+                      <td>Cov E — Liability</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_e_liability | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.coverage_f_medical">
+                      <td>Cov F — Medical</td>
+                      <td class="pi-amount">${{ vaultIntel.coverage_f_medical | number:'1.0-0' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pi-card" *ngIf="hasVaultDeductibles">
+                <h4><mat-icon>calculate</mat-icon> Deductibles</h4>
+                <table class="pi-table">
+                  <tbody>
+                    <tr *ngIf="vaultIntel.deductible_amount">
+                      <td>Standard</td>
+                      <td class="pi-amount">${{ vaultIntel.deductible_amount | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.deductible_percentage">
+                      <td>Percentage</td>
+                      <td class="pi-amount">{{ vaultIntel.deductible_percentage }}%</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.deductible_wind_hail">
+                      <td>Wind/Hail</td>
+                      <td class="pi-amount">${{ vaultIntel.deductible_wind_hail | number:'1.0-0' }}</td>
+                    </tr>
+                    <tr *ngIf="vaultIntel.deductible_hurricane">
+                      <td>Hurricane</td>
+                      <td class="pi-amount">${{ vaultIntel.deductible_hurricane | number:'1.0-0' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p *ngIf="vaultIntel.deductible_details" class="pi-detail-text">{{ vaultIntel.deductible_details }}</p>
+              </div>
+            </div>
+
+            <!-- Exclusions -->
+            <div class="pi-card pi-exclusions" *ngIf="parseVaultExclusions().length > 0">
+              <h4><mat-icon>block</mat-icon> Exclusions ({{ parseVaultExclusions().length }})</h4>
+              <div class="pi-item-list">
+                <div class="pi-item exclusion" *ngFor="let e of parseVaultExclusions()">
+                  <strong>{{ e.title }}</strong>
+                  <p *ngIf="e.summary">{{ e.summary }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Endorsements -->
+            <div class="pi-card pi-endorsements" *ngIf="parseVaultEndorsements().length > 0">
+              <h4><mat-icon>add_circle</mat-icon> Endorsements ({{ parseVaultEndorsements().length }})</h4>
+              <div class="pi-item-list">
+                <div class="pi-item endorsement" *ngFor="let e of parseVaultEndorsements()">
+                  <strong>{{ e.title }}</strong>
+                  <p *ngIf="e.summary">{{ e.summary }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Provisions -->
+            <div class="pi-card" *ngIf="hasVaultLanguage">
+              <h4><mat-icon>article</mat-icon> Key Provisions</h4>
+              <div class="pi-provisions">
+                <div class="pi-provision" *ngIf="vaultIntel?.replacement_cost_language">
+                  <strong>Replacement Cost</strong>
+                  <p>{{ vaultIntel!.replacement_cost_language }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.ale_loss_of_use_details">
+                  <strong>ALE / Loss of Use</strong>
+                  <p>{{ vaultIntel!.ale_loss_of_use_details }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.matching_language">
+                  <strong>Matching Requirements</strong>
+                  <p>{{ vaultIntel!.matching_language }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.loss_settlement_clause">
+                  <strong>Loss Settlement</strong>
+                  <p>{{ vaultIntel!.loss_settlement_clause }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.ordinance_and_law">
+                  <strong>Ordinance & Law</strong>
+                  <p>{{ vaultIntel!.ordinance_and_law }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.appraisal_clause">
+                  <strong>Appraisal Process</strong>
+                  <p>{{ vaultIntel!.appraisal_clause }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.duties_after_loss">
+                  <strong>Duties After Loss</strong>
+                  <p>{{ vaultIntel!.duties_after_loss }}</p>
+                </div>
+                <div class="pi-provision" *ngIf="vaultIntel?.deadline_notice_details">
+                  <strong>Deadlines & Notices</strong>
+                  <p>{{ vaultIntel!.deadline_notice_details }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Claim Guidance -->
+            <div class="pi-card pi-guidance" *ngIf="vaultPolicy?.claim_guidance_notes">
+              <h4><mat-icon>lightbulb</mat-icon> Claim Guidance</h4>
+              <div class="pi-summary-text pi-guidance-text">{{ vaultPolicy!.claim_guidance_notes }}</div>
+            </div>
+
+            <!-- Quick AI Tools -->
+            <div class="pi-card">
+              <h4><mat-icon>auto_awesome</mat-icon> Quick AI Tools</h4>
+              <div class="pi-tools-grid">
+                <button
+                  *ngFor="let action of assistantActions"
+                  mat-stroked-button
+                  class="pi-tool-btn"
+                  [disabled]="actionLoading[action.type]"
+                  (click)="runAssistantAction(action.type)"
+                >
+                  <mat-icon>{{ action.icon }}</mat-icon>
+                  {{ actionLoading[action.type] ? 'Working...' : action.label }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Action Result -->
+            <div class="pi-card pi-action-result" *ngIf="actionResult">
+              <h4>{{ actionResult.action_type | titlecase }}</h4>
+              <div class="pi-result-text">{{ actionResult.result_text }}</div>
+            </div>
+          </div>
+
+          <!-- Fallback: legacy coverage table if no vault intel -->
+          <div class="analysis-results" *ngIf="!isVaultAnalyzed && policyAnalyses.length > 0">
+            <h4>Extracted Coverages</h4>
+            <table mat-table [dataSource]="policyAnalyses" class="coverage-table">
+              <ng-container matColumnDef="coverage_type">
+                <th mat-header-cell *matHeaderCellDef>Coverage Type</th>
+                <td mat-cell *matCellDef="let row">{{ row.coverage_type }}</td>
+              </ng-container>
+              <ng-container matColumnDef="limit_amount">
+                <th mat-header-cell *matHeaderCellDef>Limit</th>
+                <td mat-cell *matCellDef="let row">{{ row.limit_amount | currency:'USD':'symbol':'1.0-0' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="deductible">
+                <th mat-header-cell *matHeaderCellDef>Deductible</th>
+                <td mat-cell *matCellDef="let row">{{ row.deductible | currency:'USD':'symbol':'1.0-0' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="exclusions">
+                <th mat-header-cell *matHeaderCellDef>Exclusions</th>
+                <td mat-cell *matCellDef="let row">{{ row.exclusions || '—' }}</td>
+              </ng-container>
+              <ng-container matColumnDef="ai_confidence">
+                <th mat-header-cell *matHeaderCellDef>Confidence</th>
+                <td mat-cell *matCellDef="let row">{{ (row.ai_confidence * 100) | number:'1.0-0' }}%</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['coverage_type','limit_amount','deductible','exclusions','ai_confidence']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['coverage_type','limit_amount','deductible','exclusions','ai_confidence']"></tr>
+            </table>
+          </div>
+
+          <!-- No policy state -->
+          <div class="no-policy-state" *ngIf="!vaultPolicy && !vaultAnalyzing && vaultPolicies.length === 0 && policyAnalyses.length === 0">
+            <mat-icon class="no-policy-icon">policy</mat-icon>
+            <p>No policy uploaded yet. Upload a policy PDF above to begin analysis.</p>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="advancing">Next: Damage Review</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 2: DAMAGE REVIEW ── -->
+      <mat-step label="Damage Review">
+        <div class="step-content">
+          <h3>Damage Review</h3>
+          <p class="step-description">Upload photos of the damage. AI damage analysis is coming soon — add manual notes below.</p>
+
+          <div class="doc-section">
+            <input type="file" #photoFileInput hidden accept="image/*" (change)="onFileSelected($event, 'photo', 'damage_review')" />
+            <button mat-stroked-button (click)="photoFileInput.click()">
+              <mat-icon>add_a_photo</mat-icon> Upload Photo
+            </button>
+            <div class="doc-list" *ngIf="getDocsByType('photo').length">
+              <div class="doc-item" *ngFor="let doc of getDocsByType('photo')">
+                <mat-icon>image</mat-icon>
+                <span>{{ doc.file_name }}</span>
+                <button mat-icon-button color="warn" (click)="deleteDocument(doc.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button mat-raised-button color="accent" (click)="analyzeDamage()" [disabled]="analyzingDamage" class="ai-btn">
+            <mat-icon>auto_awesome</mat-icon>
+            {{ analyzingDamage ? 'Analyzing...' : 'Analyze Damage (Coming Soon)' }}
+          </button>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Damage Notes</mat-label>
+            <textarea matInput [(ngModel)]="damageNotes" rows="6" placeholder="Describe the damage observed..."></textarea>
+          </mat-form-field>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-stroked-button (click)="saveDamageNotes()">Save Notes</button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="advancing">Next: Draft Scope</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 3: DRAFT SCOPE ── -->
+      <mat-step label="Draft Scope">
+        <div class="step-content">
+          <h3>ACI Adjuster Scope Development</h3>
+          <p class="step-description">
+            Generate a detailed scope of work based on intake, policy, and damage data collected.
+            Review and edit items before proceeding.
+          </p>
+
+          <button mat-raised-button color="accent" (click)="generateScope()"
+            [disabled]="generatingScope" class="scope-gen-btn">
+            <mat-icon>construction</mat-icon>
+            {{ generatingScope ? 'Generating Scope...' : (scopeAiSummary ? 'Regenerate Scope' : 'Generate Scope') }}
+          </button>
+
+          <!-- Structured scope display (room-by-room) -->
+          <div *ngIf="scopeSections.length" class="scope-sections">
+            <div *ngFor="let section of scopeSections" class="scope-room-card">
+              <h4 class="scope-room-title">
+                <mat-icon>room_preferences</mat-icon>
+                {{ section.room }}
+              </h4>
+              <ul class="scope-item-list">
+                <li *ngFor="let item of section.items">{{ item }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Raw editable scope (collapsible) -->
+          <div *ngIf="scopeAiSummary" class="scope-edit-section">
+            <button mat-stroked-button (click)="showScopeEditor = !showScopeEditor" class="scope-edit-toggle">
+              <mat-icon>{{ showScopeEditor ? 'visibility_off' : 'edit' }}</mat-icon>
+              {{ showScopeEditor ? 'Hide Editor' : 'Edit Full Scope' }}
+            </button>
+            <mat-form-field *ngIf="showScopeEditor" appearance="outline" class="full-width scope-editor-field">
+              <mat-label>Scope of Work</mat-label>
+              <textarea matInput [(ngModel)]="scopeAiSummary" rows="14"
+                (ngModelChange)="parseScopeByRoom()"></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Manual scope notes -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Additional Scope Notes</mat-label>
+            <textarea matInput [(ngModel)]="scopeNotes" rows="3"
+              placeholder="Add manual scope items or adjuster notes..."></textarea>
+          </mat-form-field>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-stroked-button (click)="saveScopeNotes()">
+              <mat-icon>save</mat-icon> Save Scope
+            </button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="advancing">
+              Next: Draft Estimate
+            </button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 4: DRAFT ESTIMATE ── -->
+      <mat-step label="Draft Estimate">
+        <div class="step-content">
+          <h3>Draft Estimate</h3>
+          <p class="step-description">Link or create an estimate project to build the detailed repair estimate.</p>
+
+          <div class="step-guard-warning" *ngIf="!adjCase?.id">
+            <mat-icon>info</mat-icon>
+            <span>Save the case in Intake before creating an estimate.</span>
+          </div>
+
+          <button mat-raised-button color="primary" (click)="linkEstimate()"
+            [disabled]="linkingEstimate || !adjCase?.id" *ngIf="adjCase?.id">
+            <mat-icon>calculate</mat-icon>
+            {{ linkingEstimate ? 'Linking...' : (adjCase?.estimate_project_id ? 'Open Estimate' : 'Create Estimate') }}
+          </button>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="advancing">Next: Gap Analysis</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 5: GAP ANALYSIS ── -->
+      <mat-step label="Gap Analysis">
+        <div class="step-content gap-step">
+          <h3>Claim Gap Analysis</h3>
+          <p class="step-description">Compare your PA estimate against the carrier's estimate to detect underpayment, missing scope, and pricing discrepancies.</p>
+
+          <div class="step-guard-warning" *ngIf="!adjCase?.id">
+            <mat-icon>info</mat-icon>
+            <span>Complete the prior steps before opening this section.</span>
+          </div>
+
+          <!-- Readiness indicators -->
+          <div class="gap-readiness-row">
+            <div class="gap-source-card" [class.ready]="paEstimate">
+              <mat-icon>{{ paEstimate ? 'check_circle' : 'pending' }}</mat-icon>
+              <div>
+                <strong>PA Estimate</strong>
+                <p *ngIf="paEstimate">{{ paEstimate.total_cost | currency }} — {{ paEstimate.name }}</p>
+                <p *ngIf="!paEstimate">No estimate linked. Create one in Step 4.</p>
+              </div>
+            </div>
+
+            <div class="gap-source-card" [class.ready]="carrierData">
+              <mat-icon>{{ carrierData ? 'check_circle' : 'upload_file' }}</mat-icon>
+              <div>
+                <strong>Carrier Estimate</strong>
+                <p *ngIf="carrierData">{{ carrierData.totalCost | currency }} — {{ carrierData.lineItems.length }} line items</p>
+                <p *ngIf="!carrierData">Upload or paste carrier estimate below</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Carrier upload/paste -->
+          <div class="carrier-input-section" *ngIf="!carrierData">
+            <input type="file" #carrierFileInput hidden accept=".txt,.csv,.pdf" (change)="onCarrierEstimateUpload($event)" />
+            <button mat-raised-button (click)="carrierFileInput.click()">
+              <mat-icon>upload_file</mat-icon> Upload Carrier Estimate
+            </button>
+            <p class="or-divider">— or paste text —</p>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Paste Carrier Estimate</mat-label>
+              <textarea matInput [(ngModel)]="carrierRawText" rows="6"></textarea>
+            </mat-form-field>
+            <button mat-stroked-button (click)="onCarrierTextPaste()" [disabled]="!carrierRawText">
+              Parse Pasted Text
+            </button>
+          </div>
+
+          <!-- Run Analysis button -->
+          <button mat-raised-button color="primary" class="run-gap-btn"
+            *ngIf="canRunGapAnalysis && !gapReport"
+            (click)="runGapAnalysis()" [disabled]="runningGapAnalysis">
+            <mat-icon>compare_arrows</mat-icon>
+            {{ runningGapAnalysis ? 'Analyzing...' : 'Run Gap Analysis' }}
+          </button>
+
+          <!-- GAP REPORT RESULTS -->
+          <div *ngIf="gapReport" class="gap-results">
+
+            <!-- Summary Dashboard -->
+            <div class="gap-dashboard">
+              <div class="gap-stat">
+                <span class="gap-stat-label">PA Estimate</span>
+                <span class="gap-stat-value">{{ gapReport.paEstimateTotal | currency }}</span>
+              </div>
+              <div class="gap-stat">
+                <span class="gap-stat-label">Carrier Estimate</span>
+                <span class="gap-stat-value">{{ gapReport.carrierEstimateTotal | currency }}</span>
+              </div>
+              <div class="gap-stat gap-stat-highlight">
+                <span class="gap-stat-label">Total Gap</span>
+                <span class="gap-stat-value">{{ gapReport.totalGap | currency }}</span>
+              </div>
+              <div class="gap-stat">
+                <span class="gap-stat-label">Findings</span>
+                <span class="gap-stat-value">{{ gapReport.findings.length }}</span>
+              </div>
+            </div>
+
+            <!-- Filter chips -->
+            <div class="gap-filter-row">
+              <button mat-stroked-button [class.active]="gapFilterCategory === 'all'" (click)="gapFilterCategory = 'all'">
+                All ({{ gapReport.findings.length }})
+              </button>
+              <button mat-stroked-button [class.active]="gapFilterCategory === 'missing_scope'" (click)="gapFilterCategory = 'missing_scope'">Missing Scope</button>
+              <button mat-stroked-button [class.active]="gapFilterCategory === 'underpaid'" (click)="gapFilterCategory = 'underpaid'">Underpaid</button>
+              <button mat-stroked-button [class.active]="gapFilterCategory === 'critical'" (click)="gapFilterCategory = 'critical'">Critical Only</button>
+            </div>
+
+            <!-- Findings list -->
+            <div class="gap-findings-list">
+              <div *ngFor="let f of filteredFindings" class="gap-finding-card" [ngClass]="'severity-' + f.severity">
+                <div class="finding-header">
+                  <mat-icon>{{ f.severity === 'critical' ? 'error' : f.severity === 'warning' ? 'warning' : 'info' }}</mat-icon>
+                  <strong>{{ f.title }}</strong>
+                  <span class="finding-category">{{ f.category }}</span>
+                  <span class="finding-amount" *ngIf="f.difference">{{ f.difference | currency }}</span>
+                </div>
+                <p>{{ f.description }}</p>
+                <p *ngIf="f.recommendation" class="finding-rec"><mat-icon>lightbulb</mat-icon> {{ f.recommendation }}</p>
+              </div>
+            </div>
+
+            <!-- Line Item Comparison Table -->
+            <mat-expansion-panel class="comparison-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>Line Item Comparison ({{ gapReport.comparisons.length }})</mat-panel-title>
+              </mat-expansion-panel-header>
+              <table class="comparison-table">
+                <thead>
+                  <tr><th>Room</th><th>Description</th><th>PA Cost</th><th>Carrier Cost</th><th>Diff</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let c of gapReport.comparisons" [ngClass]="'row-' + c.status">
+                    <td>{{ c.paItem?.room || c.carrierItem?.room || '—' }}</td>
+                    <td>{{ c.paItem?.description || c.carrierItem?.description }}</td>
+                    <td>{{ c.paItem ? (c.paItem.totalCost | currency) : '—' }}</td>
+                    <td>{{ c.carrierItem ? (c.carrierItem.totalCost | currency) : '—' }}</td>
+                    <td [class.negative]="c.priceDifference > 0">{{ c.priceDifference | currency }}</td>
+                    <td><span class="status-badge" [ngClass]="c.status">{{ c.status }}</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </mat-expansion-panel>
+
+            <!-- Export & Supplement -->
+            <div class="gap-actions-row">
+              <button mat-stroked-button (click)="exportGapCSV()">
+                <mat-icon>download</mat-icon> Export CSV
+              </button>
+              <button mat-raised-button color="primary" (click)="generateSupplementLetter()"
+                [disabled]="generatingSupplement || !vaultPolicy">
+                <mat-icon>auto_awesome</mat-icon>
+                {{ generatingSupplement ? 'Generating...' : 'Generate Supplement Letter' }}
+              </button>
+            </div>
+
+            <!-- Supplement Letter -->
+            <div *ngIf="supplementLetter" class="supplement-card">
+              <h4><mat-icon>description</mat-icon> AI Supplement Letter</h4>
+              <pre class="supplement-text">{{ supplementLetter }}</pre>
+            </div>
+
+          </div><!-- /gap-results -->
+
+          <!-- ═══ NEGOTIATION COMMAND CENTER (always visible on Gap Analysis step) ═══ -->
+          <div class="ncc-toggle-row">
+            <button mat-raised-button (click)="toggleCommandCenter()"
+              [color]="showCommandCenter ? 'warn' : 'primary'" class="ncc-toggle-btn">
+              <mat-icon>{{ showCommandCenter ? 'close' : 'gavel' }}</mat-icon>
+              {{ showCommandCenter ? 'Close Command Center' : 'Negotiation Command Center' }}
+            </button>
+          </div>
+
+          <div *ngIf="showCommandCenter" class="ncc-container">
+            <h3 class="ncc-title"><mat-icon>gavel</mat-icon> Negotiation Command Center</h3>
+
+            <!-- Placeholder when gap analysis hasn't run -->
+            <div *ngIf="!gapReport" class="ncc-empty-state">
+              <mat-icon class="ncc-empty-icon">analytics</mat-icon>
+              <p>Run Gap Analysis to activate negotiation tools.</p>
+              <p class="ncc-empty-hint">Upload a carrier estimate and click "Run Gap Analysis" above to unlock the Strategy Advisor, Settlement Calculator, Document Arsenal, and Negotiation Log.</p>
+            </div>
+
+            <ng-container *ngIf="gapReport">
+              <!-- Section 1: Strategy Advisor -->
+              <div class="ncc-section">
+                <h4><mat-icon>psychology</mat-icon> Strategy Advisor</h4>
+                <div *ngIf="!negotiationStrategy" class="ncc-empty">
+                  Analyzing your position...
+                </div>
+                <div *ngIf="negotiationStrategy" class="strategy-card">
+                  <div class="strategy-header">
+                    <div class="strength-badge" [ngClass]="strengthColorClass">
+                      {{ negotiationStrategy.positionStrength | uppercase }}
+                    </div>
+                    <div class="strength-score">Score: {{ negotiationStrategy.strengthScore }}/100</div>
+                    <div class="approach-badge">{{ negotiationStrategy.approach | titlecase }} Approach</div>
+                  </div>
+                  <div class="strategy-body">
+                    <div class="leverage-section">
+                      <strong>Leverage Points</strong>
+                      <ul>
+                        <li *ngFor="let lp of negotiationStrategy.leveragePoints">{{ lp }}</li>
+                      </ul>
+                    </div>
+                    <div class="risks-section" *ngIf="negotiationStrategy.risks.length">
+                      <strong>Risks</strong>
+                      <ul>
+                        <li *ngFor="let r of negotiationStrategy.risks">{{ r }}</li>
+                      </ul>
+                    </div>
+                    <div class="actions-section">
+                      <strong>Recommended Actions</strong>
+                      <ul>
+                        <li *ngFor="let a of negotiationStrategy.recommendedActions">{{ a }}</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Settlement Calculator -->
+              <div class="ncc-section">
+                <h4><mat-icon>calculate</mat-icon> Settlement Calculator</h4>
+                <div class="settlement-slider-row">
+                  <label>Gap Recovery: {{ settlementPercentage }}%</label>
+                  <input type="range" min="0" max="100" step="5"
+                    [(ngModel)]="settlementPercentage"
+                    (input)="onSettlementSliderChange()" class="settlement-slider" />
+                </div>
+                <div *ngIf="settlementScenario" class="settlement-grid">
+                  <div class="calc-item">
+                    <span class="calc-label">Carrier Original</span>
+                    <span class="calc-value">{{ settlementScenario.carrierTotal | currency }}</span>
+                  </div>
+                  <div class="calc-item">
+                    <span class="calc-label">Gap Recovered</span>
+                    <span class="calc-value positive">+{{ settlementScenario.gapRecovered | currency }}</span>
+                  </div>
+                  <div class="calc-item">
+                    <span class="calc-label">Settlement Amount</span>
+                    <span class="calc-value highlight">{{ settlementScenario.settlementAmount | currency }}</span>
+                  </div>
+                  <div class="calc-item">
+                    <span class="calc-label">Deductible</span>
+                    <span class="calc-value">-{{ settlementScenario.deductibleAmount | currency }}</span>
+                  </div>
+                  <div class="calc-item calc-total">
+                    <span class="calc-label">Net to Insured</span>
+                    <span class="calc-value">{{ settlementScenario.netAfterDeductible | currency }}</span>
+                  </div>
+                </div>
+                <div class="recovery-bar-container" *ngIf="settlementScenario">
+                  <div class="recovery-bar" [style.width.%]="settlementScenario.gapRecoveryPercent"></div>
+                  <span class="recovery-label">{{ settlementScenario.gapRecoveryPercent }}% of gap recovered</span>
+                </div>
+              </div>
+
+              <!-- Section 3: Document Arsenal -->
+              <div class="ncc-section">
+                <h4><mat-icon>description</mat-icon> Document Arsenal</h4>
+                <div class="doc-arsenal-grid">
+                  <div *ngFor="let dt of documentTypes" class="doc-type-card">
+                    <mat-icon>{{ dt.icon }}</mat-icon>
+                    <strong>{{ dt.label }}</strong>
+                    <button mat-stroked-button
+                      (click)="generateDocument(dt.type)"
+                      [disabled]="generatingDocType === dt.type || !adjCase?.id"
+                      class="doc-gen-btn">
+                      {{ generatingDocType === dt.type ? 'Generating...' : (getGeneratedDoc(dt.type) ? 'Regenerate' : 'Generate') }}
+                    </button>
+                    <div *ngIf="getGeneratedDoc(dt.type)" class="doc-preview">
+                      <pre class="doc-content">{{ getGeneratedDoc(dt.type)!.content | slice:0:300 }}...</pre>
+                      <div class="doc-actions">
+                        <button mat-icon-button (click)="copyDocToClipboard(getGeneratedDoc(dt.type)!)" matTooltip="Copy">
+                          <mat-icon>content_copy</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="downloadDoc(getGeneratedDoc(dt.type)!)" matTooltip="Download">
+                          <mat-icon>download</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 4: Negotiation Log -->
+              <div class="ncc-section">
+                <h4><mat-icon>history</mat-icon> Negotiation Log</h4>
+                <div class="negotiation-timeline" *ngIf="negotiationRounds.length">
+                  <div *ngFor="let r of negotiationRounds; let i = index" class="timeline-round">
+                    <div class="timeline-marker">{{ r.roundNumber }}</div>
+                    <div class="timeline-content">
+                      <div class="round-header">
+                        <span class="round-date">{{ r.date }}</span>
+                        <button mat-icon-button (click)="removeRound(r.id)" class="round-remove">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </div>
+                      <div class="round-amounts">
+                        <span>Carrier: {{ r.carrierOfferAmount | currency }}</span>
+                        <span>PA Counter: {{ r.paCounterAmount | currency }}</span>
+                      </div>
+                      <p *ngIf="r.notes" class="round-notes">{{ r.notes }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="add-round-form">
+                  <div class="round-form-row">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Date</mat-label>
+                      <input matInput type="date" [(ngModel)]="newRoundDate" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Carrier Offer</mat-label>
+                      <input matInput type="number" [(ngModel)]="newRoundCarrierOffer" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>PA Counter</mat-label>
+                      <input matInput type="number" [(ngModel)]="newRoundPaCounter" />
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Notes</mat-label>
+                    <textarea matInput [(ngModel)]="newRoundNotes" rows="2"></textarea>
+                  </mat-form-field>
+                  <button mat-raised-button color="primary" (click)="addNegotiationRound()"
+                    [disabled]="!newRoundDate || !newRoundCarrierOffer">
+                    <mat-icon>add</mat-icon> Add Round
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="advancing">Next: PA Review</button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 6: PA REVIEW ── -->
+      <mat-step label="PA Review">
+        <div class="step-content">
+          <h3>Licensed PA Review</h3>
+          <p class="step-description">
+            A licensed Public Adjuster must review and approve this case before finalization.
+            All AI-generated content must be verified by the PA.
+          </p>
+
+          <div class="step-guard-warning" *ngIf="!adjCase?.id">
+            <mat-icon>info</mat-icon>
+            <span>Complete the prior steps before opening this section.</span>
+          </div>
+
+          <div class="review-summary" *ngIf="adjCase?.id">
+            <h4>Case Summary</h4>
+            <div class="summary-grid">
+              <div><strong>Insured:</strong> {{ intakeInsuredName }}</div>
+              <div><strong>Address:</strong> {{ intakeAddress }}</div>
+              <div><strong>Loss Date:</strong> {{ intakeLossDate }}</div>
+              <div><strong>Loss Type:</strong> {{ intakeLossType }}</div>
+              <div><strong>Carrier:</strong> {{ intakeCarrier }}</div>
+              <div><strong>Policy #:</strong> {{ intakePolicyNumber }}</div>
+              <div><strong>Policy Analyzed:</strong> {{ isVaultAnalyzed ? 'Yes' : 'No' }}</div>
+              <div><strong>Coverages Found:</strong> {{ policyAnalyses.length }}</div>
+              <div><strong>Documents:</strong> {{ documents.length }}</div>
+            </div>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width" *ngIf="adjCase?.id">
+            <mat-label>PA Review Notes</mat-label>
+            <textarea matInput [(ngModel)]="paNotes" rows="4" placeholder="Enter review notes..."></textarea>
+          </mat-form-field>
+
+          <div class="approval-section" *ngIf="!paApproved && adjCase?.id">
+            <button mat-raised-button color="primary" (click)="approveCase()" [disabled]="approvingPa">
+              <mat-icon>check_circle</mat-icon>
+              {{ approvingPa ? 'Approving...' : 'Approve as PA' }}
+            </button>
+          </div>
+
+          <div class="approved-badge" *ngIf="paApproved">
+            <mat-icon>verified</mat-icon>
+            <span>PA Approved</span>
+            <span *ngIf="adjCase?.pa_approved_at"> on {{ adjCase!.pa_approved_at | date:'MM/dd/yyyy HH:mm' }}</span>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button color="primary" (click)="advanceStep()" [disabled]="!paApproved || advancing">
+              Next: Final Report
+            </button>
+          </div>
+        </div>
+      </mat-step>
+
+      <!-- ── STEP 7: FINAL REPORT ── -->
+      <mat-step label="Final Report">
+        <div class="step-content">
+          <h3>Final Report</h3>
+          <p class="step-description">Generate the final claim adjustment report. This feature is coming in a future release.</p>
+
+          <div class="step-guard-warning" *ngIf="!paApproved">
+            <mat-icon>info</mat-icon>
+            <span>PA Review approval is required before generating the Final Report.</span>
+          </div>
+
+          <button mat-raised-button color="accent" (click)="generateReport()"
+            [disabled]="generatingReport || !adjCase?.id" class="ai-btn" *ngIf="adjCase?.id">
+            <mat-icon>picture_as_pdf</mat-icon>
+            {{ generatingReport ? 'Generating...' : 'Generate Report (Coming Soon)' }}
+          </button>
+
+          <div class="final-summary" *ngIf="adjCase?.status === 'complete'">
+            <mat-icon class="complete-icon">task_alt</mat-icon>
+            <h3>Case Complete</h3>
+          </div>
+
+          <div class="step-actions">
+            <button mat-button matStepperPrevious>Back</button>
+            <button mat-raised-button (click)="goBack()">Back to Cases</button>
+          </div>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </mat-card-content>
+</mat-card>

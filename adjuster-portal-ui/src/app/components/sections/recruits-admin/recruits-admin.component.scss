@@ -1,0 +1,64 @@
+/* Search Form Styling */
+.search-form .mat-mdc-form-field {
+  margin-bottom: 15px;
+}
+
+/* Breadcrumb Styling */
+.breadcrumb {
+  padding: 0;
+  margin-bottom: 15px;
+  list-style: none;
+  display: flex;
+  gap: 10px;
+}
+
+.breadcrumb-item a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: 500;
+}
+
+/* Org Chart Container */
+.org-chart-container {
+  margin-top: 50px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  max-height: 1200px;
+  overflow: auto;
+  background-color: #f9f9f9;
+  position: relative; /* Required for positioning child elements */
+}
+
+/* Button Styling */
+.org-chart-actions {
+  position: absolute;
+  top: 10px; /* Adjust for desired spacing */
+  right: 10px; /* Adjust for desired spacing */
+  z-index: 10; /* Ensure it's above other content */
+}
+
+.org-chart-info {
+  background-color: white; /* Optional: ensure visibility */
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.org-chart-info:hover {
+  background-color: #f1f1f1; /* Optional: subtle hover effect */
+}
+
+
+/* Buttons Styling */
+button {
+  width: 80%;
+  margin: auto;
+}
+
+/* Title Styling */
+.section-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #3f51b5;
+}

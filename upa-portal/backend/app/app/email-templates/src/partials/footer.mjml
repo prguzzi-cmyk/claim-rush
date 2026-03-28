@@ -1,0 +1,17 @@
+<mj-section padding="10px 0 20px 0">
+  <mj-column>
+    <mj-text align="center" color="#FFFFFF" font-size="14px" line-height="18px">
+      {{ project_contact_address }}
+      <br/>
+      Phone:
+      <a href="tel:{{ project_contact_phone }}" style="color: #9B9B9B; text-decoration: none;">{{
+        project_contact_phone }}
+      </a>
+      <br/>
+      Email:
+      <a href="mailto:{{ project_contact_email }}" style="color: #9B9B9B; text-decoration:none;">{{
+        project_contact_email }}
+      </a>
+    </mj-text>
+  </mj-column>
+</mj-section>

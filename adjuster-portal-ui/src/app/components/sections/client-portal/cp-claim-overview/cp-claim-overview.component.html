@@ -1,0 +1,102 @@
+<div class="overview-container" *ngIf="claim">
+  <div class="overview-grid">
+    <!-- Claim Details Card -->
+    <div class="section-card claim-details">
+      <h3>Claim Details</h3>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-label">Claim Number</span>
+          <span class="detail-value mono">{{ claim.claimNumber }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Status</span>
+          <span class="status-badge" [ngClass]="{
+            'status-review': claim.status === 'In Review',
+            'status-settled': claim.status === 'Settled',
+            'status-pending': claim.status === 'Pending',
+            'status-denied': claim.status === 'Denied'
+          }">{{ claim.status }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Claim Type</span>
+          <span class="detail-value">{{ claim.type }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Date of Loss</span>
+          <span class="detail-value">{{ claim.dateOfLoss }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Date Opened</span>
+          <span class="detail-value">{{ claim.dateOpened }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Current Phase</span>
+          <span class="detail-value phase-value">{{ claim.currentPhase }}</span>
+        </div>
+        <div class="detail-item full-width">
+          <span class="detail-label">Property Address</span>
+          <span class="detail-value">{{ claim.propertyAddress }}, {{ claim.city }}, {{ claim.state }} {{ claim.zip }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Estimated Value</span>
+          <span class="detail-value money">{{ claim.estimatedValue | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Adjuster Card -->
+      <div class="adjuster-card">
+        <div class="adjuster-header">
+          <mat-icon>support_agent</mat-icon>
+          <span>Your Adjuster</span>
+        </div>
+        <div class="adjuster-details">
+          <div class="detail-item">
+            <span class="detail-label">Name</span>
+            <span class="detail-value">{{ claim.adjusterName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Phone</span>
+            <span class="detail-value">{{ claim.adjusterPhone }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">{{ claim.adjusterEmail }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="claim-description">
+        <span class="detail-label">Description</span>
+        <p>{{ claim.description }}</p>
+      </div>
+    </div>
+
+    <!-- Timeline Card -->
+    <div class="section-card timeline-card">
+      <h3>Claim Timeline</h3>
+      <div class="timeline">
+        <div
+          class="timeline-step"
+          *ngFor="let step of claim.timeline; let last = last; let i = index"
+          [class.completed]="step.completed"
+          [class.active]="!step.completed && (i === 0 || claim.timeline[i - 1]?.completed)"
+        >
+          <div class="timeline-marker">
+            <div class="marker-dot">
+              <mat-icon *ngIf="step.completed">check</mat-icon>
+              <mat-icon *ngIf="!step.completed">{{ step.icon }}</mat-icon>
+            </div>
+            <div class="marker-line" *ngIf="!last"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <span class="timeline-label">{{ step.label }}</span>
+              <span class="timeline-date" *ngIf="step.date">{{ step.date }}</span>
+            </div>
+            <p class="timeline-desc">{{ step.description }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

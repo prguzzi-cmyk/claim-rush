@@ -1,0 +1,29 @@
+<section class="features-hero">
+  <div class="features-hero-inner">
+    <h1>Everything You Need to Run Your Adjusting Business</h1>
+    <p>Six powerful modules working together to streamline your entire workflow.</p>
+  </div>
+</section>
+
+<section class="features-grid-section">
+  <div class="features-grid">
+    <div class="feature-card" *ngFor="let feature of features">
+      <div class="feature-icon-wrap">
+        <mat-icon>{{ feature.icon }}</mat-icon>
+      </div>
+      <h3>{{ feature.title }}</h3>
+      <p>{{ feature.description }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="features-cta">
+  <div class="features-cta-inner">
+    <h2>See It in Action</h2>
+    <p>Explore a preview of the full dashboard experience.</p>
+    <div class="features-cta-actions">
+      <a routerLink="/app-preview" class="btn-primary">View App Preview</a>
+      <a routerLink="/login" class="btn-secondary">Sign In</a>
+    </div>
+  </div>
+</section>

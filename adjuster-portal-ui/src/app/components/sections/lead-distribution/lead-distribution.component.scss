@@ -1,0 +1,116 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.distribute-card,
+.rotation-card,
+.history-card {
+  margin-bottom: 16px;
+}
+
+.distribute-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  button {
+    margin-top: 4px;
+    height: 56px;
+  }
+}
+
+.distribution-result {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+
+  h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .result-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-exclusive {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  .badge-shared {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .assigned-agents {
+    font-size: 14px;
+  }
+}
+
+.rotation-details {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.rotation-item {
+  display: flex;
+  flex-direction: column;
+
+  .rotation-label {
+    font-size: 12px;
+    color: #777;
+    text-transform: uppercase;
+  }
+
+  .rotation-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+  padding: 24px 0;
+}
+
+.lead-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+}

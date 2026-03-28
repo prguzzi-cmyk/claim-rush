@@ -1,0 +1,253 @@
+
+
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-12">
+      <p class="mat-headline-4 section-title">{{ source?.displayName }}s</p>
+
+<ul class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">Resources</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">{{ source?.displayName }}s</a>
+  </li>
+</ul>
+    </div>
+  </div>
+  <mat-card-header
+    class="mb-3 flex-column align-items-end justify-content-start"
+  >
+    <div class="d-flex mb-3">
+      <app-select
+        [select]="{ name: 'view', displayName: 'View' }"
+        [options]="views"
+        [value]="selectValue.view"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+
+      <app-select
+        [select]="{ name: 'sortBy', displayName: 'Sort By' }"
+        [options]="getSelectOptions('sortBy')"
+        [value]="selectValue.sortBy"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+
+      <app-select
+        [select]="{ name: 'orderBy', displayName: 'Order By' }"
+        [options]="orderBy"
+        [value]="selectValue.orderBy"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+
+      <app-select
+        [select]="{ name: 'searchField', displayName: 'Search Field' }"
+        [options]="getSelectOptions('searchFields')"
+        [value]="selectValue.searchField"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+    </div>
+
+    <mat-form-field class="w-100">
+      <mat-label>Search {{ source?.displayName }}</mat-label>
+
+      <input
+        [(ngModel)]="searchText"
+        (keyup)="getSourceItems()"
+        matInput
+        placeholder="{{
+          source.name == 'npo_initiative' || source.name == 'partnership'
+            ? 'Search title, target, mission, search term or created by'
+            : 'Search title, environment, summary, exploration term or created by'
+        }}"
+      />
+    </mat-form-field>
+  </mat-card-header>
+
+  <mat-card-content>
+    <table mat-table [dataSource]="dataSource" class="w-100">
+      <ng-container matColumnDef="sn">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+
+        <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+
+        <td
+          (click)="openViewSourceItemDialog(sourceItem)"
+          mat-cell
+          *matCellDef="let sourceItem"
+        >
+          {{ sourceItem?.title }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="target">
+        <th mat-header-cell *matHeaderCellDef>Target</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <span *ngIf="isStrGreaterThanTwentyFiveChars(sourceItem?.target)">
+            {{ truncateString(sourceItem?.target) }}...
+          </span>
+
+          <span *ngIf="!isStrGreaterThanTwentyFiveChars(sourceItem?.target)">{{
+            sourceItem?.target
+          }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="mission">
+        <th mat-header-cell *matHeaderCellDef>Mission</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <span *ngIf="isStrGreaterThanTwentyFiveChars(sourceItem?.mission)">
+            {{ truncateString(sourceItem?.mission) }}...
+          </span>
+
+          <span *ngIf="!isStrGreaterThanTwentyFiveChars(sourceItem?.mission)">{{
+            sourceItem?.mission
+          }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="environment">
+        <th mat-header-cell *matHeaderCellDef>Environment</th>
+
+        <td
+          (click)="openViewSourceItemDialog(sourceItem)"
+          mat-cell
+          *matCellDef="let sourceItem"
+        >
+          {{ sourceItem?.environment }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="summary">
+        <th mat-header-cell *matHeaderCellDef>Summary</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <span *ngIf="isStrGreaterThanTwentyFiveChars(sourceItem?.summary)">
+            {{ truncateString(sourceItem?.summary) }}...
+          </span>
+
+          <span *ngIf="!isStrGreaterThanTwentyFiveChars(sourceItem?.summary)">{{
+            sourceItem?.summary
+          }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_by">
+        <th mat-header-cell *matHeaderCellDef>Created by</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          {{ sourceItem?.created_by?.first_name }}
+          {{ sourceItem?.created_by?.last_name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created at</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          {{ sourceItem?.created_at | date : "dd/MM/yyy" }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="last_updated">
+        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <span *ngIf="sourceItem?.updated_at">
+            {{ sourceItem?.updated_at | date : "dd/MM/yyy" }}
+          </span>
+
+          <span *ngIf="!sourceItem?.updated_at">-</span>
+        </td>
+      </ng-container>
+
+      <ng-container
+        *ngIf="selectValue.view == 'removed'"
+        matColumnDef="is_removed"
+      >
+        <th mat-header-cell *matHeaderCellDef>Removed</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <mat-slide-toggle
+            (toggleChange)="openRestoreSourceItemDialog(sourceItem)"
+            [checked]="sourceItem.is_removed"
+            color="primary"
+          ></mat-slide-toggle>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <button
+            (click)="openEditSourceItemDialog(sourceItem)"
+            [disabled]="selectValue.view == 'removed'"
+            matTooltip="Edit {{ sourceItem.title }}"
+            mat-icon-button
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>delete</th>
+
+        <td mat-cell *matCellDef="let sourceItem">
+          <button
+            (click)="openDeleteSourceItemDialog(sourceItem)"
+            [disabled]="
+              !sourceItem.can_be_removed || selectValue.view == 'removed'
+            "
+            matTooltip="Delete {{ sourceItem.title }}"
+            mat-icon-button
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: getDisplayedColumns()"></tr>
+    </table>
+  </mat-card-content>
+
+  <mat-card-footer class="m-0">
+    <button
+      (click)="openCreateSourceItemDialog()"
+      mat-raised-button
+      color="primary"
+    >
+      Create
+
+      <span class="text-lowercase">
+        {{ source?.displayName }}
+      </span>
+    </button>
+
+    <mat-paginator
+      #paginator
+      [length]="
+        dataSource?.filteredData.length > 0
+          ? dataSource?.filteredData.length
+          : 0
+      "
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      [style.visibility]="
+        dataSource?.filteredData.length <= 0 ? 'hidden' : 'visible'
+      "
+    >
+    </mat-paginator>
+  </mat-card-footer>
+</mat-card>

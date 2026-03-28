@@ -1,0 +1,9 @@
+<app-ng-organization-chart-list
+        [editable]="editable"
+        [nodeList]="data"
+        (onChildClickedEvent)="onClickDeepNode($event)"
+        (onChildAddedEvent)="onCreateDeepNode($event)"
+        (onChildEvaluatedEvent)="onEvaluateDeepTitle($event)"
+        (onChildDeletedEvent)="onDeleteDeepNode($event)">
+</app-ng-organization-chart-list>
+

@@ -1,0 +1,73 @@
+<mat-card>
+  <mat-card-header>
+    <div class="header-row">
+      <div class="title-section">
+        <h2>ACI Adjuster</h2>
+        <p class="subtitle">AI-powered claims analysis, scope generation, and insurance argument engine.</p>
+      </div>
+      <div class="actions-section">
+        <button mat-raised-button color="primary" (click)="onNewCase()">
+          <mat-icon>add</mat-icon> New Case
+        </button>
+      </div>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div class="mat-mdc-table-scroll-container">
+      <table mat-table [dataSource]="dataSource" class="case-table">
+        <ng-container matColumnDef="case_number">
+          <th mat-header-cell *matHeaderCellDef>Case #</th>
+          <td mat-cell *matCellDef="let row">{{ row.case_number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="intake_insured_name">
+          <th mat-header-cell *matHeaderCellDef>Insured</th>
+          <td mat-cell *matCellDef="let row">{{ row.intake_insured_name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="intake_address">
+          <th mat-header-cell *matHeaderCellDef>Address</th>
+          <td mat-cell *matCellDef="let row">{{ row.intake_address }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="status-badge" [ngClass]="getStatusClass(row.status)">
+              {{ row.status | titlecase }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="current_step">
+          <th mat-header-cell *matHeaderCellDef>Step</th>
+          <td mat-cell *matCellDef="let row">{{ getStepLabel(row.current_step) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.created_at | date: 'MM/dd/yyyy' }}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          (click)="onRowClick(row)"
+          class="clickable-row"
+        ></tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="totalRecords"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  </mat-card-content>
+</mat-card>

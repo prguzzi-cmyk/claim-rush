@@ -1,0 +1,112 @@
+<div class="asa-dark">
+
+  <div class="asa-header">
+    <div>
+      <h1>Teams / Zoom Intake Launcher</h1>
+      <p class="asa-subtitle">Launch intake meetings with homeowners, pre-filled with claim data.</p>
+    </div>
+  </div>
+
+  <div class="asa-body">
+
+    <!-- ══════ QUICK LAUNCH ══════ -->
+    <div class="dark-panel panel-section">
+      <div class="dark-panel-header">
+        <mat-icon>rocket_launch</mat-icon> Quick Launch
+      </div>
+      <div class="quick-launch-body">
+        <div class="quick-launch-row">
+          <div class="form-group">
+            <label>Homeowner</label>
+            <select [(ngModel)]="selectedConversationId" class="dark-select">
+              <option [ngValue]="null">Select conversation...</option>
+              <option *ngFor="let c of conversations" [value]="c.id">{{ c.homeownerName }} — {{ c.propertyAddress }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Platform</label>
+            <div class="platform-toggle">
+              <button class="platform-btn" [class.active]="selectedPlatform === 'teams'" (click)="selectedPlatform = 'teams'">
+                <mat-icon>groups</mat-icon> Teams
+              </button>
+              <button class="platform-btn" [class.active]="selectedPlatform === 'zoom'" (click)="selectedPlatform = 'zoom'">
+                <mat-icon>videocam</mat-icon> Zoom
+              </button>
+            </div>
+          </div>
+          <button mat-raised-button class="launch-btn" (click)="launchQuickMeeting()">
+            <mat-icon>videocam</mat-icon> Launch Meeting
+          </button>
+        </div>
+
+        <!-- Pre-filled data preview -->
+        <div class="prefill-preview" *ngIf="getSelectedConversation() as convo">
+          <div class="prefill-title">Pre-filled Data</div>
+          <div class="prefill-grid">
+            <div class="prefill-item">
+              <span class="prefill-label">Name</span>
+              <span class="prefill-value">{{ convo.homeownerName }}</span>
+            </div>
+            <div class="prefill-item">
+              <span class="prefill-label">Phone</span>
+              <span class="prefill-value">{{ convo.homeownerPhone }}</span>
+            </div>
+            <div class="prefill-item">
+              <span class="prefill-label">Email</span>
+              <span class="prefill-value">{{ convo.homeownerEmail }}</span>
+            </div>
+            <div class="prefill-item">
+              <span class="prefill-label">Property</span>
+              <span class="prefill-value">{{ convo.propertyAddress }}, {{ convo.city }} {{ convo.state }}</span>
+            </div>
+            <div class="prefill-item">
+              <span class="prefill-label">Claim Type</span>
+              <span class="prefill-value"><mat-icon>{{ getClaimIcon(convo.claimType) }}</mat-icon> {{ convo.claimType | titlecase }}</span>
+            </div>
+            <div class="prefill-item">
+              <span class="prefill-label">Qual. Score</span>
+              <span class="prefill-value">{{ convo.qualificationScore ?? 'Not scored' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ INTAKE MEETINGS ══════ -->
+    <div class="dark-panel panel-section">
+      <div class="dark-panel-header">
+        <mat-icon>meeting_room</mat-icon> Intake Meetings
+        <span class="header-count">{{ intakeMeetings.length }} meetings</span>
+      </div>
+      <div class="meetings-grid">
+        <div *ngFor="let m of intakeMeetings" class="meeting-card" [class.in-progress]="m.status === 'in_progress'">
+          <div class="meeting-top">
+            <span class="meeting-platform">
+              <mat-icon>{{ m.platform === 'teams' ? 'groups' : 'videocam' }}</mat-icon>
+              {{ m.platform === 'teams' ? 'Teams' : 'Zoom' }}
+            </span>
+            <span class="status-badge" [ngClass]="getStatusClass(m.status)">{{ formatStatus(m.status) }}</span>
+          </div>
+          <div class="meeting-name">{{ m.homeownerName }}</div>
+          <div class="meeting-detail"><mat-icon>location_on</mat-icon> {{ m.propertyAddress }}</div>
+          <div class="meeting-detail"><mat-icon>{{ getClaimIcon(m.claimType) }}</mat-icon> {{ m.claimType | titlecase }}</div>
+          <div class="meeting-actions">
+            <button *ngIf="m.status === 'ready'" mat-raised-button class="launch-btn small" (click)="launchMeeting(m)">
+              <mat-icon>videocam</mat-icon> Launch
+            </button>
+            <button *ngIf="m.status === 'in_progress'" mat-stroked-button class="complete-btn" (click)="completeMeeting(m)">
+              <mat-icon>check</mat-icon> Complete
+            </button>
+            <span *ngIf="m.status === 'completed'" class="completed-label">
+              <mat-icon>check_circle</mat-icon> Done
+            </span>
+          </div>
+        </div>
+        <div *ngIf="intakeMeetings.length === 0" class="empty-state">
+          No intake meetings scheduled. Book appointments or use Quick Launch.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

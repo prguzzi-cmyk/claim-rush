@@ -1,0 +1,71 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-12">
+      <p class="mat-headline-4 section-title">Sources</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Sources</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <mat-tab-group
+      (selectedTabChange)="onTabChange($event)"
+      selectedIndex="{{ selectedTabIndex }}"
+    >
+      <mat-tab
+        *ngIf="userService.getUserPermissions('npo_initiative', 'read')"
+        label="npo_initiative"
+        isActive="{{ source.name == 'npo_initiative' }}"
+      >
+        <ng-template mat-tab-label>NPO Initiatives</ng-template>
+
+        <div class="row py-3" mat-tab-content>
+          <app-source-item-card
+            *ngFor="let sourceItem of sourceItems"
+            [sourceItem]="sourceItem"
+            class="col-md-4 mb-3"
+          >
+          </app-source-item-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab
+        *ngIf="userService.getUserPermissions('partnership', 'read')"
+        label="partnership"
+        isActive="{{ source.name == 'partnership' }}"
+      >
+        <ng-template mat-tab-label>Partnerships</ng-template>
+
+        <div class="row py-3" mat-tab-content>
+          <app-source-item-card
+            *ngFor="let sourceItem of sourceItems"
+            [sourceItem]="sourceItem"
+            class="col-md-4 mb-3"
+          >
+          </app-source-item-card>
+        </div>
+      </mat-tab>
+
+      <mat-tab
+        *ngIf="userService.getUserPermissions('network', 'read')"
+        label="network"
+        isActive="{{ source.name == 'network' }}"
+      >
+        <ng-template mat-tab-label>Networks</ng-template>
+
+        <div class="row py-3" mat-tab-content>
+          <app-source-item-card
+            *ngFor="let sourceItem of sourceItems"
+            [sourceItem]="sourceItem"
+            class="col-md-4 mb-3"
+          >
+          </app-source-item-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>

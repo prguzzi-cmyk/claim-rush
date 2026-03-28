@@ -1,0 +1,134 @@
+<div class="voa-dark">
+
+  <div class="voa-header">
+    <div>
+      <h1>Voice Campaign Manager</h1>
+      <p class="voa-subtitle">Create and manage AI voice outreach campaigns with calling hours, throttling, and retry logic.</p>
+    </div>
+    <button mat-raised-button class="create-btn" (click)="showCreateForm = !showCreateForm">
+      <mat-icon>add</mat-icon> New Campaign
+    </button>
+  </div>
+
+  <div class="voa-body">
+
+    <!-- ══════ CREATE FORM ══════ -->
+    <div class="dark-panel panel-section" *ngIf="showCreateForm">
+      <div class="dark-panel-header"><mat-icon>campaign</mat-icon> Create Campaign</div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Campaign Name *</label>
+            <input type="text" [(ngModel)]="form.name" class="dark-input" placeholder="e.g. Dallas Fire Q1" />
+          </div>
+          <div class="form-group">
+            <label>Lead Source *</label>
+            <select [(ngModel)]="form.leadSource" class="dark-select">
+              <option *ngFor="let s of leadSources" [value]="s.value">{{ s.label }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>AI Voice Script *</label>
+            <select [(ngModel)]="form.scriptId" (ngModelChange)="onScriptChange()" class="dark-select">
+              <option value="">Select script...</option>
+              <option *ngFor="let s of scripts" [value]="s.id">{{ s.name }} ({{ s.claimType | titlecase }})</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Timezone</label>
+            <select [(ngModel)]="form.timezone" class="dark-select">
+              <option *ngFor="let tz of timezones" [value]="tz">{{ tz }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Calling Hours Start</label>
+            <input type="time" [(ngModel)]="form.callingHoursStart" class="dark-input" />
+          </div>
+          <div class="form-group">
+            <label>Calling Hours End</label>
+            <input type="time" [(ngModel)]="form.callingHoursEnd" class="dark-input" />
+          </div>
+          <div class="form-group">
+            <label>Max Calls / Day</label>
+            <input type="number" [(ngModel)]="form.maxCallsPerDay" class="dark-input" min="1" max="500" />
+          </div>
+          <div class="form-group">
+            <label>Throttle (calls/min)</label>
+            <input type="number" [(ngModel)]="form.throttleCallsPerMinute" class="dark-input" min="1" max="20" />
+          </div>
+          <div class="form-group">
+            <label>Max Retries</label>
+            <input type="number" [(ngModel)]="form.maxRetries" class="dark-input" min="0" max="5" />
+          </div>
+          <div class="form-group">
+            <label>Retry Delay (min)</label>
+            <input type="number" [(ngModel)]="form.retryDelayMinutes" class="dark-input" min="15" max="480" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button mat-stroked-button class="cancel-btn" (click)="showCreateForm = false">Cancel</button>
+          <button mat-raised-button class="confirm-btn" (click)="createCampaign()"><mat-icon>check</mat-icon> Create Campaign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ STATUS FILTER ══════ -->
+    <div class="filter-row">
+      <button *ngFor="let s of ['all','draft','active','paused','completed']" class="filter-btn" [class.active]="statusFilter === s" (click)="statusFilter = s">
+        {{ s === 'all' ? 'All' : (s | titlecase) }}
+      </button>
+    </div>
+
+    <!-- ══════ CAMPAIGNS LIST ══════ -->
+    <div class="dark-panel">
+      <div class="dark-panel-header"><mat-icon>campaign</mat-icon> Campaigns <span class="header-count">{{ filteredCampaigns.length }}</span></div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Status</th>
+              <th>Lead Source</th>
+              <th>Script</th>
+              <th>Hours</th>
+              <th>Leads</th>
+              <th>Placed</th>
+              <th>Connected</th>
+              <th>Rate</th>
+              <th>Qualified</th>
+              <th>Appts</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredCampaigns">
+              <td>
+                <div class="cell-name">{{ c.name }}</div>
+                <div class="cell-sub">{{ timeAgo(c.createdAt) }}</div>
+              </td>
+              <td><span class="status-badge" [ngClass]="getStatusBadgeClass(c.status)">{{ c.status | titlecase }}</span></td>
+              <td class="cell-source">{{ getSourceLabel(c.leadSource) }}</td>
+              <td>{{ c.scriptName }}</td>
+              <td class="cell-hours">{{ c.callingHoursStart }}–{{ c.callingHoursEnd }} {{ c.timezone }}</td>
+              <td>{{ c.totalLeads }}</td>
+              <td>{{ c.callsPlaced }}</td>
+              <td>{{ c.callsConnected }}</td>
+              <td><span class="rate-badge">{{ getConnectionRate(c) }}%</span></td>
+              <td class="cell-qualified">{{ c.leadsGenerated }}</td>
+              <td class="cell-appts">{{ c.appointmentsBooked }}</td>
+              <td class="cell-actions">
+                <button *ngIf="c.status === 'draft'" mat-icon-button class="action-icon launch" (click)="launchCampaign(c)" matTooltip="Launch"><mat-icon>play_arrow</mat-icon></button>
+                <button *ngIf="c.status === 'active'" mat-icon-button class="action-icon pause" (click)="pauseCampaign(c)" matTooltip="Pause"><mat-icon>pause</mat-icon></button>
+                <button *ngIf="c.status === 'paused'" mat-icon-button class="action-icon resume" (click)="resumeCampaign(c)" matTooltip="Resume"><mat-icon>play_arrow</mat-icon></button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredCampaigns.length === 0">
+              <td colspan="12" class="empty-state">No campaigns match this filter</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

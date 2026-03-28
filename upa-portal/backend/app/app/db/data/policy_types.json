@@ -1,0 +1,253 @@
+{
+  "policy_types": [
+    {
+      "name": "Homeowners Insurance",
+      "slug": "homeowners-insurance",
+      "description": null,
+      "sub_policy_types": [
+        {
+          "name": "HO-1: Basic Form",
+          "slug": "ho-1-basic-form",
+          "description": null
+        },
+        {
+          "name": "HO-2: Broad Form",
+          "slug": "ho-2-broad-form",
+          "description": null
+        },
+        {
+          "name": "HO-3: Special Form",
+          "slug": "ho-3-special-form",
+          "description": null
+        },
+        {
+          "name": "HO-4: Tenant's Form (Renter's Insurance)",
+          "slug": "ho-4-tenants-form-renters-insurance",
+          "description": null
+        },
+        {
+          "name": "HO-5: Comprehensive Form",
+          "slug": "ho-5-comprehensive-form",
+          "description": null
+        },
+        {
+          "name": "HO-6: Condo Insurance",
+          "slug": "ho-6-condo-insurance",
+          "description": null
+        },
+        {
+          "name": "HO-7: Mobile Home Form",
+          "slug": "ho-7-mobile-home-form",
+          "description": null
+        },
+        {
+          "name": "HO-8: Older Home Form",
+          "slug": "ho-8-older-home-form",
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Landlord Insurance",
+      "slug": "landlord-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Renters Insurance",
+      "slug": "renters-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Condo Insurance",
+      "slug": "condo-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Mobile Home Insurance",
+      "slug": "mobile-home-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Farm Insurance",
+      "slug": "farm-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Flood Insurance",
+      "slug": "flood-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Dwelling Insurance",
+      "slug": "dwelling-insurance",
+      "description": null,
+      "sub_policy_types": [
+        {
+          "name": "DP-1: Basic Form",
+          "slug": "dp-1-basic-form",
+          "description": null
+        },
+        {
+          "name": "DP-2: Broad Form",
+          "slug": "dp-2-broad-form",
+          "description": null
+        },
+        {
+          "name": "DP-3: Special Form",
+          "slug": "dp-3-special-form",
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Earthquake Insurance",
+      "slug": "earthquake-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Fire Insurance",
+      "slug": "fire-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Builder's Risk Insurance",
+      "slug": "builders-risk-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Commercial Property Insurance",
+      "slug": "commercial-property-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Businessowner's Insurance",
+      "slug": "businessowners-insurance",
+      "sub_policy_types": [
+        {
+          "name": "Property Insurance",
+          "slug": "property-insurance",
+          "description": "Covers buildings and contents owned by the company."
+        },
+        {
+          "name": "Business Interruption Insurance",
+          "slug": "business-interruption-insurance",
+          "description": "Covers loss of income resulting from a fire or other covered event that disrupts the operation of the business."
+        },
+        {
+          "name": "Liability Insurance",
+          "slug": "liability-insurance",
+          "description": "Covers legal responsibilities for harm caused to others, such as bodily injury or property damage."
+        },
+        {
+          "name": "Crime Insurance",
+          "slug": "crime-insurance",
+          "description": "Covers losses from criminal acts such as theft, forgery, or fraud."
+        },
+        {
+          "name": "Equipment Breakdown Insurance",
+          "slug": "equipment-breakdown-insurance",
+          "description": "Covers loss due to mechanical or electrical equipment breakdown."
+        },
+        {
+          "name": "Inland Marine Insurance",
+          "slug": "inland-marine-insurance",
+          "description": "Covers property in transit and other specialized types of property."
+        },
+        {
+          "name": "Professional Liability Insurance (Errors and Omissions Insurance)",
+          "slug": "professional-liability-insurance-errors-and-omissions-insurance",
+          "description": "Covers professionals against claims of negligence or inadequate work."
+        },
+        {
+          "name": "Umbrella Insurance",
+          "slug": "umbrella-insurance",
+          "description": "Provides additional liability coverage beyond the limits of underlying policies."
+        },
+        {
+          "name": "Commercial Flood Insurance",
+          "slug": "commercial-flood-insurance",
+          "description": "Covers damage from flooding (typically a separate policy)."
+        },
+        {
+          "name": "Business Income and Extra Expense Coverage",
+          "slug": "business-income-and-extra-expense-coverage",
+          "description": "Covers lost income and expenses incurred to keep the business running after a covered loss."
+        }
+      ]
+    },
+    {
+      "name": "Inland Marine Insurance",
+      "slug": "inland-marine-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Boiler and Machinery Insurance (Equipment Breakdown Insurance)",
+      "slug": "boiler-and-machinery-insurance-equipment-breakdown-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Difference in Conditions (DIC) Insurance",
+      "slug": "difference-in-conditions-dic-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Ordinance or Law Insurance",
+      "slug": "ordinance-or-law-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Umbrella Insurance",
+      "slug": "umbrella-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Stand-Alone Property Insurance",
+      "slug": "stand-alone-property-insurance",
+      "sub_policy_types": [
+        {
+          "name": "Scheduled Personal Property",
+          "slug": "scheduled-personal-property",
+          "description": null
+        },
+        {
+          "name": "Valuable Items Insurance",
+          "slug": "valuable-items-insurance",
+          "description": null
+        }
+      ]
+    },
+    {
+      "name": "Vacant Property Insurance",
+      "slug": "vacant-property-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Windstorm Insurance",
+      "slug": "windstorm-insurance",
+      "description": null,
+      "sub_policy_types": null
+    },
+    {
+      "name": "Other Insurance",
+      "slug": "other-insurance",
+      "description": null,
+      "sub_policy_types": null
+    }
+  ]
+}

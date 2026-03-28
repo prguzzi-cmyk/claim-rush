@@ -1,0 +1,53 @@
+<div class="mc-shell">
+  <!-- ══════ TOP BAR ══════ -->
+  <header class="mc-topbar">
+    <div class="mc-topbar-left">
+      <div class="mc-logo-sm">
+        <mat-icon>shield</mat-icon>
+      </div>
+      <span class="mc-brand">My Claim Portal</span>
+    </div>
+    <div class="mc-topbar-right">
+      <div class="mc-notif-indicator" *ngIf="notifCount > 0">
+        <mat-icon>notifications</mat-icon>
+        <span class="mc-notif-dot">{{ notifCount }}</span>
+      </div>
+      <button class="mc-avatar-btn" [matMenuTriggerFor]="userMenu">
+        <span class="mc-avatar">{{ initials }}</span>
+        <span class="mc-user-name" *ngIf="profile">{{ profile.firstName }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="mc-menu-header" *ngIf="profile">
+          <div class="mc-menu-name">{{ profile.firstName }} {{ profile.lastName }}</div>
+          <div class="mc-menu-email">{{ profile.email }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon> Sign Out
+        </button>
+      </mat-menu>
+    </div>
+  </header>
+
+  <!-- ══════ CONTENT ══════ -->
+  <main class="mc-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- ══════ BOTTOM NAV (mobile) ══════ -->
+  <nav class="mc-bottom-nav">
+    <a routerLink="/client/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="mc-nav-item">
+      <mat-icon>home</mat-icon><span>Home</span>
+    </a>
+    <a routerLink="/client/dashboard" fragment="documents" class="mc-nav-item">
+      <mat-icon>folder</mat-icon><span>Docs</span>
+    </a>
+    <a routerLink="/client/dashboard" fragment="messages" class="mc-nav-item">
+      <mat-icon>chat</mat-icon><span>Messages</span>
+    </a>
+    <a routerLink="/client/dashboard" fragment="payments" class="mc-nav-item">
+      <mat-icon>payments</mat-icon><span>Payments</span>
+    </a>
+  </nav>
+</div>

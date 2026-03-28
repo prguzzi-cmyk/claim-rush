@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>Set up Passkey</h2>
+
+<mat-dialog-content>
+  <div *ngIf="!success" class="dialog-body">
+    <mat-icon class="passkey-icon">fingerprint</mat-icon>
+    <p>
+      Set up a passkey for faster, more secure sign-ins.
+      You can use your fingerprint, face, or device PIN.
+    </p>
+    <p class="error-text" *ngIf="error">{{ error }}</p>
+  </div>
+
+  <div *ngIf="success" class="dialog-body success-body">
+    <mat-icon class="success-icon">check_circle</mat-icon>
+    <p>Passkey registered successfully! You can now sign in with your passkey.</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <ng-container *ngIf="!success">
+    <button mat-button (click)="dismiss()">Not now</button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="register()"
+      [disabled]="registering"
+    >
+      <mat-spinner *ngIf="registering" diameter="18"></mat-spinner>
+      <span *ngIf="!registering">Set up Passkey</span>
+    </button>
+  </ng-container>
+  <button *ngIf="success" mat-raised-button color="primary" (click)="close()">
+    Done
+  </button>
+</mat-dialog-actions>

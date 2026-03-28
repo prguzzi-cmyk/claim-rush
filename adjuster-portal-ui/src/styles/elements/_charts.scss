@@ -1,0 +1,24 @@
+@use '../variables' as *;
+.pie-label {
+    fill: $copy-color;
+}
+
+.chart-legend {
+
+    .legend-label-text {
+        color: $copy-color;
+    }
+
+    .legend-label {
+        .active {
+            .legend-label-text {
+                color: $accent-color !important;
+            }
+        }
+    }
+}
+
+.chart {
+    color: $copy-color;
+    fill: $copy-color;
+}

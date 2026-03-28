@@ -1,0 +1,58 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-12">
+      <p class="mat-headline-4 section-title">Conversation</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a [routerLink]="['/app/outreach']">Outreach</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Conversation</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <!-- Chat thread -->
+    <div class="chat-thread">
+      <div *ngFor="let msg of messages"
+        class="chat-bubble"
+        [ngClass]="{
+          'outbound': msg.direction === 'outbound',
+          'inbound': msg.direction === 'inbound',
+          'system': msg.sender_type === 'system'
+        }">
+        <div class="bubble-header">
+          <span class="sender-type">{{ msg.sender_type }}</span>
+          <span class="channel-badge">{{ msg.channel }}</span>
+          <span class="timestamp">{{ msg.created_at | date:'short' }}</span>
+        </div>
+        <div class="bubble-content">{{ msg.content }}</div>
+      </div>
+
+      <div *ngIf="messages.length === 0" class="empty-state">
+        No messages yet for this lead.
+      </div>
+    </div>
+
+    <!-- Compose bar -->
+    <div class="compose-bar">
+      <mat-form-field appearance="outline" class="channel-select">
+        <mat-select [(ngModel)]="selectedChannel">
+          <mat-option *ngFor="let c of channels" [value]="c">{{ c | uppercase }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="message-input">
+        <textarea matInput [(ngModel)]="newMessage" placeholder="Type a message..." rows="2"
+          (keydown.enter)="$event.preventDefault(); sendMessage()"></textarea>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+        <mat-icon>send</mat-icon>
+        Send
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

@@ -1,0 +1,285 @@
+<!-- ══════ DASHBOARD VIEW ══════ -->
+<div class="us-page" *ngIf="view === 'dashboard'">
+  <div class="us-header">
+    <div>
+      <h1>UPASign<sup>&trade;</sup></h1>
+      <p class="us-subtitle">Certified Electronic Signature Intelligence</p>
+    </div>
+    <div class="us-header-actions">
+      <div class="us-cert-toggle" [class.us-cert-on]="globalCertified" (click)="globalCertified = !globalCertified">
+        <mat-icon>{{ globalCertified ? 'verified' : 'verified_user' }}</mat-icon>
+        <span>Certified Mode</span>
+        <span class="us-toggle-pill" [class.us-pill-on]="globalCertified">{{ globalCertified ? 'ON' : 'OFF' }}</span>
+      </div>
+      <button class="us-primary-btn" (click)="openCreate()"><mat-icon>add</mat-icon> New Document</button>
+    </div>
+  </div>
+
+  <!-- Certified Mode Banner -->
+  <div class="us-cert-banner" *ngIf="globalCertified">
+    <mat-icon>lock</mat-icon>
+    <div>
+      <strong>Certified Mode Active</strong>
+      <span>Your documents are protected with tamper-proof, legally verifiable signatures.</span>
+    </div>
+  </div>
+
+  <!-- KPI Row with Certified count -->
+  <div class="us-kpi-row">
+    <div class="us-kpi"><span class="us-kpi-val blue">{{ kpis.sentToday }}</span><span class="us-kpi-lbl">Sent Today</span></div>
+    <div class="us-kpi"><span class="us-kpi-val green">{{ kpis.completed }}</span><span class="us-kpi-lbl">Completed</span></div>
+    <div class="us-kpi"><span class="us-kpi-val amber">{{ kpis.pending }}</span><span class="us-kpi-lbl">Pending</span></div>
+    <div class="us-kpi"><span class="us-kpi-val">{{ kpis.avgTime }}</span><span class="us-kpi-lbl">Avg Time to Sign</span></div>
+    <div class="us-kpi us-kpi-cert"><span class="us-kpi-val gold">{{ certifiedCount }}</span><span class="us-kpi-lbl">Certified</span></div>
+  </div>
+
+  <div class="us-filters">
+    <button *ngFor="let s of ['','draft','sent','viewed','signed','expired']"
+            [class.us-f-active]="statusFilter === s" (click)="filterByStatus(s)">
+      {{ s ? (s | titlecase) : 'All' }}
+    </button>
+  </div>
+
+  <div class="us-table-wrap">
+    <table class="us-table">
+      <thead>
+        <tr><th>Document</th><th>Client</th><th>Status</th><th>Certification</th><th>Sent</th><th>Last Activity</th><th>Agent</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let doc of filteredDocs" [class.us-row-cert]="doc.signingMode === 'certified'">
+          <td class="us-doc-name">
+            {{ doc.name }}
+            <span class="us-inline-cert" *ngIf="doc.signingMode === 'certified'"><mat-icon>shield</mat-icon> Certified</span>
+          </td>
+          <td>{{ doc.clientName }}</td>
+          <td><span class="us-status" [style.color]="getStatusColor(doc.status)" [style.backgroundColor]="getStatusColor(doc.status) + '14'">{{ doc.status | titlecase }}</span></td>
+          <td>
+            <div *ngIf="doc.signingMode === 'certified'" class="us-cert-col">
+              <span class="us-cert-badge-full" matTooltip="Digitally sealed, tamper verified, full audit trail available">
+                <mat-icon>shield</mat-icon> VERIFIED CERTIFIED
+              </span>
+              <span class="us-cert-micro">Tamper-Proof &bull; Court-Ready &bull; Verified</span>
+            </div>
+            <span class="us-std-badge" *ngIf="doc.signingMode !== 'certified'">Standard</span>
+          </td>
+          <td>{{ formatDate(doc.sentDate) }}</td>
+          <td class="us-muted">{{ doc.lastActivity }}</td>
+          <td>{{ doc.agent }}</td>
+          <td class="us-actions">
+            <button (click)="viewDoc(doc)" matTooltip="View"><mat-icon>visibility</mat-icon></button>
+            <button class="us-view-cert-pill" (click)="setSelectedCertificate(doc); setShowCertModal(true)"
+                    *ngIf="doc.signingMode === 'certified'">
+              <mat-icon>shield</mat-icon> View Certificate
+            </button>
+            <button (click)="resendDoc(doc)" matTooltip="Resend" *ngIf="doc.status === 'sent' || doc.status === 'viewed'"><mat-icon>refresh</mat-icon></button>
+            <button (click)="deleteDoc(doc)" matTooltip="Delete"><mat-icon>delete_outline</mat-icon></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="us-empty" *ngIf="filteredDocs.length === 0"><mat-icon>description</mat-icon><p>No documents found.</p></div>
+  </div>
+</div>
+
+<!-- ══════ CREATE MODAL ══════ -->
+<div class="us-modal-overlay" *ngIf="showCreateModal" (click)="closeCreate()">
+  <div class="us-modal" (click)="$event.stopPropagation()">
+    <div class="us-modal-header"><h2>New Document</h2><button (click)="closeCreate()"><mat-icon>close</mat-icon></button></div>
+    <div class="us-source-pick" *ngIf="!createMode">
+      <div class="us-source-card" (click)="createMode = 'upload'"><mat-icon>upload_file</mat-icon><span>Upload PDF</span></div>
+      <div class="us-source-card" (click)="createMode = 'template'"><mat-icon>auto_awesome</mat-icon><span>Choose Template</span></div>
+    </div>
+    <div class="us-create-form" *ngIf="createMode">
+      <label>Document Name</label>
+      <input type="text" [(ngModel)]="newDocName" placeholder="Claim Representation Agreement">
+      <label>Client Name</label>
+      <input type="text" [(ngModel)]="newClientName" placeholder="Full name">
+      <label>Client Email</label>
+      <input type="email" [(ngModel)]="newClientEmail" placeholder="client@example.com">
+      <button class="us-primary-btn us-full" (click)="continueToEditor()" [disabled]="!newDocName.trim()">Continue <mat-icon>arrow_forward</mat-icon></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ EDITOR VIEW ══════ -->
+<div class="us-editor" *ngIf="view === 'editor'">
+  <div class="us-editor-top">
+    <button class="us-back" (click)="backToDashboard()"><mat-icon>arrow_back</mat-icon> Back</button>
+    <span class="us-editor-title">{{ editorDocName }}</span>
+    <button class="us-primary-btn" (click)="goToReview()"><mat-icon>send</mat-icon> Review &amp; Send</button>
+  </div>
+  <div class="us-editor-body">
+    <div class="us-tools">
+      <div class="us-tools-label">Fields</div>
+      <button *ngFor="let t of [{k:'signature',i:'draw',l:'Signature'},{k:'initials',i:'short_text',l:'Initials'},{k:'date',i:'event',l:'Date'},{k:'text',i:'text_fields',l:'Text'},{k:'checkbox',i:'check_box',l:'Checkbox'}]"
+              class="us-tool" [class.us-tool-active]="selectedTool === t.k" (click)="selectTool(t.k)">
+        <mat-icon>{{ t.i }}</mat-icon><span>{{ t.l }}</span>
+      </button>
+      <div class="us-ai-section" *ngIf="aiSuggestions.length > 0">
+        <div class="us-tools-label"><mat-icon>auto_awesome</mat-icon> AI Suggestions</div>
+        <button class="us-ai-btn" *ngFor="let s of aiSuggestions" (click)="applyAiSuggestion(s)">{{ s }}</button>
+      </div>
+    </div>
+    <div class="us-canvas" (click)="placeField($event)">
+      <div class="us-canvas-page">
+        <div class="us-canvas-placeholder">Document Preview Area</div>
+        <div *ngFor="let f of editorFields" class="us-placed-field" [style.left.px]="f.x" [style.top.px]="f.y">
+          <span class="us-pf-label">{{ f.label }}</span>
+          <button class="us-pf-remove" (click)="removeField(f.id); $event.stopPropagation()"><mat-icon>close</mat-icon></button>
+        </div>
+      </div>
+    </div>
+    <div class="us-props">
+      <div class="us-tools-label">Placed Fields ({{ editorFields.length }})</div>
+      <div class="us-prop-item" *ngFor="let f of editorFields">
+        <mat-icon>{{ f.type === 'signature' ? 'draw' : f.type === 'initials' ? 'short_text' : f.type === 'date' ? 'event' : f.type === 'checkbox' ? 'check_box' : 'text_fields' }}</mat-icon>
+        <span>{{ f.label }}</span>
+        <span class="us-prop-signer">{{ f.signer }}</span>
+        <button class="us-prop-req" [class.us-req-on]="f.required" (click)="toggleRequired(f)">{{ f.required ? 'Required' : 'Optional' }}</button>
+      </div>
+      <div class="us-prop-empty" *ngIf="editorFields.length === 0">Click the document to place fields</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ REVIEW + SEND ══════ -->
+<div class="us-review" *ngIf="view === 'review'">
+  <div class="us-editor-top">
+    <button class="us-back" (click)="backToEditor()"><mat-icon>arrow_back</mat-icon> Back to Editor</button>
+    <span class="us-editor-title">Review &amp; Send</span>
+  </div>
+  <div class="us-review-card">
+    <div class="us-review-field"><label>Recipient Email</label><input type="email" [(ngModel)]="reviewEmail" placeholder="client@example.com"></div>
+    <div class="us-review-field"><label>Subject</label><input type="text" [(ngModel)]="reviewSubject"></div>
+    <div class="us-review-field"><label>Message</label><textarea [(ngModel)]="reviewMessage" rows="4"></textarea></div>
+    <div class="us-review-field">
+      <label>Signing Mode</label>
+      <div class="us-mode-toggle">
+        <button [class.us-mode-on]="!certifiedMode" (click)="certifiedMode = false">Standard</button>
+        <button [class.us-mode-on]="certifiedMode" (click)="certifiedMode = true"><mat-icon>verified</mat-icon> Certified (CES&trade;)</button>
+      </div>
+    </div>
+    <div class="us-review-summary">
+      <span>{{ editorFields.length }} fields placed</span>
+      <span>{{ certifiedMode ? 'Certified mode' : 'Standard mode' }}</span>
+    </div>
+    <div class="us-review-actions">
+      <button class="us-secondary-btn" (click)="saveDraft()">Save Draft</button>
+      <button class="us-primary-btn" (click)="sendDocument()" [disabled]="sending || !reviewEmail.trim()">
+        <mat-spinner diameter="18" *ngIf="sending"></mat-spinner>
+        <span *ngIf="!sending">Send Now</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ CERTIFICATE OF AUTHENTICITY (MODAL) ══════ -->
+<div class="us-cert-overlay" *ngIf="showCertModal && certDoc" (click)="closeCertificate()">
+  <div class="us-cert-modal-body" (click)="$event.stopPropagation()">
+    <div class="us-cert-top-bar">
+      <button class="us-back" (click)="closeCertificate()"><mat-icon>arrow_back</mat-icon> Back to Documents</button>
+    </div>
+
+    <div class="us-cert-page">
+      <div class="us-cert-card">
+      <!-- Decorative corner marks -->
+      <div class="us-cert-corner us-cert-tl"></div>
+      <div class="us-cert-corner us-cert-tr"></div>
+      <div class="us-cert-corner us-cert-bl"></div>
+      <div class="us-cert-corner us-cert-br"></div>
+
+      <!-- Header with seal -->
+      <div class="us-cert-header">
+        <div class="us-cert-seal-wrap">
+          <div class="us-cert-seal"><mat-icon>verified</mat-icon></div>
+          <div class="us-cert-seal-ring"></div>
+        </div>
+        <h2>Certificate of Authenticity</h2>
+        <p class="us-cert-sub">Certified Electronic Signature Record</p>
+        <div class="us-cert-divider"></div>
+        <div class="us-cert-verified-badge">
+          <mat-icon>shield</mat-icon> VERIFIED &amp; TAMPER-PROTECTED
+        </div>
+      </div>
+
+      <!-- Signature Details -->
+      <div class="us-cert-section">
+        <h3>Signature Details</h3>
+        <div class="us-cert-grid">
+          <div class="us-cert-row"><span class="us-cert-label">Document ID</span><span class="us-cert-value us-mono">{{ certDoc.id }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Document Name</span><span class="us-cert-value">{{ certDoc.name }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Signer Name</span><span class="us-cert-value">{{ certDoc.cert?.signedBy }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Date Signed</span><span class="us-cert-value">{{ formatDate(certDoc.cert?.signedAt || null) }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Timestamp</span><span class="us-cert-value us-mono">{{ certDoc.cert?.signedAt }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">IP Address</span><span class="us-cert-value us-mono">{{ certDoc.cert?.ipAddress }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Device / Browser</span><span class="us-cert-value">{{ certDoc.cert?.deviceType }} &mdash; {{ certDoc.cert?.browser }}</span></div>
+          <div class="us-cert-row"><span class="us-cert-label">Location</span><span class="us-cert-value">{{ certDoc.cert?.location }}</span></div>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div class="us-cert-section">
+        <h3><mat-icon>lock</mat-icon> Security Verification</h3>
+        <div class="us-cert-hash-block">
+          <span class="us-cert-label">SHA-256 Document Hash</span>
+          <code>{{ certDoc.cert?.documentHash }}</code>
+        </div>
+        <div class="us-cert-status-row">
+          <div class="us-cert-status-item">
+            <span class="us-cert-label">Tamper Status</span>
+            <span class="us-cert-status-ok"><mat-icon>check_circle</mat-icon> VERIFIED</span>
+          </div>
+          <div class="us-cert-status-item">
+            <span class="us-cert-label">Audit Trail</span>
+            <span class="us-cert-value">{{ certDoc.cert?.auditCount }} events recorded</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Statement -->
+      <div class="us-cert-legal">
+        <p>This document has been digitally signed and certified using UPASign&trade; Certified Electronic Signature technology. Any alteration invalidates this certification.</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="us-cert-actions">
+        <button class="us-cert-gold-btn" (click)="downloadCertPdf()">
+          <mat-icon>download</mat-icon> Download Certificate PDF
+        </button>
+        <button class="us-secondary-btn" (click)="openAuditTrail()">
+          <mat-icon>history</mat-icon> View Audit Trail
+        </button>
+        <button class="us-secondary-btn" (click)="closeCertificate()">
+          <mat-icon>close</mat-icon> Close
+        </button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- ══════ AUDIT TRAIL (MODAL) ══════ -->
+<div class="us-audit-overlay" *ngIf="showAuditModal" (click)="closeAuditTrail()">
+  <div class="us-audit-modal-body" (click)="$event.stopPropagation()">
+    <div class="us-cert-top-bar">
+      <button class="us-back" (click)="closeAuditTrail()"><mat-icon>arrow_back</mat-icon> Back to Certificate</button>
+    </div>
+    <div class="us-audit-page">
+    <h2><mat-icon>history</mat-icon> Audit Trail</h2>
+    <p class="us-audit-sub">Complete chronological record of all document events</p>
+    <div class="us-audit-timeline">
+      <div class="us-audit-item" *ngFor="let e of auditEvents; let last = last">
+        <div class="us-audit-marker">
+          <div class="us-audit-dot"></div>
+          <div class="us-audit-line" *ngIf="!last"></div>
+        </div>
+        <div class="us-audit-content">
+          <div class="us-audit-action">{{ e.action }}</div>
+          <div class="us-audit-detail">{{ e.detail }}</div>
+          <div class="us-audit-time">{{ formatAuditTime(e.time) }}</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>

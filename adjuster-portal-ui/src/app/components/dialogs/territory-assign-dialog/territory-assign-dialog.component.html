@@ -1,0 +1,30 @@
+<h1 mat-dialog-title>Assign Territories</h1>
+
+<div mat-dialog-content>
+  <div *ngIf="loading" style="text-align: center; padding: 20px;">
+    <mat-spinner diameter="40" style="margin: 0 auto;"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading && availableTerritories.length === 0">
+    <p>No available territories to assign.</p>
+  </div>
+
+  <mat-selection-list *ngIf="!loading && availableTerritories.length > 0"
+    (selectionChange)="onSelectionChange($event)"
+    #territoryList>
+    <mat-list-option *ngFor="let t of availableTerritories" [value]="t.id">
+      {{ t.name }} <span style="color: #888; margin-left: 8px;">({{ t.territory_type | titlecase }}<span *ngIf="t.state"> - {{ t.state }}</span>)</span>
+    </mat-list-option>
+  </mat-selection-list>
+</div>
+
+<div mat-dialog-actions>
+  <button mat-raised-button color="primary" (click)="assign()"
+    [disabled]="selectedTerritoryIds.length === 0 || submitting">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="submitting"></mat-spinner>
+    </div>
+    Assign selected
+  </button>
+  <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

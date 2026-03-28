@@ -1,0 +1,283 @@
+.rotation-config-page {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 4px 0 0;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  justify-content: center;
+  color: #666;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+
+  .empty-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ccc;
+  }
+}
+
+// ── Card Layout ──
+
+.config-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-card {
+  .config-avatar {
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+
+  .card-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+}
+
+// ── Config Section ──
+
+.config-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+
+  &:first-child {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin: 0 0 12px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #6b7280;
+    }
+  }
+}
+
+.field-grid {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.field-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+
+  .field-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field-value {
+    font-size: 16px;
+    font-weight: 500;
+    color: #111827;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.edit-field {
+  width: 90px;
+
+  ::ng-deep .mat-mdc-form-field-infix {
+    padding: 4px 0;
+    min-height: unset;
+  }
+}
+
+// ── Performance Weighting ──
+
+.perf-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  .perf-status {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .perf-hint {
+    color: #6b7280;
+    font-size: 13px;
+  }
+}
+
+// Weight bars (read-only)
+.weight-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 400px;
+}
+
+.weight-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .weight-label {
+    width: 120px;
+    font-size: 13px;
+    color: #374151;
+    flex-shrink: 0;
+  }
+
+  .weight-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .weight-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+
+    &.closing {
+      background: #3b82f6;
+    }
+    &.response {
+      background: #10b981;
+    }
+    &.satisfaction {
+      background: #f59e0b;
+    }
+  }
+
+  .weight-pct {
+    width: 40px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+}
+
+// Weight sliders (edit mode)
+.perf-edit {
+  .perf-toggle-row {
+    margin-bottom: 16px;
+  }
+}
+
+.weight-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
+}
+
+.weight-slider-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .weight-label {
+    width: 120px;
+    font-size: 13px;
+    color: #374151;
+    flex-shrink: 0;
+  }
+
+  mat-slider {
+    flex: 1;
+  }
+
+  .weight-pct {
+    width: 40px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+}
+
+.weight-total {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #166534;
+
+  &.warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .weight-total-hint {
+    font-weight: 400;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Record Call Outcome</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Call Outcome</mat-label>
+    <mat-select [(ngModel)]="selectedOutcome">
+      <mat-option *ngFor="let o of outcomes" [value]="o">
+        <mat-icon [style.color]="outcomeMeta[o].color">{{ outcomeMeta[o].icon }}</mat-icon>
+        {{ outcomeMeta[o].label }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Notes</mat-label>
+    <textarea matInput [(ngModel)]="notes" rows="4" placeholder="Add any relevant notes..."></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary"
+          [disabled]="!selectedOutcome || saving"
+          (click)="save()">
+    <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
+    {{ saving ? 'Saving...' : 'Save Outcome' }}
+  </button>
+</mat-dialog-actions>

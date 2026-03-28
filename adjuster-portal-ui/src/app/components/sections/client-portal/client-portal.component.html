@@ -1,0 +1,129 @@
+<div class="cp-container">
+
+  <!-- ══════ PROCESSING BANNER ══════ -->
+  <div class="cp-processing-banner" *ngIf="showProcessingBanner">
+    <div class="cp-banner-content">
+      <div class="cp-banner-pulse"></div>
+      <mat-icon>memory</mat-icon>
+      <div class="cp-banner-text">
+        <strong>Your claim is being prepared.</strong>
+        Initial results will appear shortly.
+      </div>
+      <span class="cp-banner-status">Processing Claim</span>
+    </div>
+    <button mat-icon-button class="cp-banner-dismiss" (click)="dismissProcessingBanner()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="cp-header">
+    <div class="cp-header-left">
+      <h1>Client Portal</h1>
+      <p class="cp-subtitle">Welcome back. Track your claim, upload documents, and communicate with your adjuster.</p>
+    </div>
+    <div class="cp-header-right">
+      <div class="cp-claim-badge">
+        <mat-icon>description</mat-icon>
+        <span class="claim-num">{{ claim?.claimNumber }}</span>
+      </div>
+      <div class="cp-adjuster-info" *ngIf="claim">
+        <mat-icon>support_agent</mat-icon>
+        <div>
+          <div class="adjuster-name">{{ claim.adjusterName }}</div>
+          <div class="adjuster-contact">{{ claim.adjusterPhone }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ CLAIM PROGRESS BAR ══════ -->
+  <div class="progress-bar-container" *ngIf="claim">
+    <div class="progress-stages">
+      <div *ngFor="let stage of claimStages; let i = index; let last = last"
+           class="progress-stage"
+           [class.completed]="i < getStageIndex(claim.currentStage)"
+           [class.active]="i === getStageIndex(claim.currentStage)"
+           [class.pending]="i > getStageIndex(claim.currentStage)">
+        <div class="stage-dot">
+          <mat-icon *ngIf="i < getStageIndex(claim.currentStage)">check</mat-icon>
+          <mat-icon *ngIf="i === getStageIndex(claim.currentStage)">{{ stage.icon }}</mat-icon>
+          <mat-icon *ngIf="i > getStageIndex(claim.currentStage)">{{ stage.icon }}</mat-icon>
+        </div>
+        <div class="stage-label">{{ stage.label }}</div>
+        <div class="stage-connector" *ngIf="!last"
+             [class.filled]="i < getStageIndex(claim.currentStage)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ TAB GROUP ══════ -->
+  <mat-tab-group [(selectedIndex)]="activeTab" animationDuration="200ms" class="cp-tabs">
+
+    <!-- TAB 1: CLAIM STATUS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>info</mat-icon>&nbsp;Claim Status
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-claim-overview [claim]="claim"></app-cp-claim-overview>
+      </ng-template>
+    </mat-tab>
+
+    <!-- TAB 2: DOCUMENTS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>folder</mat-icon>&nbsp;Documents
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-documents [documents]="documents"></app-cp-documents>
+      </ng-template>
+    </mat-tab>
+
+    <!-- TAB 3: MESSAGES -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>chat</mat-icon>&nbsp;Messages
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-messages [threads]="threads"></app-cp-messages>
+      </ng-template>
+    </mat-tab>
+
+    <!-- TAB 4: PAYMENTS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>payments</mat-icon>&nbsp;Payments
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-payments [payments]="payments"></app-cp-payments>
+      </ng-template>
+    </mat-tab>
+
+    <!-- TAB 5: REPORTS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>assessment</mat-icon>&nbsp;Reports
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-reports [reports]="reports"></app-cp-reports>
+      </ng-template>
+    </mat-tab>
+
+    <!-- TAB 6: NOTIFICATIONS -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>notifications</mat-icon>&nbsp;Notifications
+        <span class="notif-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-cp-notifications
+          [notifications]="notifications"
+          (markRead)="markNotificationRead($event)"
+          (markAllRead)="markAllRead()">
+        </app-cp-notifications>
+      </ng-template>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

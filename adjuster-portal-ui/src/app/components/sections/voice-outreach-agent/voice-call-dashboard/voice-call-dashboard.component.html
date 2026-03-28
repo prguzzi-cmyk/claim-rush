@@ -1,0 +1,175 @@
+<div class="voa-dark">
+  <div class="voa-header">
+    <div>
+      <h1>AI Voice Outreach</h1>
+      <p class="voa-subtitle">Launch and monitor AI-powered outreach campaigns in real time.</p>
+    </div>
+    <div class="voa-meta">
+      <span class="voa-status"><span class="status-dot" [class.status-active]="outreachRunning"></span> {{ outreachRunning ? 'Outreach Running' : activeCampaigns.length + ' Active Campaigns' }}</span>
+    </div>
+  </div>
+
+  <div class="voa-body">
+
+    <!-- ══════ CAMPAIGN CONTROLS ══════ -->
+    <div class="controls-bar">
+      <div class="control-group">
+        <label>Target Leads</label>
+        <select class="control-select" [(ngModel)]="leadFilter">
+          <option value="all">All Leads</option>
+          <option value="new">New Leads Only</option>
+          <option value="callback">Callback Queue</option>
+          <option value="high_value">High Value ($50K+)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Outreach Type</label>
+        <select class="control-select" [(ngModel)]="outreachType">
+          <option value="ai_call">AI Voice Call</option>
+          <option value="sms">SMS Campaign</option>
+          <option value="email">Email Campaign</option>
+        </select>
+      </div>
+      <button *ngIf="!outreachRunning" class="start-btn" (click)="startOutreach()">
+        <mat-icon>play_arrow</mat-icon> Start Outreach
+      </button>
+      <button *ngIf="outreachRunning" class="stop-btn" (click)="stopOutreach()">
+        <mat-icon>stop</mat-icon> Stop
+      </button>
+    </div>
+
+    <!-- ══════ KPI CARDS ══════ -->
+    <div class="kpi-grid" *ngIf="kpis">
+      <div class="kpi-card">
+        <div class="kpi-icon"><mat-icon>phone</mat-icon></div>
+        <div class="kpi-value">{{ kpis.callsPlaced }}</div>
+        <div class="kpi-label">Calls Made</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green"><mat-icon>phone_in_talk</mat-icon></div>
+        <div class="kpi-value">{{ kpis.connectionRate }}%</div>
+        <div class="kpi-label">Conversations</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><mat-icon>event_available</mat-icon></div>
+        <div class="kpi-value">{{ kpis.appointmentsBooked }}</div>
+        <div class="kpi-label">Appointments Set</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon cyan"><mat-icon>trending_up</mat-icon></div>
+        <div class="kpi-value">{{ kpis.qualifiedLeadRate }}%</div>
+        <div class="kpi-label">Conversion %</div>
+      </div>
+    </div>
+
+    <!-- ══════ LIVE FEED + OUTCOME BREAKDOWN ══════ -->
+    <div class="panels-row">
+
+      <!-- Live Activity Feed -->
+      <div class="dark-panel flex-panel">
+        <div class="dark-panel-header">
+          <mat-icon [class.icon-pulse]="outreachRunning">rss_feed</mat-icon>
+          Live Activity
+          <span class="header-count" *ngIf="activityFeed.length > 0">{{ activityFeed.length }}</span>
+          <span class="live-tag" *ngIf="outreachRunning">LIVE</span>
+        </div>
+        <div class="activity-feed">
+          <div *ngFor="let e of activityFeed" class="activity-item">
+            <mat-icon [style.color]="e.iconColor" class="activity-icon">{{ e.icon }}</mat-icon>
+            <span class="activity-text">{{ e.text }}</span>
+            <span class="activity-time">{{ timeAgo(e.time) }}</span>
+          </div>
+          <div *ngIf="activityFeed.length === 0" class="feed-empty">
+            <mat-icon>hourglass_empty</mat-icon>
+            <span>Click "Start Outreach" to begin</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outcome Breakdown -->
+      <div class="dark-panel flex-panel-sm">
+        <div class="dark-panel-header"><mat-icon>donut_large</mat-icon> Outcome Breakdown</div>
+        <div class="breakdown-body">
+          <div *ngFor="let o of outcomeBreakdown" class="breakdown-row">
+            <div class="breakdown-label">{{ o.label }}</div>
+            <div class="breakdown-bar-wrap">
+              <div class="breakdown-bar" [style.width.%]="o.pct" [style.background]="o.color"></div>
+            </div>
+            <div class="breakdown-count">{{ o.count }}</div>
+            <div class="breakdown-pct">{{ o.pct }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ RESULTS TABLE + QUALIFIED LEADS ══════ -->
+    <div class="panels-row">
+
+      <!-- Campaign Results Table -->
+      <div class="dark-panel flex-panel">
+        <div class="dark-panel-header"><mat-icon>campaign</mat-icon> Campaign Results <span class="header-count">{{ activeCampaigns.length }}</span></div>
+        <div class="table-wrap">
+          <table class="dark-table">
+            <thead><tr><th>Campaign</th><th>Leads</th><th>Placed</th><th>Connected</th><th>Rate</th><th>Qualified</th><th>Appts</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let c of activeCampaigns">
+                <td class="cell-name">{{ c.name }}</td>
+                <td>{{ c.totalLeads }}</td>
+                <td>{{ c.callsPlaced }}</td>
+                <td>{{ c.callsConnected }}</td>
+                <td><span class="rate-badge">{{ getConnectionRate(c) }}%</span></td>
+                <td class="cell-qualified">{{ c.leadsGenerated }}</td>
+                <td class="cell-appts">{{ c.appointmentsBooked }}</td>
+              </tr>
+              <tr *ngIf="activeCampaigns.length === 0">
+                <td colspan="7" class="empty-cell">No active campaigns — start outreach above</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Qualified Leads -->
+      <div class="dark-panel flex-panel-sm">
+        <div class="dark-panel-header"><mat-icon>star</mat-icon> Recent Qualified Leads</div>
+        <div class="qualified-list">
+          <div *ngFor="let c of recentQualified" class="qualified-item" (click)="openTimeline(c)">
+            <div class="qualified-top">
+              <span class="qualified-name">{{ c.leadName }}</span>
+              <span class="status-badge" [ngClass]="getOutcomeBadgeClass(c.outcome)">{{ formatOutcome(c.outcome!) }}</span>
+            </div>
+            <div class="qualified-detail">{{ c.propertyAddress }}, {{ c.city }} {{ c.state }}</div>
+            <div class="qualified-meta">
+              <span *ngIf="c.aiQualificationScore !== null" class="qualified-score">Score: {{ c.aiQualificationScore }}</span>
+              <span class="qualified-time">{{ formatTime(c.calledAt) }}</span>
+            </div>
+          </div>
+          <div *ngIf="recentQualified.length === 0" class="empty-state">No qualified leads yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ DAILY ACTIVITY CHART ══════ -->
+    <div class="dark-panel" *ngIf="dailyMetrics.length > 0">
+      <div class="dark-panel-header"><mat-icon>bar_chart</mat-icon> Daily Activity (7 Days)</div>
+      <div class="chart-body">
+        <div class="bar-chart">
+          <div *ngFor="let d of dailyMetrics" class="bar-group">
+            <div class="bars">
+              <div class="bar bar-placed" [style.height.%]="(d.placed / getMaxDaily()) * 100"></div>
+              <div class="bar bar-connected" [style.height.%]="(d.connected / getMaxDaily()) * 100"></div>
+              <div class="bar bar-qualified" [style.height.%]="(d.qualified / getMaxDaily()) * 100"></div>
+            </div>
+            <div class="bar-label">{{ d.date }}</div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot placed"></span> Placed</span>
+          <span class="legend-item"><span class="legend-dot connected"></span> Connected</span>
+          <span class="legend-item"><span class="legend-dot qualified"></span> Qualified</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

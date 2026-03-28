@@ -1,0 +1,87 @@
+$bg-primary: #0a0e17;
+$bg-panel: #111827;
+$bg-panel-header: #1a2332;
+$border: #1e293b;
+$text-primary: #e2e8f0;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+$accent-cyan: #00e5ff;
+$accent-green: #00e676;
+$accent-red: #ff1744;
+$accent-orange: #ff6d00;
+
+.asa-dark { min-height: calc(100vh - 64px); background: $bg-primary; color: $text-primary; display: flex; flex-direction: column; }
+.asa-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 28px 16px;
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 800; color: #fff; }
+  .asa-subtitle { margin: 4px 0 0; font-size: 0.82rem; color: $text-secondary; } }
+.asa-body { padding: 0 28px 28px; flex: 1; }
+
+.book-btn { background: $accent-cyan !important; color: #000 !important; font-weight: 600 !important; font-size: 0.78rem !important;
+  mat-icon { font-size: 18px; margin-right: 4px; } }
+
+// ── PANELS ──
+.dark-panel { background: $bg-panel; border: 1px solid $border; border-radius: 10px; overflow: hidden; }
+.dark-panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: $bg-panel-header; border-bottom: 1px solid $border; font-weight: 600; font-size: 0.82rem;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $accent-cyan; }
+  .header-count { margin-left: auto; font-size: 0.68rem; color: $text-muted; font-weight: 400; } }
+.panel-section { margin-bottom: 20px; }
+
+// ── BOOKING FORM ──
+.booking-form { margin-bottom: 20px; }
+.form-body { padding: 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px;
+  label { font-size: 0.72rem; color: $text-muted; text-transform: uppercase; font-weight: 600; }
+  &.full-width { grid-column: 1 / -1; } }
+.dark-select, .dark-input, .dark-textarea {
+  background: rgba(255,255,255,0.05); border: 1px solid $border; border-radius: 6px; padding: 10px 12px;
+  color: $text-primary; font-size: 0.82rem; outline: none;
+  &:focus { border-color: $accent-cyan; }
+  option { background: $bg-panel; color: $text-primary; } }
+.dark-textarea { resize: vertical; font-family: inherit; }
+
+.platform-options { display: flex; gap: 8px; }
+.platform-btn {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px;
+  background: rgba(255,255,255,0.05); border: 1px solid $border; color: $text-secondary;
+  cursor: pointer; font-size: 0.78rem; transition: all 0.2s;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &.active { border-color: $accent-cyan; color: $accent-cyan; background: rgba(0,229,255,0.08); }
+  &:hover:not(.active) { border-color: rgba(0,229,255,0.3); } }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.cancel-btn { color: $text-secondary !important; border-color: $border !important; }
+.confirm-btn { background: $accent-cyan !important; color: #000 !important; font-weight: 600 !important; }
+
+// ── APPOINTMENT CARDS ──
+.appt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 16px; }
+.appt-card {
+  background: rgba(255,255,255,0.03); border: 1px solid $border; border-radius: 8px; padding: 16px;
+  .appt-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .appt-date { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: $accent-cyan;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+  .appt-name { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
+  .appt-detail { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: $text-secondary; margin-bottom: 4px;
+    mat-icon { font-size: 14px; width: 14px; height: 14px; color: $text-muted; } }
+  .appt-notes { font-size: 0.72rem; color: $text-muted; margin-top: 8px; font-style: italic; }
+  .appt-actions { margin-top: 12px; display: flex; gap: 8px; }
+}
+.appt-action-btn {
+  font-size: 0.72rem !important; color: $text-secondary !important; border-color: $border !important;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; margin-right: 4px; }
+  &.danger:hover { color: $accent-red !important; border-color: $accent-red !important; }
+}
+
+// ── TABLE ──
+.table-wrap { overflow-x: auto; }
+.dark-table { width: 100%; border-collapse: collapse;
+  th { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid $border; }
+  td { font-size: 0.78rem; color: $text-primary; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); } }
+
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+.badge-cyan { background: rgba(0,229,255,0.15); color: $accent-cyan; }
+.badge-green { background: rgba(0,230,118,0.15); color: $accent-green; }
+.badge-orange { background: rgba(255,109,0,0.15); color: $accent-orange; }
+.badge-red { background: rgba(255,23,68,0.15); color: $accent-red; }
+
+.empty-state { text-align: center; color: $text-muted; padding: 40px; font-style: italic; }

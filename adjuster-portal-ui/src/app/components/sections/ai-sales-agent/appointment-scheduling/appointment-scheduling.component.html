@@ -1,0 +1,143 @@
+<div class="asa-dark">
+
+  <div class="asa-header">
+    <div>
+      <h1>Appointment Scheduling</h1>
+      <p class="asa-subtitle">Book consultations with homeowners and manage adjuster calendar slots.</p>
+    </div>
+    <button mat-raised-button class="book-btn" (click)="showBookingForm = !showBookingForm">
+      <mat-icon>add</mat-icon> Book Appointment
+    </button>
+  </div>
+
+  <div class="asa-body">
+
+    <!-- ══════ BOOKING FORM ══════ -->
+    <div class="dark-panel booking-form" *ngIf="showBookingForm">
+      <div class="dark-panel-header">
+        <mat-icon>event_note</mat-icon> New Appointment
+      </div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Homeowner</label>
+            <select [(ngModel)]="form.conversationId" class="dark-select">
+              <option value="">Select conversation...</option>
+              <option *ngFor="let c of conversations" [value]="c.id">{{ c.homeownerName }} — {{ c.propertyAddress }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Adjuster</label>
+            <select [(ngModel)]="form.adjuster" class="dark-select">
+              <option value="">Select adjuster...</option>
+              <option *ngFor="let a of adjusters" [value]="a">{{ a }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" [(ngModel)]="form.date" class="dark-input" />
+          </div>
+          <div class="form-group">
+            <label>Time</label>
+            <select [(ngModel)]="form.time" class="dark-select">
+              <option value="">Select time...</option>
+              <option *ngFor="let t of timeSlots" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Platform</label>
+            <div class="platform-options">
+              <button
+                *ngFor="let p of platforms"
+                class="platform-btn"
+                [class.active]="form.platform === p.value"
+                (click)="form.platform = p.value"
+              >
+                <mat-icon>{{ p.icon }}</mat-icon> {{ p.label }}
+              </button>
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Notes</label>
+            <textarea [(ngModel)]="form.notes" class="dark-textarea" rows="2" placeholder="Meeting notes..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button mat-stroked-button (click)="showBookingForm = false" class="cancel-btn">Cancel</button>
+          <button mat-raised-button class="confirm-btn" (click)="bookAppointment()">
+            <mat-icon>check</mat-icon> Confirm Booking
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ UPCOMING APPOINTMENTS ══════ -->
+    <div class="dark-panel panel-section">
+      <div class="dark-panel-header">
+        <mat-icon>event_available</mat-icon> Upcoming Consultations
+        <span class="header-count">{{ upcomingAppointments.length }}</span>
+      </div>
+      <div class="appt-grid">
+        <div *ngFor="let appt of upcomingAppointments" class="appt-card">
+          <div class="appt-top">
+            <div class="appt-date">
+              <mat-icon>calendar_today</mat-icon>
+              <span>{{ appt.date }} at {{ appt.time }}</span>
+            </div>
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(appt.status)">{{ formatStatus(appt.status) }}</span>
+          </div>
+          <div class="appt-name">{{ appt.homeownerName }}</div>
+          <div class="appt-detail">
+            <mat-icon>location_on</mat-icon> {{ appt.propertyAddress }}
+          </div>
+          <div class="appt-detail">
+            <mat-icon>person</mat-icon> {{ appt.adjusterName }}
+          </div>
+          <div class="appt-detail">
+            <mat-icon>{{ appt.platform === 'teams' ? 'groups' : 'videocam' }}</mat-icon> {{ formatPlatform(appt.platform) }}
+          </div>
+          <div class="appt-notes" *ngIf="appt.notes">{{ appt.notes }}</div>
+          <div class="appt-actions">
+            <button mat-stroked-button class="appt-action-btn danger" (click)="cancelAppointment(appt)">
+              <mat-icon>close</mat-icon> Cancel
+            </button>
+          </div>
+        </div>
+        <div *ngIf="upcomingAppointments.length === 0" class="empty-state">
+          No upcoming appointments
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ PAST APPOINTMENTS ══════ -->
+    <div class="dark-panel panel-section" *ngIf="pastAppointments.length > 0">
+      <div class="dark-panel-header">
+        <mat-icon>history</mat-icon> Past Appointments
+        <span class="header-count">{{ pastAppointments.length }}</span>
+      </div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Homeowner</th>
+              <th>Adjuster</th>
+              <th>Date / Time</th>
+              <th>Platform</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let appt of pastAppointments">
+              <td>{{ appt.homeownerName }}</td>
+              <td>{{ appt.adjusterName }}</td>
+              <td>{{ appt.date }} {{ appt.time }}</td>
+              <td>{{ formatPlatform(appt.platform) }}</td>
+              <td><span class="status-badge" [ngClass]="getStatusBadgeClass(appt.status)">{{ formatStatus(appt.status) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

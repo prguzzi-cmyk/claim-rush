@@ -1,0 +1,419 @@
+.workflow-queues-container {
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+}
+
+// ── Page Header ────────────────────────────────────────────────
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  .header-text {
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 4px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary, #111827);
+
+      .header-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+        color: #1565c0;
+      }
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--text-secondary, #6b7280);
+    }
+  }
+
+  .refresh-btn {
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-right: 4px;
+    }
+  }
+}
+
+// ── Loading ────────────────────────────────────────────────────
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 16px;
+  color: var(--text-secondary, #6b7280);
+}
+
+// ── KPI Grid ───────────────────────────────────────────────────
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #1565c0, #42a5f5);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: #90caf9;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    &::after { transform: scaleX(1); }
+  }
+}
+
+.kpi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &.kpi-icon-claims {
+    background: linear-gradient(135deg, #e3f2fd, #fff);
+    border: 1px solid #bbdefb;
+    mat-icon { color: #1565c0; }
+  }
+  &.kpi-icon-action {
+    background: linear-gradient(135deg, #fce4ec, #fff);
+    border: 1px solid #f8bbd0;
+    mat-icon { color: #c62828; }
+  }
+  &.kpi-icon-supplement {
+    background: linear-gradient(135deg, #f3e5f5, #fff);
+    border: 1px solid #e1bee7;
+    mat-icon { color: #6a1b9a; }
+  }
+  &.kpi-icon-payment {
+    background: linear-gradient(135deg, #fff3e0, #fff);
+    border: 1px solid #ffe0b2;
+    mat-icon { color: #e65100; }
+  }
+  &.kpi-icon-recovered {
+    background: linear-gradient(135deg, #e8f5e9, #fff);
+    border: 1px solid #c8e6c9;
+    mat-icon { color: #2e7d32; }
+  }
+}
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 2px;
+}
+
+// ── Queue Cards Grid ───────────────────────────────────────────
+
+.queues-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.queue-card {
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+}
+
+// ── Queue Header ───────────────────────────────────────────────
+
+.queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surface-page, #f9fafb);
+  border-bottom: 1px solid var(--border-default, #e5e7eb);
+}
+
+.queue-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+  }
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+
+.queue-count {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-primary, #111827);
+  min-width: 32px;
+  text-align: right;
+}
+
+// ── Queue Body (claim rows) ────────────────────────────────────
+
+.queue-body {
+  flex: 1;
+  min-height: 60px;
+}
+
+.queue-claim-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f0f7ff;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.claim-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+
+.claim-number {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.claim-client {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.claim-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.claim-days {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #6b7280);
+  white-space: nowrap;
+
+  &.stale {
+    color: #c62828;
+    font-weight: 600;
+  }
+}
+
+.claim-status-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  text-transform: capitalize;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Queue Empty State ──────────────────────────────────────────
+
+.queue-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px;
+  color: #9ca3af;
+  font-size: 0.78rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #4caf50;
+  }
+}
+
+// ── Queue Footer ───────────────────────────────────────────────
+
+.queue-footer {
+  border-top: 1px solid #f3f4f6;
+  padding: 6px 12px;
+  text-align: center;
+}
+
+.view-all-btn {
+  font-size: 0.75rem !important;
+  color: #1565c0 !important;
+
+  mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-left: 4px;
+  }
+}
+
+// ── Signal Alerts ──────────────────────────────────────────────
+
+.signal-alerts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.signal-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  flex: 1;
+  min-width: 280px;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &.signal-stalled {
+    background: #fff3e0;
+    border: 1px solid #ffe0b2;
+    color: #e65100;
+    mat-icon { color: #e65100; }
+  }
+
+  &.signal-overdue {
+    background: #fce4ec;
+    border: 1px solid #f8bbd0;
+    color: #c62828;
+    mat-icon { color: #c62828; }
+  }
+}
+
+// ── Responsive ─────────────────────────────────────────────────
+
+@media (max-width: 1400px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 1200px) {
+  .queues-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .queues-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .workflow-queues-container { padding: 16px; }
+  .page-header { flex-direction: column; gap: 12px; }
+}

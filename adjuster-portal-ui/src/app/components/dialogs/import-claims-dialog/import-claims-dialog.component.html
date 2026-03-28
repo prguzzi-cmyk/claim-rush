@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>
+    Import claims
+  </h2>
+  
+  
+  <div *ngIf="action == 'add'" mat-dialog-content>
+  
+    <input (change)="selectFile($event)" type="file" name="file" id="file-input" class="d-none" />
+  
+    <p *ngIf="file?.name" class="mb-3">{{ file?.name }} selected</p>
+  
+    <button mat-raised-button color="primary" *ngIf="action == 'add'">
+      <label for="file-input" class="m-0">Select csv file to import</label>
+    </button>
+    <p>&nbsp;</p>
+    <p><a href="/assets/import_templates/Claims-import-template.csv">Download claims template csv file</a></p>
+    
+    <p *ngIf="importCount"><strong>{{importCount}}</strong> records found.</p>
+    <p *ngIf="importCount  && fileUploadFormDisabled"><strong>Processing {{processed}} of {{importCount}}</strong>.</p>
+
+  </div>
+  
+  <div mat-dialog-actions>
+  
+    <button mat-raised-button color="primary" (click)="importClaims()"
+      [disabled]="fileUploadFormDisabled || !importCount" *ngIf="action == 'add'">
+      <div class="spinner-container">
+        <mat-spinner diameter="25" *ngIf="fileUploadFormDisabled"></mat-spinner>
+      </div>
+      Import
+    </button>
+  
+    <a mat-raised-button *ngIf="action == 'view'" color="primary" href="{{claimFile?.path}}" target="_blank">Download</a>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+  </div>
+  

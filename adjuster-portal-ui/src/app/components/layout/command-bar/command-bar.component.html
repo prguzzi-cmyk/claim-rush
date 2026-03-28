@@ -1,0 +1,38 @@
+<div class="command-bar">
+  <div class="live-badge">
+    <mat-icon class="bolt-icon">bolt</mat-icon>
+    <span class="live-text">LIVE</span>
+  </div>
+
+  <div class="ticker-viewport">
+    <div class="ticker-track">
+      <div class="ticker-strip">
+        <span
+          class="ticker-item"
+          *ngFor="let item of items; trackBy: trackById"
+          (click)="onClick(item)"
+          [matTooltip]="item.sublabel || ''"
+        >
+          <span class="storm-desk-tag" *ngIf="isStormEvent(item.eventType)">UPA STORM DESK &#x26C8;&#xFE0F;</span>
+          <mat-icon class="ticker-icon" [style.color]="getIconColor(item.eventType)">{{ item.icon }}</mat-icon>
+          <span class="ticker-label">{{ item.label }}</span>
+          <span class="ticker-time">{{ getTimeAgo(item.timestamp) }}</span>
+          <span class="ticker-sep">|</span>
+        </span>
+      </div>
+      <div class="ticker-strip" aria-hidden="true">
+        <span
+          class="ticker-item"
+          *ngFor="let item of items; trackBy: trackById"
+          (click)="onClick(item)"
+        >
+          <span class="storm-desk-tag" *ngIf="isStormEvent(item.eventType)">UPA STORM DESK &#x26C8;&#xFE0F;</span>
+          <mat-icon class="ticker-icon" [style.color]="getIconColor(item.eventType)">{{ item.icon }}</mat-icon>
+          <span class="ticker-label">{{ item.label }}</span>
+          <span class="ticker-time">{{ getTimeAgo(item.timestamp) }}</span>
+          <span class="ticker-sep">|</span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

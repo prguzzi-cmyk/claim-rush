@@ -1,0 +1,39 @@
+<!-- <app-header></app-header> -->
+<main id="main">
+  <section id="login" class="about">
+
+    <div class="container">
+      <p>&nbsp;</p>
+      <div class="row justify-content-center">
+        <mat-card appearance="outlined">
+          <div class="header">
+            <div class="logo">
+
+            </div>
+            <p>RIN&trade; uses ClaimWizard to help manage their claims processing.</p>
+            <p *ngIf="file_links">The following files will be available until {{ file_links.expiration_date | date:
+              'MMMM d, yyyy' }}.</p>
+          </div>
+          <div class="downloads">
+            <div class="download-all">
+              <a href="{{ this.zip_url }}"> <mat-icon class="material-icons-outlined">cloud_download</mat-icon> Download
+                All</a>
+            </div>
+            <div class="file-list">
+              <div>Or right-click on the file(s) below and select "Save As..." to download.</div>
+              <ul>
+                <li *ngFor="let file of file_links?.files">
+                  <a href="{{ file.url }}" download="{{ file.name }}">
+                    <mat-icon class="material-icons-outlined">cloud_download</mat-icon> {{ file.name }} - {{ file.size |
+                    filesize }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- <app-footer></app-footer> -->

@@ -1,0 +1,108 @@
+<div class="ca-tab-content">
+  <!-- Channel Config Cards -->
+  <h3>Outreach Channels</h3>
+  <div class="channel-grid">
+    <mat-card *ngFor="let ch of channels" class="channel-card" [class.disabled]="!ch.is_enabled">
+      <div class="channel-header">
+        <mat-icon>{{ ch.icon }}</mat-icon>
+        <span class="channel-label">{{ ch.label }}</span>
+        <mat-slide-toggle [checked]="ch.is_enabled" (change)="toggleChannel(ch)"></mat-slide-toggle>
+      </div>
+      <p class="channel-desc">{{ ch.description }}</p>
+      <div class="channel-stats">
+        <span>Daily limit: {{ ch.daily_limit }}</span>
+        <span>Templates: {{ ch.templates_count }}</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Templates -->
+  <div class="templates-section">
+    <div class="toolbar">
+      <h3>Outreach Templates</h3>
+      <button mat-raised-button color="primary" (click)="openTemplateEditor()">
+        <mat-icon>add</mat-icon> New Template
+      </button>
+    </div>
+
+    <table mat-table [dataSource]="templates" class="template-table" *ngIf="!showEditor">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="channel">
+        <th mat-header-cell *matHeaderCellDef>Channel</th>
+        <td mat-cell *matCellDef="let row"><mat-chip>{{ row.channel }}</mat-chip></td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+      </ng-container>
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Active</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon [style.color]="row.is_active ? '#4caf50' : '#ccc'">{{ row.is_active ? 'check_circle' : 'cancel' }}</mat-icon>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="openTemplateEditor(row)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="templateColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: templateColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Template Editor -->
+  <mat-card *ngIf="showEditor" class="editor-card">
+    <mat-card-header>
+      <mat-card-title>{{ editingTemplate ? 'Edit' : 'New' }} Template</mat-card-title>
+      <span class="spacer"></span>
+      <mat-button-toggle-group [(ngModel)]="previewMode">
+        <mat-button-toggle [value]="false">Edit</mat-button-toggle>
+        <mat-button-toggle [value]="true">Preview</mat-button-toggle>
+      </mat-button-toggle-group>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="!previewMode" class="editor-form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="flex-1">
+            <mat-label>Template Name</mat-label>
+            <input matInput [(ngModel)]="templateForm.name">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Channel</mat-label>
+            <mat-select [(ngModel)]="templateForm.channel">
+              <mat-option value="email">Email</mat-option>
+              <mat-option value="sms">SMS</mat-option>
+              <mat-option value="social">Social</mat-option>
+              <mat-option value="direct_mail">Direct Mail</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <input matInput [(ngModel)]="templateForm.category">
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width" *ngIf="templateForm.channel === 'email'">
+          <mat-label>Subject</mat-label>
+          <input matInput [(ngModel)]="templateForm.subject">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Body</mat-label>
+          <textarea matInput [(ngModel)]="templateForm.body" rows="8"></textarea>
+        </mat-form-field>
+      </div>
+      <div *ngIf="previewMode" class="preview-panel">
+        <div class="preview-subject" *ngIf="templateForm.subject"><strong>Subject:</strong> {{ templateForm.subject }}</div>
+        <div class="preview-body">{{ templateForm.body }}</div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeEditor()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveTemplate()">Save Template</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

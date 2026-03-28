@@ -1,0 +1,918 @@
+<mat-sidenav-container class="storm-container">
+  <!-- Target Areas Side Panel -->
+  <mat-sidenav
+    position="end"
+    mode="over"
+    [opened]="targetPanelOpen"
+    (closed)="closeTargetPanel()"
+  >
+    <div class="target-panel">
+      <div class="target-panel-header">
+        <h3>
+          <mat-icon>gps_fixed</mat-icon>
+          Target Areas
+        </h3>
+        <button mat-icon-button (click)="closeTargetPanel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <p class="target-panel-subtitle">Ranked by risk score — click to zoom on map</p>
+
+      <div class="target-list">
+        <div
+          class="target-card"
+          *ngFor="let area of targetAreas"
+          (click)="focusTargetArea(area)"
+        >
+          <div class="target-rank">#{{ area.rank }}</div>
+          <div class="target-info">
+            <div class="target-title">{{ area.county }}, {{ area.state }}</div>
+            <div class="target-meta">
+              <span
+                class="severity-badge"
+                [style.background]="getSeverityColor(area.severity)"
+              >
+                {{ area.severity | uppercase }}
+              </span>
+              <span class="event-type-badge">
+                <mat-icon class="inline-icon">{{ getEventTypeIcon(area.primary_event_type) }}</mat-icon>
+                {{ getEventTypeLabel(area.primary_event_type) }}
+              </span>
+            </div>
+            <div class="target-stats">
+              <span>Score: <strong>{{ area.risk_score }}</strong></span>
+              <span>{{ area.event_count }} events</span>
+              <span>{{ area.affected_area_sq_miles }} sq mi</span>
+              <span>{{ area.estimated_properties | number }} properties</span>
+            </div>
+            <button
+              mat-stroked-button
+              color="primary"
+              class="outreach-btn"
+              (click)="createOutreachBatch(area); $event.stopPropagation()"
+            >
+              <mat-icon>campaign</mat-icon> Create Outreach Batch
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="targetAreas.length === 0" class="no-targets">
+          No target areas match current filters.
+        </div>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <!-- Intelligence Ticker -->
+    <div class="intel-ticker" *ngIf="tickerItems.length > 0">
+      <span class="ticker-label">UPA Storm Desk LIVE</span>
+      <div class="ticker-track">
+        <div class="ticker-content">
+          <span
+            class="ticker-item"
+            *ngFor="let item of tickerItems"
+            [style.color]="item.color"
+          >
+            {{ item.icon }} {{ item.text }}
+          </span>
+          <span
+            class="ticker-item"
+            *ngFor="let item of tickerItems"
+            [style.color]="item.color"
+          >
+            {{ item.icon }} {{ item.text }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-text">
+        <h2>
+          <mat-icon class="header-icon">thunderstorm</mat-icon>
+          Storm Intelligence Command Center
+        </h2>
+        <p class="subtitle">
+          Predictive claims targeting &middot; hail, wind, hurricane, lightning
+          <span class="data-source-badge live" *ngIf="isLiveStormData && events.length > 0 && !kpiLoading">
+            LIVE &mdash; {{ events.length }} events
+          </span>
+          <span class="data-source-badge" style="background:#f59e0b;color:#fff;" *ngIf="isLiveStormData && events.length === 0 && !kpiLoading">
+            NO STORMS &mdash; try widening filters
+          </span>
+          <span class="data-source-badge offline" *ngIf="!isLiveStormData && !kpiLoading" [matTooltip]="stormApiError || ''">
+            API ERROR &mdash; hover for details
+          </span>
+          <span class="last-update" *ngIf="lastRefreshTime">
+            Updated {{ lastRefreshTime | date:'shortTime' }} &middot; {{ events.length }} events loaded
+          </span>
+        </p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="toggleTargetPanel()" class="targets-btn">
+          <mat-icon>gps_fixed</mat-icon> Target Areas
+          <span class="target-count" *ngIf="targetAreas.length">{{ targetAreas.length }}</span>
+        </button>
+        <button mat-stroked-button (click)="refresh()" class="refresh-btn">
+          <mat-icon>refresh</mat-icon> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-hail">
+          <mat-icon>ac_unit</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" *ngIf="!kpiLoading">{{ kpi?.hail_risk_areas || 0 }}</span>
+          <span class="kpi-value kpi-loading" *ngIf="kpiLoading">--</span>
+          <span class="kpi-label">Hail Alerts</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-wind">
+          <mat-icon>air</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" *ngIf="!kpiLoading">{{ kpi?.wind_damage_alerts || 0 }}</span>
+          <span class="kpi-value kpi-loading" *ngIf="kpiLoading">--</span>
+          <span class="kpi-label">Wind / Tornado</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-hurricane">
+          <mat-icon>cyclone</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" *ngIf="!kpiLoading">{{ kpi?.hurricane_impact_zones || 0 }}</span>
+          <span class="kpi-value kpi-loading" *ngIf="kpiLoading">--</span>
+          <span class="kpi-label">Hurricanes</span>
+          <span class="kpi-sublabel">Active</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-lightning">
+          <mat-icon>bolt</mat-icon>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-value" *ngIf="!kpiLoading">{{ kpi?.total_events || 0 }}</span>
+          <span class="kpi-value kpi-loading" *ngIf="kpiLoading">--</span>
+          <span class="kpi-label">Active Storm Systems</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Claims Ticker Bar — only show when filtered claim data exists -->
+    <div class="claims-ticker-bar" *ngIf="claimTickerMessages.length > 0 && (predictedClaimEvents.length > 0 || predictedClaimZones.length > 0)">
+      <span class="claims-ticker-label">CLAIMS LIVE</span>
+      <div class="claims-ticker-track">
+        <div class="claims-ticker-content" [style.transform]="'translateX(' + claimTickerPosition + 'px)'">
+          <span
+            class="claims-ticker-item"
+            *ngFor="let msg of claimTickerMessages"
+            [style.color]="getClaimSeverityColor(msg.severity)"
+          >
+            {{ msg.text }}
+          </span>
+          <span
+            class="claims-ticker-item"
+            *ngFor="let msg of claimTickerMessages"
+            [style.color]="getClaimSeverityColor(msg.severity)"
+          >
+            {{ msg.text }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Date Range</mat-label>
+        <mat-select [(ngModel)]="filters.dateRange" (selectionChange)="onFiltersChanged()">
+          <mat-option *ngFor="let dr of dateRangeOptions" [value]="dr.value">
+            {{ dr.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Event Type</mat-label>
+        <mat-select [(ngModel)]="filters.eventTypes" multiple (selectionChange)="onFiltersChanged()">
+          <mat-option *ngFor="let et of eventTypeOptions" [value]="et.value">
+            {{ et.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>State</mat-label>
+        <mat-select [(ngModel)]="filters.state" (selectionChange)="onStateChanged()">
+          <mat-option value="">All States</mat-option>
+          <mat-option *ngFor="let s of states" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field county-field">
+        <mat-label>{{ !filters.state ? 'County (select state)' : 'County (' + counties.length + ')' }}</mat-label>
+        <mat-select [(ngModel)]="filters.county" (selectionChange)="onFiltersChanged()" [disabled]="!filters.state">
+          <mat-option value="">All Counties</mat-option>
+          <mat-option *ngFor="let c of counties" [value]="c.name">
+            {{ c.name }}
+            <span class="county-event-count" *ngIf="c.eventCount > 0"> ({{ c.eventCount }})</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button (click)="clearFilters()" class="clear-btn">
+        <mat-icon>clear</mat-icon> Clear
+      </button>
+    </div>
+
+    <!-- Layer Toggles + Map -->
+    <div class="map-section">
+      <div class="layer-toggles">
+        <span class="toggle-label">Layers:</span>
+        <button
+          *ngFor="let et of eventTypeOptions"
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="layerVisible[et.value]"
+          [class.layer-empty]="getLayerCount(et.value) === 0"
+          [attr.data-type]="et.value"
+          (click)="toggleLayer(et.value)"
+        >
+          <span class="layer-dot" [attr.data-type]="et.value"></span>
+          {{ et.label }}
+          <span class="layer-count" *ngIf="getLayerCount(et.value) > 0">{{ getLayerCount(et.value) }}</span>
+          <span class="layer-none" *ngIf="getLayerCount(et.value) === 0">0</span>
+        </button>
+        <span class="toggle-divider">|</span>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="zipLayerVisible"
+          [class.layer-empty]="getLayerCount('zip') === 0 && !zipLayerLoading"
+          data-type="zipcode"
+          (click)="toggleZipLayer()"
+        >
+          <span class="layer-dot" data-type="zipcode"></span>
+          ZIP Codes
+          <span class="layer-count" *ngIf="getLayerCount('zip') > 0">{{ getLayerCount('zip') }}</span>
+          <mat-icon *ngIf="zipLayerLoading" class="spin-icon">sync</mat-icon>
+        </button>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="propertiesLayerVisible"
+          [class.layer-empty]="getLayerCount('properties') === 0 && !propertiesLoading"
+          data-type="properties"
+          (click)="togglePropertiesLayer()"
+        >
+          <span class="layer-dot" data-type="properties"></span>
+          Properties
+          <span class="layer-count" *ngIf="getLayerCount('properties') > 0">{{ getLayerCount('properties') }}</span>
+          <mat-icon *ngIf="propertiesLoading" class="spin-icon">sync</mat-icon>
+        </button>
+        <button
+          mat-stroked-button
+          class="layer-chip"
+          [class.active]="predictedClaimZonesLayerVisible"
+          [class.layer-empty]="getLayerCount('claim-zones') === 0"
+          data-type="claim-zones"
+          (click)="togglePredictedClaimZonesLayer()"
+        >
+          <span class="layer-dot" data-type="claim-zones"></span>
+          Claim Zones
+          <span class="layer-count" *ngIf="getLayerCount('claim-zones') > 0">{{ getLayerCount('claim-zones') }}</span>
+          <span class="layer-none" *ngIf="getLayerCount('claim-zones') === 0">0</span>
+        </button>
+      </div>
+
+      <div class="map-wrapper">
+        <!-- Empty state overlay on map when no storm events match filters -->
+        <div class="map-empty-overlay" *ngIf="!kpiLoading && isLiveStormData && events.length === 0">
+          <mat-icon>cloud_off</mat-icon>
+          <span>No storms match current filters</span>
+          <span class="map-empty-hint">Try a wider date range or different state</span>
+        </div>
+        <google-map
+          class="storm-map"
+          height="100%"
+          width="100%"
+          [center]="mapCenter"
+          [zoom]="mapZoom"
+          [options]="mapOptions"
+          (mapInitialized)="onMapReady()">
+
+          <!-- Hail circles -->
+          <ng-container *ngIf="layerVisible['hail']">
+            <map-circle *ngFor="let c of hailCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="onStormCircleClick(c)">
+            </map-circle>
+          </ng-container>
+
+          <!-- Wind circles -->
+          <ng-container *ngIf="layerVisible['wind']">
+            <map-circle *ngFor="let c of windCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="onStormCircleClick(c)">
+            </map-circle>
+          </ng-container>
+
+          <!-- Tornado circles -->
+          <ng-container *ngIf="layerVisible['tornado']">
+            <map-circle *ngFor="let c of tornadoCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="onStormCircleClick(c)">
+            </map-circle>
+          </ng-container>
+
+          <!-- Hurricane circles + tracks -->
+          <ng-container *ngIf="layerVisible['hurricane']">
+            <map-circle *ngFor="let c of hurricaneCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="onStormCircleClick(c)">
+            </map-circle>
+            <map-polyline *ngFor="let p of hurricanePolylines"
+              [path]="p.path" [options]="p.options">
+            </map-polyline>
+            <map-marker *ngFor="let m of hurricaneTrackPoints"
+              [position]="m.position" [options]="m.options">
+            </map-marker>
+          </ng-container>
+
+          <!-- Lightning circles -->
+          <ng-container *ngIf="layerVisible['lightning']">
+            <map-circle *ngFor="let c of lightningCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="onStormCircleClick(c)">
+            </map-circle>
+          </ng-container>
+
+          <!-- Properties -->
+          <ng-container *ngIf="propertiesLayerVisible">
+            <map-marker *ngFor="let m of propertyMarkerItems; let i = index"
+              [position]="m.position" [options]="m.options"
+              (mapClick)="onPropertyMarkerClick(i)">
+            </map-marker>
+          </ng-container>
+
+          <!-- Predicted claim zones -->
+          <ng-container *ngIf="predictedClaimZonesLayerVisible">
+            <map-circle *ngFor="let c of claimZoneCircles"
+              [center]="c.center" [radius]="c.radius" [options]="c.options"
+              (circleClick)="selectClaimZone(c.zone)">
+            </map-circle>
+            <map-marker *ngFor="let m of claimZoneExtraMarkers"
+              [position]="m.position" [options]="m.options"
+              (mapClick)="selectClaimZone(m.zone)">
+            </map-marker>
+          </ng-container>
+
+        </google-map>
+      </div>
+
+      <div class="zip-export-bar" *ngIf="zipLayerVisible && impactedZips.length > 0">
+        <span class="zip-count">
+          {{ impactedZips.length }} impacted ZIP{{ impactedZips.length !== 1 ? 's' : '' }}
+          <span *ngIf="selectedZips.size > 0">({{ selectedZips.size }} selected)</span>
+        </span>
+        <button mat-stroked-button class="zip-export-btn" (click)="exportImpactedZips()">
+          <mat-icon>download</mat-icon> Export All ZIPs
+        </button>
+        <button
+          mat-stroked-button
+          class="zip-export-btn"
+          [disabled]="selectedZips.size === 0"
+          (click)="exportSelectedZipsForCampaign()"
+        >
+          <mat-icon>campaign</mat-icon> Export Selected for Campaign
+        </button>
+        <button
+          mat-icon-button
+          *ngIf="selectedZips.size > 0"
+          (click)="clearZipSelection()"
+          matTooltip="Clear selection"
+        >
+          <mat-icon>deselect</mat-icon>
+        </button>
+      </div>
+
+      <div class="properties-export-bar" *ngIf="propertiesLayerVisible && impactedProperties.length > 0">
+        <span class="properties-count">
+          🏠 {{ impactedProperties.length }} properties in impact area
+          <span *ngIf="activePropertiesEvent"> — {{ activePropertiesEvent.title }}</span>
+        </span>
+
+        <button mat-stroked-button class="roof-analyze-btn"
+          [disabled]="roofAnalysisLoading"
+          (click)="analyzeRoofs()">
+          <mat-icon *ngIf="!roofAnalysisLoading">satellite_alt</mat-icon>
+          <mat-spinner *ngIf="roofAnalysisLoading" diameter="16" class="inline-spinner"></mat-spinner>
+          {{ roofAnalysisLoading ? 'Analyzing...' : 'Analyze Roofs' }}
+        </button>
+
+        <span *ngIf="roofAnalysisRun && !roofAnalysisLoading" class="analysis-summary-badge">
+          Avg Score: <strong>{{ getAverageScore() }}</strong>
+        </span>
+
+        <button mat-stroked-button class="properties-export-btn" (click)="exportImpactedProperties()">
+          <mat-icon>download</mat-icon> Export {{ roofAnalysisRun ? 'with Scores' : 'Addresses' }}
+        </button>
+        <button mat-stroked-button class="outreach-generate-btn"
+          [disabled]="!roofAnalysisRun || outreachLoading"
+          (click)="generateOutreachPack()">
+          <mat-icon *ngIf="!outreachLoading">campaign</mat-icon>
+          <mat-spinner *ngIf="outreachLoading" diameter="16" class="inline-spinner"></mat-spinner>
+          {{ outreachLoading ? 'Generating...' : 'Generate Outreach Pack' }}
+        </button>
+        <button mat-icon-button (click)="clearProperties()" matTooltip="Clear properties">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Outreach Pack Panel -->
+      <div class="outreach-pack-panel" *ngIf="outreachPack">
+        <div class="outreach-header">
+          <mat-icon class="outreach-header-icon">campaign</mat-icon>
+          <h4>Outreach Pack — {{ filteredOutreachTargets.length }} of {{ outreachPack.qualifiedTargets }} Targets</h4>
+          <span class="outreach-meta">
+            {{ outreachPack.analyzedProperties }} analyzed &middot; score &ge; {{ outreachDamageThreshold }}
+          </span>
+          <div class="outreach-actions">
+            <button mat-stroked-button class="outreach-action-btn" (click)="exportOutreachList()">
+              <mat-icon>download</mat-icon> Export Outreach List
+            </button>
+            <button mat-stroked-button class="outreach-action-btn" (click)="exportScoredProperties()">
+              <mat-icon>download</mat-icon> Export Scored Properties
+            </button>
+            <button mat-stroked-button class="outreach-action-btn" (click)="exportSkipTraceQueue()">
+              <mat-icon>person_search</mat-icon> Export Skip Trace Queue
+            </button>
+          </div>
+          <button mat-icon-button (click)="closeOutreachPack()" matTooltip="Close outreach pack">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Targeting Filters -->
+        <div class="outreach-filter-bar">
+          <div class="outreach-filter-group">
+            <label class="outreach-filter-label">Min Score</label>
+            <div class="outreach-slider-row">
+              <mat-slider min="0" max="100" step="5" discrete class="outreach-slider">
+                <input matSliderThumb [(ngModel)]="outreachMinScore" (valueChange)="applyOutreachFilters()">
+              </mat-slider>
+              <span class="outreach-slider-value">{{ outreachMinScore }}</span>
+            </div>
+          </div>
+
+          <div class="outreach-filter-group">
+            <label class="outreach-filter-label">Confidence</label>
+            <div class="outreach-chip-row">
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachConfidenceFilter === 'all'"
+                (click)="outreachConfidenceFilter = 'all'; applyOutreachFilters()">All</button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachConfidenceFilter === 'high'"
+                (click)="outreachConfidenceFilter = 'high'; applyOutreachFilters()">High</button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachConfidenceFilter === 'medium'"
+                (click)="outreachConfidenceFilter = 'medium'; applyOutreachFilters()">Medium</button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachConfidenceFilter === 'low'"
+                (click)="outreachConfidenceFilter = 'low'; applyOutreachFilters()">Low</button>
+            </div>
+          </div>
+
+          <div class="outreach-filter-group">
+            <label class="outreach-filter-label">Property Type</label>
+            <div class="outreach-chip-row">
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachPropertyTypeFilter === 'all'"
+                (click)="outreachPropertyTypeFilter = 'all'; applyOutreachFilters()">All</button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachPropertyTypeFilter === 'residential'"
+                (click)="outreachPropertyTypeFilter = 'residential'; applyOutreachFilters()">Residential</button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachPropertyTypeFilter === 'commercial'"
+                (click)="outreachPropertyTypeFilter = 'commercial'; applyOutreachFilters()">Commercial</button>
+            </div>
+          </div>
+
+          <div class="outreach-filter-group">
+            <label class="outreach-filter-label">Sort By</label>
+            <div class="outreach-chip-row">
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachSortBy === 'score'"
+                (click)="outreachSortBy = 'score'; applyOutreachFilters()">
+                <mat-icon class="chip-icon">trending_down</mat-icon> Highest Score
+              </button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachSortBy === 'recent'"
+                (click)="outreachSortBy = 'recent'; applyOutreachFilters()">
+                <mat-icon class="chip-icon">schedule</mat-icon> Most Recent
+              </button>
+              <button mat-stroked-button class="outreach-filter-chip"
+                [class.active]="outreachSortBy === 'distance'"
+                (click)="outreachSortBy = 'distance'; applyOutreachFilters()">
+                <mat-icon class="chip-icon">near_me</mat-icon> Closest
+              </button>
+            </div>
+          </div>
+
+          <button mat-stroked-button class="outreach-reset-btn" (click)="resetOutreachFilters()"
+            matTooltip="Reset all filters">
+            <mat-icon>restart_alt</mat-icon> Reset
+          </button>
+        </div>
+
+        <div class="outreach-summary-strip" *ngIf="filteredOutreachTargets.length > 0">
+          <span class="outreach-stat">
+            <strong>{{ filteredOutreachTargets.length }}</strong> targets shown
+          </span>
+          <span class="outreach-stat-divider">|</span>
+          <span class="outreach-stat">
+            Avg Score: <strong>{{ outreachAvgScore }}</strong>
+          </span>
+          <span class="outreach-stat-divider">|</span>
+          <span class="outreach-stat outreach-stat-severe">
+            <strong>{{ outreachSevereCount }}</strong> Severe (80+)
+          </span>
+        </div>
+
+        <div class="outreach-targets">
+          <div class="outreach-target-card" *ngFor="let target of filteredOutreachTargets.slice(0, 10); let i = index">
+            <div class="target-card-header">
+              <span class="outreach-rank">#{{ i + 1 }}</span>
+              <span class="outreach-address">{{ target.property.address }}, {{ target.property.city }}</span>
+              <span class="outreach-score-pill" [style.background]="getDamageColor(target.analysis.damage_label)">
+                {{ target.analysis.damage_score }} — {{ target.analysis.damage_label | uppercase }}
+              </span>
+            </div>
+            <mat-tab-group class="draft-tabs">
+              <mat-tab label="Email">
+                <pre class="draft-preview">{{ target.emailDraft }}</pre>
+              </mat-tab>
+              <mat-tab label="Text">
+                <pre class="draft-preview">{{ target.textDraft }}</pre>
+              </mat-tab>
+              <mat-tab label="Call Script">
+                <pre class="draft-preview">{{ target.callScript }}</pre>
+              </mat-tab>
+            </mat-tab-group>
+          </div>
+
+          <div *ngIf="filteredOutreachTargets.length > 10" class="outreach-overflow-note">
+            Showing top 10 of {{ filteredOutreachTargets.length }} filtered targets. Export the full list for all entries.
+          </div>
+
+          <div *ngIf="filteredOutreachTargets.length === 0 && outreachPack.qualifiedTargets > 0" class="outreach-empty">
+            No targets match the current filters. Try adjusting the controls above.
+          </div>
+
+          <div *ngIf="outreachPack.qualifiedTargets === 0" class="outreach-empty">
+            No properties met the damage threshold of {{ outreachDamageThreshold }}.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Potential Claims Rolling In -->
+    <div class="predicted-claims-section">
+      <div class="claims-section-header">
+        <div class="claims-header-left">
+          <mat-icon class="claims-bolt-icon">bolt</mat-icon>
+          <h3>Potential Claims Rolling In</h3>
+          <span class="claims-live-tag" *ngIf="isLiveClaimsData">LIVE FEED</span>
+          <span class="claims-offline-tag" *ngIf="!isLiveClaimsData && predictedClaimEvents.length === 0">
+            NO DATA &mdash; Connect NWS/SPC feeds
+          </span>
+        </div>
+        <div class="claims-header-stats">
+          <span class="claims-stat claims-stat-critical">
+            <strong>{{ getCriticalClaimEventCount() }}</strong> Critical
+          </span>
+          <span class="claims-stat-divider">|</span>
+          <span class="claims-stat">
+            <strong>{{ getActiveClaimZoneCount() }}</strong> Active Zones
+          </span>
+          <span class="claims-stat-divider">|</span>
+          <span class="claims-stat">
+            <strong>{{ getTotalClaimHomesAffected() | number }}</strong> Homes Affected
+          </span>
+        </div>
+      </div>
+
+      <div class="claims-grid">
+        <!-- Event Feed (Left) -->
+        <div class="event-feed-panel">
+          <div class="event-feed-title">
+            <mat-icon>rss_feed</mat-icon>
+            Incoming Events
+            <span class="event-feed-count">{{ predictedClaimEvents.length }}</span>
+          </div>
+          <div class="event-feed-list">
+            <div
+              class="event-card"
+              *ngFor="let event of predictedClaimEvents"
+              [style.border-left-color]="getClaimSeverityColor(event.severity)"
+            >
+              <div class="event-card-top">
+                <mat-icon class="event-type-icon" [style.color]="getClaimSeverityColor(event.severity)">
+                  {{ getClaimEventTypeIcon(event.eventType) }}
+                </mat-icon>
+                <span class="event-card-location">{{ event.city }}, {{ event.county }} {{ event.state }}</span>
+                <span class="event-card-time">{{ getClaimTimeAgo(event.timestamp) }}</span>
+              </div>
+              <div class="event-card-description">{{ event.description }}</div>
+              <div class="event-card-bottom">
+                <span
+                  class="event-severity-badge"
+                  [style.background]="getClaimSeverityColor(event.severity)"
+                >
+                  {{ event.severity | uppercase }}
+                </span>
+                <span class="event-prob">{{ event.claimProbability }}% claim probability</span>
+                <span class="event-source">{{ event.source }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Predicted Zones (Right) -->
+        <div class="zones-panel">
+          <div class="zones-panel-title">
+            <mat-icon>map</mat-icon>
+            Predicted Claim Zones
+            <span class="zones-panel-count">{{ predictedClaimZones.length }}</span>
+          </div>
+          <div class="zones-list">
+            <div
+              class="zone-card"
+              *ngFor="let zone of predictedClaimZones"
+              (click)="selectClaimZone(zone)"
+              [style.border-left-color]="getClaimSeverityColor(zone.severity)"
+            >
+              <div class="zone-card-top">
+                <span class="zone-priority-badge" [style.background]="getClaimPriorityColor(zone.priority)">
+                  {{ zone.priority }}
+                </span>
+                <span class="zone-card-name">{{ zone.name }}</span>
+                <span
+                  class="zone-auto-lead-badge"
+                  *ngIf="zone.autoLeadGenerated && (zone.priority === 'P1' || zone.priority === 'P2')"
+                  style="background:#10b981;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:4px;"
+                >Lead Sent</span>
+                <span class="zone-card-prob">{{ zone.claimProbability }}%</span>
+              </div>
+              <div class="zone-card-meta">
+                <mat-icon class="zone-type-icon">{{ getClaimEventTypeIcon(zone.eventType) }}</mat-icon>
+                <span>{{ getClaimEventTypeLabel(zone.eventType) }}</span>
+                <span class="zone-meta-sep">&middot;</span>
+                <span>{{ zone.county }}, {{ zone.state }}</span>
+                <span class="zone-meta-sep">&middot;</span>
+                <span>{{ zone.estimatedHomesAffected | number }} homes</span>
+              </div>
+              <div class="zone-card-bottom">
+                <span class="zone-trajectory">{{ zone.trajectory }}</span>
+                <span class="zone-zips">ZIPs: {{ zone.affectedZips.join(', ') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Detail Overlay -->
+    <div class="zone-detail-overlay" *ngIf="claimZonePanelOpen && selectedClaimZone" (click)="closeClaimZonePanel()">
+      <div class="zone-detail-panel" (click)="$event.stopPropagation()">
+        <div class="zone-detail-header">
+          <h4>{{ selectedClaimZone.name }}</h4>
+          <button mat-icon-button (click)="closeClaimZonePanel()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="zone-severity-bar" [style.background]="getClaimSeverityColor(selectedClaimZone.severity)">
+          <span>{{ selectedClaimZone.severity | uppercase }}</span>
+          <span>{{ selectedClaimZone.priority }}</span>
+          <span>{{ selectedClaimZone.claimProbability }}% Claim Probability</span>
+        </div>
+
+        <div class="zone-detail-grid">
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Event Type</span>
+            <span class="zone-detail-value">
+              <mat-icon class="zone-detail-icon">{{ getClaimEventTypeIcon(selectedClaimZone.eventType) }}</mat-icon>
+              {{ getClaimEventTypeLabel(selectedClaimZone.eventType) }}
+            </span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Location</span>
+            <span class="zone-detail-value">{{ selectedClaimZone.county }}, {{ selectedClaimZone.state }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Homes Affected</span>
+            <span class="zone-detail-value">{{ selectedClaimZone.estimatedHomesAffected | number }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Radius</span>
+            <span class="zone-detail-value">{{ (selectedClaimZone.radiusMeters / 1000) | number:'1.1-1' }} km</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Trajectory</span>
+            <span class="zone-detail-value">{{ selectedClaimZone.trajectory }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Affected ZIPs</span>
+            <span class="zone-detail-value">{{ selectedClaimZone.affectedZips.join(', ') }}</span>
+          </div>
+          <div class="zone-detail-item" *ngIf="selectedClaimZone.territoryName">
+            <span class="zone-detail-label">Territory</span>
+            <span class="zone-detail-value">{{ selectedClaimZone.territoryName }}</span>
+          </div>
+          <div class="zone-detail-item">
+            <span class="zone-detail-label">Reported</span>
+            <span class="zone-detail-value">{{ getClaimTimeAgo(selectedClaimZone.timestamp) }}</span>
+          </div>
+        </div>
+
+        <div class="zone-detail-item" *ngIf="selectedClaimZone.priority === 'P1' || selectedClaimZone.priority === 'P2'">
+          <span class="zone-detail-label">Auto-Lead Status</span>
+          <span class="zone-detail-value" *ngIf="selectedClaimZone.autoLeadGenerated" style="color:#10b981;">
+            <mat-icon style="font-size:16px;vertical-align:middle;margin-right:4px;">check_circle</mat-icon>
+            Lead auto-generated and distributed to agents
+          </span>
+          <span class="zone-detail-value" *ngIf="!selectedClaimZone.autoLeadGenerated" style="color:#9ca3af;">
+            <mat-icon style="font-size:16px;vertical-align:middle;margin-right:4px;">pending</mat-icon>
+            Pending auto-lead generation
+          </span>
+        </div>
+
+        <div class="zone-no-properties">
+          <mat-icon>home_work</mat-icon>
+          <span>No tracked properties linked to this zone yet.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Feed Column + Desk/Radar Column -->
+    <div class="bottom-row">
+      <!-- Left Column: Storm Feed + Live Feed -->
+      <div class="feed-column">
+        <!-- Storm Intelligence Feed -->
+        <div class="storm-feed-section">
+          <div class="feed-header">
+            <h3>
+              <mat-icon>rss_feed</mat-icon>
+              Storm Intelligence Feed
+            </h3>
+            <span class="feed-badge">LIVE</span>
+          </div>
+          <div class="feed-list" #feedList (mouseenter)="pauseFeedScroll()" (mouseleave)="resumeFeedScroll()">
+            <div class="feed-item" *ngFor="let alert of recentAlerts" (click)="focusFeedAlert(alert)">
+              <div class="feed-icon-wrap" [attr.data-type]="alert.type">
+                <mat-icon>{{ getEventTypeIcon(alert.type) }}</mat-icon>
+              </div>
+              <div class="feed-content">
+                <span class="feed-title">{{ alert.title }}</span>
+                <span class="feed-meta">{{ alert.source }} &middot; {{ alert.time }}</span>
+              </div>
+            </div>
+            <div class="feed-placeholder" *ngIf="recentAlerts.length === 0">
+              <mat-icon>cloud_queue</mat-icon>
+              <span>No recent storm alerts</span>
+            </div>
+          </div>
+          <p class="feed-disclaimer">
+            Data sourced from UPA Incident Intelligence Network.
+          </p>
+        </div>
+
+        <!-- UPA Storm Desk Live Feed -->
+        <div class="live-feed-panel">
+          <div class="live-feed-header">
+            <div class="live-feed-title-row">
+              <span class="live-feed-title">UPA Storm Desk Live Feed</span>
+              <span class="live-feed-badge">LIVE</span>
+            </div>
+            <span class="live-feed-subtitle">Real-time storm intelligence &middot; Auto-refreshing 10s</span>
+          </div>
+          <div class="live-feed-list">
+            <div
+              class="live-feed-item"
+              *ngFor="let item of liveFeedItems; trackBy: trackLiveFeedItem"
+              [class.live-feed-item-new]="item.isNew"
+              [attr.data-risk]="item.riskLevel"
+            >
+              <span class="live-feed-icon">{{ item.icon }}</span>
+              <div class="live-feed-content">
+                <div class="live-feed-top-row">
+                  <span class="live-feed-event-type">{{ item.eventType }}</span>
+                  <span class="live-feed-location">{{ item.county }}, {{ item.state }}</span>
+                </div>
+                <div class="live-feed-bottom-row">
+                  <span class="live-feed-score" [style.background]="getLiveFeedRiskColor(item.riskLevel)">
+                    {{ item.riskScore }}
+                  </span>
+                  <span class="live-feed-risk-label" [style.color]="getLiveFeedRiskColor(item.riskLevel)">
+                    {{ item.riskLevel | uppercase }}
+                  </span>
+                  <span class="live-feed-time">{{ item.timestamp }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="live-feed-empty" *ngIf="liveFeedItems.length === 0">
+              <span>Waiting for storm data...</span>
+            </div>
+          </div>
+          <div class="live-feed-footer">
+            <span class="live-feed-footer-text">UPA Incident Intelligence Network &middot; {{ liveFeedItems.length }} alerts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- UPA Storm Desk + Radar Column -->
+      <div class="desk-radar-column">
+      <div class="storm-desk-panel">
+        <div class="storm-desk-header">
+          <span class="storm-desk-title">UPA Storm Desk &#x26C8;&#xFE0F;</span>
+          <span class="storm-desk-badge">LIVE</span>
+        </div>
+        <div class="storm-desk-feed">
+          <div
+            class="storm-desk-item"
+            *ngFor="let item of stormDeskItems"
+            [attr.data-type]="item.type"
+            (click)="focusDeskItem(item)"
+          >
+            <div class="desk-item-icon" [attr.data-type]="item.type">
+              <mat-icon>{{ item.icon }}</mat-icon>
+            </div>
+            <div class="desk-item-content">
+              <span class="desk-item-label">{{ item.label }}</span>
+              <span class="desk-item-time">{{ item.time }}</span>
+              <div class="desk-item-metrics">
+                <span class="desk-claim-prob">Claim Prob: {{ item.claimProbability }}%</span>
+                <span class="desk-claims-badge">{{ item.claimEstimate }} est. claims</span>
+                <span class="desk-claim-range">{{ item.claimRange }}</span>
+                <span class="desk-risk-pill" [attr.data-risk]="item.riskLevel">{{ item.riskLevel | uppercase }}</span>
+              </div>
+            </div>
+            <div class="desk-item-prob" *ngIf="item.probability">
+              <div class="prob-bar">
+                <div
+                  class="prob-fill"
+                  [style.width.%]="item.probability"
+                  [attr.data-severity]="item.probability >= 80 ? 'extreme' : item.probability >= 60 ? 'high' : 'moderate'"
+                ></div>
+              </div>
+              <span class="prob-value">{{ item.probability }}%</span>
+            </div>
+          </div>
+          <div class="storm-desk-empty" *ngIf="stormDeskItems.length === 0">
+            <mat-icon>cloud_queue</mat-icon>
+            <span>No active storm intelligence</span>
+          </div>
+        </div>
+        <p class="storm-desk-footer">
+          UPA Incident Intelligence Network &middot; Auto-refreshing
+        </p>
+      </div>
+
+      <!-- Radar Panel -->
+      <div class="radar-panel">
+        <div class="radar-header">
+          <span class="radar-title">UPA STORM RADAR</span>
+          <span class="radar-status">SCANNING</span>
+        </div>
+        <div class="radar-scope">
+          <div class="radar-grid"></div>
+          <div class="radar-sweep"></div>
+          <div
+            class="radar-blip"
+            *ngFor="let blip of radarBlips"
+            [style.left.%]="blip.x"
+            [style.top.%]="blip.y"
+            [attr.data-intensity]="blip.intensity"
+          ></div>
+          <div class="radar-center"></div>
+        </div>
+        <div class="radar-legend">
+          <span class="radar-legend-text">{{ radarBlips.length }} active systems</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

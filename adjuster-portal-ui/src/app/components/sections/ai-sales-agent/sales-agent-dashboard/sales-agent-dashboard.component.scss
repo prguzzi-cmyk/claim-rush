@@ -1,0 +1,101 @@
+$bg-primary: #0a0e17;
+$bg-panel: #111827;
+$bg-panel-header: #1a2332;
+$border: #1e293b;
+$text-primary: #e2e8f0;
+$text-secondary: #94a3b8;
+$text-muted: #64748b;
+$accent-cyan: #00e5ff;
+$accent-green: #00e676;
+$accent-red: #ff1744;
+$accent-orange: #ff6d00;
+$accent-yellow: #ffd600;
+$accent-purple: #aa00ff;
+$accent-blue: #2979ff;
+
+.asa-dark { min-height: calc(100vh - 64px); background: $bg-primary; color: $text-primary; display: flex; flex-direction: column; }
+
+// ── HEADER ──
+.asa-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 28px 16px;
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+  .asa-subtitle { margin: 4px 0 0; font-size: 0.82rem; color: $text-secondary; } }
+.asa-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.asa-status { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: $accent-green; font-weight: 600; }
+.asa-count { font-size: 0.72rem; color: $text-muted; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: $accent-green; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+
+.asa-body { padding: 0 28px 28px; flex: 1; }
+
+// ── KPI STRIP ──
+.kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: $bg-panel; border: 1px solid $border; border-radius: 10px; padding: 16px;
+  position: relative; overflow: hidden;
+  .kpi-value { font-size: 1.6rem; font-weight: 800; color: #fff; }
+  .kpi-label { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; margin-top: 2px; }
+  .kpi-icon { position: absolute; top: 12px; right: 12px; font-size: 20px; color: rgba(0,229,255,0.2); }
+}
+
+// ── PIPELINE BAR ──
+.pipeline-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.pipeline-stage {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px;
+  background: $bg-panel; border: 1px solid $border; color: $text-secondary; cursor: pointer;
+  font-size: 0.75rem; font-weight: 500; transition: all 0.2s;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  .stage-count { background: rgba(255,255,255,0.08); padding: 1px 6px; border-radius: 4px; font-size: 0.65rem; }
+  &:hover { border-color: $accent-cyan; color: $text-primary; }
+  &.active { border-color: $accent-cyan; background: rgba(0,229,255,0.08); color: $accent-cyan;
+    .stage-count { background: rgba(0,229,255,0.2); color: $accent-cyan; } }
+}
+
+// ── SEARCH ──
+.search-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  background: $bg-panel; border: 1px solid $border; border-radius: 8px; padding: 0 12px;
+  .search-icon { color: $text-muted; font-size: 20px; }
+  .search-input { flex: 1; background: none; border: none; color: $text-primary; font-size: 0.82rem;
+    padding: 10px 0; outline: none;
+    &::placeholder { color: $text-muted; } }
+}
+
+// ── DARK PANEL ──
+.dark-panel { background: $bg-panel; border: 1px solid $border; border-radius: 10px; overflow: hidden; }
+.dark-panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: $bg-panel-header; border-bottom: 1px solid $border; font-weight: 600; font-size: 0.82rem; color: $text-primary;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $accent-cyan; }
+  .header-count { margin-left: auto; font-size: 0.68rem; color: $text-muted; font-weight: 400; } }
+
+// ── TABLE ──
+.table-wrap { overflow-x: auto; }
+.dark-table { width: 100%; border-collapse: collapse;
+  th { font-size: 0.68rem; color: $text-muted; text-transform: uppercase; padding: 8px 12px; text-align: left; border-bottom: 1px solid $border; white-space: nowrap; }
+  td { font-size: 0.78rem; color: $text-primary; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  tr.clickable-row { cursor: pointer; &:hover td { background: rgba(0,229,255,0.04); } }
+}
+.cell-name { font-weight: 500; }
+.cell-sub { font-size: 0.68rem; color: $text-muted; }
+
+// ── CLAIM TYPE CHIP ──
+.claim-type-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: $text-secondary;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; } }
+
+// ── BADGES ──
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; }
+.badge-cyan { background: rgba(0,229,255,0.15); color: $accent-cyan; }
+.badge-blue { background: rgba(41,121,255,0.15); color: $accent-blue; }
+.badge-green { background: rgba(0,230,118,0.15); color: $accent-green; }
+.badge-orange { background: rgba(255,109,0,0.15); color: $accent-orange; }
+.badge-purple { background: rgba(170,0,255,0.15); color: $accent-purple; }
+.badge-muted { background: rgba(100,116,139,0.15); color: $text-muted; }
+
+// ── SCORES ──
+.score { font-weight: 700; font-size: 0.82rem; }
+.score-high { color: $accent-green; }
+.score-mid { color: $accent-yellow; }
+.score-low { color: $accent-red; }
+.score-pending { color: $text-muted; }
+
+.msg-count { background: rgba(0,229,255,0.1); color: $accent-cyan; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+
+.empty-state { text-align: center; color: $text-muted; padding: 40px !important; font-style: italic; }

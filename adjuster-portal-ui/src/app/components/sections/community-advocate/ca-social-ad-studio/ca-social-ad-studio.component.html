@@ -1,0 +1,96 @@
+<div class="ca-tab-content">
+  <!-- Toggle -->
+  <div class="panel-toggle">
+    <mat-button-toggle-group [(ngModel)]="activePanel">
+      <mat-button-toggle value="social">Social Posts</mat-button-toggle>
+      <mat-button-toggle value="ads">Ad Creatives</mat-button-toggle>
+    </mat-button-toggle-group>
+    <button mat-raised-button color="primary" *ngIf="activePanel === 'social'" (click)="openComposer()">
+      <mat-icon>add</mat-icon> New Post
+    </button>
+  </div>
+
+  <!-- Social Posts Panel -->
+  <div *ngIf="activePanel === 'social' && !showComposer">
+    <div class="post-grid">
+      <mat-card *ngFor="let post of socialPosts" class="post-card">
+        <div class="post-header">
+          <mat-icon>{{ getPlatformIcon(post.platform) }}</mat-icon>
+          <span class="platform-name">{{ post.platform }}</span>
+          <span class="status-badge" [style.background-color]="getStatusColor(post.status)">{{ post.status }}</span>
+        </div>
+        <p class="post-content">{{ post.content }}</p>
+        <div class="post-engagement" *ngIf="post.status === 'published'">
+          <span><mat-icon>thumb_up</mat-icon> {{ post.engagement.likes }}</span>
+          <span><mat-icon>chat_bubble</mat-icon> {{ post.engagement.comments }}</span>
+          <span><mat-icon>share</mat-icon> {{ post.engagement.shares }}</span>
+          <span><mat-icon>visibility</mat-icon> {{ post.engagement.reach | number }}</span>
+        </div>
+        <div class="post-date" *ngIf="post.published_at">Published: {{ post.published_at }}</div>
+        <div class="post-date" *ngIf="post.scheduled_at">Scheduled: {{ post.scheduled_at }}</div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Post Composer -->
+  <mat-card *ngIf="showComposer" class="composer-card">
+    <mat-card-header>
+      <mat-card-title>Compose Post</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Platform</mat-label>
+        <mat-select [(ngModel)]="postForm.platform">
+          <mat-option value="facebook">Facebook</mat-option>
+          <mat-option value="instagram">Instagram</mat-option>
+          <mat-option value="linkedin">LinkedIn</mat-option>
+          <mat-option value="twitter">Twitter/X</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Content</mat-label>
+        <textarea matInput [(ngModel)]="postForm.content" rows="5"></textarea>
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeComposer()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="savePost()">Save Draft</button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Ad Creatives Panel -->
+  <div *ngIf="activePanel === 'ads'">
+    <div class="ad-grid">
+      <mat-card *ngFor="let ad of adCreatives" class="ad-card">
+        <div class="ad-header">
+          <mat-icon>{{ getPlatformIcon(ad.platform) }}</mat-icon>
+          <span class="platform-name">{{ ad.platform }}</span>
+          <span class="status-badge" [style.background-color]="getStatusColor(ad.status)">{{ ad.status }}</span>
+        </div>
+        <h3>{{ ad.headline }}</h3>
+        <p class="ad-body">{{ ad.body }}</p>
+        <div class="ad-cta">
+          <button mat-stroked-button disabled>{{ ad.cta }}</button>
+        </div>
+        <div class="ad-metrics">
+          <div class="metric">
+            <span class="metric-value">{{ ad.impressions | number }}</span>
+            <span class="metric-label">Impressions</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ ad.clicks | number }}</span>
+            <span class="metric-label">Clicks</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">{{ ad.conversions }}</span>
+            <span class="metric-label">Conversions</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">${{ ad.budget_daily }}/day</span>
+            <span class="metric-label">Budget</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+</div>

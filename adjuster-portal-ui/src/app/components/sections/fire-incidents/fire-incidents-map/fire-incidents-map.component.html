@@ -1,0 +1,32 @@
+<div class="map-wrapper">
+  <!-- Map controls -->
+  <div class="map-controls">
+    <button mat-stroked-button (click)="loadIncidents()">
+      <mat-icon>refresh</mat-icon> Refresh
+    </button>
+
+    <span class="incident-count" *ngIf="!isLoading">
+      <mat-icon class="count-icon">local_fire_department</mat-icon>
+      {{ incidents.length }} incidents on map ({{ totalIncidents }} total)
+    </span>
+
+    <mat-progress-spinner *ngIf="isLoading" diameter="24" mode="indeterminate"></mat-progress-spinner>
+  </div>
+
+  <!-- Google Map -->
+  <google-map
+    class="fire-map"
+    height="100%"
+    width="100%"
+    [center]="mapCenter"
+    [zoom]="mapZoom"
+    [options]="mapOptions"
+    (mapInitialized)="onMapReady()">
+    <map-marker
+      *ngFor="let m of mapMarkers; let i = index"
+      [position]="m.position"
+      [options]="m.options"
+      (mapClick)="onMarkerClick(i)">
+    </map-marker>
+  </google-map>
+</div>

@@ -1,0 +1,98 @@
+@use '../../../../styles/variables' as *;
+
+.task-board {
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .status-column {
+    width: 24%;
+  }
+
+  .load-more {
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  .drawer {
+    width: 100%;
+    max-width: 50vw; /* Ensure the drawer takes no more than half the viewport width */
+    padding: 20px;
+  }
+
+  .priority-high {
+    color: red;
+  }
+
+  .primary-button {
+    background-color: $primary-color;
+    color: white;
+  }
+  
+  .warn-button {
+    background-color: red;
+    color: white;
+  }
+  
+  .green-button {
+    background-color: green;
+    color: white;
+  }
+
+  .orange-button {
+    background-color: orange;
+    color: white;
+  }
+
+  .orange {
+    color: orange;
+  }
+  
+  .red {
+    color: red;
+  }
+  
+  .green {
+    color: green;
+  }
+
+  .primary-button:hover,
+.warn-button:hover,
+.green-button:hover {
+  opacity: 0.8;
+}
+
+.user {
+  font-weight: 600;
+}
+
+  .wrapped-button {
+    white-space: normal;
+    text-align: left; /* Optional: Center-align the text */
+    width: 100%;
+    height: auto; /* Ensure the height adjusts to the content */
+    line-height: normal; /* Adjust line height for better readability */
+    padding: 10px 16px; /* Optional: Add some padding */
+    font-weight: 600;
+  }
+  
+  .task-list {
+    max-height: 600px; /* Adjust this value as needed */
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 3px;
+
+  }
+  
+  .task-item {
+    border: 1px solid #a9a9a9;
+    margin: 2px 2px 15px 2px;
+    padding: 10px;
+    cursor: move;
+    border-radius: 3px;
+
+  }
+
+  .example-container {
+    height: 100%;
+  }

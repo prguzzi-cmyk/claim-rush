@@ -1,0 +1,138 @@
+services:
+  proxy:
+    ports:
+      - "80:80"
+      - "8090:8080"
+    command:
+      # Enable Docker in Traefik, so that it reads labels from Docker services
+      - --providers.docker
+      # Add a constraint to only use services with the label for this stack
+      # from the env var TRAEFIK_TAG
+      - --providers.docker.constraints=Label(`traefik.constraint-label-stack`, `${TRAEFIK_TAG?Variable not set}`)
+      # Do not expose all Docker services, only the ones explicitly exposed
+      - --providers.docker.exposedbydefault=false
+      # Disable Docker Swarm mode for local development
+      # - --providers.docker.swarmmode
+      # Enable the access log, with HTTP requests
+      - --accesslog
+      # Enable the Traefik log, for configurations and errors
+      - --log
+      # Enable the Dashboard and API
+      - --api
+      # Enable the Dashboard and API in insecure mode for local development
+      - --api.insecure=true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-traefik-public-http.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-traefik-public.loadbalancer.server.port=80
+
+  db:
+    ports:
+      - "5432:5432"
+
+  queue:
+    ports:
+      - "5672:5672"
+
+  pgadmin:
+    ports:
+      - "5050:5050"
+
+  flower:
+    ports:
+      - "5555:5555"
+
+  backend:
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./backend/app:/app
+    environment:
+      - POSTGRES_SERVER=db
+      - JUPYTER=jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
+      - SERVER_HOST=http://${DOMAIN?Variable not set}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend.dev
+      args:
+        POETRY_VERSION: ${POETRY_VERSION-1.4.2}
+        INSTALL_DEV: ${INSTALL_DEV-true}
+        INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
+    labels:
+      - traefik.enable=true
+      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=PathPrefix(`/api`) || PathPrefix(`/docs`) || PathPrefix(`/redoc`)
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=80
+
+  celery-worker:
+    volumes:
+      - ./backend/app:/app
+    environment:
+      - POSTGRES_SERVER=db
+      - RUN=celery worker -A app.worker -l info -Q main-queue,schedule,pulsepoint-queue -c 4
+      - JUPYTER=jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
+      - SERVER_HOST=http://${DOMAIN?Variable not set}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.celery.dev
+      args:
+        POETRY_VERSION: ${POETRY_VERSION-1.4.2}
+        INSTALL_DEV: ${INSTALL_DEV-true}
+        INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
+
+  celery-beat:
+    volumes:
+      - ./backend/app:/app
+    environment:
+      - POSTGRES_SERVER=db
+      - RUN=celery beat -A app.worker -l info --scheduler celery.beat:PersistentScheduler
+      - SERVER_HOST=http://${DOMAIN?Variable not set}
+    env_file:
+      - .env
+    depends_on:
+      - queue
+      - db
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.celery.dev
+      args:
+        POETRY_VERSION: ${POETRY_VERSION-1.4.2}
+        INSTALL_DEV: ${INSTALL_DEV-true}
+        INSTALL_JUPYTER: ${INSTALL_JUPYTER-true}
+
+  node:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.node.dev
+    volumes:
+      - ./backend/app/app/email-templates:/app/email-templates
+    tty: true
+    profiles:
+      - node
+
+  frontend:
+    build:
+      context: ../next-app
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../next-app/src:/app/src
+      - ../next-app/public:/app/public
+    environment:
+      - FASTAPI_URL=http://backend:8888
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY}
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+    depends_on:
+      - backend
+
+  terraform:
+    image: hashicorp/terraform:1.4
+    env_file:
+      - ${TF_ENV-staging}.env
+    volumes:
+      - ./terraform/backend:/app
+    profiles:
+      - terraform

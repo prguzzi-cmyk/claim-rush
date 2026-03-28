@@ -1,0 +1,108 @@
+<div class="alert alert-warning" role="alert" *ngIf="!this.userService.getUserPermissions('permission', 'read')">
+  We regret to inform you that access to this section of our website is restricted.
+  It appears that you do not have the necessary permissions to view this content.
+</div>
+
+<div *ngIf="this.userService.getUserPermissions('permission', 'read')">
+
+  <p class="mat-headline-4 section-title">Permissions</p>
+  <ul class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+    </li>
+    <li class="breadcrumb-item"><a href="javascript:">Administration</a>
+    </li>
+    <li class="breadcrumb-item"><a href="javascript:">Permissions</a>
+    </li>
+  </ul>
+  <mat-card appearance="outlined" *ngxPermissionsOnly="['super-admin']">
+    <div class="row">
+      <div class="col-10"></div>
+      <div class="col-2 text-end">
+        
+      </div>
+    </div>
+    <mat-card-header>
+      <mat-card-title>Manage user Permissions</mat-card-title>
+      <button mat-raised-button color="primary" (click)="openPermissionAddDialog()">Add permission</button>
+
+    </mat-card-header>
+
+    <mat-card-content>
+      <table mat-table [dataSource]="dataSource" class="permissions-table">
+
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index;">{{ ((pageIndex - 1) * pageSize) + (i + 1) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="module">
+          <th mat-header-cell *matHeaderCellDef>Module name</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.module.replace('_',' ') | titlecase}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Display name</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">{{permission.name}}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="operation">
+          <th mat-header-cell *matHeaderCellDef>Operation</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.operation}}</td>
+        </ng-container>
+        <!--
+      <ng-container matColumnDef="is_removed">
+        <th mat-header-cell *matHeaderCellDef>Permissions Rmoved</th>
+        <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+          <div>
+            <mat-slide-toggle [checked]="!!+permission.is_removed" disabled color="primary"></mat-slide-toggle>
+          </div>
+        </td>
+      </ng-container> -->
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Created</th>
+          <td mat-cell *matCellDef="let permission" (click)="openPermissionViewDialog(permission)">
+            {{permission.created_at |
+            date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="updated_at">
+          <th mat-header-cell *matHeaderCellDef>Last updated</th>
+          <td mat-cell *matCellDef="let permission" class="last-active-cell"><span
+              *ngIf="!permission.updated_at">-</span>{{permission.updated_at | date: 'MMMM dd, yyyy'}}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="edit">
+          <th mat-header-cell *matHeaderCellDef>Edit</th>
+          <td mat-cell *matCellDef="let permission">
+            <button mat-icon-button [disabled]="!!+permission.is_removed" (click)="openPermissionEditDialog(permission)"
+              matTooltip="Edit {{permission.display_name}}"><mat-icon>edit</mat-icon></button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="delete">
+          <th mat-header-cell *matHeaderCellDef>Delete</th>
+          <td mat-cell *matCellDef="let permission">
+            <div>
+              <button color="warn" mat-icon-button [disabled]="!permission.can_be_removed || !!+permission.is_removed"
+                (click)="openPermissionDeleteDialog(permission)"><mat-icon>delete</mat-icon></button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <app-paginator #paginator [totalItems]="totalRecords" (pageChange)="onPageChange($event)"></app-paginator>
+
+    </mat-card-content>
+
+    <mat-card-actions>
+    </mat-card-actions>
+  </mat-card>
+</div>

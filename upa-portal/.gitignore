@@ -1,0 +1,8 @@
+# Runtime files
+celerybeat-schedule.db
+*.pyc
+__pycache__/
+.env
+
+# Generated media (roof analysis images, etc.)
+backend/app/media/

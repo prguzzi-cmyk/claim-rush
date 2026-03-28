@@ -1,0 +1,82 @@
+
+
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">Schedules</p>
+
+<ul class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">Administration</a>
+  </li>
+  <li class="breadcrumb-item"><a
+    href="javascript:">Schedules</a>
+  </li>
+</ul>
+    </div>
+    <div class="col-2 text-end">
+      <button mat-mini-fab matTooltip="Add new schedule" color="primary" (click)="addSchedule()" ><mat-icon>add</mat-icon></button>
+    </div>
+  </div>
+  
+  <mat-card-content>
+    <table mat-table [dataSource]="schedules" class="table-width">
+
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+        <td mat-cell *matCellDef="let element" (click)="openScheduleViewDialog(element)"><strong>{{element.title}}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="goal">
+        <th mat-header-cell *matHeaderCellDef>Goal</th>
+        <td mat-cell *matCellDef="let element" (click)="openScheduleViewDialog(element)"><strong>{{element.goal}}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="day_number">
+        <th mat-header-cell *matHeaderCellDef>Day</th>
+        <td mat-cell *matCellDef="let element" (click)="openScheduleDialog(element)">{{element.day_number}}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="is_active">
+        <th mat-header-cell *matHeaderCellDef>Active</th>
+        <td mat-cell *matCellDef="let element">
+          <div>
+            <mat-slide-toggle [checked]="!!+element.is_active" disabled color="primary"></mat-slide-toggle>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="can_be_removed">
+        <th mat-header-cell *matHeaderCellDef>Removed</th>
+        <td mat-cell *matCellDef="let element">
+            <mat-slide-toggle [checked]="!!+element.can_be_removed" disabled color="primary"></mat-slide-toggle>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button (click)="editSchedule(element)"
+            matTooltip="Edit {{element.title}}"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Delete</th>
+        <td mat-cell *matCellDef="let element">
+          <div>
+            <button mat-icon-button [disabled]="!element.can_be_removed || !!+element.is_removed"  matTooltip="Delete {{element.title}}"
+              (click)="openScheduleDeleteDialog(element)"><mat-icon>delete</mat-icon></button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </mat-card-content>
+
+</mat-card>

@@ -1,0 +1,32 @@
+.add-form {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .flex-field {
+    min-width: 120px;
+    flex: 1;
+  }
+
+  .flex-field-wide {
+    min-width: 200px;
+    flex: 2;
+  }
+}
+
+.agencies-table {
+  width: 100%;
+}
+
+mat-dialog-content {
+  min-width: 580px;
+}

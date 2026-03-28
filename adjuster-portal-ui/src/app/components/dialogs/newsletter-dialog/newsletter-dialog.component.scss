@@ -1,0 +1,31 @@
+.newsletter-form {
+  display: flex;
+  flex-direction: column;
+
+  .mat-mdc-dialog-actions {
+    display: block;
+
+    .action-row {
+        width: 100%;
+        margin: .5em 0;
+    }
+  }
+
+}
+
+.newsletter-table {
+  width: 100%;
+
+  th,
+  td {
+    overflow: hidden;
+    max-width: 300px;
+  }
+
+  .last-active-cell {
+    &:first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+}

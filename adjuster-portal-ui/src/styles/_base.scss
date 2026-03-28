@@ -1,0 +1,87 @@
+@use "./mixins" as *;
+@use './variables' as *;
+
+// ═══════════════════════════════════════════════════════════════
+// Base styles — element-level only.
+// Material component overrides are in _theme.scss (the ONE place).
+// ═══════════════════════════════════════════════════════════════
+
+// ── Root & Body ──
+:root {
+  --bs-body-font-size: 14px !important;
+  --bs-body-font-family: var(--font-sans);
+  --bs-body-bg: var(--surface-page);
+  --bs-body-color: var(--text-primary);
+}
+
+body {
+  margin: 0;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--surface-page) !important;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-normal);
+  color: var(--text-primary) !important;
+}
+
+// ── Snackbars ──
+.snackbar-error {
+  background: #b00020;
+}
+
+.success-snackbar {
+  white-space: pre-wrap;
+}
+
+// ── Definition Lists ──
+dl {
+  color: var(--color-slate-600);
+  font-size: var(--text-base);
+}
+
+dd {
+  color: var(--color-slate-500);
+}
+
+// ── Links ──
+a {
+  color: var(--color-primary-600);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary-700);
+  }
+}
+
+// ── Sign-in Button ──
+a.sign-in-btn {
+  display: inline-block;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  text-transform: capitalize;
+  color: #fff;
+  background: $primary-color;
+  transition: background-color 300ms ease;
+
+  &:hover {
+    color: #fff !important;
+    background-color: rgba($color: $primary-color, $alpha: 0.8);
+  }
+
+  &.sign-in-btn-sm {
+    padding: 12px 24px;
+  }
+
+  &.sign-in-btn-lg {
+    padding: 16px 64px;
+    font-size: 18px;
+  }
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  color: #fff;
+}

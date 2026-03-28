@@ -1,0 +1,512 @@
+// ══════════════════════════════════════════════════════════════════
+// CLIENT PORTAL ENTRANCE — Premium, Futuristic, Mobile-First
+// ══════════════════════════════════════════════════════════════════
+
+$bg-dark: #06080f;
+$card-bg: rgba(255, 255, 255, 0.04);
+$card-border: rgba(255, 255, 255, 0.08);
+$glass-bg: rgba(255, 255, 255, 0.97);
+$accent: #1565c0;
+$accent-light: #42a5f5;
+$accent-glow: rgba(21, 101, 192, 0.3);
+$gold: #c9a84c;
+$text-white: #ffffff;
+$text-white-70: rgba(255, 255, 255, 0.7);
+$text-white-40: rgba(255, 255, 255, 0.4);
+$text-white-15: rgba(255, 255, 255, 0.15);
+$text-dark: #111827;
+$text-mid: #6b7280;
+$text-muted: #9ca3af;
+$green: #2e7d32;
+$radius-lg: 24px;
+
+// ── PAGE ──
+.cpe-page {
+  min-height: 100vh;
+  background: $bg-dark;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+// ══════ ANIMATED BACKGROUND ══════
+.cpe-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.cpe-gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+
+  &.cpe-orb-1 {
+    width: 600px;
+    height: 600px;
+    background: $accent;
+    opacity: 0.07;
+    top: -200px;
+    right: -100px;
+    animation: orbFloat1 20s ease-in-out infinite;
+  }
+
+  &.cpe-orb-2 {
+    width: 500px;
+    height: 500px;
+    background: #7c3aed;
+    opacity: 0.05;
+    bottom: -150px;
+    left: -150px;
+    animation: orbFloat2 24s ease-in-out infinite;
+  }
+
+  &.cpe-orb-3 {
+    width: 300px;
+    height: 300px;
+    background: $gold;
+    opacity: 0.04;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: orbFloat3 18s ease-in-out infinite;
+  }
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-40px, 30px); }
+  66% { transform: translate(20px, -20px); }
+}
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -40px); }
+}
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+// Subtle grid pattern
+.cpe-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridDrift 60s linear infinite;
+}
+
+@keyframes gridDrift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(60px, 60px); }
+}
+
+// ── ROTATING MESSAGES ──
+.cpe-rotating-messages {
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 1;
+  height: 24px;
+}
+
+.cpe-rotating-msg {
+  position: absolute;
+  width: 100%;
+  font-size: 0.82rem;
+  color: $text-white-40;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.8s ease;
+
+  &.cpe-msg-active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ══════ CENTER CONTENT ══════
+.cpe-center {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// ── BRAND ──
+.cpe-brand {
+  margin-bottom: 28px;
+}
+
+.cpe-brand-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, $accent, $accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px $accent-glow;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: $text-white;
+  }
+}
+
+// ══════ GLASS CARD ══════
+.cpe-card {
+  width: 100%;
+  background: $glass-bg;
+  border-radius: $radius-lg;
+  padding: 36px 32px;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: cardAppear 0.5s ease;
+}
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cpe-card-header {
+  text-align: center;
+  margin-bottom: 28px;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $text-dark;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: $text-mid;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ── FORM ──
+.cpe-form {
+  animation: formFade 0.3s ease;
+}
+
+@keyframes formFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cpe-input-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $text-mid;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+}
+
+.cpe-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 54px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  transition: all 0.2s;
+
+  &:focus-within {
+    border-color: $accent;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $text-muted;
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    color: $text-dark;
+    outline: none;
+    font-family: inherit;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+
+  &.cpe-code-input {
+    input {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+  }
+}
+
+.cpe-error {
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: #dc2626;
+  margin-bottom: 12px;
+}
+
+// ── BUTTONS ──
+.cpe-btn {
+  width: 100%;
+  height: 54px;
+  border-radius: 14px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.cpe-btn-primary {
+  background: $accent;
+  color: #fff;
+  box-shadow: 0 4px 14px $accent-glow;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(21, 101, 192, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+.cpe-btn-secondary {
+  background: #f3f4f6;
+  color: $text-mid;
+  margin-top: 10px;
+
+  mat-icon { color: $text-muted; }
+
+  &:hover:not(:disabled) {
+    background: #e5e7eb;
+    color: $text-dark;
+  }
+}
+
+// ── BUTTON HINT ──
+.cpe-btn-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: $text-muted;
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+// ── DIVIDER ──
+.cpe-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 18px 0 8px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+  }
+
+  span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}
+
+// ── SENT STATE ──
+.cpe-sent-state {
+  text-align: center;
+  padding: 8px 0 20px;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: $text-dark;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: $text-mid;
+    margin: 0 0 6px;
+    line-height: 1.5;
+
+    strong {
+      color: $text-dark;
+    }
+  }
+}
+
+.cpe-sent-hint {
+  font-size: 0.78rem !important;
+  color: $text-muted !important;
+}
+
+.cpe-sent-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: $accent;
+  }
+
+  &.sms-icon {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    mat-icon { color: $green; }
+  }
+}
+
+// ── TRUST BAR ──
+.cpe-trust {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.cpe-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: $text-white-40;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: $text-white-40;
+  }
+}
+
+// ══════ RESPONSIVE ══════
+@media (min-width: 768px) {
+  .cpe-card {
+    padding: 44px 40px;
+  }
+
+  .cpe-card-header h1 {
+    font-size: 1.625rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cpe-center {
+    padding: 16px;
+  }
+
+  .cpe-card {
+    padding: 28px 22px;
+    border-radius: 20px;
+  }
+
+  .cpe-card-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .cpe-btn {
+    height: 50px;
+    font-size: 0.875rem;
+  }
+
+  .cpe-input-wrap {
+    height: 50px;
+  }
+
+  .cpe-trust {
+    gap: 14px;
+  }
+
+  .cpe-trust-item {
+    font-size: 0.6rem;
+  }
+
+  .cpe-rotating-messages {
+    bottom: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .cpe-trust {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+}

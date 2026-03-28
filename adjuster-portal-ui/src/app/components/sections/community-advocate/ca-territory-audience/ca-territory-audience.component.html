@@ -1,0 +1,110 @@
+<div class="ca-tab-content">
+  <div class="territory-grid">
+    <!-- Map -->
+    <mat-card class="map-card">
+      <mat-card-header>
+        <mat-card-title>Territory Map</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="map-wrapper">
+          <google-map
+            class="territory-map"
+            height="100%"
+            width="100%"
+            [center]="mapCenter"
+            [zoom]="mapZoom"
+            [options]="mapOptions"
+            (mapInitialized)="onMapReady()">
+            <map-circle
+              *ngFor="let c of territoryCircles; let i = index"
+              [center]="c.center"
+              [radius]="c.radius"
+              [options]="c.options"
+              (circleClick)="onCircleClick(i)">
+            </map-circle>
+          </google-map>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Territory Stats -->
+    <mat-card class="stats-card">
+      <mat-card-header>
+        <mat-card-title>Territory Stats</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="territories" class="stats-table">
+          <ng-container matColumnDef="territory">
+            <th mat-header-cell *matHeaderCellDef>Territory</th>
+            <td mat-cell *matCellDef="let row">{{ row.territory_name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="advocate">
+            <th mat-header-cell *matHeaderCellDef>Advocate</th>
+            <td mat-cell *matCellDef="let row">{{ row.advocate_name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="homeowners">
+            <th mat-header-cell *matHeaderCellDef>Homeowners</th>
+            <td mat-cell *matCellDef="let row">{{ row.homeowner_count | number }}</td>
+          </ng-container>
+          <ng-container matColumnDef="saturation">
+            <th mat-header-cell *matHeaderCellDef>Saturation</th>
+            <td mat-cell *matCellDef="let row">{{ row.saturation * 100 | number:'1.0-0' }}%</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['territory','advocate','homeowners','saturation']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['territory','advocate','homeowners','saturation'];"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Audience Segments -->
+  <mat-card class="segments-card">
+    <mat-card-header>
+      <mat-card-title>Audience Segments</mat-card-title>
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="openSegmentForm()">
+        <mat-icon>add</mat-icon> New Segment
+      </button>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="segment-list">
+        <div class="segment-item" *ngFor="let seg of segments">
+          <div class="segment-info">
+            <h3>{{ seg.name }}</h3>
+            <p>{{ seg.description }}</p>
+            <div class="segment-filters">
+              <mat-chip *ngFor="let f of seg.filters">{{ f.field }}: {{ f.value }}</mat-chip>
+            </div>
+          </div>
+          <div class="segment-reach">
+            <span class="reach-value">{{ seg.estimated_reach | number }}</span>
+            <span class="reach-label">Est. Reach</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Segment Builder Form -->
+  <mat-card *ngIf="showSegmentForm" class="form-card">
+    <mat-card-header>
+      <mat-card-title>New Audience Segment</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Segment Name</mat-label>
+          <input matInput [(ngModel)]="segmentForm.name">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-2">
+          <mat-label>Description</mat-label>
+          <input matInput [(ngModel)]="segmentForm.description">
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeSegmentForm()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveSegment()">Create Segment</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

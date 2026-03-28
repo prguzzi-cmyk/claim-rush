@@ -1,0 +1,333 @@
+<div class="claim-recovery-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h2>
+        <mat-icon class="header-icon">account_balance</mat-icon>
+        Claim Recovery Dashboard
+      </h2>
+      <p class="subtitle">
+        Financial recovery performance across all carrier comparisons
+      </p>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="status-filter-field" *ngIf="metrics">
+        <mat-select placeholder="All Statuses" [value]="statusFilter"
+          (selectionChange)="onStatusFilterChange($event.value)">
+          <mat-option [value]="null">All Statuses</mat-option>
+          <mat-option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button class="refresh-btn" (click)="loadDashboard()">
+        <mat-icon>refresh</mat-icon> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Loading recovery data...</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <ng-container *ngIf="!loading && metrics">
+
+    <!-- Status Breakdown KPI Cards -->
+    <div class="status-kpi-grid">
+      <div class="status-kpi-card" *ngFor="let s of statusBreakdown" [style.borderTopColor]="s.color"
+           (click)="onQuickFilterChange(s.status === 'supplement_requested' ? 'supplements_active' : s.status === 'carrier_review' ? 'awaiting_carrier' : s.status === 'partial_payment' ? 'payments_pending' : s.status === 'fully_recovered' ? 'closed' : 'active')">
+        <div class="status-kpi-header">
+          <mat-icon [style.color]="s.color">{{ s.icon }}</mat-icon>
+          <span class="status-kpi-title">{{ s.label }}</span>
+          <span class="status-kpi-count" [style.backgroundColor]="s.color">{{ s.count }}</span>
+        </div>
+        <div class="status-kpi-metrics">
+          <div class="status-kpi-metric">
+            <span class="status-metric-value">{{ fmtCurrency(s.aciTotal) }}</span>
+            <span class="status-metric-label">ACI Value</span>
+          </div>
+          <div class="status-kpi-metric">
+            <span class="status-metric-value">{{ fmtCurrency(s.remaining) }}</span>
+            <span class="status-metric-label">Remaining</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-aci"><mat-icon>request_quote</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(totalAciEstimate) }}</span>
+          <span class="kpi-label">Total ACI Estimate</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-carrier"><mat-icon>business</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(totalCarrierEstimate) }}</span>
+          <span class="kpi-label">Total Carrier Estimate</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-recovered"><mat-icon>payments</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(totalPaymentsReceived) }}</span>
+          <span class="kpi-label">Total Payments Received</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-recoverable"><mat-icon>trending_up</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(totalRemainingRecoverable) }}</span>
+          <span class="kpi-label">Remaining Recoverable</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon-pct"><mat-icon>percent</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ avgRecoveryPct | number:'1.1-1' }}%</span>
+          <span class="kpi-label">Average Recovery %</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Grid (only when there's financial data to visualize) -->
+    <div class="charts-grid" *ngIf="totalAciEstimate > 0">
+
+      <!-- Bar: Claims by Recovery Status -->
+      <div class="chart-panel panel-card" *ngIf="hasNonZeroChartValues(statusBarChartData)">
+        <div class="panel-header">
+          <mat-icon>bar_chart</mat-icon> Claims by Recovery Status
+        </div>
+        <div class="chart-container">
+          <ngx-charts-bar-vertical [results]="statusBarChartData" [scheme]="statusBarColorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+      </div>
+
+      <!-- Pie: Recovery Phase Distribution -->
+      <div class="chart-panel panel-card" *ngIf="statusChartData.length > 0">
+        <div class="panel-header">
+          <mat-icon>pie_chart</mat-icon> Recovery Phase Distribution
+        </div>
+        <div class="chart-container">
+          <ngx-charts-pie-chart [results]="statusChartData" [scheme]="statusColorScheme"
+            [legend]="true" [legendPosition]="'below'" [labels]="true"
+            [doughnut]="true" [arcWidth]="0.4">
+          </ngx-charts-pie-chart>
+        </div>
+      </div>
+
+      <!-- Line: Recovery % Over Time -->
+      <div class="chart-panel panel-card" *ngIf="hasTimelineData">
+        <div class="panel-header">
+          <mat-icon>show_chart</mat-icon> Recovery % Over Time
+        </div>
+        <div class="chart-container">
+          <ngx-charts-line-chart
+            [results]="[{ name: 'Avg Recovery %', series: recoveryTimelineData }]"
+            [scheme]="timelineColorScheme"
+            [xAxis]="true" [yAxis]="true"
+            [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [autoScale]="true"
+            [gradient]="true"
+            [roundDomains]="true">
+          </ngx-charts-line-chart>
+        </div>
+      </div>
+
+      <!-- Bar: Recoverable vs Recovered -->
+      <div class="chart-panel panel-card" *ngIf="barChartData.length > 0 && totalPaymentsReceived + totalRemainingRecoverable > 0">
+        <div class="panel-header">
+          <mat-icon>compare_arrows</mat-icon> Recoverable vs Recovered
+        </div>
+        <div class="chart-container">
+          <ngx-charts-bar-vertical [results]="barChartData" [scheme]="colorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+      </div>
+
+      <!-- Bar: Recovery by Adjuster -->
+      <div class="chart-panel panel-card" *ngIf="adjusterChartData.length > 0 && totalPaymentsReceived > 0">
+        <div class="panel-header">
+          <mat-icon>people</mat-icon> Recovery by Adjuster
+        </div>
+        <div class="chart-container">
+          <ngx-charts-bar-vertical [results]="adjusterChartData" [scheme]="adjusterColorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+      </div>
+
+      <!-- Gauge: Recovery Rate -->
+      <div class="chart-panel panel-card">
+        <div class="panel-header">
+          <mat-icon>speed</mat-icon> Recovery Rate
+        </div>
+        <div class="chart-container gauge-container">
+          <div class="gauge-display">
+            <span class="gauge-value">{{ avgRecoveryPct | number:'1.1-1' }}%</span>
+            <span class="gauge-label">Average Recovery</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adjuster Performance Table -->
+    <div class="table-panel panel-card" *ngIf="adjusterMetrics.length > 0">
+      <div class="panel-header">
+        <mat-icon>leaderboard</mat-icon>
+        Adjuster Performance
+        <span class="header-badge">{{ adjusterMetrics.length }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="adjusterMetrics" class="claims-table">
+          <ng-container matColumnDef="adjuster_name">
+            <th mat-header-cell *matHeaderCellDef>Adjuster</th>
+            <td mat-cell *matCellDef="let row">{{ row.adjusterName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="claims_handled">
+            <th mat-header-cell *matHeaderCellDef>Claims</th>
+            <td mat-cell *matCellDef="let row">{{ row.claimsHandled }}</td>
+          </ng-container>
+          <ng-container matColumnDef="total_recovery">
+            <th mat-header-cell *matHeaderCellDef>Total Recovery</th>
+            <td mat-cell *matCellDef="let row" class="amount-positive">{{ fmtCurrency(row.totalRecovery) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="avg_recovery">
+            <th mat-header-cell *matHeaderCellDef>Avg / Claim</th>
+            <td mat-cell *matCellDef="let row">{{ fmtCurrency(row.averageRecoveryPerClaim) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="supplement_success">
+            <th mat-header-cell *matHeaderCellDef>Supplement Rate</th>
+            <td mat-cell *matCellDef="let row">
+              {{ row.supplementSuccessRate | number:'1.0-0' }}%
+              <span class="supp-detail">({{ row.supplementsRecovered }}/{{ row.supplementsSubmitted }})</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="cycle_days">
+            <th mat-header-cell *matHeaderCellDef>Avg Cycle</th>
+            <td mat-cell *matCellDef="let row">{{ row.avgClaimCycleDays != null ? row.avgClaimCycleDays + 'd' : '-' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="adjusterColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: adjusterColumns;"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Filter Bar + Sort -->
+    <div class="filter-sort-bar">
+      <div class="quick-filters">
+        <button mat-stroked-button *ngFor="let f of quickFilterOptions"
+          [class.filter-active]="activeQuickFilter === f.value"
+          (click)="onQuickFilterChange(f.value)">
+          <mat-icon>{{ f.icon }}</mat-icon> {{ f.label }}
+        </button>
+      </div>
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-select [value]="activeSort" (selectionChange)="onSortChange($event.value)">
+          <mat-option *ngFor="let s of sortOptions" [value]="s.value">{{ s.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Claims Detail Table -->
+    <div class="table-panel panel-card">
+      <div class="panel-header">
+        <mat-icon>table_chart</mat-icon>
+        Claims Detail
+        <span class="header-badge">{{ filteredCount }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="filteredClaims" matSort class="claims-table">
+
+          <ng-container matColumnDef="claim_number">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Claim #</th>
+            <td mat-cell *matCellDef="let row">{{ row.claimNumber }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="client_name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Client</th>
+            <td mat-cell *matCellDef="let row">{{ row.clientName }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="aci_total">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>ACI Estimate</th>
+            <td mat-cell *matCellDef="let row">{{ fmtCurrency(row.aciEstimateTotal) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="carrier_total">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Carrier Estimate</th>
+            <td mat-cell *matCellDef="let row">{{ fmtCurrency(row.carrierEstimateTotal) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="recovery_gap">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Recovery Gap</th>
+            <td mat-cell *matCellDef="let row" class="amount-gap">
+              {{ fmtCurrency(getRecoveryGap(row)) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="supplement_requested">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Supplement</th>
+            <td mat-cell *matCellDef="let row" class="amount-positive">{{ fmtCurrency(row.supplementRequestedTotal) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="recovered_amount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Payments Received</th>
+            <td mat-cell *matCellDef="let row">{{ fmtCurrency(row.carrierPaidTotal) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="remaining_potential">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Remaining Potential</th>
+            <td mat-cell *matCellDef="let row" class="amount-gap">
+              {{ fmtCurrency(getRemainingPotential(row)) }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="recovery_pct">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Recovery %</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="recovery-bar-cell" [ngClass]="getRecoveryColorClass(row.recoveryPercent)">
+                <mat-progress-bar mode="determinate"
+                  [value]="row.recoveryPercent > 100 ? 100 : row.recoveryPercent">
+                </mat-progress-bar>
+                <span class="recovery-bar-label">{{ row.recoveryPercent | number:'1.1-1' }}%</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="recovery_status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="status-badge" [style.background]="getStatusColor(row.recoveryStatus)">
+                <mat-icon class="status-badge-icon">{{ getStatusIcon(row.recoveryStatus) }}</mat-icon>
+                {{ getStatusLabel(row.recoveryStatus) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+              class="clickable-row"
+              [class.selected-row]="row.projectId === selectedProjectId"
+              (click)="navigateToClaim(row)"></tr>
+        </table>
+
+        <div class="empty-state" *ngIf="filteredClaims.data.length === 0">
+          <mat-icon>inbox</mat-icon>
+          <p>No claims match the current filter. Run a carrier comparison in the Estimating module to see recovery data.</p>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

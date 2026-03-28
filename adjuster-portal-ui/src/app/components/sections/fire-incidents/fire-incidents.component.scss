@@ -1,0 +1,98 @@
+.fire-incidents-container {
+  height: 100%;
+
+  mat-sidenav {
+    width: 400px;
+  }
+
+  mat-sidenav-content {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+.page-header {
+  margin-bottom: var(--space-4);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 4px;
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+  }
+
+  .fire-icon {
+    color: #e53935;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  .brand-tm {
+    font-size: 0.45em;
+    vertical-align: super;
+    font-weight: var(--weight-normal);
+    color: var(--text-tertiary);
+    letter-spacing: 0;
+  }
+}
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+
+  .filter-field {
+    min-width: 180px;
+  }
+}
+
+.custom-date-range {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+
+  .date-field {
+    min-width: 140px;
+    max-width: 160px;
+  }
+}
+
+.date-range-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-primary-700);
+  background: var(--color-primary-50);
+  border-radius: var(--radius-full);
+  width: fit-content;
+  margin-bottom: var(--space-3);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--color-primary-400);
+  }
+}
+
+mat-tab-group {
+  flex: 1;
+}

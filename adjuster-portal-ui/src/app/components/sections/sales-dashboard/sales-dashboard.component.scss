@@ -1,0 +1,22 @@
+.summary-card {
+  .summary-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+  h2 {
+    margin: 8px 0 4px;
+    font-weight: 600;
+  }
+  p {
+    color: #666;
+    margin: 0;
+  }
+}
+
+.phase-item {
+  border-bottom: 1px solid #eee;
+  &:last-child {
+    border-bottom: none;
+  }
+}

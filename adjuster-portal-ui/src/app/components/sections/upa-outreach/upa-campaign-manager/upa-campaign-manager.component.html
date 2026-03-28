@@ -1,0 +1,97 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">UPA Outreach Campaign</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item"><a [routerLink]="['/app/dashboard']">Home</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Communications</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">UPA Campaign</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <!-- ── Funnel Metrics Bar ── -->
+    <div class="funnel-metrics">
+      <div class="metric-card" *ngFor="let opt of statusOptions">
+        <div class="metric-value" [style.color]="opt.color">{{ metrics[opt.value] || 0 }}</div>
+        <div class="metric-label">
+          <mat-icon [style.color]="opt.color" style="font-size: 16px; height: 16px; width: 16px;">{{ opt.icon }}</mat-icon>
+          {{ opt.label }}
+        </div>
+        <div class="metric-pct">{{ getFunnelPercentage(metrics[opt.value] || 0) }}%</div>
+      </div>
+      <div class="metric-card metric-total">
+        <div class="metric-value">{{ metrics.total }}</div>
+        <div class="metric-label">Total</div>
+      </div>
+    </div>
+
+    <!-- ── Sequence Timeline ── -->
+    <div class="sequence-section">
+      <h3 style="margin: 24px 0 16px;">
+        <mat-icon style="vertical-align: middle;">linear_scale</mat-icon>
+        Outreach Sequence
+      </h3>
+      <p style="color: #666; font-size: 13px; margin-bottom: 16px;">
+        This is the automated UPA &rarr; ACI outreach flow. Each step uses an editable template from
+        <a [routerLink]="['/app/upa-outreach/profiles']">Outreach Profiles</a>.
+      </p>
+
+      <div class="sequence-timeline">
+        <div class="sequence-step" *ngFor="let step of sequence; let last = last">
+          <div class="step-connector" *ngIf="!last"></div>
+          <div class="step-dot" [style.background]="getChannelColor(step.channel)">
+            <mat-icon style="font-size: 16px; color: white;">{{ getChannelIcon(step.channel) }}</mat-icon>
+          </div>
+          <div class="step-content">
+            <div class="step-header">
+              <strong>Step {{ step.step }}: {{ step.name }}</strong>
+              <span class="step-channel" [style.background]="getChannelColor(step.channel)">
+                {{ step.channel | uppercase }}
+              </span>
+            </div>
+            <div class="step-meta">
+              <span class="step-delay">
+                <mat-icon style="font-size: 14px; vertical-align: middle;">schedule</mat-icon>
+                {{ step.delay_label }}
+              </span>
+              <span class="step-trigger">
+                <mat-icon style="font-size: 14px; vertical-align: middle;">bolt</mat-icon>
+                {{ getTriggerLabel(step.trigger) }}
+              </span>
+            </div>
+            <div class="step-template" *ngIf="getLinkedProfile(step.name) as profile">
+              <mat-icon style="font-size: 14px; vertical-align: middle; color: #4caf50;">check_circle</mat-icon>
+              Template linked
+              <a [routerLink]="['/app/upa-outreach/profiles']" style="font-size: 12px; margin-left: 4px;">Edit</a>
+            </div>
+            <div class="step-template step-missing" *ngIf="!getLinkedProfile(step.name) && step.channel !== 'system'">
+              <mat-icon style="font-size: 14px; vertical-align: middle; color: #f44336;">warning</mat-icon>
+              No template — <a [routerLink]="['/app/upa-outreach/profiles']">create one</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── How It Works ── -->
+    <div style="margin-top: 24px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+      <h4 style="margin: 0 0 8px;">
+        <mat-icon style="vertical-align: middle;">info</mat-icon> How the UPA &rarr; ACI Funnel Works
+      </h4>
+      <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #555; line-height: 1.8;">
+        <li><strong>Immediate SMS</strong> — Sent when a new lead enters the UPA outreach queue</li>
+        <li><strong>15-min follow-up</strong> — If no reply, a follow-up SMS is sent automatically</li>
+        <li><strong>Next-morning email</strong> — If still no reply, a resource email goes out the next morning</li>
+        <li><strong>Reply detection</strong> — If the reply contains <em>yes, help, claim, question</em> &rarr; contact status = <strong>aci_ready</strong></li>
+        <li><strong>Transition message</strong> — The lead is notified they're being connected to ACI</li>
+        <li><strong>ACI handoff</strong> — ACI team receives the lead with full context</li>
+      </ol>
+      <p style="margin: 8px 0 0; font-size: 12px; color: #999;">
+        If a reply contains <strong>STOP / UNSUBSCRIBE / REMOVE / QUIT</strong>, the contact is automatically opted out and suppressed from all future campaigns.
+      </p>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

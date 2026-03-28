@@ -1,0 +1,76 @@
+<div class="estimating-list-container">
+  <div class="breadcrumb">
+    <a routerLink="/app/dashboard">Home</a> &gt; <span>Estimating</span>
+  </div>
+
+  <div class="header-row">
+    <h2>Estimates</h2>
+    <button mat-raised-button color="primary" (click)="createNewEstimate()">
+      <mat-icon>add</mat-icon> Create New Estimate
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <mat-card class="empty-state" *ngIf="estimates.length === 0 && !loading">
+    <mat-card-content>
+      <mat-icon class="empty-icon">assessment</mat-icon>
+      <p>No estimates yet. Click "Create New Estimate" to get started.</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- DEBUG: verify data binding -->
+  <div style="padding:8px 0; font-weight:600; color:#1565c0;">
+    Estimates loaded: {{ estimates.length }} | loading: {{ loading }}
+  </div>
+
+  <mat-card *ngIf="estimates.length > 0 && !loading">
+    <table mat-table [dataSource]="estimates" class="estimates-table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="estimate_mode">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="mode-badge mode-{{ row.estimate_mode || 'residential' }}">
+            {{ getModeBadgeLabel(row.estimate_mode) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-badge status-{{ row.status }}">{{ row.status | titlecase }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="total_cost">
+        <th mat-header-cell *matHeaderCellDef>Total Cost</th>
+        <td mat-cell *matCellDef="let row">{{ row.total_cost ? (row.total_cost | currency) : '--' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created</th>
+        <td mat-cell *matCellDef="let row">{{ row.created_at | date: 'short' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button color="warn" (click)="deleteEstimate(row.id, $event)" matTooltip="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="['name', 'estimate_mode', 'status', 'total_cost', 'created_at', 'actions']"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['name', 'estimate_mode', 'status', 'total_cost', 'created_at', 'actions'];"
+          (click)="openEstimate(row.id)" class="clickable-row"></tr>
+    </table>
+  </mat-card>
+</div>

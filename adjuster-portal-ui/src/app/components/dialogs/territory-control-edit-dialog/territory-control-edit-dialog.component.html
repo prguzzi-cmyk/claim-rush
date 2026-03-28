@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>
+  Edit {{ type === 'state' ? 'State' : 'County' }} Territory
+</h2>
+
+<mat-dialog-content>
+  <!-- State Form -->
+  <div *ngIf="type === 'state'" class="edit-form">
+    <p class="territory-name">{{ stateRow.name }} ({{ stateRow.state }})</p>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>CP Status</mat-label>
+      <mat-select [(ngModel)]="stateRow.cp_status" [disabled]="formDisabled">
+        <mat-option *ngFor="let s of cpStatuses" [value]="s">{{ s | titlecase }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Chapter President</mat-label>
+      <input matInput [value]="stateRow.chapter_president_name || 'None'" disabled>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Notes</mat-label>
+      <textarea matInput [(ngModel)]="stateRow.notes" [disabled]="formDisabled"
+                rows="3" placeholder="Admin notes..."></textarea>
+    </mat-form-field>
+
+    <mat-slide-toggle [(ngModel)]="stateRow.allow_cp_applications" [disabled]="formDisabled">
+      Allow CP Applications
+    </mat-slide-toggle>
+  </div>
+
+  <!-- County Form -->
+  <div *ngIf="type === 'county'" class="edit-form">
+    <p class="territory-name">{{ countyRow.name }} — {{ countyRow.county }}, {{ countyRow.state }}</p>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Agent Status</mat-label>
+      <mat-select [(ngModel)]="countyRow.agent_status" [disabled]="formDisabled">
+        <mat-option *ngFor="let s of agentStatuses" [value]="s">{{ s | titlecase }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Max Adjusters (Slots)</mat-label>
+      <input matInput type="number" [(ngModel)]="countyRow.max_adjusters" [disabled]="formDisabled" min="0">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Agents Assigned</mat-label>
+      <input matInput [value]="countyRow.adjuster_count" disabled>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Notes</mat-label>
+      <textarea matInput [(ngModel)]="countyRow.notes" [disabled]="formDisabled"
+                rows="3" placeholder="Admin notes..."></textarea>
+    </mat-form-field>
+
+    <mat-slide-toggle [(ngModel)]="countyRow.allow_agent_applications" [disabled]="formDisabled">
+      Allow Agent Applications
+    </mat-slide-toggle>
+
+    <div class="lead-types-section">
+      <h4>Lead Types Enabled</h4>
+      <div class="lead-types-grid">
+        <mat-checkbox [(ngModel)]="countyRow.lead_fire_enabled" [disabled]="formDisabled">Fire Leads</mat-checkbox>
+        <mat-checkbox [(ngModel)]="countyRow.lead_hail_enabled" [disabled]="formDisabled">Hail Leads</mat-checkbox>
+        <mat-checkbox [(ngModel)]="countyRow.lead_storm_enabled" [disabled]="formDisabled">Storm Leads</mat-checkbox>
+        <mat-checkbox [(ngModel)]="countyRow.lead_lightning_enabled" [disabled]="formDisabled">Lightning Leads</mat-checkbox>
+        <mat-checkbox [(ngModel)]="countyRow.lead_flood_enabled" [disabled]="formDisabled">Flood Leads</mat-checkbox>
+        <mat-checkbox [(ngModel)]="countyRow.lead_theft_vandalism_enabled" [disabled]="formDisabled">Theft/Vandalism Leads</mat-checkbox>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()" [disabled]="formDisabled">Cancel</button>
+  <button mat-raised-button color="primary" (click)="save()" [disabled]="formDisabled">Save</button>
+</mat-dialog-actions>

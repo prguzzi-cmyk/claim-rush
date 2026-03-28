@@ -1,0 +1,141 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">Outreach Compliance</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item"><a [routerLink]="['/app/dashboard']">Home</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Admin</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Outreach Compliance</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <mat-card-content>
+    <!-- ── Master Outreach Pause ── -->
+    <div class="compliance-section">
+      <div class="section-header-row">
+        <mat-icon [style.color]="masterPause ? '#f44336' : '#4caf50'">
+          {{ masterPause ? 'pause_circle' : 'play_circle' }}
+        </mat-icon>
+        <h3>Master Outreach Pause</h3>
+      </div>
+      <p class="section-desc">When enabled, all automated outreach (SMS, email, voice) is paused globally.</p>
+      <mat-slide-toggle [(ngModel)]="masterPause" color="warn">
+        {{ masterPause ? 'ALL OUTREACH PAUSED' : 'Outreach Active' }}
+      </mat-slide-toggle>
+    </div>
+
+    <mat-divider style="margin: 20px 0;"></mat-divider>
+
+    <!-- ── Quiet Hours ── -->
+    <div class="compliance-section">
+      <div class="section-header-row">
+        <mat-icon>nightlight</mat-icon>
+        <h3>Quiet Hours</h3>
+      </div>
+      <p class="section-desc">No messages will be sent during quiet hours. Queued messages are held until the window reopens.</p>
+
+      <mat-slide-toggle [(ngModel)]="quietHoursEnabled" color="primary" style="margin-bottom: 12px;">
+        Quiet Hours Enabled
+      </mat-slide-toggle>
+
+      <div class="quiet-hours-row" *ngIf="quietHoursEnabled">
+        <mat-form-field appearance="outline">
+          <mat-label>Start (HH:mm)</mat-label>
+          <input matInput [(ngModel)]="quietHoursStart" placeholder="21:00" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>End (HH:mm)</mat-label>
+          <input matInput [(ngModel)]="quietHoursEnd" placeholder="08:00" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Timezone</mat-label>
+          <mat-select [(ngModel)]="quietHoursTz">
+            <mat-option *ngFor="let tz of timezones" [value]="tz">{{ tz }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <mat-divider style="margin: 20px 0;"></mat-divider>
+
+    <!-- ── Stop-Word List ── -->
+    <div class="compliance-section">
+      <div class="section-header-row">
+        <mat-icon>block</mat-icon>
+        <h3>Stop-Word List</h3>
+      </div>
+      <p class="section-desc">
+        When an inbound reply contains any of these words, the contact is automatically opted out and suppressed from all future campaigns.
+      </p>
+
+      <div class="stop-words-container">
+        <mat-chip-listbox>
+          <mat-chip *ngFor="let word of stopWords" [removable]="true" (removed)="removeStopWord(word)">
+            {{ word }}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </mat-chip-listbox>
+
+        <div class="add-word-row">
+          <mat-form-field appearance="outline" style="width: 200px;">
+            <mat-label>Add stop word</mat-label>
+            <input matInput #newWord placeholder="e.g. LEAVE" />
+          </mat-form-field>
+          <button mat-stroked-button (click)="addStopWord(newWord.value); newWord.value = ''">
+            <mat-icon>add</mat-icon> Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider style="margin: 20px 0;"></mat-divider>
+
+    <!-- ── Auto-Suppress Toggle ── -->
+    <div class="compliance-section">
+      <div class="section-header-row">
+        <mat-icon>shield</mat-icon>
+        <h3>Auto-Suppress</h3>
+      </div>
+      <p class="section-desc">
+        Automatically suppress contacts who opt out from all future outreach lists. When disabled, opt-outs must be managed manually.
+      </p>
+      <mat-slide-toggle [(ngModel)]="autoSuppressEnabled" color="primary">
+        {{ autoSuppressEnabled ? 'Auto-Suppress Enabled' : 'Auto-Suppress Disabled' }}
+      </mat-slide-toggle>
+    </div>
+
+    <mat-divider style="margin: 20px 0;"></mat-divider>
+
+    <!-- ── Rate Limits ── -->
+    <div class="compliance-section">
+      <div class="section-header-row">
+        <mat-icon>speed</mat-icon>
+        <h3>Daily Rate Limits</h3>
+      </div>
+      <p class="section-desc">Maximum messages per lead per day.</p>
+
+      <div style="display: flex; gap: 16px;">
+        <mat-form-field appearance="outline">
+          <mat-label>Max SMS / lead / day</mat-label>
+          <input matInput type="number" [(ngModel)]="maxDailySms" min="1" max="20" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Max Emails / lead / day</mat-label>
+          <input matInput type="number" [(ngModel)]="maxDailyEmails" min="1" max="20" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- ── Save Button ── -->
+    <div style="margin-top: 24px; text-align: right;">
+      <button mat-raised-button color="primary" (click)="saveConfig()">
+        <mat-icon>save</mat-icon> Save Compliance Settings
+      </button>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

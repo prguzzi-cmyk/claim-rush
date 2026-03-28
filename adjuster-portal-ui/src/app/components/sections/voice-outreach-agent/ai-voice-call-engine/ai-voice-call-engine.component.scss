@@ -1,0 +1,22 @@
+@import '../_voa-shared';
+
+.filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-group { position: relative; }
+.dark-select, .dark-input {
+  background: rgba(255,255,255,0.05); border: 1px solid $border; border-radius: 6px; padding: 8px 12px;
+  color: $text-primary; font-size: 0.78rem; outline: none;
+  &:focus { border-color: $accent-cyan; }
+  option { background: $bg-panel; color: $text-primary; } }
+.search-group { flex: 1; min-width: 200px; position: relative;
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; color: $text-muted; }
+  .dark-input.search { padding-left: 34px; width: 100%; box-sizing: border-box; } }
+
+.claim-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; color: $text-secondary;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; } }
+.cell-campaign { font-size: 0.72rem; color: $text-muted; }
+.cell-intent { font-size: 0.7rem; color: $text-secondary; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score { font-weight: 700; font-size: 0.82rem; }
+.score-high { color: $accent-green; }
+.score-mid { color: $accent-yellow; }
+.score-low { color: $accent-red; }
+.routed-icon { font-size: 18px; color: $accent-green; }

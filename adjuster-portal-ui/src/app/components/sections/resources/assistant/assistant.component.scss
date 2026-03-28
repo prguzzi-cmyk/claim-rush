@@ -1,0 +1,27 @@
+.send-btn {
+  margin-bottom: 17.5px;
+}
+
+.mat-mdc-card {
+  height: 90vh;
+
+  .message-display-container {
+    height: calc(100% - 100px);
+    overflow-y: scroll;
+    padding-right: 16px;
+  }
+
+  .message-form-field-container {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    box-sizing: initial;
+    padding-top: 24px;
+    padding-bottom: 16px;
+    height: 60px;
+  }
+}
+
+.mat-mdc-card-content {
+}

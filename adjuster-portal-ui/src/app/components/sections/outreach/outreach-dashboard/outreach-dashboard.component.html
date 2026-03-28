@@ -1,0 +1,119 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">Outreach Dashboard</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Lead Operations</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Outreach</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline">
+      <mat-label>Campaign</mat-label>
+      <mat-select [(ngModel)]="selectedCampaignId" (selectionChange)="onFilterChange()">
+        <mat-option value="">All Campaigns</mat-option>
+        <mat-option *ngFor="let c of campaigns" [value]="c.id">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metrics-grid">
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.total_attempts }}</div>
+        <div class="metric-label">Total Attempts</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.sent }}</div>
+        <div class="metric-label">Sent</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.delivered }}</div>
+        <div class="metric-label">Delivered</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.failed }}</div>
+        <div class="metric-label">Failed</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.responded }}</div>
+        <div class="metric-label">Responded</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-value">{{ metrics.appointments }}</div>
+        <div class="metric-label">Appointments</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Rate displays -->
+  <div class="rates-row">
+    <span class="rate-badge">Response Rate: {{ metrics.response_rate }}%</span>
+    <span class="rate-badge">Appointment Rate: {{ metrics.appointment_rate }}%</span>
+  </div>
+
+  <!-- Recent attempts table -->
+  <mat-card-content>
+    <div class="mat-table-scroll-container">
+      <table mat-table [dataSource]="dataSource" class="outreach-table">
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="channel">
+          <th mat-header-cell *matHeaderCellDef>Channel</th>
+          <td mat-cell *matCellDef="let row">{{ row.channel }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="status-chip status-{{ row.status }}">{{ row.status }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="attempt_number">
+          <th mat-header-cell *matHeaderCellDef>Attempt #</th>
+          <td mat-cell *matCellDef="let row">{{ row.attempt_number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="recipient_phone">
+          <th mat-header-cell *matHeaderCellDef>Phone</th>
+          <td mat-cell *matCellDef="let row">{{ row.recipient_phone || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="recipient_email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let row">{{ row.recipient_email || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let row">{{ row.created_at | date:'short' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

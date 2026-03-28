@@ -1,0 +1,295 @@
+<div class="crime-intel-page">
+
+  <!-- Crime Ticker (CSS animation only — no JS interval) -->
+  <div class="crime-ticker-bar" *ngIf="tickerMessages.length > 0">
+    <span class="crime-ticker-label">CRIME INTEL</span>
+    <div class="crime-ticker-track">
+      <div class="crime-ticker-content crime-ticker-scroll">
+        <span
+          class="crime-ticker-item"
+          *ngFor="let msg of tickerMessages"
+          [style.color]="getSeverityColor(msg.severity)"
+        >
+          {{ msg.text }}
+        </span>
+        <span
+          class="crime-ticker-item"
+          *ngFor="let msg of tickerMessages"
+          [style.color]="getSeverityColor(msg.severity)"
+        >
+          {{ msg.text }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h2>
+        <mat-icon class="header-icon">policy</mat-icon>
+        Crime Claims Intelligence
+      </h2>
+      <p class="subtitle">
+        Real-time crime incident tracking &middot; claim opportunity identification
+        <span class="data-source-badge live" *ngIf="isLiveData">
+          LIVE &mdash; Crime API
+        </span>
+        <span class="data-source-badge offline" *ngIf="!isLiveData && !apiAvailable">
+          DATA UNAVAILABLE
+        </span>
+      </p>
+    </div>
+    <div class="header-stats">
+      <span class="header-stat header-stat-critical">
+        <strong>{{ getCriticalIncidentCount() }}</strong> Critical
+      </span>
+      <span class="header-stat-divider">|</span>
+      <span class="header-stat">
+        <strong>{{ crimeIncidents.length }}</strong> Incidents
+      </span>
+      <span class="header-stat-divider">|</span>
+      <span class="header-stat">
+        <strong>${{ getTotalEstimatedLoss() | number }}</strong> Est. Loss
+      </span>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-incidents">
+      <div class="kpi-icon-wrap">
+        <mat-icon>warning_amber</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ getCrimeIncidentsToday() }}</span>
+        <span class="kpi-label">Crime Incidents Today</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-theft">
+      <div class="kpi-icon-wrap">
+        <mat-icon>diamond</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ getHighValueTheftCount() }}</span>
+        <span class="kpi-label">High-Value Theft</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-vandalism">
+      <div class="kpi-icon-wrap">
+        <mat-icon>format_paint</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ getVandalismClaimCount() }}</span>
+        <span class="kpi-label">Vandalism Claims</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-breakin">
+      <div class="kpi-icon-wrap">
+        <mat-icon>lock_open</mat-icon>
+      </div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ getBreakInLeadCount() }}</span>
+        <span class="kpi-label">Break-In Leads</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Map Section -->
+  <div class="map-section">
+    <div class="layer-toggles">
+      <span class="toggle-label">Layers:</span>
+      <button class="layer-chip" [class.active]="incidentsLayerVisible" (click)="toggleIncidentsLayer()">
+        <span class="layer-dot" data-type="incidents"></span> Incidents
+      </button>
+      <button class="layer-chip" [class.active]="zonesLayerVisible" (click)="toggleZonesLayer()">
+        <span class="layer-dot" data-type="zones"></span> Hot Zones
+      </button>
+    </div>
+    <div class="map-wrapper">
+      <google-map
+        class="crime-map"
+        height="100%"
+        width="100%"
+        [center]="mapCenter"
+        [zoom]="mapZoom"
+        [options]="mapOptions"
+        (mapInitialized)="onMapReady()">
+
+        <!-- Incident markers -->
+        <ng-container *ngIf="incidentsLayerVisible">
+          <map-marker
+            *ngFor="let m of incidentMarkers; let i = index"
+            [position]="m.position"
+            [options]="m.options"
+            (mapClick)="onIncidentMarkerClick(i)">
+          </map-marker>
+        </ng-container>
+
+        <!-- Zone circles -->
+        <ng-container *ngIf="zonesLayerVisible">
+          <map-circle
+            *ngFor="let c of zoneCircles"
+            [center]="c.center"
+            [radius]="c.radius"
+            [options]="c.options">
+          </map-circle>
+          <map-circle
+            *ngFor="let p of zonePulseCircles"
+            [center]="p.center"
+            [radius]="p.options.radius || 150"
+            [options]="p.options">
+          </map-circle>
+        </ng-container>
+      </google-map>
+    </div>
+  </div>
+
+  <!-- Crime Intel Grid: Incidents + Hot Zones -->
+  <div class="crime-grid">
+
+    <!-- Incident Feed (Left) -->
+    <div class="incident-feed-panel">
+      <div class="panel-title">
+        <mat-icon>rss_feed</mat-icon>
+        Crime Incidents
+        <span class="panel-count">{{ crimeIncidents.length }}</span>
+      </div>
+      <div class="incident-feed-list">
+        <div
+          class="incident-card"
+          *ngFor="let incident of crimeIncidents"
+          [style.border-left-color]="getSeverityColor(incident.severity)"
+          (click)="selectIncident(incident)"
+        >
+          <div class="incident-card-top">
+            <mat-icon class="incident-type-icon" [style.color]="getSeverityColor(incident.severity)">
+              {{ getIncidentTypeIcon(incident.incidentType) }}
+            </mat-icon>
+            <span class="incident-card-location">{{ incident.city || 'Unknown' }}, {{ incident.state || '' }}</span>
+            <span class="incident-card-time">{{ getTimeAgo(incident.timestamp) }}</span>
+          </div>
+          <div class="incident-card-address">{{ incident.address || 'No address' }}</div>
+          <div class="incident-card-bottom">
+            <span class="incident-severity-badge" [style.background]="getSeverityColor(incident.severity)">
+              {{ (incident.severity || 'unknown') | uppercase }}
+            </span>
+            <span class="incident-score">{{ incident.claimRelevanceScore || 0 }}% relevance</span>
+            <span class="incident-loss">${{ (incident.estimatedLoss || 0) | number }}</span>
+            <button
+              *ngIf="!hasLeadForIncident(incident.id)"
+              class="create-lead-btn"
+              (click)="createLeadFromIncident(incident, $event)"
+              matTooltip="Create lead from this incident"
+            >
+              <mat-icon>person_add</mat-icon> Lead
+            </button>
+            <span *ngIf="hasLeadForIncident(incident.id)" class="lead-created-chip">
+              <mat-icon>check_circle</mat-icon> Lead
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="incident-feed-empty" *ngIf="crimeIncidents.length === 0">
+        <mat-icon>search_off</mat-icon>
+        <span>No incidents available</span>
+      </div>
+    </div>
+
+    <!-- Hot Zones (Right) -->
+    <div class="zones-panel">
+      <div class="panel-title">
+        <mat-icon>location_on</mat-icon>
+        Crime Hot Zones
+        <span class="panel-count">{{ crimeZones.length }}</span>
+      </div>
+      <div class="zones-list">
+        <div
+          class="zone-card"
+          *ngFor="let zone of crimeZones"
+          [style.border-left-color]="getSeverityColor(zone.severity)"
+        >
+          <div class="zone-card-top">
+            <span class="zone-priority-badge" [style.background]="getPriorityColor(zone.priority)">
+              {{ zone.priority }}
+            </span>
+            <span class="zone-card-name">{{ zone.name }}</span>
+            <span class="zone-card-score">Risk: {{ zone.claimRelevanceScore }}</span>
+          </div>
+          <div class="zone-card-meta">
+            <mat-icon class="zone-type-icon">{{ getIncidentTypeIcon(zone.incidentType) }}</mat-icon>
+            <span>{{ getIncidentTypeLabel(zone.incidentType) }}</span>
+            <span class="zone-meta-sep">&middot;</span>
+            <span>{{ zone.incidentCount }} incidents</span>
+            <span class="zone-meta-sep">&middot;</span>
+            <span>${{ zone.estimatedTotalLoss | number }}</span>
+          </div>
+          <div class="zone-card-bottom">
+            <span class="zone-trend">{{ zone.trend }}</span>
+            <button
+              class="zone-lead-btn"
+              (click)="generateLeadsFromZone(zone, $event)"
+              matTooltip="Generate leads for all incidents in this zone"
+            >
+              <mat-icon>group_add</mat-icon> Generate Leads
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="incident-feed-empty" *ngIf="crimeZones.length === 0">
+        <mat-icon>location_off</mat-icon>
+        <span>No hot zones detected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail panel (only rendered when user clicks an incident) -->
+  <ng-container *ngIf="selectedIncident as sel">
+    <div class="incident-detail-overlay" *ngIf="incidentPanelOpen" (click)="closeIncidentPanel()">
+      <div class="incident-detail-panel" (click)="$event.stopPropagation()">
+        <div class="incident-detail-header">
+          <h4>{{ getIncidentTypeLabel(sel.incidentType) }} Incident</h4>
+          <button mat-icon-button (click)="closeIncidentPanel()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <div class="incident-severity-bar" [style.background]="getSeverityColor(sel.severity)">
+          <span>{{ (sel.severity || '') | uppercase }}</span>
+          <span>{{ sel.claimRelevanceScore || 0 }}% Claim Relevance</span>
+        </div>
+
+        <div class="incident-detail-grid">
+          <div class="detail-item full-width">
+            <span class="detail-label">Address</span>
+            <span class="detail-value">{{ sel.address }}, {{ sel.city }}, {{ sel.state }} {{ sel.zip }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Incident Type</span>
+            <span class="detail-value">{{ getIncidentTypeLabel(sel.incidentType) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Estimated Loss</span>
+            <span class="detail-value">${{ (sel.estimatedLoss || 0) | number }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Reported</span>
+            <span class="detail-value">{{ getTimeAgo(sel.timestamp) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Source</span>
+            <span class="detail-value">{{ sel.source }}</span>
+          </div>
+          <div class="detail-item full-width" *ngIf="sel.description">
+            <span class="detail-label">Description</span>
+            <span class="detail-value">{{ sel.description }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

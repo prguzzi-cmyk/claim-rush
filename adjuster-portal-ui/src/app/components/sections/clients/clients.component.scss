@@ -1,0 +1,55 @@
+.clients-table {
+  table-layout: fixed;
+  width: auto !important;
+  min-width: 100%;
+  
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+  .green {
+
+    background-color: #368136;
+    .mat-mdc-cell {
+      color: #fff !important;
+
+    }
+  }
+
+}
+
+.link-ref {
+  :hover {
+    color: #0dcaf0;
+  }
+}
+
+.mat-mdc-form-field {
+  margin-right: 5px;
+}
+
+.mat-mdc-cell {
+  padding: 0px 10px 0px 10px;
+  border: 1px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.mat-mdc-header-cell {
+  padding: 0px 10px 0px 10px;
+  white-space: nowrap;
+}
+
+.mat-column-edit {
+  text-align: right;
+}
+
+.mat-mdc-table-scroll-container {
+  overflow-x: auto;
+  max-width: 100%; /* Adjust the max-width as needed */
+}
+
+.mat-mdc-card-content {
+  padding: 0; /* Adjust padding as needed */
+}

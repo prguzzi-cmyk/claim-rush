@@ -1,0 +1,278 @@
+<div class="intake-container">
+
+  <!-- Landing -->
+  <div class="intake-landing" *ngIf="!started">
+    <div class="landing-card">
+      <mat-icon class="landing-icon">smart_toy</mat-icon>
+      <h2>AI Claim Intake Assistant</h2>
+      <p>Guided claim intake with automatic summary, damage scope, and inspection checklist generation.</p>
+      <button mat-raised-button color="primary" class="start-btn" (click)="startIntake()">
+        <mat-icon>play_arrow</mat-icon> Start AI Claim Intake
+      </button>
+    </div>
+  </div>
+
+  <!-- Wizard -->
+  <ng-container *ngIf="started">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">smart_toy</mat-icon> AI Claim Intake</h2>
+        <p class="subtitle">Step {{ currentStepIndex + 1 }} of {{ steps.length }} &middot; {{ completionPercent }}% complete</p>
+      </div>
+      <button mat-stroked-button (click)="started = false"><mat-icon>close</mat-icon> Cancel</button>
+    </div>
+
+    <!-- Progress -->
+    <mat-progress-bar mode="determinate" [value]="completionPercent" class="intake-progress"></mat-progress-bar>
+
+    <!-- Step Navigation -->
+    <div class="step-nav">
+      <div class="step-nav-item" *ngFor="let step of steps; let i = index"
+           [class.active]="i === currentStepIndex"
+           [class.completed]="completedSteps.has(step.key)"
+           (click)="goToStep(i)">
+        <div class="step-nav-dot">
+          <mat-icon *ngIf="completedSteps.has(step.key)">check</mat-icon>
+          <span *ngIf="!completedSteps.has(step.key)">{{ i + 1 }}</span>
+        </div>
+        <span class="step-nav-label">{{ step.label }}</span>
+      </div>
+    </div>
+
+    <div class="wizard-layout">
+      <!-- Form Panel -->
+      <div class="form-panel panel-card">
+        <div class="panel-header">
+          <mat-icon>{{ steps[currentStepIndex].icon }}</mat-icon>
+          {{ steps[currentStepIndex].label }}
+        </div>
+        <div class="form-body">
+
+          <!-- Contact Info -->
+          <ng-container *ngIf="currentStep === 'contact_info'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Claimant Name</mat-label>
+              <input matInput [(ngModel)]="data.claimantName" placeholder="Full name">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Best Callback Number</mat-label>
+              <input matInput [(ngModel)]="data.bestCallbackNumber" placeholder="(555) 123-4567">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="data.email" placeholder="email@example.com">
+            </mat-form-field>
+          </ng-container>
+
+          <!-- Property Address -->
+          <ng-container *ngIf="currentStep === 'property_address'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Street Address</mat-label>
+              <input matInput [(ngModel)]="data.propertyAddress">
+            </mat-form-field>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="field-third">
+                <mat-label>City</mat-label>
+                <input matInput [(ngModel)]="data.propertyCity">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="field-third">
+                <mat-label>State</mat-label>
+                <input matInput [(ngModel)]="data.propertyState" maxlength="2">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="field-third">
+                <mat-label>ZIP</mat-label>
+                <input matInput [(ngModel)]="data.propertyZip" maxlength="5">
+              </mat-form-field>
+            </div>
+          </ng-container>
+
+          <!-- Loss Details -->
+          <ng-container *ngIf="currentStep === 'loss_details'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Damage Type</mat-label>
+              <mat-select [(ngModel)]="data.damageType">
+                <mat-option value="Roof Damage">Roof Damage</mat-option>
+                <mat-option value="Water Damage">Water Damage</mat-option>
+                <mat-option value="Fire Damage">Fire Damage</mat-option>
+                <mat-option value="Wind Damage">Wind Damage</mat-option>
+                <mat-option value="Hail Damage">Hail Damage</mat-option>
+                <mat-option value="Flood Damage">Flood Damage</mat-option>
+                <mat-option value="Other">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Event Type</mat-label>
+              <mat-select [(ngModel)]="data.eventType">
+                <mat-option value="Hail Storm">Hail Storm</mat-option>
+                <mat-option value="Wind Storm">Wind Storm</mat-option>
+                <mat-option value="Hurricane">Hurricane</mat-option>
+                <mat-option value="Tornado">Tornado</mat-option>
+                <mat-option value="Fire">Fire</mat-option>
+                <mat-option value="Flood">Flood</mat-option>
+                <mat-option value="Other">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Date of Loss</mat-label>
+              <input matInput type="date" [(ngModel)]="data.lossDate">
+            </mat-form-field>
+            <mat-checkbox [(ngModel)]="data.lossDateApproximate">Date is approximate</mat-checkbox>
+          </ng-container>
+
+          <!-- Insurance Info -->
+          <ng-container *ngIf="currentStep === 'insurance_info'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Insurance Carrier</mat-label>
+              <input matInput [(ngModel)]="data.insuranceCarrier" placeholder="e.g. State Farm">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Policy Number</mat-label>
+              <input matInput [(ngModel)]="data.policyNumber">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Claim Number (if filed)</mat-label>
+              <input matInput [(ngModel)]="data.claimNumber">
+            </mat-form-field>
+            <mat-checkbox [(ngModel)]="data.hasReportedClaim">Claim already reported to carrier</mat-checkbox>
+          </ng-container>
+
+          <!-- Damage Description -->
+          <ng-container *ngIf="currentStep === 'damage_description'">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Describe the damage</mat-label>
+              <textarea matInput [(ngModel)]="data.damageDescription" rows="5" placeholder="Describe what happened and what damage you see..."></textarea>
+            </mat-form-field>
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="field-half">
+                <mat-label>Occupancy Status</mat-label>
+                <mat-select [(ngModel)]="data.occupancyStatus">
+                  <mat-option value="Occupied">Occupied</mat-option>
+                  <mat-option value="Vacant">Vacant</mat-option>
+                  <mat-option value="Rental">Rental</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <div class="field-half" style="padding-top: 12px;">
+                <mat-checkbox [(ngModel)]="data.isHabitable">Property is habitable</mat-checkbox>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Claim Inspection -->
+          <ng-container *ngIf="currentStep === 'inspection_request'">
+            <div class="inspection-step">
+              <div class="inspection-header">
+                <div class="inspection-icon-wrap">
+                  <mat-icon>event_available</mat-icon>
+                </div>
+                <h3>Schedule Your Claim Inspection</h3>
+                <p class="inspection-desc">An inspection is required to document damage and prepare your claim. Your adjuster will visit the property to photograph and measure all affected areas.</p>
+              </div>
+
+              <div class="inspection-details">
+                <div class="inspection-detail-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Full property damage assessment</span>
+                </div>
+                <div class="inspection-detail-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Professional photo documentation</span>
+                </div>
+                <div class="inspection-detail-item">
+                  <mat-icon>check_circle</mat-icon>
+                  <span>Measurements for repair estimate</span>
+                </div>
+              </div>
+
+              <!-- Scheduled confirmation -->
+              <div class="inspection-confirmed" *ngIf="data.inspectionStatus === 'scheduled'">
+                <mat-icon>event_available</mat-icon>
+                <span>Inspection will be scheduled. Your adjuster will contact you to confirm a time.</span>
+              </div>
+
+              <!-- Pending notice -->
+              <div class="inspection-pending" *ngIf="data.inspectionStatus === 'pending'">
+                <mat-icon>schedule</mat-icon>
+                <span>Inspection marked as pending. Your adjuster will follow up to schedule.</span>
+              </div>
+
+              <div class="inspection-actions">
+                <button mat-raised-button color="primary" class="inspection-primary-btn"
+                  [class.selected]="data.inspectionStatus === 'scheduled'"
+                  (click)="scheduleInspection()">
+                  <mat-icon>event_available</mat-icon> Schedule Inspection
+                </button>
+                <button mat-stroked-button class="inspection-later-btn"
+                  [class.selected]="data.inspectionStatus === 'pending'"
+                  (click)="scheduleLater()">
+                  <mat-icon>schedule</mat-icon> Schedule Later
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Document Upload -->
+          <ng-container *ngIf="currentStep === 'document_upload'">
+            <div class="upload-section">
+              <mat-icon>upload_file</mat-icon>
+              <h3>Upload Policy & Documents</h3>
+              <p>Upload your insurance policy declaration page and any supporting documents.</p>
+              <button mat-stroked-button><mat-icon>cloud_upload</mat-icon> Select Files</button>
+              <p class="upload-hint">Supported: PDF, JPG, PNG (max 25MB)</p>
+            </div>
+          </ng-container>
+
+          <!-- Photo Upload -->
+          <ng-container *ngIf="currentStep === 'photo_upload'">
+            <div class="upload-section">
+              <mat-icon>photo_camera</mat-icon>
+              <h3>Upload Damage Photos</h3>
+              <p>Photos help us assess the damage and prepare your claim estimate.</p>
+              <button mat-stroked-button><mat-icon>cloud_upload</mat-icon> Select Photos</button>
+              <p class="upload-hint">Tip: Include photos of all four sides, roof close-ups, and interior damage.</p>
+            </div>
+          </ng-container>
+
+          <!-- Review Summary -->
+          <ng-container *ngIf="currentStep === 'review_summary'">
+            <div class="review-section" *ngIf="summary">
+              <div class="review-block">
+                <h4><mat-icon>summarize</mat-icon> Claim Summary</h4>
+                <pre class="review-text">{{ summary }}</pre>
+              </div>
+              <div class="review-block" *ngIf="damageScope">
+                <h4><mat-icon>calculate</mat-icon> Initial Damage Scope</h4>
+                <pre class="review-text">{{ damageScope }}</pre>
+              </div>
+              <div class="review-block" *ngIf="inspectionChecklist.length > 0">
+                <h4><mat-icon>checklist</mat-icon> Inspection Checklist</h4>
+                <div class="checklist">
+                  <div class="checklist-item" *ngFor="let item of inspectionChecklist">
+                    <mat-icon>check_box_outline_blank</mat-icon>
+                    <span>{{ item }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="review-actions">
+                <button mat-stroked-button (click)="regenerateSummary()"><mat-icon>refresh</mat-icon> Regenerate</button>
+                <button mat-stroked-button (click)="copySummary()"><mat-icon>content_copy</mat-icon> Copy All</button>
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+
+        <!-- Step Buttons -->
+        <div class="step-buttons">
+          <button mat-stroked-button (click)="prevStep()" [disabled]="currentStepIndex === 0">
+            <mat-icon>arrow_back</mat-icon> Back
+          </button>
+          <button mat-raised-button color="primary" (click)="isLastStep ? submitIntake() : nextStep()"
+            [disabled]="isLastStep && submitting">
+            {{ isLastStep ? (submitting ? 'Creating Claim...' : 'Create Claim & Open File') : 'Next' }}
+            <mat-icon>{{ isLastStep ? (submitting ? 'hourglass_empty' : 'send') : 'arrow_forward' }}</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

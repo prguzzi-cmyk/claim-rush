@@ -1,0 +1,25 @@
+<mjml>
+  <!-- Include HTML Head section -->
+  <mj-include path="./partials/head.mjml"/>
+
+  <mj-body mj-class="body-background">
+    <!-- Include Header section -->
+    <mj-include path="./partials/header.mjml"/>
+
+    <mj-section mj-class="message-background">
+      <mj-column width="100%">
+        <mj-image css-class="line-shadow" alt="" align="center" border="none"
+                  padding="0px"></mj-image>
+
+        <mj-text align="center" padding="50px 40px 0 40px">
+          Test email for: {{ email }}
+        </mj-text>
+
+        <mj-spacer height="20px"></mj-spacer>
+      </mj-column>
+    </mj-section>
+
+    <!-- Include Footer section -->
+    <mj-include path="./partials/footer.mjml"/>
+  </mj-body>
+</mjml>

@@ -1,0 +1,96 @@
+<h2 mat-dialog-title class="text-center">
+    {{
+        action == "add"
+            ? "Upload File"
+            : action == "view"
+                ? "Preview File: " + userFileData?.name
+                : action == "delete"
+                    ? "Delete File: " + userFileData?.name
+                    : "Update File: " + userFileData?.name
+    }}
+</h2>
+
+<div mat-dialog-content>
+    <!-- Form Section for Adding or Editing -->
+    <div *ngIf="action == 'add' || action == 'edit'">
+        <form [formGroup]="fileUploadForm" class="file-form">
+            <!-- File Type -->
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>File Type</mat-label>
+                <mat-select formControlName="fileType" placeholder="Select the type of file to upload"
+                            (selectionChange)="changeFileType($event.value)" required>
+                    <mat-option *ngFor="let fileType of fileTypes" [value]="fileType.name">
+                        {{ fileType?.name }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- File Name -->
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>File Name</mat-label>
+                <input matInput formControlName="fileName" type="text" placeholder="Enter file name" required />
+            </mat-form-field>
+
+            <!-- State (Conditional for License/Bond Files) -->
+            <mat-form-field *ngIf="isLicenseOrBondFile()" appearance="outline" class="w-100">
+                <mat-label>State</mat-label>
+                <mat-select formControlName="state" placeholder="Select the state of your file" required>
+                    <mat-option *ngFor="let state of states" [value]="state">
+                        {{ state }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <!-- Expiration Date (Conditional for License/Bond Files) -->
+            <mat-form-field *ngIf="isLicenseOrBondFile()" appearance="outline" class="w-100">
+                <mat-label>Expiration Date</mat-label>
+                <input matInput formControlName="expirationDate" [matDatepicker]="picker"
+                       (dateChange)="onDateChange($event.value)"
+                       placeholder="Select expiration date of your file" required />
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <!-- Description -->
+            <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" placeholder="Enter description" rows="3"></textarea>
+            </mat-form-field>
+        </form>
+
+        <!-- Can Be Removed Toggle -->
+        <div class="d-flex align-items-center mb-3">
+            <span class="me-2">Can be removed:</span>
+            <mat-slide-toggle
+                    (change)="toggleCanBeRemoved($event)"
+                    [checked]="canBeRemoved"
+                    color="primary">
+            </mat-slide-toggle>
+        </div>
+
+        <!-- File Upload -->
+        <input (change)="selectFile($event)" type="file" name="file" id="file-input" class="d-none" />
+        <button mat-raised-button color="primary" *ngIf="action == 'add'" class="mb-2">
+            <label for="file-input" class="m-0">Select File to Upload</label>
+        </button>
+        <p *ngIf="userFile?.name" class="mb-3 text-muted">{{ userFile?.name }} selected</p>
+    </div>
+
+</div>
+
+<div mat-dialog-actions class="d-flex justify-content-end">
+    <!-- Save Button -->
+    <button mat-raised-button color="primary"
+            (click)="saveFile()"
+            [disabled]="!fileUploadForm.valid || fileUploadFormDisabled"
+            *ngIf="action == 'add'">
+        <div class="spinner-container" *ngIf="fileUploadFormDisabled">
+            <mat-spinner diameter="25"></mat-spinner>
+        </div>
+        Save
+    </button>
+
+    <!-- Cancel Button -->
+    <button mat-raised-button color="accent" mat-dialog-close>Cancel</button>
+
+</div>

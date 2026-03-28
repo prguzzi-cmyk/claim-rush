@@ -1,0 +1,350 @@
+<!-- Loading state -->
+<div class="mc-loading" *ngIf="!profile">
+  <div class="mc-loading-inner">
+    <div class="mc-loading-logo"><mat-icon>shield</mat-icon></div>
+    <h2>Loading your claim...</h2>
+    <p>Securely retrieving your claim details.</p>
+  </div>
+</div>
+
+<!-- No-claim placeholder -->
+<div class="mc-no-claim" *ngIf="profile && !claim">
+  <div class="mc-no-claim-inner">
+    <div class="mc-no-claim-icon"><mat-icon>hourglass_top</mat-icon></div>
+    <h2>Your claim is being set up.</h2>
+    <p>Once your claim specialist completes the initial review, your full dashboard will appear here. You'll be notified when it's ready.</p>
+    <div class="mc-no-claim-contact">
+      <mat-icon>support_agent</mat-icon>
+      <span>Questions? Reach out anytime — call <strong>(800) 555-0100</strong>.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     CLAIM COMMAND CENTER DASHBOARD
+     ══════════════════════════════════════════════════════════════════ -->
+<div class="mc-dash" *ngIf="claim && profile">
+
+  <!-- ══════ 1. FIRST-TIME WELCOME STRIP ══════ -->
+  <div class="mc-welcome-strip" *ngIf="showWelcomeStrip">
+    <div class="mc-welcome-left">
+      <div class="mc-welcome-pulse"></div>
+      <div>
+        <h2>Your claim is now in progress</h2>
+        <p>We've started organizing your property details, documents, and next steps.
+          You'll see updates here as your claim moves forward.</p>
+      </div>
+    </div>
+    <button class="mc-welcome-close" (click)="dismissWelcome()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ══════ PROCESSING BANNER ══════ -->
+  <div class="mc-proc-banner" *ngIf="isProcessing && showProcessingBanner && !showWelcomeStrip">
+    <div class="mc-proc-banner-pulse"></div>
+    <mat-icon>memory</mat-icon>
+    <div class="mc-proc-banner-text">
+      <strong>Your claim is currently being prepared.</strong>
+      Updates will appear here.
+    </div>
+    <button class="mc-proc-banner-close" (click)="dismissBanner()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ══════ GREETING + LIVE INDICATOR ══════ -->
+  <section class="mc-greeting">
+    <div>
+      <h1>Hi {{ profile.firstName }},</h1>
+      <p>Here's the latest on your claim.</p>
+    </div>
+    <div class="mc-live-indicator">
+      <span class="mc-live-dot"></span> Live Updates Enabled
+    </div>
+  </section>
+
+  <!-- ══════ CLAIM STATUS HEADER ══════ -->
+  <section class="mc-card mc-status-card">
+    <div class="mc-status-top">
+      <div class="mc-status-label">Claim Status</div>
+      <div class="mc-status-value" [class.mc-status-processing]="isProcessing">
+        <mat-icon *ngIf="isProcessing">autorenew</mat-icon>
+        {{ statusLabel }}
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mc-progress-track">
+      <div *ngFor="let stage of stages; let i = index; let last = last"
+           class="mc-stage"
+           [class.done]="i < currentStageIdx"
+           [class.current]="i === currentStageIdx"
+           [class.upcoming]="i > currentStageIdx">
+        <div class="mc-stage-dot">
+          <mat-icon *ngIf="i < currentStageIdx">check</mat-icon>
+          <mat-icon *ngIf="i >= currentStageIdx">{{ stage.icon }}</mat-icon>
+        </div>
+        <span class="mc-stage-label">{{ stage.label }}</span>
+        <div class="mc-stage-line" *ngIf="!last" [class.filled]="i < currentStageIdx"></div>
+      </div>
+    </div>
+
+    <!-- Helper text for current stage -->
+    <div class="mc-stage-helper" *ngIf="currentStageHelper">
+      <mat-icon>info_outline</mat-icon>
+      <span>{{ currentStageHelper }}</span>
+    </div>
+  </section>
+
+  <!-- ══════ KEY CLAIM SUMMARY ══════ -->
+  <section class="mc-card">
+    <div class="mc-card-header">
+      <mat-icon>description</mat-icon>
+      <h2>Claim Summary</h2>
+      <span class="mc-claim-number">{{ claim.claimNumber }}</span>
+    </div>
+    <div class="mc-summary-grid">
+      <div class="mc-summary-item">
+        <mat-icon>tag</mat-icon>
+        <div>
+          <span class="mc-sum-label">Claim Number</span>
+          <span class="mc-sum-value mc-mono">{{ claim.claimNumber }}</span>
+        </div>
+      </div>
+      <div class="mc-summary-item">
+        <mat-icon>home</mat-icon>
+        <div>
+          <span class="mc-sum-label">Property Address</span>
+          <span class="mc-sum-value">{{ claim.propertyAddress }}, {{ claim.city }}, {{ claim.state }} {{ claim.zip }}</span>
+        </div>
+      </div>
+      <div class="mc-summary-item">
+        <mat-icon>calendar_today</mat-icon>
+        <div>
+          <span class="mc-sum-label">Date Started</span>
+          <span class="mc-sum-value">{{ claim.dateOpened }}</span>
+        </div>
+      </div>
+      <div class="mc-summary-item">
+        <mat-icon>support_agent</mat-icon>
+        <div>
+          <span class="mc-sum-label">Your Claim Specialist</span>
+          <span class="mc-sum-value mc-sum-adjuster">
+            <span class="mc-adj-dot">{{ adjusterInitials }}</span>
+            {{ claim.adjusterName }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ ESTIMATED VALUE RANGE ══════ -->
+  <section class="mc-card mc-estimate-card">
+    <div class="mc-card-header">
+      <mat-icon>savings</mat-icon>
+      <h2>Estimated Claim Range</h2>
+    </div>
+    <div class="mc-estimate-body" *ngIf="estimateReady">
+      <div class="mc-estimate-range">
+        <span class="mc-est-val">{{ formatCurrency(estimateMin) }}</span>
+        <span class="mc-est-dash">—</span>
+        <span class="mc-est-val">{{ formatCurrency(estimateMax) }}</span>
+      </div>
+      <p class="mc-est-note">Based on current damage assessment. Final amount may vary.</p>
+    </div>
+    <div class="mc-estimate-body mc-est-pending" *ngIf="!estimateReady">
+      <mat-icon>hourglass_top</mat-icon>
+      <p>Your estimate will appear once processing is complete.</p>
+    </div>
+  </section>
+
+  <!-- ══════ LIVE ACTIVITY FEED ══════ -->
+  <section class="mc-card" id="activity">
+    <div class="mc-card-header">
+      <mat-icon>timeline</mat-icon>
+      <h2>Activity</h2>
+      <span class="mc-live-badge"><span class="mc-live-dot-sm"></span> Live</span>
+    </div>
+    <div class="mc-activity-feed">
+      <div *ngFor="let item of activityFeed; let last = last" class="mc-act-item">
+        <div class="mc-act-marker">
+          <div class="mc-act-dot" [style.backgroundColor]="item.color">
+            <mat-icon>{{ item.icon }}</mat-icon>
+          </div>
+          <div class="mc-act-line" *ngIf="!last"></div>
+        </div>
+        <div class="mc-act-content">
+          <div class="mc-act-header">
+            <span class="mc-act-label">{{ item.label }}</span>
+            <span class="mc-act-time">{{ formatTime(item.timestamp) }}</span>
+          </div>
+          <p class="mc-act-detail">{{ item.detail }}</p>
+        </div>
+      </div>
+      <div class="mc-empty" *ngIf="activityFeed.length === 0">
+        <mat-icon>timeline</mat-icon>
+        <p>Activity updates will appear here as your claim progresses.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ DOCUMENT CENTER ══════ -->
+  <section class="mc-card" id="documents">
+    <div class="mc-card-header">
+      <mat-icon>folder</mat-icon>
+      <h2>Documents</h2>
+    </div>
+
+    <div class="mc-doc-actions">
+      <button class="mc-doc-btn" (click)="showUpload = !showUpload">
+        <mat-icon>cloud_upload</mat-icon> Upload Document
+      </button>
+      <button class="mc-doc-btn mc-doc-btn-secondary" *ngIf="documents.length > 0">
+        <mat-icon>visibility</mat-icon> View Files ({{ documents.length }})
+      </button>
+    </div>
+
+    <div class="mc-upload-area" *ngIf="showUpload">
+      <mat-icon>cloud_upload</mat-icon>
+      <p>Tap to upload photos or documents</p>
+      <input type="file" class="mc-file-input" (change)="onFileSelected($event)" accept="image/*,.pdf" />
+    </div>
+
+    <div class="mc-doc-list" *ngIf="documents.length > 0">
+      <div *ngFor="let doc of documents.slice(0, 5)" class="mc-doc-item">
+        <div class="mc-doc-icon">
+          <mat-icon>{{ doc.category === 'photo' ? 'image' : 'description' }}</mat-icon>
+        </div>
+        <div class="mc-doc-info">
+          <div class="mc-doc-name">{{ doc.name }}</div>
+          <div class="mc-doc-meta">{{ doc.type }} &middot; {{ doc.size }} &middot; {{ doc.uploadedAt }}</div>
+        </div>
+        <button class="mc-icon-btn"><mat-icon>download</mat-icon></button>
+      </div>
+    </div>
+
+    <div class="mc-empty" *ngIf="documents.length === 0 && !showUpload">
+      <mat-icon>folder_open</mat-icon>
+      <p>No additional documents uploaded yet. Tap Upload to add photos or files.</p>
+    </div>
+  </section>
+
+  <!-- ══════ COMMUNICATION PANEL ══════ -->
+  <section class="mc-card" id="messages">
+    <div class="mc-card-header">
+      <mat-icon>chat</mat-icon>
+      <h2>Message Your Claim Team</h2>
+    </div>
+
+    <div class="mc-thread-list" *ngIf="!selectedThread">
+      <div *ngFor="let t of threads" class="mc-thread-item" [class.unread]="t.unread" (click)="selectThread(t)">
+        <div class="mc-thread-dot" *ngIf="t.unread"></div>
+        <div class="mc-thread-info">
+          <div class="mc-thread-subject">{{ t.subject }}</div>
+          <div class="mc-thread-preview">{{ getLastMessage(t) }}</div>
+        </div>
+        <mat-icon class="mc-thread-arrow">chevron_right</mat-icon>
+      </div>
+      <div class="mc-empty" *ngIf="threads.length === 0">
+        <mat-icon>chat_bubble_outline</mat-icon>
+        <p>No new messages yet. Your claim specialist will reach out soon.</p>
+      </div>
+    </div>
+
+    <div class="mc-conversation" *ngIf="selectedThread">
+      <button class="mc-back-btn" (click)="selectedThread = null">
+        <mat-icon>arrow_back</mat-icon> {{ selectedThread.subject }}
+      </button>
+      <div class="mc-messages">
+        <div *ngFor="let m of selectedThread.messages" class="mc-msg" [ngClass]="'mc-msg-' + m.senderRole">
+          <div class="mc-msg-sender">{{ m.senderName }}</div>
+          <div class="mc-msg-body">{{ m.body }}</div>
+          <div class="mc-msg-time">{{ formatTime(m.timestamp) }}</div>
+        </div>
+      </div>
+      <div class="mc-compose">
+        <input type="text" [(ngModel)]="newMessage" placeholder="Type your message..." (keyup.enter)="sendMessage()" />
+        <button class="mc-send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ ACTIONS PANEL ══════ -->
+  <section class="mc-actions-section">
+    <p class="mc-actions-intro">Need to add something or take the next step? Use the tools below to keep your claim moving.</p>
+    <div class="mc-actions-panel">
+      <button class="mc-action-card" (click)="navigateTo('/app/capture-property-damage')">
+        <div class="mc-act-card-icon" style="background:#e3f2fd;">
+          <mat-icon style="color:#1565c0;">add_photo_alternate</mat-icon>
+        </div>
+        <span>Upload More Photos</span>
+      </button>
+      <button class="mc-action-card" (click)="navigateTo('/app/inspection-calendar')">
+        <div class="mc-act-card-icon" style="background:#f3e5f5;">
+          <mat-icon style="color:#7b1fa2;">event</mat-icon>
+        </div>
+        <span>Schedule Inspection</span>
+      </button>
+      <button class="mc-action-card">
+        <div class="mc-act-card-icon" style="background:#e8f5e9;">
+          <mat-icon style="color:#2e7d32;">support_agent</mat-icon>
+        </div>
+        <span>Contact Support</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════ PAYMENTS ══════ -->
+  <section class="mc-card" id="payments">
+    <div class="mc-card-header">
+      <mat-icon>payments</mat-icon>
+      <h2>Payments</h2>
+    </div>
+    <div *ngIf="payments.length > 0">
+      <div class="mc-pay-summary">
+        <div class="mc-pay-stat">
+          <div class="mc-pay-amount green">{{ totalPaid | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="mc-pay-label">Received</div>
+        </div>
+        <div class="mc-pay-stat">
+          <div class="mc-pay-amount amber">{{ totalPending | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="mc-pay-label">Pending</div>
+        </div>
+        <div class="mc-pay-stat">
+          <div class="mc-pay-amount navy">{{ claim.estimatedValue | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div class="mc-pay-label">Total Estimate</div>
+        </div>
+      </div>
+      <div class="mc-pay-list">
+        <div *ngFor="let p of payments" class="mc-pay-item">
+          <div class="mc-pay-icon" [ngClass]="'pay-' + p.status">
+            <mat-icon>{{ p.status === 'processed' ? 'check_circle' : p.status === 'pending' ? 'schedule' : 'cancel' }}</mat-icon>
+          </div>
+          <div class="mc-pay-info">
+            <div class="mc-pay-desc">{{ p.description }}</div>
+            <div class="mc-pay-meta">{{ p.date }} &middot; {{ p.method }}</div>
+          </div>
+          <div class="mc-pay-val" [ngClass]="'pay-' + p.status">{{ p.amount | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="mc-empty" *ngIf="payments.length === 0">
+      <mat-icon>account_balance</mat-icon>
+      <p>Payment updates will appear here.</p>
+    </div>
+  </section>
+
+  <!-- ══════ REASSURANCE BLOCK ══════ -->
+  <section class="mc-reassurance">
+    <mat-icon>verified_user</mat-icon>
+    <div>
+      <p class="mc-reassure-main">Your claim is being actively tracked.</p>
+      <p class="mc-reassure-sub">We'll update this dashboard as new information becomes available.
+        Questions? Reach out anytime through the message panel.</p>
+    </div>
+  </section>
+
+</div>

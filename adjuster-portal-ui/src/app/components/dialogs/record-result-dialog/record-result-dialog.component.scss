@@ -1,0 +1,81 @@
+::ng-deep .mat-mdc-dialog-content {
+  max-height: 70vh;
+}
+
+.d-inline-block {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+// Dropdown option with label + description
+::ng-deep .mat-mdc-option {
+  height: auto !important;
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  line-height: 1.4;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.option-label {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.option-description {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.54);
+  white-space: normal;
+  line-height: 1.3;
+}
+
+// Tooltip icon next to field
+.info-icon {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 20px;
+  cursor: help;
+
+  &:hover {
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+// Automation hint below the dropdown
+.automation-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  margin: -12px 0 16px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #2e7d32;
+  line-height: 1.4;
+
+  .hint-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+// Responsive — ensure descriptions visible on tablet
+@media (max-width: 768px) {
+  .option-description {
+    font-size: 11px;
+  }
+
+  .automation-hint {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}

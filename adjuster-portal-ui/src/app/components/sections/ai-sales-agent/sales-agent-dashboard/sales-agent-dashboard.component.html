@@ -1,0 +1,148 @@
+<div class="asa-dark">
+
+  <!-- ══════ HEADER ══════ -->
+  <div class="asa-header">
+    <div>
+      <h1>AI Sales Agent</h1>
+      <p class="asa-subtitle">AI-powered homeowner conversations, lead qualification, and intake pipeline.</p>
+    </div>
+    <div class="asa-meta">
+      <span class="asa-status"><span class="status-dot"></span> AI Engine Active</span>
+      <span class="asa-count">{{ conversations.length }} conversations</span>
+    </div>
+  </div>
+
+  <div class="asa-body">
+
+    <!-- ══════ KPI STRIP ══════ -->
+    <div class="kpi-strip" *ngIf="kpis">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.conversationsStarted }}</div>
+        <div class="kpi-label">Conversations</div>
+        <mat-icon class="kpi-icon">forum</mat-icon>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.leadsQualified }}</div>
+        <div class="kpi-label">Qualified</div>
+        <mat-icon class="kpi-icon">verified</mat-icon>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.appointmentsBooked }}</div>
+        <div class="kpi-label">Appointments</div>
+        <mat-icon class="kpi-icon">event</mat-icon>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.clientsSigned }}</div>
+        <div class="kpi-label">Signed</div>
+        <mat-icon class="kpi-icon">how_to_reg</mat-icon>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.conversionRate }}%</div>
+        <div class="kpi-label">Conversion</div>
+        <mat-icon class="kpi-icon">trending_up</mat-icon>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpis.avgQualificationScore }}</div>
+        <div class="kpi-label">Avg Score</div>
+        <mat-icon class="kpi-icon">psychology</mat-icon>
+      </div>
+    </div>
+
+    <!-- ══════ STATUS PIPELINE ══════ -->
+    <div class="pipeline-bar">
+      <button
+        *ngFor="let opt of statusOptions"
+        class="pipeline-stage"
+        [class.active]="statusFilter === opt.value"
+        (click)="statusFilter = opt.value; applyFilters()"
+      >
+        <mat-icon>{{ opt.icon }}</mat-icon>
+        <span class="stage-label">{{ opt.label }}</span>
+        <span class="stage-count" *ngIf="opt.value !== 'all'">{{ getStatusCount(opt.value) }}</span>
+        <span class="stage-count" *ngIf="opt.value === 'all'">{{ conversations.length }}</span>
+      </button>
+    </div>
+
+    <!-- ══════ SEARCH ══════ -->
+    <div class="search-row">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name, address, or city..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <!-- ══════ CONVERSATIONS TABLE ══════ -->
+    <div class="dark-panel">
+      <div class="dark-panel-header">
+        <mat-icon>forum</mat-icon> AI Conversations
+        <span class="header-count">{{ filteredConversations.length }} results</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Homeowner</th>
+              <th>Property</th>
+              <th>Claim Type</th>
+              <th>Status</th>
+              <th>Qual. Score</th>
+              <th>Claim Prob.</th>
+              <th>Agent</th>
+              <th>Last Activity</th>
+              <th>Messages</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of filteredConversations" (click)="openConversation(c)" class="clickable-row">
+              <td>
+                <div class="cell-name">{{ c.homeownerName }}</div>
+                <div class="cell-sub">{{ c.homeownerPhone }}</div>
+              </td>
+              <td>
+                <div class="cell-name">{{ c.propertyAddress }}</div>
+                <div class="cell-sub">{{ c.city }}, {{ c.state }}</div>
+              </td>
+              <td>
+                <span class="claim-type-chip">
+                  <mat-icon>{{ getClaimIcon(c.claimType) }}</mat-icon>
+                  {{ formatClaimType(c.claimType) }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(c.status)">
+                  {{ formatStatus(c.status) }}
+                </span>
+              </td>
+              <td>
+                <span *ngIf="c.qualificationScore !== null" class="score" [class.score-high]="c.qualificationScore >= 80" [class.score-mid]="c.qualificationScore >= 60 && c.qualificationScore < 80" [class.score-low]="c.qualificationScore < 60">
+                  {{ c.qualificationScore }}
+                </span>
+                <span *ngIf="c.qualificationScore === null" class="score-pending">—</span>
+              </td>
+              <td>
+                <span *ngIf="c.claimProbabilityScore !== null" class="score" [class.score-high]="c.claimProbabilityScore >= 80" [class.score-mid]="c.claimProbabilityScore >= 60 && c.claimProbabilityScore < 80" [class.score-low]="c.claimProbabilityScore < 60">
+                  {{ c.claimProbabilityScore }}%
+                </span>
+                <span *ngIf="c.claimProbabilityScore === null" class="score-pending">—</span>
+              </td>
+              <td>{{ c.assignedAgent }}</td>
+              <td>{{ timeAgo(c.lastActivityAt) }}</td>
+              <td>
+                <span class="msg-count">{{ c.messages.length }}</span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredConversations.length === 0">
+              <td colspan="9" class="empty-state">No conversations match your filters</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

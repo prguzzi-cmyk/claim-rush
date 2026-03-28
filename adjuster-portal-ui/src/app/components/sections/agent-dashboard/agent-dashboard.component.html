@@ -1,0 +1,251 @@
+<div class="mission-control">
+  <!-- Header Row -->
+  <div class="mc-header">
+    <div class="mc-header-left">
+      <h1 class="mc-title">Mission Control</h1>
+      <span class="live-badge">
+        <span class="live-dot"></span>
+        Live
+      </span>
+    </div>
+    <div class="mc-header-right">
+      <span class="last-update">Last update: {{ lastRefreshTime | date:'shortTime' }}</span>
+      <button mat-icon-button (click)="refresh()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Intelligence Ticker Strip -->
+  <div class="ticker-strip" *ngIf="tickerItems.length > 0">
+    <div class="ticker-label">
+      <span class="ticker-pulse"></span>
+      <span>INTEL</span>
+    </div>
+    <div class="ticker-track">
+      <div class="ticker-scroll">
+        <button class="ticker-item"
+                *ngFor="let item of tickerItems"
+                (click)="onTickerClick(item)"
+                [matTooltip]="item.sublabel || ''">
+          <span class="ticker-emoji">{{ getEventEmoji(item.eventType) }}</span>
+          <span class="ticker-text">{{ item.label }}</span>
+          <span class="ticker-time">{{ getTimeAgo(item.timestamp) }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Territory Banner -->
+  <div class="no-territory-banner" *ngIf="noTerritoryAssigned">
+    <mat-icon>warning</mat-icon>
+    <span>No territory assigned. Contact your administrator.</span>
+  </div>
+
+  <!-- Agent Availability -->
+  <div class="availability-bar" *ngIf="availability">
+    <div class="avail-toggle">
+      <mat-slide-toggle
+        [checked]="availability.is_accepting_leads"
+        (change)="toggleAcceptingLeads()"
+        [disabled]="availabilityLoading"
+        color="primary">
+      </mat-slide-toggle>
+      <div class="avail-toggle-label">
+        <span class="avail-status" [class.active]="availability.is_accepting_leads">
+          {{ availability.is_accepting_leads ? 'Accepting Leads' : 'Paused' }}
+        </span>
+        <span class="avail-hint">
+          {{ availability.is_accepting_leads ? 'New leads will be routed to you' : 'You will not receive new leads' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="avail-divider"></div>
+
+    <div class="avail-cap">
+      <div class="avail-cap-info" *ngIf="!editingDailyLimit">
+        <span class="avail-cap-label">Daily Cap</span>
+        <span class="avail-cap-value">
+          {{ availability.daily_lead_limit ? availability.daily_lead_limit : 'Unlimited' }}
+        </span>
+        <button mat-icon-button class="avail-cap-edit" (click)="startEditDailyLimit()" matTooltip="Edit daily limit">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </div>
+      <div class="avail-cap-edit-row" *ngIf="editingDailyLimit">
+        <mat-form-field appearance="outline" class="avail-cap-field">
+          <mat-label>Daily Limit</mat-label>
+          <input matInput type="number" [(ngModel)]="editDailyLimit" min="0" placeholder="0 = unlimited">
+        </mat-form-field>
+        <button mat-icon-button color="primary" (click)="saveDailyLimit()" [disabled]="availabilityLoading" matTooltip="Save">
+          <mat-icon>check</mat-icon>
+        </button>
+        <button mat-icon-button (click)="cancelEditDailyLimit()" matTooltip="Cancel">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="avail-divider"></div>
+
+    <div class="avail-today">
+      <span class="avail-today-count">{{ availability.leads_assigned_today }}</span>
+      <span class="avail-today-label">Leads Today</span>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+    <div class="kpi-card" *ngFor="let kpi of kpis; let i = index" [style.animation-delay]="i * 80 + 'ms'">
+      <div class="kpi-icon-wrap">
+        <mat-icon>{{ kpi.icon }}</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-label">{{ kpi.label }}</span>
+        <span class="kpi-value">{{ kpi.value }}</span>
+        <span class="kpi-trend" [ngClass]="'trend-' + kpi.trend" *ngIf="kpi.trendValue">
+          <mat-icon *ngIf="kpi.trend === 'up'" class="trend-icon">trending_up</mat-icon>
+          <mat-icon *ngIf="kpi.trend === 'down'" class="trend-icon">trending_down</mat-icon>
+          <mat-icon *ngIf="kpi.trend === 'flat'" class="trend-icon">trending_flat</mat-icon>
+          {{ kpi.trendValue }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operations Grid: Map + Leads -->
+  <div class="ops-grid" *ngIf="!noTerritoryAssigned">
+    <!-- Incident Map + Recent Feed Column -->
+    <div class="map-column">
+      <div class="map-section">
+        <h2 class="section-label">
+          <mat-icon>map</mat-icon>
+          Incident Map
+        </h2>
+        <div class="incident-map-wrap">
+          <google-map
+            class="incident-map"
+            height="100%"
+            width="100%"
+            [center]="mapCenter"
+            [zoom]="mapZoom"
+            [options]="mapOptions"
+            (mapInitialized)="onMapReady()">
+            <map-marker
+              *ngFor="let m of mapMarkers; let i = index"
+              [position]="m.position"
+              [options]="m.options"
+              (mapClick)="onMarkerClick($event, i)">
+            </map-marker>
+          </google-map>
+          <!-- Map Legend -->
+          <div class="map-legend">
+            <div class="legend-item" *ngFor="let item of legendItems">
+              <span class="legend-emoji">{{ item.emoji }}</span>
+              <span class="legend-label">{{ item.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Incidents Feed -->
+      <div class="recent-feed" *ngIf="recentIncidents.length > 0">
+        <h2 class="section-label">
+          <mat-icon>rss_feed</mat-icon>
+          Recent Incidents
+        </h2>
+        <div class="feed-list">
+          <button class="feed-item"
+                  *ngFor="let incident of recentIncidents; let i = index"
+                  (click)="onRecentIncidentClick(incident)"
+                  [style.animation-delay]="i * 60 + 'ms'">
+            <span class="feed-emoji" [style.color]="getEventColor(incident.eventType)">
+              {{ getEventEmoji(incident.eventType) }}
+            </span>
+            <div class="feed-body">
+              <span class="feed-label">{{ incident.label }}</span>
+              <span class="feed-meta">
+                <span class="feed-type">{{ getEventTypeLabel(incident.eventType) }}</span>
+                <span class="feed-sep">&middot;</span>
+                <span class="feed-location" *ngIf="incident.state">{{ incident.county ? incident.county + ', ' : '' }}{{ incident.state }}</span>
+              </span>
+            </div>
+            <span class="feed-time">{{ getTimeAgo(incident.timestamp) }}</span>
+            <button class="feed-action" mat-icon-button
+                    (click)="convertIncidentToLead(incident, $event)"
+                    matTooltip="Convert to Lead">
+              <mat-icon>person_add</mat-icon>
+            </button>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lead Operations -->
+    <div class="leads-section">
+      <h2 class="section-label">
+        <mat-icon>assignment</mat-icon>
+        Lead Operations
+      </h2>
+      <div class="leads-scroll">
+        <div class="lead-card"
+             *ngFor="let lead of assignedLeads; let i = index"
+             [ngClass]="getLeadStatusClass(lead)"
+             [style.animation-delay]="i * 100 + 'ms'">
+          <!-- Lead header -->
+          <div class="lead-header">
+            <span class="lead-ref">{{ lead.refString }}</span>
+            <span class="lead-status-badge" [ngClass]="'badge-' + lead.status">
+              {{ lead.status | titlecase }}
+            </span>
+          </div>
+
+          <!-- Contact info -->
+          <div class="lead-contact">
+            <span class="lead-name">{{ lead.contactName }}</span>
+            <span class="lead-address">{{ lead.address }}</span>
+            <span class="lead-source">{{ lead.source }}</span>
+          </div>
+
+          <!-- Timer bar -->
+          <div class="timer-row" *ngIf="lead.status === 'pending'">
+            <span class="timer-display" [style.color]="getTimerColor(lead)">
+              {{ formatTimer(lead.remainingSeconds) }}
+            </span>
+            <div class="timer-bar">
+              <div class="timer-fill"
+                   [style.width.%]="getTimerPct(lead)"
+                   [style.background]="getTimerColor(lead)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="lead-actions" *ngIf="lead.status === 'pending'">
+            <button mat-flat-button class="btn-accept" (click)="acceptLead(lead)">
+              <mat-icon>check</mat-icon> Accept
+            </button>
+            <button mat-stroked-button class="btn-decline" (click)="declineLead(lead)">
+              <mat-icon>close</mat-icon> Decline
+            </button>
+          </div>
+
+          <!-- Expired / resolved overlay text -->
+          <div class="lead-resolved" *ngIf="lead.status === 'expired'">
+            <mat-icon>timer_off</mat-icon> Expired
+          </div>
+          <div class="lead-resolved accepted" *ngIf="lead.status === 'accepted'">
+            <mat-icon>check_circle</mat-icon> Accepted
+          </div>
+          <div class="lead-resolved declined" *ngIf="lead.status === 'declined'">
+            <mat-icon>cancel</mat-icon> Declined
+          </div>
+          <div class="lead-resolved escalated" *ngIf="lead.status === 'escalated'">
+            <mat-icon>trending_up</mat-icon> Escalated (Level {{ lead.escalation_level }})
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

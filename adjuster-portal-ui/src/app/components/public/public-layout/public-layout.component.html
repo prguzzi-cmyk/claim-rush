@@ -1,0 +1,57 @@
+<!-- Public Navbar -->
+<nav class="public-navbar">
+  <div class="navbar-inner">
+    <a routerLink="/" class="navbar-brand">
+      <span class="navbar-logo" style="font-size:22px;font-weight:800;color:#fff;letter-spacing:4px;">RIN<sup style="font-size:10px;color:#00C2FF;">&trade;</sup></span>
+    </a>
+
+    <button class="mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+      <span class="hamburger" [class.open]="mobileMenuOpen"></span>
+    </button>
+
+    <div class="navbar-links" [class.open]="mobileMenuOpen">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="mobileMenuOpen = false">Home</a>
+      <a routerLink="/features" routerLinkActive="active" (click)="mobileMenuOpen = false">Features</a>
+      <a routerLink="/app-preview" routerLinkActive="active" (click)="mobileMenuOpen = false">App Preview</a>
+      <a routerLink="/territories" routerLinkActive="active" (click)="mobileMenuOpen = false">Territories</a>
+      <a routerLink="/login" class="btn-signin" (click)="mobileMenuOpen = false">Sign In</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Content -->
+<main class="public-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Footer -->
+<footer class="public-footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <span class="footer-logo" style="font-size:26px;font-weight:800;color:#fff;letter-spacing:5px;">RIN<sup style="font-size:10px;color:#00C2FF;">&trade;</sup></span>
+        <p class="footer-tagline">Response Intelligence Network &mdash; Empowering adjusters with modern tools.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a routerLink="/features">Features</a>
+        <a routerLink="/app-preview">App Preview</a>
+        <a routerLink="/territories">Territories</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="https://resprousa.com/" target="_blank" rel="noopener">About Us</a>
+        <a href="mailto:support@upaportal.com">Contact</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; {{ currentYear }} Response Intelligence Network. All rights reserved.</span>
+      <p class="powered-by">Powered by ACI Adjustment Group | Supporting Unified Public Advocacy (UPA)</p>
+    </div>
+  </div>
+</footer>

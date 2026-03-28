@@ -1,0 +1,42 @@
+<mjml>
+  <!-- Include HTML Head section -->
+  <mj-include path="./partials/head.mjml"/>
+
+  <mj-body mj-class="body-background">
+    <!-- Include Header section -->
+    <mj-include path="./partials/header.mjml"/>
+
+    <mj-section mj-class="message-background">
+      <mj-column width="100%">
+        <mj-image css-class="line-shadow" alt="" align="center" border="none"
+                  padding="0px"></mj-image>
+
+        <mj-text padding="50px 40px 0 40px">
+          Dear {{ admin_name }},
+        </mj-text>
+
+        <mj-text padding="30px 40px 0 40px">
+          While creating a new email address for the claim. We have faced a permanent error on the email server. Please
+          look into this ASAP.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          <ul>
+            <li>
+              <b>Email: </b>{{ email }}
+            </li>
+            <li>
+              <b>Error Information: </b>
+              {{ error_msg }}
+            </li>
+          </ul>
+        </mj-text>
+
+        <mj-spacer height="20px"></mj-spacer>
+      </mj-column>
+    </mj-section>
+
+    <!-- Include Footer section -->
+    <mj-include path="./partials/footer.mjml"/>
+  </mj-body>
+</mjml>

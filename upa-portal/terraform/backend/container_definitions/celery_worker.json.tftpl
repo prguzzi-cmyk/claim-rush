@@ -1,0 +1,22 @@
+[
+  {
+    "name": "queue",
+    "cpu": 128,
+    "memory": 128,
+    "essential": true,
+    "image": "rabbitmq:3.11.15"
+  },
+  {
+    "name": "celery-worker",
+    "cpu": 128,
+    "memory": 128,
+    "essential": true,
+    "environmentFiles": [
+      {
+        "type": "s3",
+        "value": "arn:aws:s3:::${bucket_name}/${tag}.env"
+      }
+    ],
+    "image": "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/${image_name}:${tag}"
+  }
+]

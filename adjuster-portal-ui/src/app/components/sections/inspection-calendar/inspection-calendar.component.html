@@ -1,0 +1,206 @@
+<div class="calendar-container">
+
+  <!-- ══════ CALENDAR VIEW ══════ -->
+  <ng-container *ngIf="view === 'calendar'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">event</mat-icon> Inspection Calendar</h2>
+        <p class="subtitle">Schedule and track property inspections</p>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="openAvailability()"><mat-icon>schedule</mat-icon> Availability</button>
+        <button mat-raised-button color="primary" (click)="openCreate()"><mat-icon>add</mat-icon> New Inspection</button>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <span class="stat-chip"><mat-icon>event</mat-icon> {{ stats.scheduled }} scheduled</span>
+      <span class="stat-chip stat-confirmed"><mat-icon>event_available</mat-icon> {{ stats.confirmed }} confirmed</span>
+      <span class="stat-chip stat-completed"><mat-icon>check_circle</mat-icon> {{ stats.completed }} completed</span>
+    </div>
+
+    <!-- Calendar Controls -->
+    <div class="calendar-controls">
+      <div class="nav-group">
+        <button mat-icon-button (click)="navigateDate(-1)"><mat-icon>chevron_left</mat-icon></button>
+        <button mat-stroked-button class="today-btn" (click)="goToToday()">Today</button>
+        <button mat-icon-button (click)="navigateDate(1)"><mat-icon>chevron_right</mat-icon></button>
+        <span class="current-date-label">{{ currentDate | date:'MMMM yyyy' }}</span>
+      </div>
+      <mat-button-toggle-group [value]="calendarView" (change)="setCalendarView($event.value)">
+        <mat-button-toggle value="day">Day</mat-button-toggle>
+        <mat-button-toggle value="week">Week</mat-button-toggle>
+        <mat-button-toggle value="month">Month</mat-button-toggle>
+      </mat-button-toggle-group>
+      <mat-form-field appearance="outline" class="status-filter">
+        <mat-select [(ngModel)]="statusFilter" (selectionChange)="buildCalendar()" placeholder="All Statuses">
+          <mat-option value="">All</mat-option>
+          <mat-option value="scheduled">Scheduled</mat-option>
+          <mat-option value="confirmed">Confirmed</mat-option>
+          <mat-option value="completed">Completed</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-container" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+    <!-- Calendar Grid -->
+    <div class="calendar-grid" *ngIf="!loading" [ngClass]="'view-' + calendarView">
+      <div class="calendar-col" *ngFor="let day of calendarDays">
+        <div class="day-header" [class.is-today]="day.isToday">
+          <span class="day-name">{{ dayLabels[day.dayOfWeek] }}</span>
+          <span class="day-number">{{ day.date | date:'d' }}</span>
+        </div>
+        <div class="day-body">
+          <div class="inspection-card" *ngFor="let insp of day.inspections"
+               [style.borderLeftColor]="getStatusColor(insp.status)">
+            <div class="insp-time">{{ insp.time }}</div>
+            <div class="insp-name">{{ insp.homeownerName }}</div>
+            <div class="insp-address">{{ insp.propertyAddress }}</div>
+            <div class="insp-footer">
+              <span class="insp-adjuster">{{ insp.adjusterName }}</span>
+              <span class="insp-status-badge" [style.backgroundColor]="getStatusColor(insp.status)">{{ getStatusLabel(insp.status) }}</span>
+            </div>
+            <div class="insp-actions">
+              <button mat-icon-button matTooltip="Confirm" (click)="updateStatus(insp, 'confirmed')" *ngIf="insp.status === 'scheduled'"><mat-icon>check</mat-icon></button>
+              <button mat-icon-button matTooltip="Complete" (click)="updateStatus(insp, 'completed')" *ngIf="insp.status === 'confirmed'"><mat-icon>done_all</mat-icon></button>
+              <button mat-icon-button matTooltip="Cancel" (click)="updateStatus(insp, 'cancelled')"><mat-icon>close</mat-icon></button>
+              <button mat-icon-button matTooltip="Remind Homeowner" (click)="sendReminder(insp, 'homeowner')"><mat-icon>notifications</mat-icon></button>
+            </div>
+          </div>
+          <div class="day-empty" *ngIf="day.inspections.length === 0" (click)="openCreate(day.date)">
+            <mat-icon>add_circle_outline</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Panel -->
+    <div class="upcoming-panel panel-card" *ngIf="upcomingInspections.length > 0">
+      <div class="panel-header"><mat-icon>upcoming</mat-icon> Upcoming Inspections</div>
+      <div class="upcoming-list">
+        <div class="upcoming-row" *ngFor="let insp of upcomingInspections">
+          <mat-icon [style.color]="getStatusColor(insp.status)">{{ getStatusIcon(insp.status) }}</mat-icon>
+          <div class="upcoming-info">
+            <strong>{{ insp.homeownerName }}</strong>
+            <span>{{ insp.propertyAddress }}</span>
+          </div>
+          <div class="upcoming-meta">
+            <span class="upcoming-date">{{ insp.date | date:'MMM dd' }} {{ insp.time }}</span>
+            <span class="upcoming-adjuster">{{ insp.adjusterName }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════ CREATE VIEW ══════ -->
+  <ng-container *ngIf="view === 'create'">
+    <div class="page-header">
+      <div class="header-text"><h2><mat-icon class="header-icon">add_circle</mat-icon> Schedule Inspection</h2></div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="view = 'calendar'">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveInspection()" [disabled]="!formDate || !formTime || !formAddress || !formHomeowner">
+          <mat-icon>save</mat-icon> Schedule
+        </button>
+      </div>
+    </div>
+    <div class="create-form panel-card">
+      <div class="panel-header"><mat-icon>edit</mat-icon> Inspection Details</div>
+      <div class="form-body">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>Date</mat-label>
+            <input matInput type="date" [(ngModel)]="formDate" (ngModelChange)="onFormTimeChange()">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>Time</mat-label>
+            <mat-select [(ngModel)]="formTime" (selectionChange)="onFormTimeChange()">
+              <mat-option *ngFor="let h of hours" [value]="h + ':00'">{{ h }}:00</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Property Address</mat-label>
+          <input matInput [(ngModel)]="formAddress" placeholder="1234 Main St, City, TX 75001">
+        </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>Homeowner Name</mat-label>
+            <input matInput [(ngModel)]="formHomeowner">
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>Phone</mat-label>
+            <input matInput [(ngModel)]="formPhone">
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Assigned Adjuster</mat-label>
+          <input matInput [(ngModel)]="formAdjuster" placeholder="Adjuster name">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea matInput [(ngModel)]="formNotes" rows="3"></textarea>
+        </mat-form-field>
+        <div class="conflict-warning" *ngIf="formConflict">
+          <mat-icon>warning</mat-icon>
+          <span>Conflict: {{ formConflict.adjusterName }} has {{ formConflict.homeownerName }} at {{ formConflict.time }} on {{ formConflict.date }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════ AVAILABILITY VIEW ══════ -->
+  <ng-container *ngIf="view === 'availability'">
+    <div class="page-header">
+      <div class="header-text"><h2><mat-icon class="header-icon">schedule</mat-icon> Adjuster Availability</h2></div>
+      <button mat-stroked-button (click)="view = 'calendar'"><mat-icon>arrow_back</mat-icon> Back</button>
+    </div>
+    <div class="avail-panel panel-card">
+      <div class="panel-header"><mat-icon>today</mat-icon> Available Days & Hours</div>
+      <div class="form-body">
+        <div class="day-toggles">
+          <button mat-stroked-button *ngFor="let d of [0,1,2,3,4,5,6]"
+            [class.day-active]="availDays.includes(d)" (click)="toggleDay(d)">
+            {{ dayLabels[d] }}
+          </button>
+        </div>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>Start Hour</mat-label>
+            <mat-select [(ngModel)]="availStart">
+              <mat-option *ngFor="let h of [6,7,8,9,10]" [value]="h">{{ h }}:00 AM</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="field-half">
+            <mat-label>End Hour</mat-label>
+            <mat-select [(ngModel)]="availEnd">
+              <mat-option *ngFor="let h of [15,16,17,18,19]" [value]="h">{{ h }}:00</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+    <div class="avail-panel panel-card">
+      <div class="panel-header"><mat-icon>block</mat-icon> Blocked Times</div>
+      <div class="form-body">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="field-third"><mat-label>Date</mat-label><input matInput type="date" [(ngModel)]="blockDate"></mat-form-field>
+          <mat-form-field appearance="outline" class="field-third"><mat-label>Start</mat-label><input matInput type="time" [(ngModel)]="blockStart"></mat-form-field>
+          <mat-form-field appearance="outline" class="field-third"><mat-label>End</mat-label><input matInput type="time" [(ngModel)]="blockEnd"></mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="full-width"><mat-label>Reason</mat-label><input matInput [(ngModel)]="blockReason"></mat-form-field>
+        <button mat-stroked-button (click)="addBlockedSlot()" [disabled]="!blockDate || !blockStart || !blockEnd"><mat-icon>add</mat-icon> Add Block</button>
+        <div class="block-list" *ngIf="availability?.blockedSlots?.length">
+          <div class="block-row" *ngFor="let b of availability!.blockedSlots; let i = index">
+            <span>{{ b.date }} {{ b.startTime }}–{{ b.endTime }}</span>
+            <span class="block-reason">{{ b.reason }}</span>
+            <button mat-icon-button color="warn" (click)="removeBlock(i)"><mat-icon>delete</mat-icon></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

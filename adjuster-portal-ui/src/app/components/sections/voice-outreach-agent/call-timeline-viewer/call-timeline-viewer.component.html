@@ -1,0 +1,111 @@
+<div class="voa-dark" *ngIf="call">
+
+  <!-- ══════ HEADER ══════ -->
+  <div class="tl-header">
+    <button mat-icon-button class="back-btn" (click)="goBack()"><mat-icon>arrow_back</mat-icon></button>
+    <div class="tl-header-info">
+      <h1>{{ call.leadName }}</h1>
+      <p class="tl-subtitle">{{ call.propertyAddress }}, {{ call.city }}, {{ call.state }} &mdash; {{ call.campaignName }}</p>
+    </div>
+    <div class="tl-header-actions">
+      <span class="status-badge" [ngClass]="getOutcomeBadgeClass(call.outcome)">{{ formatOutcome(call.outcome) }}</span>
+      <button *ngIf="call.routedToSalesAgent && call.salesAgentConversationId" mat-stroked-button class="action-btn" (click)="openSalesConversation()">
+        <mat-icon>open_in_new</mat-icon> Sales Agent
+      </button>
+      <button *ngIf="!call.routedToSalesAgent && (call.outcome === 'possible_claim' || call.outcome === 'qualified_lead')" mat-raised-button class="route-btn" (click)="routeToSalesAgent()">
+        <mat-icon>send</mat-icon> Route to Sales
+      </button>
+    </div>
+  </div>
+
+  <div class="tl-body">
+
+    <!-- ═══ LEFT: CALL INFO ═══ -->
+    <div class="tl-sidebar">
+      <!-- Call Details -->
+      <div class="dark-panel info-panel">
+        <div class="dark-panel-header"><mat-icon>phone</mat-icon> Call Details</div>
+        <div class="info-body">
+          <div class="info-row"><span class="info-label">Phone</span><span class="info-value">{{ call.leadPhone }}</span></div>
+          <div class="info-row"><span class="info-label">Email</span><span class="info-value">{{ call.leadEmail }}</span></div>
+          <div class="info-row"><span class="info-label">Claim Type</span><span class="info-value"><mat-icon class="inline-icon">{{ getClaimIcon(call.claimType) }}</mat-icon> {{ call.claimType | titlecase }}</span></div>
+          <div class="info-row"><span class="info-label">Duration</span><span class="info-value">{{ formatDuration(call.duration) }}</span></div>
+          <div class="info-row"><span class="info-label">Retries</span><span class="info-value">{{ call.retryCount }}</span></div>
+          <div class="info-row"><span class="info-label">Called At</span><span class="info-value">{{ formatTime(call.calledAt) }}</span></div>
+        </div>
+      </div>
+
+      <!-- AI Scoring -->
+      <div class="dark-panel info-panel">
+        <div class="dark-panel-header"><mat-icon>psychology</mat-icon> AI Analysis</div>
+        <div class="info-body">
+          <div class="score-block">
+            <div class="score-label">Qualification Score</div>
+            <div class="score-big" *ngIf="call.aiQualificationScore !== null" [class.score-high]="call.aiQualificationScore! >= 80" [class.score-mid]="call.aiQualificationScore! >= 50 && call.aiQualificationScore! < 80" [class.score-low]="call.aiQualificationScore! < 50">{{ call.aiQualificationScore }}<span class="score-max">/100</span></div>
+            <div class="score-big score-pending" *ngIf="call.aiQualificationScore === null">—</div>
+          </div>
+          <div class="info-row" *ngIf="call.intentDetected">
+            <span class="info-label">Intent</span>
+            <span class="info-value intent-value">{{ call.intentDetected }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Decision Markers</span>
+            <span class="info-value">{{ call.aiDecisionMarkers.length }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Routed</span>
+            <span class="info-value">
+              <mat-icon *ngIf="call.routedToSalesAgent" class="routed-yes">check_circle</mat-icon>
+              <span *ngIf="!call.routedToSalesAgent">No</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT: TIMELINE ═══ -->
+    <div class="tl-main">
+      <div class="dark-panel timeline-panel">
+        <div class="dark-panel-header"><mat-icon>timeline</mat-icon> Call Timeline <span class="header-count">{{ timeline.length }} events</span></div>
+        <div class="timeline-body">
+          <div *ngIf="timeline.length === 0" class="empty-state">No transcript available for this call</div>
+
+          <div *ngFor="let item of timeline" class="timeline-item" [ngClass]="item.type === 'marker' ? 'timeline-marker' : 'timeline-transcript'">
+
+            <!-- Transcript Entry -->
+            <ng-container *ngIf="item.type === 'transcript' && item.entry">
+              <div class="tl-avatar" [ngClass]="'speaker-' + item.entry.speaker">
+                <mat-icon>{{ item.entry.speaker === 'ai' ? 'smart_toy' : 'person' }}</mat-icon>
+              </div>
+              <div class="tl-content">
+                <div class="tl-meta">
+                  <span class="tl-speaker">{{ item.entry.speaker === 'ai' ? 'AI Agent' : call.leadName }}</span>
+                  <span class="tl-time">{{ formatShortTime(item.timestamp) }}</span>
+                  <mat-icon *ngIf="item.entry.sentiment" class="sentiment-icon" [ngClass]="getSentimentClass(item.entry.sentiment)">{{ getSentimentIcon(item.entry.sentiment) }}</mat-icon>
+                </div>
+                <div class="tl-text" [ngClass]="'text-' + item.entry.speaker">{{ item.entry.text }}</div>
+              </div>
+            </ng-container>
+
+            <!-- AI Decision Marker -->
+            <ng-container *ngIf="item.type === 'marker' && item.marker">
+              <div class="marker-line" [ngClass]="getMarkerClass(item.marker.type)">
+                <div class="marker-icon-wrap">
+                  <mat-icon>{{ getMarkerIcon(item.marker.type) }}</mat-icon>
+                </div>
+                <div class="marker-content">
+                  <div class="marker-label">{{ item.marker.label }}</div>
+                  <div class="marker-detail">{{ item.marker.detail }}</div>
+                  <span *ngIf="item.marker.score !== null" class="marker-score">Score: {{ item.marker.score }}</span>
+                </div>
+                <span class="marker-time">{{ formatShortTime(item.timestamp) }}</span>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,662 @@
+// ══════════════════════════════════════════════════════════════════
+// AI CLAIM SPECIALIST — Conversational Sales Layer
+// ══════════════════════════════════════════════════════════════════
+
+$bg: #fafbfc;
+$card-bg: #fff;
+$border: #e5e7eb;
+$text-primary: #111827;
+$text-secondary: #6b7280;
+$text-muted: #9ca3af;
+$accent: #1565c0;
+$accent-light: #e3f2fd;
+$green: #2e7d32;
+$green-light: #f0fdf4;
+$amber-light: #fffbeb;
+
+// ── PAGE ──
+.cs-page {
+  min-height: 100vh;
+  background: $bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+// ── STEP CONTAINER ──
+.cs-step {
+  max-width: 560px;
+  width: 100%;
+  animation: csStepIn 0.4s ease;
+}
+
+@keyframes csStepIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ── ICON ──
+.cs-icon-wrap {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, $accent-light, #bbdefb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+
+  mat-icon {
+    font-size: 30px;
+    width: 30px;
+    height: 30px;
+    color: $accent;
+  }
+
+  &.cs-icon-shield {
+    background: linear-gradient(135deg, $green-light, #bbf7d0);
+    mat-icon { color: $green; }
+  }
+}
+
+// ── TITLE ──
+.cs-step h1 {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: $text-primary;
+  margin: 0 0 28px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+// ── MESSAGE FLOW (conversational bubbles) ──
+.cs-message-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.cs-bubble {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 18px 18px 18px 6px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  animation: bubbleIn 0.3s ease both;
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: $text-secondary;
+    line-height: 1.6;
+  }
+}
+
+// Stagger bubble animations
+.cs-bubble:nth-child(1) { animation-delay: 0.1s; }
+.cs-bubble:nth-child(2) { animation-delay: 0.3s; }
+.cs-bubble:nth-child(3) { animation-delay: 0.5s; }
+
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cs-prompt {
+  text-align: center;
+  padding: 12px 0;
+  animation: bubbleIn 0.3s ease both;
+  animation-delay: 0.6s;
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text-primary;
+    line-height: 1.5;
+  }
+}
+
+// ── ACTIONS (intro step) ──
+.cs-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 360px;
+  margin: 0 auto;
+  animation: bubbleIn 0.3s ease both;
+  animation-delay: 0.8s;
+}
+
+// ── BUTTONS ──
+.cs-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  transition: all 0.2s !important;
+  font-family: inherit !important;
+
+  mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 8px;
+  }
+}
+
+.cs-btn-primary {
+  background: $accent !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.3) !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4) !important;
+  }
+}
+
+.cs-btn-secondary {
+  color: $text-secondary !important;
+  border-color: $border !important;
+
+  &:hover {
+    background: #f9fafb !important;
+    color: $text-primary !important;
+  }
+}
+
+.cs-btn-outline {
+  color: $text-secondary !important;
+  border-color: $border !important;
+  background: transparent !important;
+
+  &:hover {
+    background: #f9fafb !important;
+    color: $text-primary !important;
+  }
+}
+
+// ── INFO CARDS (rights, compensation) ──
+.cs-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  margin-bottom: 14px;
+
+  > mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  h4 {
+    margin: 0 0 5px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: $text-primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  &.cs-rights {
+    background: $accent-light;
+    border: 1px solid #bbdefb;
+    > mat-icon { color: $accent; }
+    p { color: #1e3a5f; }
+  }
+
+  &.cs-comp {
+    background: $green-light;
+    border: 1px solid #bbf7d0;
+    > mat-icon { color: $green; }
+    p { color: #14532d; }
+  }
+}
+
+// ── CTA PROMPT ──
+.cs-cta-prompt {
+  text-align: center;
+  padding: 16px 0 20px;
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $text-primary;
+    line-height: 1.5;
+  }
+}
+
+// ── ACTION CARDS (schedule / continue) ──
+.cs-action-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.cs-action-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 24px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 6px;
+  }
+
+  p {
+    font-size: 0.82rem;
+    color: $text-secondary;
+    line-height: 1.5;
+    margin: 0 0 18px;
+    flex: 1;
+  }
+
+  &.cs-action-primary {
+    border-color: #bbdefb;
+    background: linear-gradient(180deg, #fafcff, #fff);
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.08);
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba(21, 101, 192, 0.14);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.cs-action-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, $accent-light, #bbdefb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    color: $accent;
+  }
+
+  &.cs-action-icon-alt {
+    background: #f3f4f6;
+    mat-icon { color: $text-secondary; }
+  }
+}
+
+// ══════ STEP 3: SCHEDULE ══════
+
+.cs-schedule-step { max-width: 600px; }
+
+.cs-schedule-intro {
+  text-align: center;
+  font-size: 0.9375rem;
+  color: $text-secondary;
+  line-height: 1.6;
+  margin: -12px 0 28px;
+}
+
+.cs-schedule-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cs-sched-section {
+  margin-bottom: 24px;
+
+  &:last-child { margin-bottom: 0; }
+
+  h3 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $text-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 12px;
+  }
+}
+
+// Date picker row
+.cs-date-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar { height: 0; }
+}
+
+.cs-date-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 16px;
+  border: 1.5px solid $border;
+  border-radius: 14px;
+  background: $card-bg;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  min-width: 72px;
+
+  &:hover { border-color: $accent; background: #f8faff; }
+
+  &.cs-date-selected {
+    border-color: $accent;
+    background: $accent;
+    .cs-date-day, .cs-date-num { color: #fff; }
+  }
+}
+
+.cs-date-day {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cs-date-num {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+// Timezone note
+.cs-tz-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-bottom: 14px;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Time slot groups
+.cs-slot-group {
+  margin-bottom: 14px;
+  &:last-child { margin-bottom: 0; }
+}
+
+.cs-slot-period {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.cs-slot-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cs-slot-btn {
+  padding: 10px 18px;
+  border: 1.5px solid $border;
+  border-radius: 12px;
+  background: $card-bg;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+
+  &:hover:not(:disabled) { border-color: $accent; background: #f8faff; }
+
+  &.cs-slot-selected {
+    border-color: $accent;
+    background: $accent;
+    color: #fff;
+  }
+
+  &.cs-slot-unavailable {
+    opacity: 0.35;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+}
+
+// Contact form
+.cs-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cs-field {
+  label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+}
+
+.cs-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 50px;
+  background: #f9fafb;
+  border: 1.5px solid $border;
+  border-radius: 12px;
+  transition: all 0.2s;
+
+  &:focus-within {
+    border-color: $accent;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $text-muted;
+    flex-shrink: 0;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    background: none;
+    font-size: 0.95rem;
+    color: $text-primary;
+    outline: none;
+    font-family: inherit;
+
+    &::placeholder { color: $text-muted; }
+  }
+}
+
+// Confirmation area
+.cs-sched-confirm {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $border;
+}
+
+.cs-sched-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: $accent;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.cs-confirm-btn {
+  width: 100%;
+}
+
+// ══════ STEP 4: CONFIRMED ══════
+
+.cs-confirmed-step {
+  text-align: center;
+  max-width: 460px;
+}
+
+.cs-confirmed-icon {
+  margin-bottom: 20px;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $green;
+    animation: confirmPop 0.4s ease;
+  }
+}
+
+@keyframes confirmPop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cs-confirmed-step h1 {
+  margin-bottom: 12px;
+}
+
+.cs-confirmed-text {
+  font-size: 0.95rem;
+  color: $text-secondary;
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.cs-confirmed-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: $accent-light;
+  border: 1px solid #bbdefb;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $accent;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.cs-confirmed-subtext {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.cs-confirmed-note {
+  font-size: 0.82rem;
+  color: $text-muted;
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+
+// Follow-up status indicators
+.cs-followup-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  animation: followUpFade 0.6s ease 0.5s both;
+}
+
+@keyframes followUpFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cs-followup-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: $green;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ── RESPONSIVE ──
+@media (max-width: 600px) {
+  .cs-page { padding: 24px 16px; align-items: flex-start; }
+  .cs-step h1 { font-size: 1.25rem; }
+  .cs-action-cards { grid-template-columns: 1fr; }
+  .cs-bubble { padding: 14px 16px; }
+  .cs-info-card { padding: 14px 16px; }
+  .cs-actions { max-width: 100%; }
+  .cs-schedule-card { padding: 18px 16px; border-radius: 16px; }
+  .cs-date-btn { min-width: 64px; padding: 10px 12px; }
+  .cs-slot-btn { padding: 10px 14px; font-size: 0.8rem; }
+  .cs-input-wrap { height: 46px; }
+}
+
+@media (max-width: 380px) {
+  .cs-icon-wrap { width: 50px; height: 50px; border-radius: 16px;
+    mat-icon { font-size: 24px; width: 24px; height: 24px; } }
+  .cs-btn { height: 48px; font-size: 0.875rem !important; }
+}

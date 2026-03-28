@@ -1,0 +1,12 @@
+.announcements-table {
+  width: 100%;
+
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+
+
+}

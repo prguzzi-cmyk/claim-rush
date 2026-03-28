@@ -1,0 +1,683 @@
+<mat-card>
+  <mat-card-header>
+    <div class="header-row">
+      <div class="title-section">
+        <button mat-icon-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h2 *ngIf="doc">{{ doc.file_name }}</h2>
+      </div>
+      <div class="actions-section" *ngIf="doc">
+        <span class="status-badge" [ngClass]="doc.extraction_status">{{ doc.extraction_status }}</span>
+        <span class="version-badge">v{{ doc.version }}</span>
+        <mat-icon *ngIf="doc.assistant_ready" class="ready-icon" matTooltip="AI Assistant Ready">check_circle</mat-icon>
+
+        <!-- Analyze Policy Button -->
+        <button
+          *ngIf="!isAnalyzed"
+          mat-raised-button
+          class="analyze-btn"
+          [disabled]="!canAnalyze"
+          (click)="analyzePolicy()"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+          {{ pipelineState.isRunning ? 'Analyzing...' : 'Analyze Policy' }}
+        </button>
+        <button
+          *ngIf="isAnalyzed"
+          mat-stroked-button
+          class="reanalyze-btn"
+          [disabled]="!canAnalyze"
+          (click)="analyzePolicy()"
+        >
+          <mat-icon>refresh</mat-icon>
+          Re-Analyze
+        </button>
+      </div>
+    </div>
+  </mat-card-header>
+
+  <!-- Progress Tracker Card -->
+  <div class="progress-tracker-card" *ngIf="pipelineState.isRunning || pipelineState.completedAt">
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" [style.width.%]="pipelineProgress"></div>
+    </div>
+
+    <div class="step-tracker">
+      <div
+        class="step-item"
+        *ngFor="let step of pipelineState.steps; let i = index"
+        [ngClass]="step.status"
+      >
+        <div class="step-icon-circle">
+          <mat-icon *ngIf="step.status === 'complete'">check</mat-icon>
+          <mat-icon *ngIf="step.status === 'error'">close</mat-icon>
+          <mat-icon *ngIf="step.status !== 'complete' && step.status !== 'error'">{{ step.icon }}</mat-icon>
+        </div>
+        <span class="step-label">{{ step.label }}</span>
+      </div>
+    </div>
+
+    <div class="progress-footer">
+      <span class="helper-message" *ngIf="pipelineState.isRunning">
+        {{ pipelineState.helperMessage }}
+      </span>
+      <span class="helper-message complete-message" *ngIf="pipelineState.completedAt && !pipelineState.isRunning">
+        <mat-icon class="complete-check">check_circle</mat-icon>
+        Analysis complete!
+      </span>
+      <span class="eta-text" *ngIf="pipelineState.isRunning">
+        ~{{ 7 - (pipelineState.steps | keyvalue).length + (pipelineState.steps.length - pipelineProgress * pipelineState.steps.length / 100) | number:'1.0-0' }}
+        steps remaining
+      </span>
+    </div>
+  </div>
+
+  <mat-card-content *ngIf="doc">
+    <div class="detail-layout">
+      <!-- Main Content: Tabs -->
+      <div class="main-content">
+        <mat-tab-group [(selectedIndex)]="activeTab" animationDuration="200ms">
+
+          <!-- Overview Tab (conditional) -->
+          <mat-tab *ngIf="isAnalyzed || showOverview">
+            <ng-template mat-tab-label>
+              <mat-icon>dashboard</mat-icon>&nbsp;Overview
+            </ng-template>
+            <div class="tab-content overview-tab">
+
+              <!-- Policy Summary -->
+              <div class="overview-card summary-card" *ngIf="doc.ai_summary">
+                <h3><mat-icon>summarize</mat-icon> Policy Summary</h3>
+                <div class="summary-text">{{ doc.ai_summary }}</div>
+              </div>
+
+              <!-- Coverage + Deductibles Grid -->
+              <div class="overview-grid" *ngIf="intel">
+                <div class="overview-card" *ngIf="hasCoverageLimits">
+                  <h4><mat-icon>shield</mat-icon> Coverage Limits</h4>
+                  <table class="intel-table">
+                    <tbody>
+                      <tr *ngIf="intel.coverage_a_dwelling">
+                        <td>Coverage A — Dwelling</td>
+                        <td class="amount">${{ intel.coverage_a_dwelling | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_b_other_structures">
+                        <td>Coverage B — Other Structures</td>
+                        <td class="amount">${{ intel.coverage_b_other_structures | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_c_personal_property">
+                        <td>Coverage C — Personal Property</td>
+                        <td class="amount">${{ intel.coverage_c_personal_property | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_d_loss_of_use">
+                        <td>Coverage D — Loss of Use</td>
+                        <td class="amount">${{ intel.coverage_d_loss_of_use | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_e_liability">
+                        <td>Coverage E — Liability</td>
+                        <td class="amount">${{ intel.coverage_e_liability | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_f_medical">
+                        <td>Coverage F — Medical</td>
+                        <td class="amount">${{ intel.coverage_f_medical | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="overview-card" *ngIf="hasDeductibles">
+                  <h4><mat-icon>calculate</mat-icon> Deductibles</h4>
+                  <table class="intel-table">
+                    <tbody>
+                      <tr *ngIf="intel.deductible_amount">
+                        <td>Standard Deductible</td>
+                        <td class="amount">${{ intel.deductible_amount | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_percentage">
+                        <td>Percentage Deductible</td>
+                        <td class="amount">{{ intel.deductible_percentage }}%</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_wind_hail">
+                        <td>Wind/Hail Deductible</td>
+                        <td class="amount">${{ intel.deductible_wind_hail | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_hurricane">
+                        <td>Hurricane Deductible</td>
+                        <td class="amount">${{ intel.deductible_hurricane | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p *ngIf="intel.deductible_details" class="intel-detail-text">{{ intel.deductible_details }}</p>
+                </div>
+              </div>
+
+              <!-- Endorsements + Exclusions Grid -->
+              <div class="overview-grid" *ngIf="parseEndorsements().length > 0 || parseExclusions().length > 0">
+                <div class="overview-card endorsements-card" *ngIf="parseEndorsements().length > 0">
+                  <h4><mat-icon>add_circle</mat-icon> Endorsements ({{ parseEndorsements().length }})</h4>
+                  <div class="overview-item-list">
+                    <div class="overview-item endorsement-item" *ngFor="let e of parseEndorsements().slice(0, 5)">
+                      <strong>{{ e.title }}</strong>
+                      <p *ngIf="e.summary">{{ e.summary }}</p>
+                    </div>
+                    <div *ngIf="parseEndorsements().length > 5" class="more-items">
+                      +{{ parseEndorsements().length - 5 }} more endorsements
+                    </div>
+                  </div>
+                </div>
+
+                <div class="overview-card exclusions-card" *ngIf="parseExclusions().length > 0">
+                  <h4><mat-icon>block</mat-icon> Exclusions ({{ parseExclusions().length }})</h4>
+                  <div class="overview-item-list">
+                    <div class="overview-item exclusion-item" *ngFor="let e of parseExclusions().slice(0, 5)">
+                      <strong>{{ e.title }}</strong>
+                      <p *ngIf="e.summary">{{ e.summary }}</p>
+                    </div>
+                    <div *ngIf="parseExclusions().length > 5" class="more-items">
+                      +{{ parseExclusions().length - 5 }} more exclusions
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Key Policy Language -->
+              <div class="overview-card" *ngIf="intel && hasClauseLanguage">
+                <h4><mat-icon>article</mat-icon> Key Policy Language</h4>
+                <div class="clause-language-list">
+                  <div *ngIf="intel.replacement_cost_language" class="clause-language-item">
+                    <strong>Replacement Cost / ACV</strong>
+                    <p>{{ intel.replacement_cost_language }}</p>
+                  </div>
+                  <div *ngIf="intel.matching_language" class="clause-language-item">
+                    <strong>Matching Requirements</strong>
+                    <p>{{ intel.matching_language }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Claim Guidance -->
+              <div class="overview-card guidance-card" *ngIf="doc.claim_guidance_notes">
+                <h3><mat-icon>lightbulb</mat-icon> Claim Guidance</h3>
+                <div class="summary-text guidance-notes">{{ doc.claim_guidance_notes }}</div>
+              </div>
+
+              <!-- Quick Analysis Actions -->
+              <div class="overview-card" *ngIf="doc.assistant_ready">
+                <h4><mat-icon>auto_awesome</mat-icon> Quick Analysis Actions</h4>
+                <div class="quick-action-grid">
+                  <button
+                    *ngFor="let action of assistantActions"
+                    mat-stroked-button
+                    class="quick-action-btn"
+                    [disabled]="actionLoading[action.type]"
+                    (click)="runAction(action.type)"
+                  >
+                    <mat-icon>{{ action.icon }}</mat-icon>
+                    {{ actionLoading[action.type] ? 'Working...' : action.label }}
+                  </button>
+                  <button
+                    mat-stroked-button
+                    class="quick-action-btn gap-analysis-btn"
+                    [disabled]="!gapReadiness.canRunAnalysis"
+                  >
+                    <mat-icon>compare_arrows</mat-icon>
+                    Gap Analysis
+                    <span class="coming-soon-badge" *ngIf="!gapReadiness.canRunAnalysis">Coming Soon</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Gap Analysis Readiness Indicator -->
+              <div class="gap-readiness-card">
+                <div class="gap-readiness-header">
+                  <mat-icon class="gap-readiness-icon">compare_arrows</mat-icon>
+                  <h4>Policy vs Estimate Gap Analysis</h4>
+                </div>
+                <p class="gap-readiness-message">{{ gapReadiness.message }}</p>
+                <div class="gap-readiness-checklist">
+                  <div class="gap-check-item" [class.ready]="gapReadiness.hasPolicy">
+                    <mat-icon>{{ gapReadiness.hasPolicy ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                    <span>Policy Analyzed</span>
+                  </div>
+                  <div class="gap-check-item" [class.ready]="gapReadiness.hasPaEstimate">
+                    <mat-icon>{{ gapReadiness.hasPaEstimate ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                    <span>PA Estimate</span>
+                  </div>
+                  <div class="gap-check-item" [class.ready]="gapReadiness.hasCarrierEstimate">
+                    <mat-icon>{{ gapReadiness.hasCarrierEstimate ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                    <span>Carrier Estimate</span>
+                  </div>
+                  <div class="gap-check-item" [class.ready]="gapReadiness.hasSupplementEstimate">
+                    <mat-icon>{{ gapReadiness.hasSupplementEstimate ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                    <span>Supplement Estimate</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Result (consolidated here) -->
+              <div class="action-result overview-action-result" *ngIf="actionResult">
+                <h4>{{ actionResult.action_type | titlecase }}</h4>
+                <div class="result-text">{{ actionResult.result_text }}</div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Tab: PDF Viewer -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>picture_as_pdf</mat-icon>&nbsp;PDF
+            </ng-template>
+            <div class="tab-content pdf-tab">
+              <div class="pdf-placeholder">
+                <mat-icon class="pdf-icon">picture_as_pdf</mat-icon>
+                <h3>{{ doc.file_name }}</h3>
+                <p>{{ doc.file_size ? ((doc.file_size / 1024) | number:'1.0-0') + ' KB' : '' }}</p>
+                <p class="pdf-info">PDF preview requires document download. Use the Policy Vault file viewer to view this document.</p>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Tab: Extracted Data -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>analytics</mat-icon>&nbsp;Extracted Data
+            </ng-template>
+            <div class="tab-content">
+              <!-- Advanced Tools Toggle -->
+              <div class="advanced-tools-section">
+                <button mat-stroked-button class="advanced-tools-toggle" (click)="showAdvancedTools = !showAdvancedTools">
+                  <mat-icon>build</mat-icon>
+                  {{ showAdvancedTools ? 'Hide' : 'Show' }} Advanced Tools
+                  <mat-icon>{{ showAdvancedTools ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+                <div class="advanced-tools-panel" *ngIf="showAdvancedTools">
+                  <div class="action-bar">
+                    <button mat-raised-button color="accent" (click)="extractClauses()" [disabled]="extractingClauses" class="ai-btn">
+                      <mat-icon>auto_awesome</mat-icon>
+                      {{ extractingClauses ? 'Extracting Clauses...' : 'Extract Clauses (AI)' }}
+                    </button>
+                    <button mat-raised-button color="accent" (click)="extractMetadata()" [disabled]="extracting" class="ai-btn">
+                      <mat-icon>auto_awesome</mat-icon>
+                      {{ extracting ? 'Extracting...' : 'Extract Metadata (AI)' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="clauses.length === 0" class="no-data">
+                No clauses extracted yet. Click "Analyze Policy" to analyze this policy.
+              </div>
+
+              <div *ngIf="clauses.length > 0">
+                <mat-accordion multi>
+                  <mat-expansion-panel *ngFor="let type of getClauseTypes()">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        {{ clauseTypeLabels[type] || type }} ({{ getClausesByType(type).length }})
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <div class="clause-list">
+                      <div class="clause-item" *ngFor="let clause of getClausesByType(type)">
+                        <div class="clause-header">
+                          <strong>{{ clause.title }}</strong>
+                          <span class="confidence-badge" *ngIf="clause.ai_confidence">
+                            {{ (clause.ai_confidence * 100) | number:'1.0-0' }}%
+                          </span>
+                          <span class="amount-badge" *ngIf="clause.amount">
+                            ${{ clause.amount | number:'1.2-2' }}
+                          </span>
+                        </div>
+                        <p class="clause-summary" *ngIf="clause.summary">{{ clause.summary }}</p>
+                        <div class="clause-meta">
+                          <span *ngIf="clause.section_reference" class="meta-tag">{{ clause.section_reference }}</span>
+                          <span *ngIf="clause.applies_to" class="meta-tag">{{ clause.applies_to }}</span>
+                          <span *ngIf="clause.percentage" class="meta-tag">{{ clause.percentage }}%</span>
+                        </div>
+                        <details *ngIf="clause.raw_text" class="raw-text-details">
+                          <summary>View raw text</summary>
+                          <pre class="raw-text">{{ clause.raw_text }}</pre>
+                        </details>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Tab: AI Summary -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>summarize</mat-icon>&nbsp;AI Summary
+            </ng-template>
+            <div class="tab-content">
+              <!-- Advanced Tools Toggle -->
+              <div class="advanced-tools-section">
+                <button mat-stroked-button class="advanced-tools-toggle" (click)="showAdvancedTools = !showAdvancedTools">
+                  <mat-icon>build</mat-icon>
+                  {{ showAdvancedTools ? 'Hide' : 'Show' }} Advanced Tools
+                  <mat-icon>{{ showAdvancedTools ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+                <div class="advanced-tools-panel" *ngIf="showAdvancedTools">
+                  <div class="action-bar">
+                    <button mat-raised-button color="accent" (click)="summarize()" [disabled]="summarizing" class="ai-btn">
+                      <mat-icon>auto_awesome</mat-icon>
+                      {{ summarizing ? 'Generating Summary...' : 'Generate Summary (AI)' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="!doc.ai_summary && !doc.claim_guidance_notes" class="no-data">
+                No AI summary generated yet. Click "Analyze Policy" to generate a full analysis.
+              </div>
+
+              <div *ngIf="doc.ai_summary" class="summary-section">
+                <h3>Policy Summary</h3>
+                <div class="summary-text">{{ doc.ai_summary }}</div>
+              </div>
+
+              <div *ngIf="doc.claim_guidance_notes" class="summary-section">
+                <h3>Claim Guidance Notes</h3>
+                <div class="summary-text guidance-notes">{{ doc.claim_guidance_notes }}</div>
+              </div>
+
+              <!-- Policy Intelligence Card -->
+              <div *ngIf="intel" class="intelligence-card">
+                <h3><mat-icon>insights</mat-icon> Policy Intelligence</h3>
+                <div class="intel-confidence" *ngIf="intel.confidence_score">
+                  Extraction Confidence: {{ (intel.confidence_score * 100) | number:'1.0-0' }}%
+                </div>
+
+                <!-- Coverage Limits Table -->
+                <div *ngIf="hasCoverageLimits" class="intel-section">
+                  <h4>Coverage Limits</h4>
+                  <table class="intel-table">
+                    <tbody>
+                      <tr *ngIf="intel.coverage_a_dwelling">
+                        <td>Coverage A — Dwelling</td>
+                        <td class="amount">${{ intel.coverage_a_dwelling | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_b_other_structures">
+                        <td>Coverage B — Other Structures</td>
+                        <td class="amount">${{ intel.coverage_b_other_structures | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_c_personal_property">
+                        <td>Coverage C — Personal Property</td>
+                        <td class="amount">${{ intel.coverage_c_personal_property | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_d_loss_of_use">
+                        <td>Coverage D — Loss of Use</td>
+                        <td class="amount">${{ intel.coverage_d_loss_of_use | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_e_liability">
+                        <td>Coverage E — Liability</td>
+                        <td class="amount">${{ intel.coverage_e_liability | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.coverage_f_medical">
+                        <td>Coverage F — Medical</td>
+                        <td class="amount">${{ intel.coverage_f_medical | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Deductible Breakdown -->
+                <div *ngIf="hasDeductibles" class="intel-section">
+                  <h4>Deductibles</h4>
+                  <table class="intel-table">
+                    <tbody>
+                      <tr *ngIf="intel.deductible_amount">
+                        <td>Standard Deductible</td>
+                        <td class="amount">${{ intel.deductible_amount | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_percentage">
+                        <td>Percentage Deductible</td>
+                        <td class="amount">{{ intel.deductible_percentage }}%</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_wind_hail">
+                        <td>Wind/Hail Deductible</td>
+                        <td class="amount">${{ intel.deductible_wind_hail | number:'1.2-2' }}</td>
+                      </tr>
+                      <tr *ngIf="intel.deductible_hurricane">
+                        <td>Hurricane Deductible</td>
+                        <td class="amount">${{ intel.deductible_hurricane | number:'1.2-2' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p *ngIf="intel.deductible_details" class="intel-detail-text">{{ intel.deductible_details }}</p>
+                </div>
+
+                <!-- Key Clause Language -->
+                <div *ngIf="hasClauseLanguage" class="intel-section">
+                  <h4>Key Clause Language</h4>
+                  <div class="clause-language-list">
+                    <div *ngIf="intel.replacement_cost_language" class="clause-language-item">
+                      <strong>Replacement Cost / ACV</strong>
+                      <p>{{ intel.replacement_cost_language }}</p>
+                    </div>
+                    <div *ngIf="intel.matching_language" class="clause-language-item">
+                      <strong>Matching Requirements</strong>
+                      <p>{{ intel.matching_language }}</p>
+                    </div>
+                    <div *ngIf="intel.loss_settlement_clause" class="clause-language-item">
+                      <strong>Loss Settlement</strong>
+                      <p>{{ intel.loss_settlement_clause }}</p>
+                    </div>
+                    <div *ngIf="intel.appraisal_clause" class="clause-language-item">
+                      <strong>Appraisal Process</strong>
+                      <p>{{ intel.appraisal_clause }}</p>
+                    </div>
+                    <div *ngIf="intel.ordinance_and_law" class="clause-language-item">
+                      <strong>Ordinance & Law</strong>
+                      <p>{{ intel.ordinance_and_law }}</p>
+                    </div>
+                    <div *ngIf="intel.duties_after_loss" class="clause-language-item">
+                      <strong>Duties After Loss</strong>
+                      <p>{{ intel.duties_after_loss }}</p>
+                    </div>
+                    <div *ngIf="intel.ale_loss_of_use_details" class="clause-language-item">
+                      <strong>ALE / Loss of Use</strong>
+                      <p>{{ intel.ale_loss_of_use_details }}</p>
+                    </div>
+                    <div *ngIf="intel.deadline_notice_details" class="clause-language-item">
+                      <strong>Deadlines & Notices</strong>
+                      <p>{{ intel.deadline_notice_details }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Endorsements & Exclusions Counts -->
+                <div *ngIf="parseEndorsements().length > 0 || parseExclusions().length > 0" class="intel-section">
+                  <h4>Endorsements & Exclusions</h4>
+                  <div *ngIf="parseEndorsements().length > 0">
+                    <details>
+                      <summary class="intel-expand">{{ parseEndorsements().length }} Endorsement(s)</summary>
+                      <div class="intel-expand-list">
+                        <div *ngFor="let e of parseEndorsements()" class="intel-expand-item endorsement-item">
+                          <strong>{{ e.title }}</strong>
+                          <p *ngIf="e.summary">{{ e.summary }}</p>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                  <div *ngIf="parseExclusions().length > 0">
+                    <details>
+                      <summary class="intel-expand">{{ parseExclusions().length }} Exclusion(s)</summary>
+                      <div class="intel-expand-list">
+                        <div *ngFor="let e of parseExclusions()" class="intel-expand-item exclusion-item">
+                          <strong>{{ e.title }}</strong>
+                          <p *ngIf="e.summary">{{ e.summary }}</p>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Tab: Endorsements & Exclusions -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>gavel</mat-icon>&nbsp;Endorsements & Exclusions
+            </ng-template>
+            <div class="tab-content">
+              <div *ngIf="getEndorsementsAndExclusions().length === 0" class="no-data">
+                No endorsements or exclusions extracted yet.
+              </div>
+
+              <div class="clause-list" *ngIf="getEndorsementsAndExclusions().length > 0">
+                <div class="clause-item" *ngFor="let clause of getEndorsementsAndExclusions()"
+                     [class.exclusion]="clause.clause_type === 'exclusion'"
+                     [class.endorsement]="clause.clause_type === 'endorsement'">
+                  <div class="clause-header">
+                    <mat-icon *ngIf="clause.clause_type === 'exclusion'" class="exclusion-icon">block</mat-icon>
+                    <mat-icon *ngIf="clause.clause_type === 'endorsement'" class="endorsement-icon">add_circle</mat-icon>
+                    <strong>{{ clause.title }}</strong>
+                    <span class="type-tag" [ngClass]="clause.clause_type">{{ clause.clause_type }}</span>
+                  </div>
+                  <p class="clause-summary" *ngIf="clause.summary">{{ clause.summary }}</p>
+                  <div class="clause-meta">
+                    <span *ngIf="clause.section_reference" class="meta-tag">{{ clause.section_reference }}</span>
+                    <span *ngIf="clause.applies_to" class="meta-tag">{{ clause.applies_to }}</span>
+                  </div>
+                  <details *ngIf="clause.raw_text" class="raw-text-details">
+                    <summary>View raw text</summary>
+                    <pre class="raw-text">{{ clause.raw_text }}</pre>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+
+          <!-- Tab: Details & Links -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>link</mat-icon>&nbsp;Details & Links
+            </ng-template>
+            <div class="tab-content">
+              <!-- Metadata Form -->
+              <h3>Policy Metadata</h3>
+              <div class="form-grid">
+                <mat-form-field appearance="outline">
+                  <mat-label>Insured Name</mat-label>
+                  <input matInput [(ngModel)]="insuredName" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Carrier</mat-label>
+                  <input matInput [(ngModel)]="carrier" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Policy Number</mat-label>
+                  <input matInput [(ngModel)]="policyNumber" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Claim Number</mat-label>
+                  <input matInput [(ngModel)]="claimNumber" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Policy Type</mat-label>
+                  <mat-select [(ngModel)]="policyType">
+                    <mat-option value="">---</mat-option>
+                    <mat-option *ngFor="let t of policyTypes" [value]="t">{{ t }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Effective Date</mat-label>
+                  <input matInput type="date" [(ngModel)]="effectiveDate" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Expiration Date</mat-label>
+                  <input matInput type="date" [(ngModel)]="expirationDate" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Property Address</mat-label>
+                  <input matInput [(ngModel)]="propertyAddress" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>City</mat-label>
+                  <input matInput [(ngModel)]="propertyCity" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>State</mat-label>
+                  <input matInput [(ngModel)]="propertyState" maxlength="2" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Zip</mat-label>
+                  <input matInput [(ngModel)]="propertyZip" maxlength="10" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Notes</mat-label>
+                  <textarea matInput [(ngModel)]="notes" rows="3"></textarea>
+                </mat-form-field>
+              </div>
+
+              <div class="action-bar">
+                <button mat-raised-button color="primary" (click)="saveMetadata()" [disabled]="saving">
+                  {{ saving ? 'Saving...' : 'Save Metadata' }}
+                </button>
+              </div>
+
+              <!-- Version History -->
+              <h3>Version History</h3>
+              <div class="version-list" *ngIf="versions.length">
+                <div class="version-item" *ngFor="let v of versions">
+                  <mat-icon>description</mat-icon>
+                  <span class="version-name">{{ v.file_name }}</span>
+                  <span class="version-tag">v{{ v.version }}</span>
+                  <span class="version-date">{{ v.created_at | date:'MM/dd/yyyy HH:mm' }}</span>
+                </div>
+              </div>
+              <p *ngIf="!versions.length" class="no-data">No version history available.</p>
+
+              <div class="action-bar">
+                <input type="file" #newVersionInput hidden accept=".pdf" (change)="onNewVersionSelected($event)" />
+                <button mat-stroked-button (click)="newVersionInput.click()">
+                  <mat-icon>upload_file</mat-icon> Upload New Version
+                </button>
+              </div>
+
+              <!-- Entity Linkage Info -->
+              <h3>Linked Entities</h3>
+              <div class="entity-links">
+                <div *ngIf="doc.claim_id"><strong>Claim:</strong> {{ doc.claim_id }}</div>
+                <div *ngIf="doc.client_id"><strong>Client:</strong> {{ doc.client_id }}</div>
+                <div *ngIf="doc.lead_id"><strong>Lead:</strong> {{ doc.lead_id }}</div>
+                <div *ngIf="doc.fire_claim_id"><strong>Fire Claim:</strong> {{ doc.fire_claim_id }}</div>
+                <div *ngIf="doc.adjuster_case_id"><strong>Adjuster Case:</strong> {{ doc.adjuster_case_id }}</div>
+                <div *ngIf="!doc.claim_id && !doc.client_id && !doc.lead_id && !doc.fire_claim_id && !doc.adjuster_case_id" class="no-data">
+                  No linked entities.
+                </div>
+              </div>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <!-- Assistant Actions Panel -->
+      <div class="assistant-panel" *ngIf="doc.assistant_ready">
+        <h3><mat-icon>auto_awesome</mat-icon> Policy Assistant</h3>
+        <div class="assistant-actions">
+          <button
+            *ngFor="let action of assistantActions"
+            mat-stroked-button
+            class="action-btn"
+            [disabled]="actionLoading[action.type]"
+            (click)="runAction(action.type)"
+          >
+            <mat-icon>{{ action.icon }}</mat-icon>
+            {{ actionLoading[action.type] ? 'Working...' : action.label }}
+          </button>
+        </div>
+
+        <div class="action-result" *ngIf="actionResult">
+          <h4>{{ actionResult.action_type | titlecase }}</h4>
+          <div class="result-text">{{ actionResult.result_text }}</div>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

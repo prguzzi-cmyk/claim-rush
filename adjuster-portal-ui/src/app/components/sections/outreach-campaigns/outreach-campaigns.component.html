@@ -1,0 +1,252 @@
+<div class="outreach-container">
+
+  <!-- ══════ LIST VIEW ══════ -->
+  <ng-container *ngIf="view === 'list'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">campaign</mat-icon> Outreach Campaigns</h2>
+        <p class="subtitle">Automated property damage lead outreach</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="openNewCampaign()">
+        <mat-icon>add</mat-icon> New Campaign
+      </button>
+    </div>
+
+    <!-- Queue Stats -->
+    <div class="stats-bar" *ngIf="queueStats">
+      <span class="stat-chip"><mat-icon>queue</mat-icon> {{ queueStats.queued }} queued</span>
+      <span class="stat-chip"><mat-icon>schedule</mat-icon> {{ queueStats.waitingDelay }} waiting</span>
+      <span class="stat-chip stat-active"><mat-icon>play_circle</mat-icon> {{ queueStats.executing }} executing</span>
+      <span class="stat-chip stat-done"><mat-icon>check_circle</mat-icon> {{ queueStats.completed }} completed</span>
+      <span class="stat-chip stat-stopped" *ngIf="queueStats.stopped > 0"><mat-icon>stop_circle</mat-icon> {{ queueStats.stopped }} stopped</span>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-container" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading campaigns...</p>
+    </div>
+
+    <!-- Campaign Cards -->
+    <div class="campaign-grid" *ngIf="!loading">
+      <div class="campaign-card" *ngFor="let c of campaigns">
+        <div class="campaign-card-header">
+          <div class="campaign-type-icon" [style.backgroundColor]="getTypeColor(c.campaignType) + '18'" [style.color]="getTypeColor(c.campaignType)">
+            <mat-icon>{{ getTypeIcon(c.campaignType) }}</mat-icon>
+          </div>
+          <div class="campaign-info">
+            <h3>{{ c.name }}</h3>
+            <span class="campaign-meta">{{ getTypeLabel(c.campaignType) }} &middot; {{ c.steps.length }} step{{ c.steps.length !== 1 ? 's' : '' }}</span>
+          </div>
+          <span class="status-badge" [style.backgroundColor]="getStatusColor(c.status)">{{ c.status }}</span>
+        </div>
+
+        <div class="campaign-card-body">
+          <div class="campaign-stat-row">
+            <span class="campaign-stat"><strong>{{ c.metrics.totalTargets }}</strong> targets</span>
+            <span class="campaign-stat"><strong>{{ c.metrics.responses }}</strong> responses</span>
+            <span class="campaign-stat"><strong>{{ c.metrics.appointmentsBooked }}</strong> booked</span>
+          </div>
+          <div class="campaign-stat-row">
+            <span class="campaign-stat">Contact: <strong>{{ c.metrics.contactRate | number:'1.0-0' }}%</strong></span>
+            <span class="campaign-stat">Response: <strong>{{ c.metrics.responseRate | number:'1.0-0' }}%</strong></span>
+            <span class="campaign-stat">Convert: <strong>{{ c.metrics.conversionRate | number:'1.0-0' }}%</strong></span>
+          </div>
+          <div class="campaign-trigger" *ngIf="c.automationTrigger">
+            <mat-icon>bolt</mat-icon> {{ getTriggerLabel(c) }}
+            <span *ngIf="c.targetState"> &middot; {{ c.targetState }}</span>
+          </div>
+        </div>
+
+        <div class="campaign-card-actions">
+          <button mat-icon-button matTooltip="Edit" (click)="openEditCampaign(c)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button matTooltip="Logs" (click)="openLogs(c)"><mat-icon>history</mat-icon></button>
+          <mat-slide-toggle [checked]="c.status === 'active'" (change)="toggleCampaign(c)"
+            matTooltip="{{ c.status === 'active' ? 'Pause' : 'Activate' }}">
+          </mat-slide-toggle>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="campaigns.length === 0">
+        <mat-icon>campaign</mat-icon>
+        <p>No campaigns yet. Create your first outreach campaign.</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════ EDITOR VIEW ══════ -->
+  <ng-container *ngIf="view === 'editor'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">edit</mat-icon> {{ isNew ? 'New Campaign' : 'Edit Campaign' }}</h2>
+      </div>
+      <div class="header-actions">
+        <button mat-stroked-button (click)="cancelEdit()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="saveCampaign()" [disabled]="!campaignName">
+          <mat-icon>save</mat-icon> Save Campaign
+        </button>
+      </div>
+    </div>
+
+    <div class="editor-grid">
+      <!-- Left: Config -->
+      <div class="editor-panel panel-card">
+        <div class="panel-header"><mat-icon>settings</mat-icon> Campaign Settings</div>
+        <div class="editor-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Campaign Name</mat-label>
+            <input matInput [(ngModel)]="campaignName" placeholder="e.g. Hail Storm Outreach — Texas">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Campaign Type</mat-label>
+            <mat-select [(ngModel)]="campaignType">
+              <mat-option *ngFor="let t of campaignTypes" [value]="t.value">
+                <mat-icon>{{ t.icon }}</mat-icon> {{ t.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Automation Trigger</mat-label>
+            <mat-select [(ngModel)]="triggerEvent">
+              <mat-option [value]="null">Manual Only</mat-option>
+              <mat-option *ngFor="let t of triggerEvents" [value]="t.value">
+                <mat-icon>{{ t.icon }}</mat-icon> {{ t.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width" *ngIf="triggerEvent">
+            <mat-label>Trigger Delay (minutes)</mat-label>
+            <input matInput type="number" [(ngModel)]="triggerDelay" min="0">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Target State</mat-label>
+            <input matInput [(ngModel)]="targetState" placeholder="e.g. TX">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Incident Type</mat-label>
+            <input matInput [(ngModel)]="targetIncidentType" placeholder="e.g. hail">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Right: Steps Builder -->
+      <div class="editor-panel panel-card">
+        <div class="panel-header">
+          <mat-icon>list_alt</mat-icon> Campaign Steps
+          <button mat-icon-button class="add-step-btn" (click)="addStep()" matTooltip="Add Step">
+            <mat-icon>add_circle</mat-icon>
+          </button>
+        </div>
+
+        <div class="steps-list">
+          <div class="step-card" *ngFor="let step of steps; let i = index">
+            <div class="step-header">
+              <span class="step-number">{{ step.stepNumber }}</span>
+              <mat-icon class="step-channel-icon" [style.color]="getTypeColor(step.channel === 'voice' ? 'ai_voice' : step.channel)">{{ getChannelIcon(step.channel) }}</mat-icon>
+              <span class="step-label">{{ step.channel === 'voice' ? 'AI Voice Call' : step.channel === 'sms' ? 'SMS Message' : 'Email Message' }}</span>
+              <span class="step-delay-badge">{{ formatDelay(step.delayMinutes) }}</span>
+              <div class="step-actions">
+                <button mat-icon-button (click)="moveStepUp(i)" [disabled]="i === 0" matTooltip="Move Up"><mat-icon>arrow_upward</mat-icon></button>
+                <button mat-icon-button (click)="moveStepDown(i)" [disabled]="i === steps.length - 1" matTooltip="Move Down"><mat-icon>arrow_downward</mat-icon></button>
+                <button mat-icon-button color="warn" (click)="removeStep(i)" matTooltip="Remove"><mat-icon>delete</mat-icon></button>
+              </div>
+            </div>
+            <div class="step-config">
+              <mat-form-field appearance="outline" class="step-field">
+                <mat-label>Channel</mat-label>
+                <mat-select [(ngModel)]="step.channel">
+                  <mat-option *ngFor="let ch of channelOptions" [value]="ch.value">
+                    <mat-icon>{{ ch.icon }}</mat-icon> {{ ch.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="step-field">
+                <mat-label>Template</mat-label>
+                <mat-select [(ngModel)]="step.templateId">
+                  <mat-option *ngFor="let t of getTemplatesForChannel(step.channel)" [value]="t.id">{{ t.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="step-field-sm">
+                <mat-label>Delay (min)</mat-label>
+                <input matInput type="number" [(ngModel)]="step.delayMinutes" min="0">
+              </mat-form-field>
+            </div>
+            <div class="step-connector" *ngIf="i < steps.length - 1">
+              <div class="connector-line"></div>
+              <mat-icon class="connector-icon">arrow_downward</mat-icon>
+              <div class="connector-line"></div>
+            </div>
+          </div>
+
+          <div class="empty-steps" *ngIf="steps.length === 0">
+            <mat-icon>playlist_add</mat-icon>
+            <p>No steps yet. Add your first step.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div class="preview-panel panel-card" *ngIf="steps.length > 0">
+      <div class="panel-header"><mat-icon>visibility</mat-icon> Campaign Flow Preview</div>
+      <div class="flow-preview">
+        <div class="flow-node flow-trigger">
+          <mat-icon>bolt</mat-icon>
+          <span>{{ triggerEvent ? getTriggerLabelFromEvent(triggerEvent) : 'Manual Start' }}</span>
+        </div>
+        <div class="flow-connector" *ngIf="steps.length > 0"></div>
+        <ng-container *ngFor="let step of steps; let last = last">
+          <div class="flow-node" [style.borderColor]="getTypeColor(step.channel === 'voice' ? 'ai_voice' : step.channel)">
+            <mat-icon [style.color]="getTypeColor(step.channel === 'voice' ? 'ai_voice' : step.channel)">{{ getChannelIcon(step.channel) }}</mat-icon>
+            <span>{{ getTemplateName(step.templateId) }}</span>
+            <span class="flow-delay" *ngIf="step.delayMinutes > 0">+{{ formatDelay(step.delayMinutes) }}</span>
+          </div>
+          <div class="flow-connector" *ngIf="!last"></div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- ══════ LOGS VIEW ══════ -->
+  <ng-container *ngIf="view === 'logs'">
+    <div class="page-header">
+      <div class="header-text">
+        <h2><mat-icon class="header-icon">history</mat-icon> Campaign Logs: {{ logsCampaignName }}</h2>
+      </div>
+      <button mat-stroked-button (click)="view = 'list'"><mat-icon>arrow_back</mat-icon> Back</button>
+    </div>
+
+    <div class="loading-container" *ngIf="logsLoading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div class="logs-panel panel-card" *ngIf="!logsLoading">
+      <div class="panel-header"><mat-icon>forum</mat-icon> Conversation History <span class="header-badge">{{ conversationLogs.length }}</span></div>
+      <div class="logs-list" *ngIf="conversationLogs.length > 0">
+        <div class="log-row" *ngFor="let log of conversationLogs">
+          <div class="log-icon" [style.backgroundColor]="getOutcomeColor(log.outcome) + '18'" [style.color]="getOutcomeColor(log.outcome)">
+            <mat-icon>{{ log.channel === 'voice' ? 'phone' : log.channel === 'sms' ? 'sms' : 'email' }}</mat-icon>
+          </div>
+          <div class="log-body">
+            <div class="log-header-row">
+              <span class="log-outcome" [style.color]="getOutcomeColor(log.outcome)">{{ log.outcome }}</span>
+              <span class="log-channel">{{ log.channel }}</span>
+              <span class="log-step">Step {{ log.stepNumber }}</span>
+              <span class="log-time">{{ log.sentAt | date:'MMM dd, h:mm a' }}</span>
+            </div>
+            <div class="log-notes" *ngIf="log.notes">{{ log.notes }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="empty-state" *ngIf="conversationLogs.length === 0">
+        <mat-icon>forum</mat-icon>
+        <p>No conversation logs for this campaign yet.</p>
+      </div>
+    </div>
+  </ng-container>
+</div>

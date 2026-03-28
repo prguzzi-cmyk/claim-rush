@@ -1,0 +1,167 @@
+<div class="asa-dark" *ngIf="conversation">
+
+  <!-- ══════ HEADER ══════ -->
+  <div class="conv-header">
+    <button mat-icon-button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="conv-header-info">
+      <h1>{{ conversation.homeownerName }}</h1>
+      <p class="conv-subtitle">{{ conversation.propertyAddress }}, {{ conversation.city }}, {{ conversation.state }}</p>
+    </div>
+    <div class="conv-header-actions">
+      <span class="status-badge" [ngClass]="getStatusBadgeClass(conversation.status)">{{ formatStatus(conversation.status) }}</span>
+      <button mat-stroked-button class="action-btn" (click)="navigateToAppointment()">
+        <mat-icon>event</mat-icon> Schedule
+      </button>
+      <button mat-stroked-button class="action-btn" (click)="navigateToIntake()">
+        <mat-icon>videocam</mat-icon> Intake
+      </button>
+    </div>
+  </div>
+
+  <div class="conv-body">
+
+    <!-- ═══ LEFT: CONVERSATION LOG ═══ -->
+    <div class="conv-left">
+
+      <!-- Message Timeline -->
+      <div class="dark-panel conv-panel">
+        <div class="dark-panel-header">
+          <mat-icon>forum</mat-icon> Conversation Log
+          <span class="header-count">{{ conversation.messages.length }} messages</span>
+        </div>
+        <div class="message-timeline">
+          <div *ngFor="let msg of conversation.messages" class="msg-row" [ngClass]="'msg-' + msg.sender">
+            <div class="msg-avatar">
+              <mat-icon>{{ getSenderIcon(msg.sender) }}</mat-icon>
+            </div>
+            <div class="msg-content">
+              <div class="msg-meta">
+                <span class="msg-sender">{{ msg.sender === 'ai' ? 'AI Agent' : msg.sender === 'homeowner' ? conversation.homeownerName : 'Agent' }}</span>
+                <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+              </div>
+              <div class="msg-text">{{ msg.content }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compose -->
+        <div class="compose-bar">
+          <input
+            type="text"
+            class="compose-input"
+            placeholder="Type a message as agent..."
+            [(ngModel)]="newMessage"
+            (keyup.enter)="sendMessage()"
+          />
+          <button mat-icon-button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RIGHT: PROFILE & SCORING ═══ -->
+    <div class="conv-right">
+
+      <!-- Homeowner Profile -->
+      <div class="dark-panel profile-panel">
+        <div class="dark-panel-header">
+          <mat-icon>person</mat-icon> Homeowner Profile
+        </div>
+        <div class="profile-body">
+          <div class="profile-row">
+            <span class="profile-label">Name</span>
+            <span class="profile-value">{{ conversation.homeownerName }}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Phone</span>
+            <span class="profile-value">{{ conversation.homeownerPhone }}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Email</span>
+            <span class="profile-value">{{ conversation.homeownerEmail }}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Property</span>
+            <span class="profile-value">{{ conversation.propertyAddress }}, {{ conversation.city }}, {{ conversation.state }}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Claim Type</span>
+            <span class="profile-value claim-chip">
+              <mat-icon>{{ getClaimIcon(conversation.claimType) }}</mat-icon>
+              {{ conversation.claimType | titlecase }}
+            </span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Agent</span>
+            <span class="profile-value">{{ conversation.assignedAgent }}</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">Created</span>
+            <span class="profile-value">{{ formatTime(conversation.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scoring Panel -->
+      <div class="dark-panel scoring-panel">
+        <div class="dark-panel-header">
+          <mat-icon>psychology</mat-icon> AI Scoring
+        </div>
+        <div class="scoring-body">
+          <div class="score-row">
+            <span class="score-label">Qualification Score</span>
+            <span class="score-value" *ngIf="conversation.qualificationScore !== null"
+              [class.score-high]="conversation.qualificationScore >= 80"
+              [class.score-mid]="conversation.qualificationScore >= 60 && conversation.qualificationScore < 80"
+              [class.score-low]="conversation.qualificationScore < 60">
+              {{ conversation.qualificationScore }}/100
+            </span>
+            <span class="score-value score-pending" *ngIf="conversation.qualificationScore === null">Not scored</span>
+          </div>
+          <div class="score-row">
+            <span class="score-label">Claim Probability</span>
+            <span class="score-value" *ngIf="conversation.claimProbabilityScore !== null"
+              [class.score-high]="conversation.claimProbabilityScore >= 80"
+              [class.score-mid]="conversation.claimProbabilityScore >= 60 && conversation.claimProbabilityScore < 80"
+              [class.score-low]="conversation.claimProbabilityScore < 60">
+              {{ conversation.claimProbabilityScore }}%
+            </span>
+            <span class="score-value score-pending" *ngIf="conversation.claimProbabilityScore === null">Not scored</span>
+          </div>
+          <button
+            mat-stroked-button
+            class="qualify-btn"
+            (click)="runAiQualification()"
+            [disabled]="qualifyingInProgress"
+          >
+            <mat-icon *ngIf="!qualifyingInProgress">auto_awesome</mat-icon>
+            <mat-icon *ngIf="qualifyingInProgress" class="spin">sync</mat-icon>
+            {{ qualifyingInProgress ? 'Scoring...' : (conversation.qualificationScore !== null ? 'Re-Score' : 'Run AI Qualification') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Update -->
+      <div class="dark-panel status-panel">
+        <div class="dark-panel-header">
+          <mat-icon>flag</mat-icon> Update Status
+        </div>
+        <div class="status-body">
+          <button
+            *ngFor="let opt of statusOptions"
+            mat-stroked-button
+            class="status-option"
+            [class.active]="conversation.status === opt.value"
+            (click)="updateStatus(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

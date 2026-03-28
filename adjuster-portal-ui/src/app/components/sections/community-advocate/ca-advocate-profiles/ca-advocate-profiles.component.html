@@ -1,0 +1,129 @@
+<div class="ca-tab-content">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search advocates</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" placeholder="Name, email...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="openCreateForm()" *ngIf="caRole === 'admin'">
+      <mat-icon>person_add</mat-icon> Add Advocate
+    </button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" [hidden]="showForm">
+    <table mat-table [dataSource]="dataSource" matSort class="advocate-table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="name-cell">
+            <mat-icon class="avatar-icon">account_circle</mat-icon>
+            <span>{{ row.name }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+        <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-badge" [style.background-color]="getStatusColor(row.status)">{{ row.status }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="territories">
+        <th mat-header-cell *matHeaderCellDef>Territories</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-chip-set>
+            <mat-chip *ngFor="let t of row.territories">{{ t }}</mat-chip>
+          </mat-chip-set>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="referrals">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Referrals</th>
+        <td mat-cell *matCellDef="let row">{{ row.metrics.referrals_generated }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="satisfaction">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Satisfaction</th>
+        <td mat-cell *matCellDef="let row">{{ row.metrics.satisfaction_score }}/5</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="toggleExpand(row.id)" matTooltip="Details">
+            <mat-icon>{{ expandedId === row.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+          <button mat-icon-button (click)="openEditForm(row)" matTooltip="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          [class.expanded-row]="expandedId === row.id"></tr>
+    </table>
+
+    <!-- Expanded Detail -->
+    <div *ngFor="let adv of dataSource.data">
+      <div class="expand-detail" *ngIf="expandedId === adv.id">
+        <div class="detail-grid">
+          <div><strong>Phone:</strong> {{ adv.phone }}</div>
+          <div><strong>Specialties:</strong> {{ adv.specialties.join(', ') }}</div>
+          <div><strong>Events:</strong> {{ adv.metrics.community_events }}</div>
+          <div><strong>Homeowners Helped:</strong> {{ adv.metrics.homeowners_helped }}</div>
+          <div class="detail-bio"><strong>Bio:</strong> {{ adv.bio }}</div>
+        </div>
+      </div>
+    </div>
+
+    <mat-paginator [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons></mat-paginator>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <mat-card *ngIf="showForm" class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ editingAdvocate ? 'Edit' : 'Add' }} Advocate</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="formData.name">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput [(ngModel)]="formData.email">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput [(ngModel)]="formData.phone">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="formData.status">
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Bio</mat-label>
+          <textarea matInput [(ngModel)]="formData.bio" rows="3"></textarea>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeForm()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveAdvocate()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

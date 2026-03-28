@@ -1,0 +1,1586 @@
+// ══════════════════════════════════════════════════════════════════
+// REMOTE INSPECTION CAPTURE — Premium, Mobile-First, Frictionless
+// ══════════════════════════════════════════════════════════════════
+
+$bg: #fafbfc;
+$card-bg: #fff;
+$border: #e5e7eb;
+$text-primary: #111827;
+$text-secondary: #6b7280;
+$text-muted: #9ca3af;
+$accent: #1565c0;
+$accent-light: #e3f2fd;
+$green: #2e7d32;
+$green-light: #e8f5e9;
+$radius: 16px;
+
+// ── PAGE ──
+.ric-page {
+  min-height: 100vh;
+  background: $bg;
+  padding: 32px 20px 80px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+// ── HEADER ──
+.ric-header {
+  text-align: center;
+  margin-bottom: 28px;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0 0 10px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 0.9375rem;
+    color: $text-secondary;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// ── GUIDANCE INSTRUCTION CARD ──
+.ric-guidance-card {
+  display: flex;
+  gap: 14px;
+  padding: 18px 20px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: $radius;
+  margin-bottom: 20px;
+}
+
+.ric-guidance-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: $accent;
+  }
+}
+
+.ric-guidance-card-text {
+  flex: 1;
+}
+
+.ric-guidance-main {
+  font-size: 0.875rem;
+  color: $text-primary;
+  line-height: 1.55;
+  margin: 0 0 6px;
+  font-weight: 500;
+}
+
+.ric-guidance-sub {
+  font-size: 0.78rem;
+  color: $text-muted;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+// ── PROGRESS ──
+.ric-progress {
+  margin-bottom: 24px;
+}
+
+.ric-progress-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.ric-progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ric-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, $accent, #42a5f5);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.ric-progress-text {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $text-muted;
+  margin-top: 8px;
+
+  &.ric-ready {
+    color: $green;
+  }
+}
+
+// ── SMART FEEDBACK ──
+.ric-smart-feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  color: #166534;
+  font-weight: 500;
+  animation: promptIn 0.3s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $green;
+    flex-shrink: 0;
+  }
+}
+
+// ── CARD ──
+.ric-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.ric-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.ric-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  &.photo-icon {
+    background: $accent-light;
+    mat-icon { color: $accent; }
+  }
+
+  &.scan-icon {
+    background: #f3e5f5;
+    mat-icon { color: #7b1fa2; }
+  }
+}
+
+.ric-optional-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  background: #f3f4f6;
+  color: $text-muted;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// ── INSTRUCTIONS ──
+.ric-instructions {
+  margin-bottom: 16px;
+
+  p {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    line-height: 1.6;
+    margin: 0 0 8px;
+  }
+
+  ul {
+    margin: 8px 0 0;
+    padding-left: 20px;
+    list-style: none;
+
+    li {
+      font-size: 0.875rem;
+      color: $text-primary;
+      padding: 4px 0;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: -16px;
+        top: 11px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: $accent;
+      }
+    }
+  }
+}
+
+.ric-reassure {
+  color: $text-primary !important;
+  font-weight: 600;
+  font-style: italic;
+}
+
+// ── TIPS (kept for instructions list) ──
+.ric-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.ric-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  padding: 6px 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $accent;
+    flex-shrink: 0;
+  }
+}
+
+// ══════ AI PHOTO GUIDANCE ══════
+
+// Guidance panel (collapsible)
+.ric-guidance {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.ric-guidance-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #92400e;
+  font-family: inherit;
+
+  > mat-icon:first-child {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #d97706;
+  }
+
+  span { flex: 1; text-align: left; }
+}
+
+.ric-guidance-chevron {
+  font-size: 20px !important;
+  width: 20px !important;
+  height: 20px !important;
+  color: #d97706;
+  transition: transform 0.2s;
+
+  &.ric-expanded { transform: rotate(180deg); }
+}
+
+.ric-guidance-body {
+  padding: 0 14px 14px;
+  animation: guidanceFade 0.2s ease;
+}
+
+@keyframes guidanceFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ric-active-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #1e293b;
+  font-weight: 500;
+  min-height: 44px;
+  transition: opacity 0.3s ease;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.ric-tip-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.ric-tip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4a373;
+  opacity: 0.3;
+  transition: all 0.3s;
+
+  &.ric-tip-dot-active {
+    opacity: 1;
+    background: #d97706;
+    transform: scale(1.3);
+  }
+}
+
+// ── COVERAGE METER ──
+.ric-coverage {
+  margin-bottom: 16px;
+}
+
+.ric-coverage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ric-coverage-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ric-coverage-level {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 10px;
+
+  &.ric-level-basic { background: #fef3c7; color: #92400e; }
+  &.ric-level-good { background: #dbeafe; color: #1e40af; }
+  &.ric-level-complete { background: #dcfce7; color: #166534; }
+}
+
+.ric-coverage-track {
+  position: relative;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: visible;
+}
+
+.ric-coverage-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease, background 0.3s ease;
+
+  &.ric-fill-basic { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+  &.ric-fill-good { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+  &.ric-fill-complete { background: linear-gradient(90deg, #34d399, #10b981); }
+}
+
+.ric-coverage-marks {
+  position: relative;
+  height: 16px;
+}
+
+.ric-mark {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-size: 0.58rem;
+  color: $text-muted;
+  font-weight: 600;
+}
+
+// ── PHOTO GRID (enhanced with AI feedback) ──
+.ric-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ric-photo-cell { }
+
+.ric-photo-thumb {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $border;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// AI Feedback badge under each photo
+.ric-ai-feedback {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  animation: feedbackIn 0.3s ease;
+
+  mat-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+  }
+}
+
+@keyframes feedbackIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Analyzing shimmer
+.ric-analyzing {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ric-analyzing-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmerSweep 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+  from { left: -100%; }
+  to { left: 100%; }
+}
+
+// ── PROMPTS & HINTS ──
+.ric-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: #92400e;
+  line-height: 1.5;
+  animation: promptIn 0.3s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #d97706;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.ric-room-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+  color: #166534;
+  line-height: 1.5;
+  animation: promptIn 0.3s ease;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $green;
+    flex-shrink: 0;
+  }
+}
+
+@keyframes promptIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ric-remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.ric-upload-progress,
+.ric-upload-done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ric-upload-done mat-icon {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: $green;
+}
+
+// ── UPLOAD BUTTON ──
+.ric-upload-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  background: $accent-light !important;
+  color: $accent !important;
+  border: 2px dashed #bbdefb !important;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
+
+  mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin-right: 8px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #bbdefb !important;
+    border-color: $accent !important;
+  }
+
+  &:disabled {
+    opacity: 0.5 !important;
+  }
+}
+
+.ric-scan-btn {
+  background: #f3e5f5 !important;
+  color: #7b1fa2 !important;
+  border-color: #ce93d8 !important;
+
+  &:hover:not(:disabled) {
+    background: #e1bee7 !important;
+    border-color: #7b1fa2 !important;
+  }
+}
+
+.ric-photo-count {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $text-muted;
+  margin-top: 8px;
+}
+
+// ── SCAN STEPS ──
+.ric-scan-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ric-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: $text-primary;
+}
+
+.ric-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f3e5f5;
+  color: #7b1fa2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+// ── SCAN FILE ──
+.ric-scan-file {
+  background: $green-light;
+  border: 1px solid #c8e6c9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.ric-scan-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  > mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: $green;
+  }
+
+  > div:first-of-type {
+    flex: 1;
+  }
+}
+
+.ric-scan-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $text-primary;
+  word-break: break-all;
+}
+
+.ric-scan-size {
+  font-size: 0.72rem;
+  color: $text-muted;
+}
+
+.ric-scan-status {
+  flex-shrink: 0;
+}
+
+.ric-remove-scan {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: #c62828;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: #ffebee;
+  }
+}
+
+// ── SUBMIT ──
+.ric-submit-section {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.ric-submit-btn {
+  width: 100%;
+  height: 56px;
+  border-radius: 16px !important;
+  font-size: 1.0625rem !important;
+  font-weight: 800 !important;
+  background: $accent !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.35) !important;
+  transition: all 0.2s !important;
+  letter-spacing: 0.01em;
+
+  mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin-right: 8px;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.45) !important;
+  }
+
+  &:disabled {
+    opacity: 0.4 !important;
+    box-shadow: none !important;
+  }
+}
+
+.ric-submit-hint {
+  font-size: 0.8125rem;
+  color: $text-muted;
+  margin-top: 10px;
+}
+
+// ══════ PROCESSING OVERLAY — "AI is Working" ══════
+.ric-processing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: linear-gradient(135deg, #0a0e17 0%, #111827 50%, #0d1117 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+.ric-processing-card {
+  text-align: center;
+  max-width: 380px;
+  width: 100%;
+  animation: slideUp 0.5s ease;
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin: 0 0 28px;
+    letter-spacing: -0.01em;
+  }
+
+  .ric-done-heading {
+    color: #4caf50;
+  }
+}
+
+// Scanning visual — concentric rings
+.ric-scan-visual {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 28px;
+}
+
+.ric-scan-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(21, 101, 192, 0.2);
+
+  &.ric-ring-outer {
+    inset: 0;
+    animation: ringPulse 2.4s ease-in-out infinite;
+  }
+  &.ric-ring-mid {
+    inset: 18px;
+    border-color: rgba(21, 101, 192, 0.3);
+    animation: ringPulse 2.4s ease-in-out infinite 0.4s;
+  }
+  &.ric-ring-inner {
+    inset: 36px;
+    border-color: rgba(21, 101, 192, 0.4);
+    animation: ringPulse 2.4s ease-in-out infinite 0.8s;
+  }
+}
+
+@keyframes ringPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+.ric-scan-core {
+  position: absolute;
+  inset: 44px;
+  border-radius: 50%;
+  background: rgba(21, 101, 192, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #42a5f5;
+  }
+
+  .ric-done-icon {
+    color: #4caf50;
+    animation: scaleIn 0.3s ease;
+  }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+// Rotating sweep line
+.ric-scan-sweep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(21, 101, 192, 0.6), transparent);
+  animation: sweep 2s linear infinite;
+}
+
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Processing steps
+.ric-processing-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+  padding: 0 20px;
+}
+
+.ric-proc-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: #4a5568;
+  transition: all 0.3s ease;
+
+  &.ric-step-active {
+    color: #90caf9;
+
+    .ric-proc-step-indicator {
+      background: rgba(21, 101, 192, 0.15);
+    }
+  }
+
+  &.ric-step-complete {
+    color: #81c784;
+
+    .ric-proc-step-indicator {
+      background: rgba(76, 175, 80, 0.15);
+      mat-icon { color: #4caf50; }
+    }
+  }
+}
+
+.ric-proc-step-indicator {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 0.3s ease;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    animation: scaleIn 0.25s ease;
+  }
+}
+
+.ric-proc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4a5568;
+}
+
+// Processing done state
+.ric-processing-done {
+  .ric-scan-ring {
+    border-color: rgba(76, 175, 80, 0.3) !important;
+    animation: none !important;
+    opacity: 0.6;
+  }
+  .ric-scan-core {
+    background: rgba(76, 175, 80, 0.12);
+  }
+}
+
+// ── CONFIRMATION OVERLAY ──
+.ric-confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ric-confirmation-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px 32px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.4s ease;
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 10px;
+    line-height: 1.5;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    margin: 0 0 24px;
+    line-height: 1.5;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ric-confirm-icon {
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 56px;
+    width: 56px;
+    height: 56px;
+    color: $green;
+    animation: scaleIn 0.3s ease;
+  }
+}
+
+.ric-confirm-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  background: $accent !important;
+  color: #fff !important;
+  transition: all 0.2s !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(21, 101, 192, 0.35) !important;
+  }
+}
+
+// ── PROCESSING SUBTITLE ──
+.ric-proc-subtitle {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: -16px 0 24px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+// ══════ AI DAMAGE INSIGHT PANEL ══════
+.ric-insight-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: $bg;
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease;
+}
+
+.ric-insight-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ric-insight-header {
+  text-align: center;
+  margin-bottom: 28px;
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.ric-insight-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+
+  mat-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: $accent;
+  }
+}
+
+// Results card
+.ric-insight-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+.ric-insight-section {
+  margin-bottom: 20px;
+
+  &:last-child { margin-bottom: 0; }
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: $text-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 12px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: $accent;
+    }
+  }
+}
+
+// Detected damage list
+.ric-damage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ric-damage-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  animation: itemFadeIn 0.3s ease both;
+}
+
+@for $i from 1 through 4 {
+  .ric-damage-item:nth-child(#{$i}) {
+    animation-delay: #{$i * 100}ms;
+  }
+}
+
+@keyframes itemFadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.ric-damage-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e3f2fd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: $accent;
+  }
+}
+
+.ric-damage-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ric-damage-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.ric-damage-area {
+  font-size: 0.72rem;
+  color: $text-muted;
+  margin-top: 1px;
+}
+
+// Insight message
+.ric-insight-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  margin-bottom: 20px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #d97706;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #92400e;
+    line-height: 1.55;
+    font-weight: 500;
+  }
+}
+
+// Confidence meter
+.ric-confidence {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ric-confidence-track {
+  flex: 1;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.ric-confidence-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 1s ease;
+
+  &.ric-conf-moderate {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  }
+
+  &.ric-conf-high {
+    background: linear-gradient(90deg, #34d399, #10b981);
+  }
+}
+
+.ric-confidence-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 70px;
+
+  &.ric-conf-moderate { color: #d97706; }
+  &.ric-conf-high { color: $green; }
+}
+
+// Reassurance
+.ric-insight-reassurance {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  margin-top: 20px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: $green;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #166534;
+    line-height: 1.55;
+  }
+}
+
+// CTA
+.ric-insight-cta {
+  text-align: center;
+}
+
+.ric-insight-btn {
+  width: 100%;
+  height: 56px;
+  border-radius: 16px !important;
+  font-size: 1.0625rem !important;
+  font-weight: 800 !important;
+  background: $accent !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.35) !important;
+  transition: all 0.2s !important;
+
+  mat-icon {
+    font-size: 22px !important;
+    width: 22px !important;
+    height: 22px !important;
+    margin-right: 8px;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.45) !important;
+  }
+}
+
+.ric-insight-cta-hint {
+  font-size: 0.8125rem;
+  color: $text-muted;
+  margin: 12px 0 0;
+}
+
+// ══════ CLAIM ADVISOR / NEXT STEP GUIDANCE ══════
+.ric-advisor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: $bg;
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease;
+}
+
+.ric-advisor-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 20px 60px;
+  animation: slideUp 0.4s ease;
+}
+
+.ric-advisor-header {
+  text-align: center;
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: $text-primary;
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+}
+
+.ric-advisor-text {
+  max-width: 520px;
+  margin: 0 auto 32px;
+  text-align: center;
+
+  p {
+    font-size: 0.9375rem;
+    color: $text-secondary;
+    line-height: 1.65;
+    margin: 0 0 14px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  .ric-advisor-reassurance {
+    color: $text-primary;
+    font-weight: 600;
+    font-style: italic;
+  }
+}
+
+// Options grid
+.ric-advisor-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ric-advisor-card {
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 20px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    line-height: 1.55;
+    margin: 0 0 20px;
+    flex: 1;
+  }
+}
+
+.ric-advisor-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+    color: $accent;
+  }
+
+  &.ric-advisor-icon-secondary {
+    background: #f3f4f6;
+    mat-icon { color: $text-secondary; }
+  }
+}
+
+// Primary card emphasis
+.ric-advisor-primary {
+  border-color: #bbdefb;
+  background: linear-gradient(180deg, #fafcff 0%, #fff 100%);
+  box-shadow: 0 2px 12px rgba(21, 101, 192, 0.08);
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(21, 101, 192, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.ric-advisor-secondary {
+  &:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// Buttons
+.ric-advisor-btn-primary {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  background: $accent !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.3) !important;
+  transition: all 0.2s !important;
+
+  mat-icon {
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 6px;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4) !important;
+  }
+}
+
+.ric-advisor-btn-secondary {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  color: $text-secondary !important;
+  border-color: $border !important;
+  transition: all 0.2s !important;
+
+  &:hover {
+    background: #f9fafb !important;
+    color: $text-primary !important;
+  }
+}
+
+// ── RESPONSIVE ──
+@media (min-width: 768px) {
+  .ric-page {
+    padding: 48px 24px 80px;
+  }
+
+  .ric-header h1 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .ric-page {
+    padding: 20px 16px 60px;
+  }
+
+  .ric-card {
+    padding: 18px 16px;
+    border-radius: 12px;
+  }
+
+  .ric-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    mat-icon { font-size: 22px; width: 22px; height: 22px; }
+  }
+
+  .ric-tips {
+    gap: 4px;
+  }
+
+  .ric-photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .ric-guidance { border-radius: 10px; }
+  .ric-coverage-marks { display: none; }
+  .ric-advisor-options { grid-template-columns: 1fr; }
+  .ric-advisor-page { padding: 32px 16px 48px; }
+  .ric-advisor-header h1 { font-size: 1.25rem; }
+}

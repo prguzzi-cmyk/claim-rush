@@ -1,0 +1,64 @@
+<div class="messages-container">
+  <div class="messages-layout">
+    <!-- Thread List -->
+    <div class="thread-list section-card">
+      <h3>Conversations</h3>
+      <div
+        class="thread-item"
+        *ngFor="let thread of threads"
+        [class.active]="selectedThread?.id === thread.id"
+        [class.unread]="thread.unread"
+        (click)="selectThread(thread)"
+      >
+        <div class="thread-icon">
+          <mat-icon *ngIf="thread.messages[0]?.senderRole === 'system'">notifications</mat-icon>
+          <mat-icon *ngIf="thread.messages[0]?.senderRole !== 'system'">chat</mat-icon>
+          <span class="unread-dot" *ngIf="thread.unread"></span>
+        </div>
+        <div class="thread-info">
+          <span class="thread-subject">{{ thread.subject }}</span>
+          <span class="thread-preview">{{ getLastPreview(thread) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Detail -->
+    <div class="message-detail section-card" *ngIf="selectedThread">
+      <h3>{{ selectedThread.subject }}</h3>
+      <div class="messages-scroll">
+        <div
+          class="chat-bubble"
+          *ngFor="let msg of selectedThread.messages"
+          [ngClass]="{
+            'bubble-client': msg.senderRole === 'client',
+            'bubble-adjuster': msg.senderRole === 'adjuster',
+            'bubble-system': msg.senderRole === 'system'
+          }"
+        >
+          <div class="bubble-header">
+            <span class="bubble-sender">{{ msg.senderName }}</span>
+            <span class="bubble-time">{{ msg.timestamp | date:'short' }}</span>
+          </div>
+          <p class="bubble-body">{{ msg.body }}</p>
+        </div>
+      </div>
+      <div class="message-input">
+        <input
+          type="text"
+          placeholder="Type a message..."
+          [(ngModel)]="newMessage"
+          class="msg-input"
+        />
+        <button mat-raised-button color="primary" class="send-btn">
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="message-detail section-card empty-state" *ngIf="!selectedThread">
+      <mat-icon class="empty-icon">forum</mat-icon>
+      <p>Select a conversation to view messages.</p>
+    </div>
+  </div>
+</div>

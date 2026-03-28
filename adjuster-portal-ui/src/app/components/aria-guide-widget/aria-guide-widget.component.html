@@ -1,0 +1,108 @@
+<!-- Floating Action Button -->
+<button
+  class="aria-fab"
+  (click)="toggleChat()"
+  [attr.aria-expanded]="isOpen"
+  aria-label="Toggle RIN Portal Guide"
+  matTooltip="RIN Portal Guide"
+  matTooltipPosition="left">
+  <mat-icon *ngIf="!isOpen">support_agent</mat-icon>
+  <mat-icon *ngIf="isOpen">close</mat-icon>
+</button>
+
+<!-- Chat Panel -->
+<div
+  class="aria-chat-panel"
+  [class.open]="isOpen"
+  role="dialog"
+  aria-label="RIN Portal Guide"
+  aria-modal="false">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-title">
+      <mat-icon class="header-icon">support_agent</mat-icon>
+      <div>
+        <span class="title-text">RIN Portal Guide</span>
+        <span class="subtitle-text">UPA Portal Assistant</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button (click)="clearChat()" aria-label="Clear conversation" matTooltip="Clear chat">
+        <mat-icon>delete_outline</mat-icon>
+      </button>
+      <button mat-icon-button (click)="toggleChat()" aria-label="Close assistant">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #messageContainer role="log" aria-live="polite">
+
+    <!-- Welcome message -->
+    <div *ngIf="messages.length === 0" class="welcome-section">
+      <div class="welcome-message">
+        <mat-icon class="welcome-icon">support_agent</mat-icon>
+        <p class="welcome-title">Hi! I'm your RIN Portal Guide.</p>
+        <p class="welcome-subtitle">Ask me anything about the UPA Portal — intelligence features, leads, claims, outreach, AI tools, administration, or workflows.</p>
+      </div>
+
+      <div class="quick-actions">
+        <button
+          *ngFor="let action of quickActions"
+          class="quick-action-btn"
+          (click)="sendQuickAction(action.prompt)">
+          {{ action.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Message bubbles -->
+    <div
+      *ngFor="let message of messages"
+      class="message-row"
+      [class.user]="message.role === 'user'"
+      [class.assistant]="message.role !== 'user'">
+      <div class="message-avatar" *ngIf="message.role !== 'user'">
+        <mat-icon>support_agent</mat-icon>
+      </div>
+      <div class="message-bubble" [class.user-bubble]="message.role === 'user'" [class.assistant-bubble]="message.role !== 'user'">
+        <span [innerHTML]="message.content"></span>
+      </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading" class="message-row assistant">
+      <div class="message-avatar">
+        <mat-icon>support_agent</mat-icon>
+      </div>
+      <div class="message-bubble assistant-bubble loading-bubble">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-container">
+    <input
+      #chatInput
+      [(ngModel)]="userInput"
+      (keydown)="onKeydown($event)"
+      placeholder="Ask about the portal..."
+      aria-label="Type your portal question"
+      class="chat-input"
+      [disabled]="isLoading" />
+    <button
+      mat-icon-button
+      color="primary"
+      (click)="sendMessage()"
+      [disabled]="!userInput.trim() || isLoading"
+      aria-label="Send message"
+      class="send-btn">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+</div>

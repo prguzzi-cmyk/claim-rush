@@ -1,0 +1,38 @@
+<div class="policy-inline-section">
+  <div class="section-header">
+    <h4>Policy Vault Documents</h4>
+    <div class="section-actions">
+      <input type="file" #inlineUpload hidden accept=".pdf" (change)="onUploadFile($event)" />
+      <button mat-stroked-button (click)="inlineUpload.click()">
+        <mat-icon>upload_file</mat-icon> Upload New
+      </button>
+      <button mat-stroked-button (click)="openAttachDialog()">
+        <mat-icon>link</mat-icon> Attach from Vault
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-text">Loading...</div>
+
+  <div *ngIf="!loading && policies.length === 0" class="no-data">
+    No vault policies linked to this entity.
+  </div>
+
+  <div class="policy-list" *ngIf="!loading && policies.length > 0">
+    <div class="policy-item" *ngFor="let doc of policies">
+      <mat-icon>picture_as_pdf</mat-icon>
+      <span class="policy-name">{{ doc.file_name }}</span>
+      <span class="policy-meta" *ngIf="doc.carrier">{{ doc.carrier }}</span>
+      <span class="policy-meta" *ngIf="doc.policy_number">#{{ doc.policy_number }}</span>
+      <span class="version-tag">v{{ doc.version }}</span>
+      <span class="status-badge" [ngClass]="doc.extraction_status">{{ doc.extraction_status }}</span>
+      <mat-icon *ngIf="doc.assistant_ready" class="ready-badge" matTooltip="AI Assistant Ready">check_circle</mat-icon>
+      <button mat-icon-button (click)="viewDocument(doc)" matTooltip="View">
+        <mat-icon>visibility</mat-icon>
+      </button>
+      <button mat-icon-button color="warn" (click)="detachDocument(doc)" matTooltip="Detach">
+        <mat-icon>link_off</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

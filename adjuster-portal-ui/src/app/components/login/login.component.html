@@ -1,0 +1,167 @@
+<div class="login-page">
+  <div class="login-card">
+    <!-- Logo -->
+    <header class="login-header">
+      <p class="brand-title">RIN<sup>&trade;</sup></p>
+    </header>
+
+    <!-- ═══ MAIN MODE ═══ -->
+    <div *ngIf="mode === 'main'" @fadeSlide class="login-body">
+      <!-- Passkey Button -->
+      <button
+        *ngIf="passkeysAvailable"
+        mat-raised-button
+        class="auth-btn passkey-btn"
+        (click)="loginWithPasskey()"
+        [disabled]="passkeyDisabled"
+      >
+        <mat-icon>fingerprint</mat-icon>
+        <span>Sign in with Passkey</span>
+        <mat-spinner *ngIf="passkeyDisabled" diameter="20"></mat-spinner>
+      </button>
+
+      <!-- Google Button -->
+      <button
+        mat-raised-button
+        class="auth-btn google-btn"
+        [disabled]="!googleEnabled"
+        [matTooltip]="!googleEnabled ? 'Google Sign-In not configured' : ''"
+      >
+        <mat-icon>login</mat-icon>
+        <span>Sign in with Google</span>
+      </button>
+
+      <!-- Magic Link Button -->
+      <button
+        *ngIf="magicLinkEnabled"
+        mat-raised-button
+        class="auth-btn magic-btn"
+        (click)="setMode('magic-link')"
+      >
+        <mat-icon>email</mat-icon>
+        <span>Email me a sign-in link</span>
+      </button>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <button
+        mat-button
+        class="password-link"
+        (click)="setMode('password')"
+      >
+        Use password instead
+      </button>
+
+      <div class="error-message" *ngIf="message">{{ message }}</div>
+    </div>
+
+    <!-- ═══ PASSWORD MODE ═══ -->
+    <div *ngIf="mode === 'password'" @fadeSlide class="login-body">
+      <button mat-icon-button class="back-btn" (click)="setMode('main')">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <form (ngSubmit)="login()" class="password-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email address</mat-label>
+          <input
+            matInput
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            [(ngModel)]="credentials.email"
+          />
+          <mat-icon matPrefix>email</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            [(ngModel)]="credentials.password"
+          />
+          <mat-icon matPrefix>vpn_key</mat-icon>
+        </mat-form-field>
+
+        <div class="error-message" *ngIf="message">{{ message }}</div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="loginDisabled"
+        >
+          <mat-spinner *ngIf="loginDisabled" diameter="20"></mat-spinner>
+          <span *ngIf="!loginDisabled">Sign In</span>
+        </button>
+
+        <button
+          mat-button
+          type="button"
+          class="forgot-link"
+          (click)="openForgottenPasswordDialog()"
+        >
+          Forgot my password
+        </button>
+      </form>
+    </div>
+
+    <!-- ═══ MAGIC LINK MODE ═══ -->
+    <div *ngIf="mode === 'magic-link'" @fadeSlide class="login-body">
+      <button mat-icon-button class="back-btn" (click)="setMode('main')">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <p class="mode-subtitle">Enter your email and we'll send you a sign-in link.</p>
+
+      <form (ngSubmit)="requestMagicLink()" class="magic-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email address</mat-label>
+          <input
+            matInput
+            name="magicEmail"
+            type="email"
+            required
+            autocomplete="email"
+            [(ngModel)]="magicLinkEmail"
+          />
+          <mat-icon matPrefix>email</mat-icon>
+        </mat-form-field>
+
+        <div class="error-message" *ngIf="message">{{ message }}</div>
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-btn"
+          [disabled]="magicLinkDisabled"
+        >
+          <mat-spinner *ngIf="magicLinkDisabled" diameter="20"></mat-spinner>
+          <span *ngIf="!magicLinkDisabled">Send sign-in link</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ═══ MAGIC LINK SENT MODE ═══ -->
+    <div *ngIf="mode === 'magic-link-sent'" @fadeSlide class="login-body sent-body">
+      <mat-icon class="success-icon">mark_email_read</mat-icon>
+      <h3>Check your email</h3>
+      <p class="sent-text">
+        We sent a sign-in link to <strong>{{ magicLinkEmail }}</strong>.
+        Click the link in the email to sign in.
+      </p>
+      <button mat-button class="password-link" (click)="setMode('main')">
+        Back to sign in
+      </button>
+    </div>
+  </div>
+</div>

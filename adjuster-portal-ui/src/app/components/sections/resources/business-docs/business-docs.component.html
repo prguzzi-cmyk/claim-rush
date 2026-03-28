@@ -1,0 +1,194 @@
+
+
+<mat-card appearance="outlined">
+
+  <div class="row">
+    <p class="mat-headline-4 section-title">Business Documents</p>
+
+
+    <div class="col-10">
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a
+          href="javascript:">Resources</a>
+        </li>
+        <li class="breadcrumb-item"><a
+          href="javascript:">Business Documents</a>
+        </li>
+      </ul>
+    </div>
+        <div class="col-2 text-end">
+          
+        </div>
+      </div>
+
+
+  <mat-card-header
+    class="mb-3 flex-column align-items-end justify-content-start"
+  >
+    <div class="d-flex mb-3">
+      <!-- <app-select
+        *ngIf="router.url.includes('administration')"
+        [select]="{ name: 'view', displayName: 'View' }"
+        [options]="views"
+        [value]="selectValue.view"
+        (valueChange)="setSelectValue($event)"
+      ></app-select> -->
+
+      <app-select
+        [select]="{ name: 'sortBy', displayName: 'Sort By' }"
+        [options]="getSelectOptions('sortBy')"
+        [value]="selectValue.sortBy"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+
+      <app-select
+        [select]="{ name: 'orderBy', displayName: 'Order By' }"
+        [options]="orderBy"
+        [value]="selectValue.orderBy"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+
+      <app-select
+        [select]="{ name: 'searchField', displayName: 'Search Field' }"
+        [options]="getSelectOptions('searchFields')"
+        [value]="selectValue.searchField"
+        (valueChange)="setSelectValue($event)"
+      ></app-select>
+    </div>
+
+    <mat-form-field class="w-100">
+      <mat-label>Search business documents</mat-label>
+
+      <input
+        [(ngModel)]="searchText"
+        (keyup)="getFiles()"
+        matInput
+        placeholder="Search name or type"
+      />
+    </mat-form-field>
+  </mat-card-header>
+
+  <mat-card-content>
+    <table mat-table [dataSource]="files" class="w-100">
+      <ng-container matColumnDef="sn">
+        <th mat-header-cell *matHeaderCellDef>#</th>
+
+        <td mat-cell *matCellDef="let element; let i = index">
+          {{ i + 1 }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+
+        <td (click)="openViewFileDialog(file)" mat-cell *matCellDef="let file">
+          {{ file.name }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+
+        <td mat-cell *matCellDef="let file">
+          {{ file.type }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_by">
+        <th mat-header-cell *matHeaderCellDef>Created by</th>
+
+        <td mat-cell *matCellDef="let file">
+          <span
+            *ngIf="file.created_by?.first_name || file.created_by?.last_name"
+          >
+            {{ file.created_by?.first_name }}
+            {{ file.created_by?.last_name }}
+          </span>
+
+          <span
+            *ngIf="!file.created_by?.first_name && !file.created_by?.last_name"
+          >
+            -
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created at</th>
+
+        <td mat-cell *matCellDef="let file">
+          {{ file.created_at | date : "dd/MM/yyy" }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="last_updated">
+        <th mat-header-cell *matHeaderCellDef>Last updated</th>
+
+        <td mat-cell *matCellDef="let file">
+          <span *ngIf="file.updated_at">
+            {{ file.updated_at | date : "dd/MM/yyy" }}
+          </span>
+
+          <span *ngIf="!file.updated_at"> - </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="download">
+        <th mat-header-cell *matHeaderCellDef>Download</th>
+
+        <td mat-cell *matCellDef="let file">
+          <a
+            href="{{ file.path }}"
+            download
+            style="color: inherit"
+            class="text-dark"
+          >
+            <mat-icon>download</mat-icon>
+          </a>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+
+        <td mat-cell *matCellDef="let file">
+          <button
+            (click)="openEditFileDialog(file)"
+            matTooltip="edit {{ file.name }}"
+            mat-icon-button
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef>Delete</th>
+        <td mat-cell *matCellDef="let file">
+          <div class="d-flex align-items-center">
+            <button
+              (click)="openDeleteFileDialog(file)"
+              [disabled]="!file.can_be_removed"
+              matTooltip="delete {{ file.name }}"
+              mat-icon-button
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="getDisplayedColumns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: getDisplayedColumns()"></tr>
+    </table>
+  </mat-card-content>
+
+  <mat-card-footer *ngIf="router.url.includes('administration')" class="m-0">
+    <button (click)="openUploadFileDialog()" mat-raised-button color="primary">
+      Upload file
+    </button>
+  </mat-card-footer>
+</mat-card>

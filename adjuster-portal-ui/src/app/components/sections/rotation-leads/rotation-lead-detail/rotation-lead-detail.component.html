@@ -1,0 +1,196 @@
+<div class="rotation-lead-detail-page" *ngIf="!loading && lead">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>{{ lead.owner_name }}</h2>
+    <span class="status-chip"
+          [style.background]="getStatusColor(lead.lead_status) + '20'"
+          [style.color]="getStatusColor(lead.lead_status)">
+      {{ getStatusLabel(lead.lead_status) }}
+    </span>
+  </div>
+
+  <div class="row">
+    <!-- Lead Info Card -->
+    <div class="col-md-7">
+      <mat-card appearance="outlined" class="info-card">
+        <mat-card-header>
+          <mat-card-title>Lead Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Source</span>
+              <span class="info-value">{{ lead.lead_source }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Phone</span>
+              <span class="info-value">{{ lead.phone }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">{{ lead.email || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Incident Type</span>
+              <span class="info-value">{{ lead.incident_type | titlecase }}</span>
+            </div>
+            <div class="info-item full-width">
+              <span class="info-label">Property Address</span>
+              <span class="info-value">
+                {{ lead.property_address }}, {{ lead.property_city }},
+                {{ lead.property_state }} {{ lead.property_zip }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Assigned Agent</span>
+              <span class="info-value">{{ getAgentName() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Assigned Date</span>
+              <span class="info-value">{{ lead.assignment_date ? (lead.assignment_date | date:'medium') : '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Contact Attempts</span>
+              <span class="info-value">{{ lead.contact_attempt_count }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Last Contact</span>
+              <span class="info-value">{{ lead.last_contact_attempt ? (lead.last_contact_attempt | date:'medium') : '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Outcome</span>
+              <span class="info-value">{{ lead.outcome || '—' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Reassignments</span>
+              <span class="info-value">{{ lead.reassignment_count }}</span>
+            </div>
+          </div>
+
+          <div class="info-item full-width mt-3" *ngIf="lead.notes">
+            <span class="info-label">Notes</span>
+            <span class="info-value">{{ lead.notes }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Status Update -->
+      <mat-card appearance="outlined" class="action-card mt-3">
+        <mat-card-header>
+          <mat-card-title>Update Status</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>New Status</mat-label>
+                <mat-select [value]="lead.lead_status" (selectionChange)="updateStatus($event.value)">
+                  <mat-option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Contact Attempt Form -->
+      <mat-card appearance="outlined" class="action-card mt-3">
+        <mat-card-header>
+          <mat-card-title>Record Contact Attempt</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="row">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Outcome</mat-label>
+                <mat-select [(ngModel)]="contactOutcome">
+                  <mat-option value="no_answer">No Answer</mat-option>
+                  <mat-option value="left_message">Left Message</mat-option>
+                  <mat-option value="call_back_later">Call Back Later</mat-option>
+                  <mat-option value="not_interested">Not Interested</mat-option>
+                  <mat-option value="interested">Interested</mat-option>
+                  <mat-option value="signed_client">Signed Client</mat-option>
+                  <mat-option value="invalid_lead">Invalid Lead</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Notes</mat-label>
+                <textarea matInput [(ngModel)]="contactNotes" rows="2"></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+          <button mat-raised-button color="primary" (click)="recordContact()"
+                  [disabled]="!contactOutcome">
+            <mat-icon>phone</mat-icon> Record Attempt
+          </button>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Reassign -->
+      <mat-card appearance="outlined" class="action-card mt-3">
+        <mat-card-header>
+          <mat-card-title>Reassign Lead</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="row">
+            <div class="col-md-6">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Reason</mat-label>
+                <input matInput [(ngModel)]="reassignReason" placeholder="Optional reason for reassignment">
+              </mat-form-field>
+            </div>
+          </div>
+          <button mat-raised-button color="warn" (click)="reassignLead()">
+            <mat-icon>swap_calls</mat-icon> Reassign (Auto-Pick Next Agent)
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="col-md-5">
+      <mat-card appearance="outlined" class="timeline-card">
+        <mat-card-header>
+          <mat-card-title><mat-icon>timeline</mat-icon> Activity Timeline</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="timeline" *ngIf="lead.activities && lead.activities.length > 0">
+            <div class="timeline-item" *ngFor="let activity of lead.activities">
+              <div class="timeline-icon">
+                <mat-icon>{{ getActivityIcon(activity.activity_type) }}</mat-icon>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="activity-type">{{ getStatusLabel(activity.activity_type) }}</span>
+                  <span class="activity-time">{{ activity.created_at | date:'short' }}</span>
+                </div>
+                <p class="activity-description">{{ activity.description }}</p>
+                <div class="activity-change" *ngIf="activity.old_value || activity.new_value">
+                  <span class="old-value" *ngIf="activity.old_value">{{ activity.old_value }}</span>
+                  <mat-icon *ngIf="activity.old_value && activity.new_value">arrow_forward</mat-icon>
+                  <span class="new-value" *ngIf="activity.new_value">{{ activity.new_value }}</span>
+                </div>
+                <span class="activity-performer">{{ getPerformerName(activity) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-timeline" *ngIf="!lead.activities || lead.activities.length === 0">
+            <mat-icon>history</mat-icon>
+            <p>No activity recorded yet.</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading">
+  <mat-spinner diameter="36"></mat-spinner>
+  <span>Loading lead details...</span>
+</div>

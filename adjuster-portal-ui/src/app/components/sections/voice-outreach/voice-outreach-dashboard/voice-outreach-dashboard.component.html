@@ -1,0 +1,378 @@
+<div class="voice-agent-page">
+
+  <!-- ══════ PAGE HEADER ══════ -->
+  <div class="page-header">
+    <div>
+      <h1><mat-icon>record_voice_over</mat-icon> AI Voice Outreach Agent</h1>
+      <div class="page-subtitle">AI-powered outbound calling, campaign management &amp; lead conversion</div>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button class="btn-primary" (click)="openNewCallDialog()">
+        <mat-icon>call</mat-icon> New Call
+      </button>
+      <button mat-icon-button (click)="refresh()" matTooltip="Refresh Data">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ KPI ROW ══════ -->
+  <div class="kpi-row">
+    <div class="kpi-card" *ngFor="let kpi of kpiCards">
+      <div class="kpi-icon-bg" [style.backgroundColor]="kpi.bgColor">
+        <mat-icon [style.color]="kpi.color">{{ kpi.icon }}</mat-icon>
+      </div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpi.value }}</span>
+        <span class="kpi-label">{{ kpi.label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ ACTIVE CALLS BANNER ══════ -->
+  <div class="active-calls-banner" *ngIf="activeCalls.length > 0">
+    <div class="banner-header">
+      <mat-icon class="pulse-icon">phone_in_talk</mat-icon>
+      <span>Live Calls ({{ activeCalls.length }})</span>
+    </div>
+    <div class="active-call-row" *ngFor="let call of activeCalls" (click)="openCallDetail(call)">
+      <span class="live-dot" [style.background]="getStatusColor(call.status)"></span>
+      <span class="active-call-status">{{ getStatusLabel(call.status) }}</span>
+      <span class="active-call-phone">{{ call.phoneNumber }}</span>
+      <span class="active-call-agent">{{ call.assignedAdjusterName }}</span>
+      <button mat-icon-button matTooltip="View" (click)="openCallDetail(call); $event.stopPropagation()">
+        <mat-icon>open_in_new</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ TAB GROUP ══════ -->
+  <div class="tab-container">
+    <mat-tab-group [(selectedIndex)]="activeTabIndex" animationDuration="200ms">
+
+      <!-- ── TAB 1: CAMPAIGNS ── -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>campaign</mat-icon> Campaigns</span>
+        </ng-template>
+
+        <!-- Campaign Builder Overlay -->
+        <div class="builder-overlay" *ngIf="showCampaignBuilder">
+          <div class="builder-panel">
+            <div class="builder-header">
+              <h3><mat-icon>build</mat-icon> Campaign Builder</h3>
+              <button mat-icon-button (click)="closeCampaignBuilder()"><mat-icon>close</mat-icon></button>
+            </div>
+
+            <div class="builder-form">
+              <div class="form-row">
+                <div class="form-group full">
+                  <label>Campaign Name</label>
+                  <input type="text" [(ngModel)]="campaignForm.name" placeholder="e.g. Hail Storm — North Dallas" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Lead Source</label>
+                  <select [(ngModel)]="campaignForm.leadSource">
+                    <option *ngFor="let opt of leadSourceOptions" [value]="opt.value">{{ opt.label }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Script Selection</label>
+                  <select [(ngModel)]="campaignForm.scriptId">
+                    <option value="" disabled>Select a script...</option>
+                    <option *ngFor="let s of availableScripts" [value]="s.id">{{ s.name }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Scheduled Date</label>
+                  <input type="date" [(ngModel)]="campaignForm.scheduledDate" />
+                </div>
+                <div class="form-group">
+                  <label>Scheduled Time</label>
+                  <input type="time" [(ngModel)]="campaignForm.scheduledTime" />
+                </div>
+                <div class="form-group">
+                  <label>Assigned Agent</label>
+                  <select [(ngModel)]="campaignForm.assignedAgentName">
+                    <option value="">AI Voice Agent (Default)</option>
+                    <option *ngFor="let agent of agentOptions" [value]="agent">{{ agent }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Lead Selection (for manual) -->
+              <div class="lead-selection-section" *ngIf="campaignForm.leadSource === 'manual_selection'">
+                <div class="lead-selection-header">
+                  <span><mat-icon>people</mat-icon> Select Leads ({{ selectedLeadCount }} selected)</span>
+                  <input type="text" placeholder="Search leads..." [(ngModel)]="leadSearchQuery" class="lead-search-input" />
+                </div>
+                <div class="lead-selection-list">
+                  <div class="lead-select-row header-row">
+                    <input type="checkbox" [checked]="selectAllLeads" (change)="toggleSelectAllLeads()" />
+                    <span class="col-name">Name</span>
+                    <span class="col-phone">Phone</span>
+                    <span class="col-source">Source</span>
+                    <span class="col-peril">Peril</span>
+                    <span class="col-address">Address</span>
+                  </div>
+                  <div class="lead-select-row" *ngFor="let lead of filteredLeads"
+                       [class.selected]="lead.selected" (click)="lead.selected = !lead.selected">
+                    <input type="checkbox" [(ngModel)]="lead.selected" (click)="$event.stopPropagation()" />
+                    <span class="col-name">{{ lead.name }}</span>
+                    <span class="col-phone">{{ lead.phone }}</span>
+                    <span class="col-source">{{ lead.source }}</span>
+                    <span class="col-peril">
+                      <span class="peril-badge">{{ lead.peril }}</span>
+                    </span>
+                    <span class="col-address">{{ lead.address }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="builder-actions">
+                <button mat-stroked-button (click)="closeCampaignBuilder()">Cancel</button>
+                <button mat-raised-button class="btn-primary" (click)="saveCampaign()">
+                  <mat-icon>save</mat-icon> Create Campaign
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign List -->
+        <div class="campaign-header">
+          <span class="section-title"><mat-icon>rocket_launch</mat-icon> Voice Campaigns</span>
+          <button mat-raised-button class="btn-primary" (click)="openCampaignBuilder()">
+            <mat-icon>add</mat-icon> New Campaign
+          </button>
+        </div>
+
+        <div class="panel">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Lead Source</th>
+                <th>Script</th>
+                <th>Agent</th>
+                <th>Leads</th>
+                <th>Calls</th>
+                <th>Connected</th>
+                <th>Appts</th>
+                <th>Signed</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of campaigns">
+                <td class="cell-bold">{{ c.name }}</td>
+                <td>
+                  <span class="source-badge">{{ getLeadSourceLabel(c.leadSource) }}</span>
+                </td>
+                <td class="cell-muted">{{ c.scriptName }}</td>
+                <td>{{ c.assignedAgentName }}</td>
+                <td class="cell-bold">{{ c.leadCount }}</td>
+                <td>{{ c.callsPlaced }}</td>
+                <td>{{ c.callsConnected }}</td>
+                <td>
+                  <span class="metric-highlight" *ngIf="c.appointmentsBooked > 0">{{ c.appointmentsBooked }}</span>
+                  <span *ngIf="c.appointmentsBooked === 0" class="cell-muted">0</span>
+                </td>
+                <td>
+                  <span class="metric-signed" *ngIf="c.clientsSigned > 0">{{ c.clientsSigned }}</span>
+                  <span *ngIf="c.clientsSigned === 0" class="cell-muted">0</span>
+                </td>
+                <td>
+                  <span class="status-badge"
+                        [style.backgroundColor]="getCampaignStatusColor(c.status) + '1A'"
+                        [style.color]="getCampaignStatusColor(c.status)">
+                    {{ c.status }}
+                  </span>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <button mat-stroked-button class="action-btn" (click)="launchCampaign(c)"
+                            *ngIf="c.status === 'draft' || c.status === 'scheduled'">
+                      <mat-icon>play_arrow</mat-icon> Launch
+                    </button>
+                    <button mat-stroked-button class="action-btn" (click)="pauseCampaign(c)"
+                            *ngIf="c.status === 'active'">
+                      <mat-icon>pause</mat-icon> Pause
+                    </button>
+                    <button mat-stroked-button class="action-btn" (click)="resumeCampaign(c)"
+                            *ngIf="c.status === 'paused'">
+                      <mat-icon>play_arrow</mat-icon> Resume
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-tab>
+
+      <!-- ── TAB 2: CALL LOG ── -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>list_alt</mat-icon> Call Log</span>
+        </ng-template>
+
+        <div class="call-log-header">
+          <span class="section-title"><mat-icon>call</mat-icon> Call History</span>
+          <div class="call-log-search">
+            <mat-icon>search</mat-icon>
+            <input type="text" placeholder="Filter calls..." (input)="applyCallFilter($any($event.target).value)" />
+          </div>
+        </div>
+
+        <div class="panel table-scroll">
+          <table mat-table [dataSource]="dataSource" matSort>
+
+            <ng-container matColumnDef="phoneNumber">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Phone Number</th>
+              <td mat-cell *matCellDef="let call">{{ call.phoneNumber }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Call Status</th>
+              <td mat-cell *matCellDef="let call">
+                <span class="status-chip"
+                      [style.background]="getStatusColor(call.status) + '20'"
+                      [style.color]="getStatusColor(call.status)">
+                  <span class="live-dot-sm" *ngIf="isLiveStatus(call.status)"
+                        [style.background]="getStatusColor(call.status)"></span>
+                  {{ getStatusLabel(call.status) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="duration">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Duration</th>
+              <td mat-cell *matCellDef="let call">{{ formatDuration(call.durationSeconds) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="result">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Result</th>
+              <td mat-cell *matCellDef="let call">
+                <span *ngIf="call.outcome" class="outcome-chip"
+                      [style.backgroundColor]="getOutcomeColor(call.outcome) + '18'"
+                      [style.color]="getOutcomeColor(call.outcome)">
+                  <mat-icon class="outcome-icon">{{ getOutcomeIcon(call.outcome) }}</mat-icon>
+                  {{ getOutcomeLabel(call.outcome) }}
+                </span>
+                <span *ngIf="!call.outcome && !isLiveStatus(call.status)" class="cell-muted">—</span>
+                <!-- Quick Result Buttons for calls without an outcome -->
+                <div class="quick-result-row" *ngIf="!call.outcome && !isLiveStatus(call.status) && (call.status === 'completed' || call.status === 'no_answer' || call.status === 'voicemail')">
+                  <button *ngFor="let key of quickResultKeys"
+                          class="quick-btn"
+                          [style.color]="quickResults[key].color"
+                          [style.borderColor]="quickResults[key].color + '40'"
+                          (click)="setQuickResult(call, key); $event.stopPropagation()"
+                          [matTooltip]="quickResults[key].label">
+                    <mat-icon>{{ quickResults[key].icon }}</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="agent">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Assigned Agent</th>
+              <td mat-cell *matCellDef="let call">{{ call.assignedAdjusterName || '—' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="timestamp">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>Timestamp</th>
+              <td mat-cell *matCellDef="let call" class="cell-nowrap">
+                {{ call.startedAt ? (call.startedAt | date:'MMM dd, h:mm a') : (call.createdAt | date:'MMM dd, h:mm a') }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let call">
+                <div class="actions-cell">
+                  <button mat-icon-button matTooltip="Record Outcome"
+                          *ngIf="!call.outcome && (call.status === 'completed' || call.status === 'no_answer' || call.status === 'voicemail')"
+                          (click)="openRecordOutcome(call, $event)">
+                    <mat-icon>edit_note</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="View Details"
+                          (click)="openCallDetail(call); $event.stopPropagation()">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let call; columns: displayedColumns"
+                (click)="openCallDetail(call)" class="clickable-row"></tr>
+          </table>
+
+          <mat-paginator [pageSizeOptions]="[10, 25, 50]" [pageSize]="25" showFirstLastButtons></mat-paginator>
+        </div>
+      </mat-tab>
+
+      <!-- ── TAB 3: LEAD SELECTION ── -->
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <span class="tab-label"><mat-icon>people</mat-icon> Lead Pool</span>
+        </ng-template>
+
+        <div class="lead-pool-header">
+          <span class="section-title"><mat-icon>people</mat-icon> Available Leads for Voice Campaigns</span>
+          <div class="lead-pool-actions">
+            <input type="text" placeholder="Search leads..." [(ngModel)]="leadSearchQuery" class="search-input" />
+            <button mat-raised-button class="btn-primary" [disabled]="selectedLeadCount === 0"
+                    (click)="openCampaignBuilder(); campaignForm.leadSource = 'manual_selection'; activeTabIndex = 0">
+              <mat-icon>campaign</mat-icon> Send {{ selectedLeadCount }} to Campaign
+            </button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <table class="data-table lead-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input type="checkbox" [checked]="selectAllLeads" (change)="toggleSelectAllLeads()" />
+                </th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Source</th>
+                <th>Peril</th>
+                <th>Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let lead of filteredLeads" [class.row-selected]="lead.selected"
+                  (click)="lead.selected = !lead.selected">
+                <td>
+                  <input type="checkbox" [(ngModel)]="lead.selected" (click)="$event.stopPropagation()" />
+                </td>
+                <td class="cell-bold">{{ lead.name }}</td>
+                <td>{{ lead.phone }}</td>
+                <td>
+                  <span class="source-badge">{{ lead.source }}</span>
+                </td>
+                <td>
+                  <span class="peril-badge">{{ lead.peril }}</span>
+                </td>
+                <td class="cell-muted">{{ lead.address }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+
+</div>

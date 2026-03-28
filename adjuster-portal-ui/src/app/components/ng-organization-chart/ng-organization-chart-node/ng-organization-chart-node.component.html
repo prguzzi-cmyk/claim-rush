@@ -1,0 +1,48 @@
+<!-- <a (click)="clickNode()" dnd-draggable [dragEnabled]="true" dnd-droppable (onDropSuccess)="dropNode($event)" [dragData]="node">{{ node.id}}</a> -->
+<div class="chart-container">
+<div (click)="clickNode($event)" class="container">
+    <div class="user-info">
+        <div class="icon-container">
+            <mat-icon [ngClass]="{
+            'upa-org-icon': node.data?.name === 'UPA Org',
+            'staff-icon': node.data?.source === 1,
+            'company-icon': node.data?.source === 0
+        }" [matTooltip]="node.data?.name === 'UPA Org' ? 'UPA Organization' : (node.data?.source === 0 ? 'From UPA Assignment' : 'From Direct Recruitment')">
+                {{ node.data?.name === 'UPA Org' ? 'corporate_fare' : (node.data?.source === 1 ? 'person' : 'business') }}
+            </mat-icon>
+        </div>
+        <div class="text-info">
+            <mat-card-title class="responsive-title" matTooltip="{{ node.data?.name }}">{{ node.data?.name }}</mat-card-title>
+            <mat-card-subtitle>{{ node?.data.name==='UPA Org' ? '' : node.data?.title_name }}</mat-card-subtitle>
+        </div>
+    </div>
+    <div *ngIf="editable" class="button-container">
+        <button mat-icon-button class="add-button" (click)="addChildNode($event)" aria-label="Create">
+            <mat-icon>add</mat-icon>
+        </button>
+        <button
+                *ngIf="node.children?.length > 0 && node?.data.name!=='UPA Org'"
+                mat-icon-button
+                class="evaluate-button"
+                color="primary"
+                (click)="evaluateNodeTitle($event)"
+                matTooltip="Evaluate Title">
+            <mat-icon>analytics</mat-icon>
+        </button>
+        <button class="delete-button" *ngIf="node.children?.length === 0 && node.data?.user_id !== 'root'" mat-icon-button color="warn" (click)="deleteCurrentNode($event)" aria-label="Delete">
+            <mat-icon>delete</mat-icon>
+        </button>
+    </div>
+</div>
+<app-ng-organization-chart-list
+        [editable] = editable
+        [ngClass]="'app-ng-organization-chart-list'"
+        [nodeList]="node.children"
+        (onChildClickedEvent)="onChildClicked($event)"
+        (onChildAddedEvent)="onChildAdded($event)"
+        (onChildDeletedEvent) ="onChildDeleted($event)"
+        (onChildEvaluatedEvent)="onChildTitleEvaluated($event)"
+        *ngIf="isChildrenVisible && node.children.length > 0"
+                            [class]="childrenStyleClass"></app-ng-organization-chart-list>
+
+</div>

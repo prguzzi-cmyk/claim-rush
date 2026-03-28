@@ -1,0 +1,31 @@
+<mjml>
+  <!-- Include HTML Head section -->
+  <mj-include path="./partials/head.mjml" />
+  <mj-body mj-class="body-background">
+    <!-- Include Header section -->
+    <mj-include path="./partials/header.mjml" />
+    <mj-section mj-class="message-background">
+      <mj-column width="100%">
+        <mj-image css-class="line-shadow" alt="" align="center" border="none" padding="0px"></mj-image>
+        <mj-text align="center" padding="0px 40px 40px 40px"> {{ client_name }} ({{ claim_ref_num }}) </mj-text>
+        <mj-text> Hello! This email is to let you know that {{sender}} of {{sender_company}} has shared one or more files with you. </mj-text>
+        <mj-button mj-class="app-background-color" align="left" color="#FFFFFF" border-radius="2px" href="{{ link }}" inner-padding="15px 30px"> Get Files </mj-button>
+        <mj-text> If the link above does not work, you can copy the following and paste it into your internet browser's address bar: <br />
+          {{link}}
+        </mj-text>
+        <mj-text>
+          {{message}}
+        </mj-text>
+        <mj-text>
+          {{sender}}
+          <br />
+          {{sender_company}}
+          <br />
+          {{sender_email}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <!-- Include Footer section -->
+    <mj-include path="./partials/footer.mjml" />
+  </mj-body>
+</mjml>

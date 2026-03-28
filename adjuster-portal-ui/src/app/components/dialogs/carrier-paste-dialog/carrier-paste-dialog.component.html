@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Paste Carrier Estimate</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="pasteForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Carrier Name</mat-label>
+      <input matInput formControlName="carrier_name" placeholder="e.g. State Farm, Allstate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Paste Estimate Text</mat-label>
+      <textarea
+        matInput
+        formControlName="pasted_text"
+        rows="12"
+        placeholder="Paste the carrier's estimate text here..."
+      ></textarea>
+      <mat-hint>Paste the full estimate including line items, quantities, and costs</mat-hint>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="pasteForm.invalid">
+    Parse Estimate
+  </button>
+</mat-dialog-actions>

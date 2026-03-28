@@ -1,0 +1,150 @@
+<div class="perf-container">
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon class="header-icon">insights</mat-icon> Inspection Performance</h2>
+      <p class="subtitle">Inspection activity and conversion metrics</p>
+    </div>
+    <button mat-stroked-button (click)="loadData()"><mat-icon>refresh</mat-icon> Refresh</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Date Range</mat-label>
+      <mat-select [(ngModel)]="dateRange" (selectionChange)="onFilterChange()">
+        <mat-option *ngFor="let r of dateRangeOptions" [value]="r.value">{{ r.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <ng-container *ngIf="dateRange === 'custom'">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Start</mat-label>
+        <input matInput type="date" [(ngModel)]="customStart" (ngModelChange)="onFilterChange()">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>End</mat-label>
+        <input matInput type="date" [(ngModel)]="customEnd" (ngModelChange)="onFilterChange()">
+      </mat-form-field>
+    </ng-container>
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>State</mat-label>
+      <input matInput [(ngModel)]="stateFilter" (ngModelChange)="onFilterChange()" placeholder="TX">
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>City</mat-label>
+      <input matInput [(ngModel)]="cityFilter" (ngModelChange)="onFilterChange()" placeholder="Dallas">
+    </mat-form-field>
+  </div>
+
+  <div class="loading-container" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-blue"><mat-icon>event</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ totalScheduled }}</span>
+          <span class="kpi-label">Total Scheduled</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-green"><mat-icon>check_circle</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ totalCompleted }}</span>
+          <span class="kpi-label">Completed</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-red"><mat-icon>cancel</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ totalCancelled }}</span>
+          <span class="kpi-label">Cancelled</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-purple"><mat-icon>trending_up</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ conversionRate | number:'1.0-0' }}%</span>
+          <span class="kpi-label">Conversion Rate</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <!-- Trend Chart -->
+      <div class="chart-panel panel-card">
+        <div class="panel-header">
+          <mat-icon>show_chart</mat-icon> Inspections Over Time
+          <mat-button-toggle-group [value]="trendView" (change)="trendView = $event.value; onFilterChange()" class="trend-toggle">
+            <mat-button-toggle value="daily">Day</mat-button-toggle>
+            <mat-button-toggle value="weekly">Week</mat-button-toggle>
+            <mat-button-toggle value="monthly">Month</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+        <div class="chart-container" *ngIf="trendChartData.length > 0">
+          <ngx-charts-bar-vertical [results]="trendChartData" [scheme]="colorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+        <div class="chart-empty" *ngIf="trendChartData.length === 0">No data for selected range</div>
+      </div>
+
+      <!-- Conversion Funnel -->
+      <div class="chart-panel panel-card">
+        <div class="panel-header"><mat-icon>filter_alt</mat-icon> Conversion Funnel</div>
+        <div class="funnel-container">
+          <div class="funnel-stage" *ngFor="let stage of funnel; let i = index"
+               [style.width]="(100 - i * 12) + '%'">
+            <div class="funnel-bar" [style.backgroundColor]="stage.color">
+              <span class="funnel-count">{{ stage.count }}</span>
+              <span class="funnel-label">{{ stage.label }}</span>
+            </div>
+            <div class="funnel-pct" *ngIf="i > 0">{{ stage.pct | number:'1.0-0' }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adjuster Performance Table -->
+    <div class="table-panel panel-card">
+      <div class="panel-header">
+        <mat-icon>leaderboard</mat-icon> Adjuster Performance
+        <span class="header-badge">{{ adjusterPerf.length }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="adjusterPerf" class="perf-table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Adjuster</th>
+            <td mat-cell *matCellDef="let r"><strong>{{ r.name }}</strong></td>
+          </ng-container>
+          <ng-container matColumnDef="scheduled">
+            <th mat-header-cell *matHeaderCellDef>Scheduled</th>
+            <td mat-cell *matCellDef="let r">{{ r.scheduled }}</td>
+          </ng-container>
+          <ng-container matColumnDef="completed">
+            <th mat-header-cell *matHeaderCellDef>Completed</th>
+            <td mat-cell *matCellDef="let r" class="amount-positive">{{ r.completed }}</td>
+          </ng-container>
+          <ng-container matColumnDef="completion_pct">
+            <th mat-header-cell *matHeaderCellDef>Completion %</th>
+            <td mat-cell *matCellDef="let r">
+              <div class="pct-bar">
+                <mat-progress-bar mode="determinate" [value]="r.completionPct"
+                  [color]="r.completionPct >= 70 ? 'primary' : 'accent'"></mat-progress-bar>
+                <span class="pct-label">{{ r.completionPct | number:'1.0-0' }}%</span>
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="avg_days">
+            <th mat-header-cell *matHeaderCellDef>Avg Days to Inspection</th>
+            <td mat-cell *matCellDef="let r">{{ r.avgDaysToInspection != null ? r.avgDaysToInspection + 'd' : '—' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['name','scheduled','completed','completion_pct','avg_days']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['name','scheduled','completed','completion_pct','avg_days'];"></tr>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,55 @@
+<div class="command-palette">
+  <!-- Header -->
+  <div class="command-header">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input
+      #searchInput
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Search pages, actions, or entities..."
+      autocomplete="off"
+      cdkFocusInitial
+    />
+    <mat-spinner *ngIf="isSearching" diameter="20" class="search-spinner"></mat-spinner>
+    <kbd *ngIf="!isSearching" class="esc-hint">ESC</kbd>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Results -->
+  <div class="command-results" #resultsList>
+    <ng-container *ngIf="groups.length > 0">
+      <div *ngFor="let group of groups; let gi = index" class="command-group">
+        <div class="group-label">{{ group.label }}</div>
+        <div
+          *ngFor="let item of group.items; let ii = index"
+          class="command-item"
+          [class.selected]="getItemIndex(gi, ii) === selectedIndex"
+          (click)="executeItem(item)"
+          (mouseenter)="selectedIndex = getItemIndex(gi, ii)"
+        >
+          <mat-icon class="item-icon">{{ item.icon }}</mat-icon>
+          <div class="item-text">
+            <span class="item-label">{{ item.label }}</span>
+            <span class="item-description" *ngIf="item.description">{{ item.description }}</span>
+          </div>
+          <mat-icon class="item-arrow">arrow_forward</mat-icon>
+        </div>
+      </div>
+    </ng-container>
+
+    <div *ngIf="groups.length === 0" class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <span>No results found</span>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Footer -->
+  <div class="command-footer">
+    <span class="hint"><kbd>&uarr;</kbd><kbd>&darr;</kbd> navigate</span>
+    <span class="hint"><kbd>&crarr;</kbd> select</span>
+    <span class="hint"><kbd>esc</kbd> close</span>
+  </div>
+</div>

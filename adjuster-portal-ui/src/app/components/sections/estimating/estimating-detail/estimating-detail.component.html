@@ -1,0 +1,2456 @@
+<div class="estimating-detail-container">
+  <div class="breadcrumb">
+    <a routerLink="/app/dashboard">Home</a> &gt;
+    <a routerLink="/app/estimating">Estimating</a> &gt;
+    <span>{{ isEditMode ? 'Edit Estimate' : 'New Estimate' }}</span>
+  </div>
+
+  <a *ngIf="linkedClaim" class="linked-claim-chip" [routerLink]="['/app/fire-claims', linkedClaim.id]">
+    <mat-icon>local_fire_department</mat-icon>
+    <span>{{ linkedClaim.address_line1 }}, {{ linkedClaim.city }}</span>
+  </a>
+
+  <span *ngIf="pricingVersionLabel" class="pricing-version-chip">
+    <mat-icon>price_change</mat-icon>
+    <span>{{ pricingVersionLabel }}</span>
+    <span *ngIf="pricingRegion" class="pricing-region">({{ pricingRegion }})</span>
+  </span>
+
+  <!-- Mode Badge (read-only, shown after mode is selected) -->
+  <span *ngIf="modeSelected && selectedMode" class="mode-badge mode-{{ selectedMode }}">
+    <mat-icon>{{ currentModeConfig?.icon }}</mat-icon>
+    {{ currentModeConfig?.label }}
+  </span>
+
+  <!-- Mode Selector (shown when creating a new estimate, before mode is chosen) -->
+  <div class="mode-selector" *ngIf="!modeSelected && !isEditMode">
+    <h2>Select Estimate Type</h2>
+    <p class="mode-selector-subtitle">Choose the type of estimate you want to create</p>
+    <div class="mode-cards">
+      <div *ngFor="let m of estimateModes"
+           class="mode-card"
+           [class.selected]="selectedMode === m.key"
+           (click)="selectMode(m.key)">
+        <mat-icon class="mode-card-icon">{{ m.config.icon }}</mat-icon>
+        <div class="mode-card-label">{{ m.config.label }}</div>
+        <div class="mode-card-desc">{{ m.config.description }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation Error Summary -->
+  <div class="error-summary-box" *ngIf="showValidation && validationErrors.length > 0">
+    <div class="error-summary-header">
+      <mat-icon>error_outline</mat-icon>
+      <strong>{{ validationErrors.length }} issue{{ validationErrors.length > 1 ? 's' : '' }} found</strong>
+    </div>
+    <ul class="error-summary-list">
+      <li *ngFor="let err of validationErrors" (click)="jumpToError(err)">
+        {{ err.message }}
+      </li>
+    </ul>
+  </div>
+
+  <form *ngIf="modeSelected" [formGroup]="projectForm">
+    <div class="workspace-panels"
+         [class.left-collapsed]="leftPanelCollapsed"
+         [class.right-collapsed]="rightPanelCollapsed"
+         [class.is-dragging]="isDragging"
+         [style.grid-template-columns]="getPanelGridColumns()">
+
+      <!-- ═══════════ LEFT PANEL ═══════════ -->
+      <aside class="panel panel-left">
+        <div class="panel-toggle" (click)="leftPanelCollapsed = !leftPanelCollapsed"
+             matTooltip="{{ leftPanelCollapsed ? 'Expand' : 'Collapse' }}">
+          <mat-icon>{{ leftPanelCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </div>
+
+        <div class="panel-body" *ngIf="!leftPanelCollapsed">
+          <!-- Project Info (compact) -->
+          <div class="left-section">
+            <div class="left-section-title">Project Info</div>
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Estimate Name</mat-label>
+              <input matInput formControlName="name" id="project-name" placeholder="e.g. Smith Residence" />
+              <mat-error *ngIf="projectForm.get('name')?.hasError('required')">
+                Estimate Name is required
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option *ngFor="let s of statusOptions" [value]="s">
+                  {{ s | titlecase }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="compact-field">
+              <mat-label>Notes</mat-label>
+              <textarea matInput formControlName="notes" rows="2" placeholder="Optional notes..."></textarea>
+            </mat-form-field>
+          </div>
+
+          <!-- Room Navigation -->
+          <div class="left-section rooms-section">
+            <div class="left-section-title">
+              <span>Rooms <span class="room-count-badge" *ngIf="rooms.length > 0">{{ rooms.length }}</span></span>
+              <button mat-mini-fab color="primary" type="button" (click)="addRoom()" matTooltip="Add Room" class="add-room-btn">
+                <mat-icon>add</mat-icon>
+              </button>
+            </div>
+
+            <div class="suggest-toggle" *ngIf="countSuggested() > 0">
+              <mat-slide-toggle
+                [(ngModel)]="showSuggestedOnly" [ngModelOptions]="{standalone: true}">
+                Suggested ({{ countSuggested() }})
+              </mat-slide-toggle>
+            </div>
+
+            <div *ngIf="rooms.length === 0" class="room-empty-state">
+              <mat-icon class="room-empty-icon">door_back</mat-icon>
+              <span>No rooms yet</span>
+              <button mat-stroked-button color="primary" type="button" (click)="addRoom()" class="room-empty-add">
+                <mat-icon>add</mat-icon> Add Room
+              </button>
+            </div>
+
+            <div class="room-nav-list">
+              <div class="room-nav-item"
+                   *ngFor="let room of rooms.controls; let ri = index"
+                   [class.active]="ri === selectedRoomIndex"
+                   (click)="selectRoom(ri)">
+                <div class="room-nav-indicator"></div>
+                <mat-icon class="room-nav-icon">meeting_room</mat-icon>
+                <div class="room-nav-info">
+                  <!-- Inline rename -->
+                  <input *ngIf="renamingRoomIndex === ri"
+                    class="room-rename-input"
+                    [id]="'room-rename-' + ri"
+                    [value]="getRoomName(ri)"
+                    (blur)="finishRenameRoom(ri, $any($event.target).value)"
+                    (keydown.enter)="$any($event.target).blur()"
+                    (keydown.escape)="renamingRoomIndex = null"
+                    (click)="$event.stopPropagation()" />
+                  <!-- Display name -->
+                  <span *ngIf="renamingRoomIndex !== ri" class="room-nav-name">{{ getRoomName(ri) }}</span>
+                  <span class="room-nav-subtotal">{{ getRoomSubtotal(ri) | currency }}</span>
+                </div>
+                <div class="room-nav-actions">
+                  <button mat-icon-button type="button"
+                    class="room-nav-action-btn"
+                    (click)="$event.stopPropagation(); startRenameRoom(ri)"
+                    matTooltip="Rename">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" type="button"
+                    class="room-nav-action-btn"
+                    (click)="$event.stopPropagation(); removeRoom(ri)"
+                    matTooltip="Remove room">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Left divider -->
+      <div class="panel-divider" (mousedown)="onDividerMouseDown($event, 'left')">
+        <div class="divider-handle"></div>
+      </div>
+
+      <!-- ═══════════ CENTER PANEL ═══════════ -->
+      <main class="panel panel-center">
+
+        <!-- View Toggle Bar -->
+        <div class="view-toggle-bar" *ngIf="carrierEstimates.length > 0">
+          <mat-button-toggle-group [(ngModel)]="activeView" [ngModelOptions]="{standalone: true}">
+            <mat-button-toggle value="original">
+              <mat-icon>description</mat-icon> Normal Estimate
+            </mat-button-toggle>
+            <mat-button-toggle value="carrier">
+              <mat-icon>business</mat-icon> Carrier Estimate
+            </mat-button-toggle>
+            <mat-button-toggle value="blackout" [disabled]="!comparisonResult || !hasAciLineItems">
+              <mat-icon>compare_arrows</mat-icon> Blackout View
+            </mat-button-toggle>
+            <mat-button-toggle value="supplement" [disabled]="!comparisonResult || !hasAciLineItems">
+              <mat-icon>request_quote</mat-icon> Supplement View
+            </mat-button-toggle>
+            <mat-button-toggle value="defense" [disabled]="!comparisonResult || !hasAciLineItems"
+              (click)="comparisonResult ? openDefenseView() : null">
+              <mat-icon>shield</mat-icon> Defense Package
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
+        <!-- ══════ CARRIER VIEW ══════ -->
+        <div class="carrier-view" *ngIf="activeView === 'carrier'">
+          <div *ngIf="!selectedCarrierEstimate" class="center-empty-state">
+            <mat-icon class="empty-icon">business</mat-icon>
+            <h3>No Carrier Estimate Selected</h3>
+            <p>Upload a carrier estimate PDF or spreadsheet from the right panel.</p>
+          </div>
+
+          <div *ngIf="selectedCarrierEstimate">
+            <div class="carrier-view-header">
+              <h3>
+                <mat-icon>business</mat-icon>
+                {{ selectedCarrierEstimate.carrier_name }}
+              </h3>
+              <span class="carrier-total-badge">{{ selectedCarrierEstimate.total_cost | currency }}</span>
+              <span class="carrier-items-count">{{ selectedCarrierEstimate.line_items?.length || 0 }} items</span>
+            </div>
+
+            <div *ngFor="let entry of getCarrierItemsByRoom() | keyvalue" class="carrier-room-group">
+              <div class="carrier-room-header">{{ entry.key }}</div>
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th *ngIf="selectedCarrierEstimate?.parser_type === 'xactimate'">Code</th>
+                    <th>Item Description</th>
+                    <th>Qty</th>
+                    <th>Unit</th>
+                    <th>Unit Cost</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of entry.value">
+                    <td *ngIf="selectedCarrierEstimate?.parser_type === 'xactimate'">{{ item.line_item_code }}</td>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit }}</td>
+                    <td>{{ item.unit_cost | currency }}</td>
+                    <td>{{ item.total_cost | currency }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════ BLACKOUT VIEW ══════ -->
+        <div class="comparison-view" *ngIf="activeView === 'blackout'">
+          <div *ngIf="!comparisonResult && !comparisonLoading" class="center-empty-state">
+            <mat-icon class="empty-icon">compare_arrows</mat-icon>
+            <h3>No Comparison Yet</h3>
+            <p>Select a carrier estimate and click "Run Carrier Comparison" in the right panel.</p>
+          </div>
+
+          <div *ngIf="comparisonLoading" class="center-empty-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Running carrier comparison...</p>
+          </div>
+
+          <div *ngIf="comparisonResult && !comparisonLoading">
+            <!-- Summary stat cards -->
+            <div class="comparison-summary">
+              <div class="comparison-stat-card stat-match"
+                   [class.active-filter]="blackoutStatusFilter === 'match'"
+                   (click)="blackoutStatusFilter = blackoutStatusFilter === 'match' ? '' : 'match'">
+                <div class="stat-value">{{ comparisonResult.match_count }}</div>
+                <div class="stat-label">Matching</div>
+              </div>
+              <div class="comparison-stat-card stat-price-diff"
+                   [class.active-filter]="blackoutStatusFilter === 'price_diff'"
+                   (click)="blackoutStatusFilter = blackoutStatusFilter === 'price_diff' ? '' : 'price_diff'">
+                <div class="stat-value">{{ comparisonResult.price_diff_count }}</div>
+                <div class="stat-label">Underpaid</div>
+              </div>
+              <div class="comparison-stat-card stat-aci-only"
+                   [class.active-filter]="blackoutStatusFilter === 'aci_only'"
+                   (click)="blackoutStatusFilter = blackoutStatusFilter === 'aci_only' ? '' : 'aci_only'">
+                <div class="stat-value">{{ comparisonResult.aci_only_count }}</div>
+                <div class="stat-label">Missing from Carrier</div>
+              </div>
+              <div class="comparison-stat-card stat-carrier-only"
+                   [class.active-filter]="blackoutStatusFilter === 'carrier_only'"
+                   (click)="blackoutStatusFilter = blackoutStatusFilter === 'carrier_only' ? '' : 'carrier_only'">
+                <div class="stat-value">{{ comparisonResult.carrier_only_count }}</div>
+                <div class="stat-label">Carrier Only</div>
+              </div>
+            </div>
+
+            <!-- Blackout legend -->
+            <div class="blackout-legend">
+              <span class="legend-item legend-match"><span class="legend-dot"></span> Match</span>
+              <span class="legend-item legend-price-diff"><span class="legend-dot"></span> Underpaid Item</span>
+              <span class="legend-item legend-aci-only"><span class="legend-dot"></span> Missing Item</span>
+              <span class="legend-item legend-carrier-only"><span class="legend-dot"></span> Carrier Only</span>
+            </div>
+
+            <!-- Recovery Calculation -->
+            <div class="comparison-financials">
+              <div class="fin-row">
+                <span class="fin-label">Carrier Total</span>
+                <span class="fin-value">{{ comparisonResult.carrier_total | currency }}</span>
+              </div>
+              <div class="fin-row">
+                <span class="fin-label">ACI Estimate Total</span>
+                <span class="fin-value">{{ comparisonResult.aci_total | currency }}</span>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="fin-row fin-underpaid">
+                <span class="fin-label">Underpaid Total
+                  <span class="fin-count">({{ comparisonResult.price_diff_count }})</span></span>
+                <span class="fin-value">{{ getUnderpaidItemsTotal() | currency }}</span>
+              </div>
+              <div class="fin-row fin-missing">
+                <span class="fin-label">Missing Total
+                  <span class="fin-count">({{ comparisonResult.aci_only_count }})</span></span>
+                <span class="fin-value">{{ getMissingItemsTotal() | currency }}</span>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="fin-row fin-recoverable">
+                <span class="fin-label">Total Recoverable Amount</span>
+                <span class="fin-value">{{ comparisonResult.supplement_total | currency }}</span>
+              </div>
+              <div class="fin-row fin-pct">
+                <span class="fin-label">Percent Difference</span>
+                <span class="fin-value">{{ getPercentDifference() | number:'1.1-1' }}%</span>
+              </div>
+            </div>
+
+            <!-- Category Breakdown Panel -->
+            <div class="category-breakdown-panel" *ngIf="comparisonResult.category_breakdown && comparisonResult.category_breakdown.length > 0">
+              <h4 class="section-subheading">Category Breakdown</h4>
+              <table class="category-breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th class="col-num">Items</th>
+                    <th class="col-num">Carrier Total</th>
+                    <th class="col-num">ACI Total</th>
+                    <th class="col-num">Difference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let cb of comparisonResult.category_breakdown"
+                    [class.positive-row]="cb.difference > 0">
+                    <td>{{ cb.category }}</td>
+                    <td class="col-num">{{ cb.item_count }}</td>
+                    <td class="col-num">{{ cb.carrier_total | currency }}</td>
+                    <td class="col-num">{{ cb.aci_total | currency }}</td>
+                    <td class="col-num" [class.positive-diff]="cb.difference > 0">
+                      {{ cb.difference > 0 ? '+' : '' }}{{ cb.difference | currency }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Top Underpaid Items -->
+            <div class="top-underpaid-panel" *ngIf="comparisonResult.top_underpaid_items && comparisonResult.top_underpaid_items.length > 0">
+              <h4 class="section-subheading">Top Underpaid / Missing Items</h4>
+              <div class="top-underpaid-list">
+                <div class="top-underpaid-item" *ngFor="let ti of comparisonResult.top_underpaid_items; let i = index"
+                  (click)="blackoutRoomFilter = ti.room_name || ''; blackoutStatusFilter = ti.status">
+                  <span class="top-rank">#{{ i + 1 }}</span>
+                  <div class="top-item-info">
+                    <span class="top-item-desc">{{ ti.description }}</span>
+                    <span class="top-item-room">{{ ti.room_name || 'Unmatched' }}</span>
+                  </div>
+                  <span class="top-item-badge" [ngClass]="ti.status === 'aci_only' ? 'badge-missing' : 'badge-underpaid'">
+                    {{ ti.status === 'aci_only' ? 'Missing' : 'Underpaid' }}
+                  </span>
+                  <span class="top-item-diff">{{ ti.difference | currency }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="blackout-filter-bar">
+              <mat-form-field appearance="outline" class="blackout-filter-field">
+                <mat-label>Room</mat-label>
+                <mat-select [(ngModel)]="blackoutRoomFilter" [ngModelOptions]="{standalone: true}">
+                  <mat-option value="">All Rooms</mat-option>
+                  <mat-option *ngFor="let rn of getBlackoutRoomNames()" [value]="rn">{{ rn }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="blackout-filter-field">
+                <mat-label>Status</mat-label>
+                <mat-select [(ngModel)]="blackoutStatusFilter" [ngModelOptions]="{standalone: true}">
+                  <mat-option value="">All Statuses</mat-option>
+                  <mat-option value="aci_only">Missing</mat-option>
+                  <mat-option value="price_diff">Underpaid</mat-option>
+                  <mat-option value="match">Matched</mat-option>
+                  <mat-option value="carrier_only">Carrier Only</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="blackout-filter-field">
+                <mat-label>Sort</mat-label>
+                <mat-select [(ngModel)]="blackoutSortBy" [ngModelOptions]="{standalone: true}">
+                  <mat-option value="default">Default</mat-option>
+                  <mat-option value="largest_diff">Largest Differences</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <button mat-stroked-button type="button" class="blackout-clear-btn"
+                *ngIf="hasActiveBlackoutFilters()"
+                (click)="clearBlackoutFilters()">
+                <mat-icon>clear</mat-icon> Clear
+              </button>
+
+              <span class="blackout-filter-count" *ngIf="hasActiveBlackoutFilters()">
+                {{ getFilteredItemCount() }} items
+              </span>
+            </div>
+
+            <!-- Per-room comparison tables -->
+            <div *ngFor="let room of getFilteredBlackoutRooms()" class="comparison-room-section">
+              <div class="comparison-room-header">
+                <span>{{ room.room_name }}</span>
+                <span class="comparison-room-diff" [class.positive]="room.difference > 0" [class.negative]="room.difference < 0">
+                  {{ room.difference > 0 ? '+' : '' }}{{ room.difference | currency }}
+                </span>
+              </div>
+
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th class="col-desc">Item Description</th>
+                    <th class="col-cat">Category</th>
+                    <th class="col-num">Carrier Qty</th>
+                    <th class="col-num">Carrier Unit</th>
+                    <th class="col-num">Carrier Total</th>
+                    <th class="col-num">ACI Qty</th>
+                    <th class="col-num">ACI Unit</th>
+                    <th class="col-num">ACI Total</th>
+                    <th class="col-num">Variance</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-confidence">Match</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of room.items" [ngClass]="getComparisonRowClass(item.status)">
+                    <td class="col-desc">
+                      {{ item.description }}
+                      <span class="blackout-badge" *ngIf="item.status === 'aci_only'">MISSING</span>
+                      <span class="blackout-badge underpaid" *ngIf="item.status === 'price_diff'">UNDERPAID</span>
+                      <span class="blackout-badge qty-diff" *ngIf="item.status === 'price_diff' && item.aci_quantity !== item.carrier_quantity">SCOPE MISMATCH</span>
+                    </td>
+                    <td class="col-cat">{{ item.category || '-' }}</td>
+                    <td class="col-num">{{ item.carrier_quantity || '-' }}</td>
+                    <td class="col-num">{{ item.carrier_unit_cost != null ? (item.carrier_unit_cost | currency) : '-' }}</td>
+                    <td class="col-num">{{ item.carrier_total != null ? (item.carrier_total | currency) : '-' }}</td>
+                    <td class="col-num">{{ item.aci_quantity || '-' }}</td>
+                    <td class="col-num">{{ item.aci_unit_cost != null ? (item.aci_unit_cost | currency) : '-' }}</td>
+                    <td class="col-num">{{ item.aci_total != null ? (item.aci_total | currency) : '-' }}</td>
+                    <td class="col-num" [class.positive-diff]="(item.difference || 0) > 0" [class.negative-diff]="(item.difference || 0) < 0">
+                      {{ item.difference != null ? (item.difference | currency) : '-' }}
+                    </td>
+                    <td class="col-status">
+                      <span class="comparison-status-chip" [ngClass]="'status-' + item.status">
+                        {{ item.status === 'match' ? 'Matched' :
+                           item.status === 'price_diff' ? (item.aci_quantity !== item.carrier_quantity ? 'Scope Mismatch' : 'Underpaid') :
+                           item.status === 'aci_only' ? 'Omitted' : 'Carrier Only' }}
+                      </span>
+                    </td>
+                    <td class="col-confidence">
+                      <span class="confidence-dot"
+                        *ngIf="item.match_confidence"
+                        [ngClass]="'confidence-' + item.match_confidence"
+                        [matTooltip]="'Match: ' + (item.match_score ? (item.match_score * 100).toFixed(0) + '%' : item.match_confidence)">
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="comparison-room-totals">
+                <span>ACI: <strong>{{ room.aci_subtotal | currency }}</strong></span>
+                <span>Carrier: <strong>{{ room.carrier_subtotal | currency }}</strong></span>
+              </div>
+            </div>
+
+            <!-- No results after filter -->
+            <div *ngIf="getFilteredBlackoutRooms().length === 0 && hasActiveBlackoutFilters()" class="center-empty-state" style="min-height: 120px;">
+              <mat-icon class="empty-icon">filter_list_off</mat-icon>
+              <p>No items match the current filters.</p>
+              <button mat-stroked-button type="button" (click)="clearBlackoutFilters()">Clear Filters</button>
+            </div>
+
+            <!-- Grand totals -->
+            <div class="comparison-grand-totals">
+              <div class="grand-total-row">
+                <span>Carrier Total:</span>
+                <strong>{{ comparisonResult.carrier_total | currency }}</strong>
+              </div>
+              <div class="grand-total-row">
+                <span>ACI Estimate Total:</span>
+                <strong>{{ comparisonResult.aci_total | currency }}</strong>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="grand-total-row recoverable">
+                <span>Total Recoverable Amount:</span>
+                <strong>{{ comparisonResult.supplement_total | currency }}</strong>
+              </div>
+            </div>
+
+            <!-- Blackout Action Buttons -->
+            <div class="blackout-action-bar">
+              <button mat-raised-button color="primary" type="button" (click)="exportBlackoutPDF()"
+                [disabled]="supplementGenerating">
+                <mat-icon>picture_as_pdf</mat-icon> Export Blackout Estimate
+              </button>
+              <button mat-stroked-button type="button" (click)="blackoutIntoReport()">
+                <mat-icon>description</mat-icon> Into Supplement Report
+              </button>
+              <button mat-stroked-button type="button" (click)="blackoutIntoEmail()">
+                <mat-icon>email</mat-icon> Into Supplement Email
+              </button>
+              <button mat-raised-button color="accent" type="button" (click)="generateClaimStrategy()"
+                [disabled]="strategyGenerating">
+                <mat-icon>{{ strategyGenerating ? 'hourglass_empty' : 'psychology' }}</mat-icon>
+                {{ strategyGenerating ? 'Analyzing...' : 'Generate Claim Strategy' }}
+              </button>
+            </div>
+
+            <!-- Claim Strategy Output -->
+            <div class="strategy-panel" *ngIf="claimStrategy">
+              <div class="strategy-header">
+                <mat-icon>psychology</mat-icon>
+                <span>AI Claim Strategy</span>
+                <div class="strategy-actions">
+                  <button mat-stroked-button type="button" (click)="copyClaimStrategy()">
+                    <mat-icon>content_copy</mat-icon> Copy
+                  </button>
+                  <button mat-stroked-button type="button" (click)="insertStrategyIntoReport()">
+                    <mat-icon>picture_as_pdf</mat-icon> Into Report
+                  </button>
+                  <button mat-stroked-button type="button" (click)="generateClaimStrategy()"
+                    [disabled]="strategyGenerating">
+                    <mat-icon>refresh</mat-icon> Regenerate
+                  </button>
+                </div>
+              </div>
+              <textarea class="strategy-textarea"
+                [(ngModel)]="claimStrategy"
+                [ngModelOptions]="{standalone: true}"
+                rows="20"></textarea>
+            </div>
+
+            <!-- ACI footer -->
+            <div class="aci-comparison-footer">
+              Prepared using the ACI Adjuster Intelligence&trade; Claims Analysis Engine.
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════ SUPPLEMENT VIEW ══════ -->
+        <div class="supplement-view" *ngIf="activeView === 'supplement'">
+          <div *ngIf="!comparisonResult && !comparisonLoading" class="center-empty-state">
+            <mat-icon class="empty-icon">request_quote</mat-icon>
+            <h3>No Comparison Data</h3>
+            <p>Run a carrier comparison first to see the supplement breakdown.</p>
+          </div>
+
+          <div *ngIf="comparisonLoading" class="center-empty-state">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Running carrier comparison...</p>
+          </div>
+
+          <div *ngIf="comparisonResult && !comparisonLoading">
+            <!-- Supplement header -->
+            <div class="supplement-header-card">
+              <div class="supplement-header-title">
+                <mat-icon>request_quote</mat-icon>
+                <h3>Supplement Demand</h3>
+              </div>
+              <div class="supplement-header-totals">
+                <div class="supplement-total-item">
+                  <span class="supplement-total-label">Carrier Total</span>
+                  <span class="supplement-total-value">{{ comparisonResult.carrier_total | currency }}</span>
+                </div>
+                <div class="supplement-total-item">
+                  <span class="supplement-total-label">ACI Estimate Total</span>
+                  <span class="supplement-total-value">{{ comparisonResult.aci_total | currency }}</span>
+                </div>
+                <div class="supplement-total-item supplement-stat-omitted">
+                  <span class="supplement-total-label">Omitted Items
+                    <span class="supplement-stat-count">({{ comparisonResult.aci_only_count }})</span></span>
+                  <span class="supplement-total-value">{{ getMissingItemsTotal() | currency }}</span>
+                </div>
+                <div class="supplement-total-item supplement-stat-underpaid">
+                  <span class="supplement-total-label">Underpaid Items
+                    <span class="supplement-stat-count">({{ comparisonResult.price_diff_count }})</span></span>
+                  <span class="supplement-total-value">{{ getUnderpaidItemsTotal() | currency }}</span>
+                </div>
+                <div class="supplement-total-item supplement-amount">
+                  <span class="supplement-total-label">Potential Recoverable Amount</span>
+                  <span class="supplement-total-value highlight">{{ comparisonResult.supplement_total | currency }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No deficient items -->
+            <div *ngIf="getSupplementRooms().length === 0" class="center-empty-state" style="margin-top: 24px;">
+              <mat-icon class="empty-icon" style="color: #4caf50;">check_circle</mat-icon>
+              <h3>No Supplement Items</h3>
+              <p>The carrier estimate covers all items at acceptable prices.</p>
+            </div>
+
+            <!-- Omitted Items Section -->
+            <ng-container *ngIf="getSupplementRooms().length > 0">
+              <div class="supplement-section-title" *ngIf="comparisonResult.aci_only_count > 0">
+                <mat-icon>block</mat-icon>
+                <h4>Omitted Items</h4>
+                <span class="supplement-section-count">
+                  {{ comparisonResult.aci_only_count }} item{{ comparisonResult.aci_only_count !== 1 ? 's' : '' }}
+                </span>
+              </div>
+
+              <div *ngFor="let room of getSupplementRoomsByStatus('aci_only')" class="supplement-room-section">
+                <div class="supplement-room-block">
+                  <div class="supplement-room-header">
+                    <span>{{ room.room_name }}</span>
+                  </div>
+                  <table class="supplement-table">
+                    <thead>
+                      <tr>
+                        <th class="col-desc">Description</th>
+                        <th class="col-num">Qty</th>
+                        <th class="col-num">ACI Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of room.items" class="supplement-row-omitted">
+                        <td class="col-desc">
+                          {{ item.description }}
+                          <span class="blackout-badge">MISSING</span>
+                        </td>
+                        <td class="col-num">{{ item.aci_quantity || '-' }}</td>
+                        <td class="col-num">{{ item.aci_total | currency }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="supplement-section-title" *ngIf="comparisonResult.price_diff_count > 0" style="margin-top: 20px;">
+                <mat-icon>trending_down</mat-icon>
+                <h4>Underpaid Items</h4>
+                <span class="supplement-section-count">
+                  {{ comparisonResult.price_diff_count }} item{{ comparisonResult.price_diff_count !== 1 ? 's' : '' }}
+                </span>
+              </div>
+
+              <div *ngFor="let room of getSupplementRoomsByStatus('price_diff')" class="supplement-room-section">
+                <div class="supplement-room-block">
+                  <div class="supplement-room-header">
+                    <span>{{ room.room_name }}</span>
+                  </div>
+                  <table class="supplement-table">
+                    <thead>
+                      <tr>
+                        <th class="col-desc">Description</th>
+                        <th class="col-num">Carrier Paid</th>
+                        <th class="col-num">ACI Amount</th>
+                        <th class="col-num">Difference</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let item of room.items" class="supplement-row-underpaid">
+                        <td class="col-desc">
+                          {{ item.description }}
+                          <span class="blackout-badge underpaid">UNDERPAID</span>
+                        </td>
+                        <td class="col-num">{{ item.carrier_total | currency }}</td>
+                        <td class="col-num">{{ item.aci_total | currency }}</td>
+                        <td class="col-num positive-diff">{{ item.difference | currency }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Bottom grand totals -->
+            <div class="comparison-grand-totals" style="margin-top: 20px;">
+              <div class="grand-total-row">
+                <span>Carrier Total:</span>
+                <strong>{{ comparisonResult.carrier_total | currency }}</strong>
+              </div>
+              <div class="grand-total-row">
+                <span>ACI Estimate Total:</span>
+                <strong>{{ comparisonResult.aci_total | currency }}</strong>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="grand-total-row supplement">
+                <span>Additional Amount Owed:</span>
+                <strong>{{ comparisonResult.supplement_total | currency }}</strong>
+              </div>
+            </div>
+
+            <div class="aci-comparison-footer">
+              Prepared using the ACI Adjuster Intelligence&trade; Claims Analysis Engine.
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════ DEFENSE PACKAGE VIEW ══════ -->
+        <div class="defense-view" *ngIf="activeView === 'defense'">
+          <div *ngIf="!defensePackage" class="center-empty-state">
+            <mat-icon class="empty-icon">shield</mat-icon>
+            <h3>No Defense Package</h3>
+            <p>Run a carrier comparison first to build the supplement defense package.</p>
+          </div>
+
+          <ng-container *ngIf="defensePackage">
+
+            <!-- Section 1: Claim Summary -->
+            <div class="defense-section">
+              <div class="defense-section-header">
+                <mat-icon>summarize</mat-icon>
+                <h3>1. Claim Summary</h3>
+              </div>
+              <div class="defense-summary-grid">
+                <div class="defense-summary-item">
+                  <span class="defense-label">Project</span>
+                  <span class="defense-value">{{ defensePackage.claimSummary.projectName }}</span>
+                </div>
+                <div class="defense-summary-item">
+                  <span class="defense-label">Carrier</span>
+                  <span class="defense-value">{{ defensePackage.claimSummary.carrierName }}</span>
+                </div>
+                <div class="defense-summary-item" *ngIf="defensePackage.claimSummary.claimNumber">
+                  <span class="defense-label">Claim #</span>
+                  <span class="defense-value">{{ defensePackage.claimSummary.claimNumber }}</span>
+                </div>
+                <div class="defense-summary-item" *ngIf="defensePackage.claimSummary.insuredName">
+                  <span class="defense-label">Insured</span>
+                  <span class="defense-value">{{ defensePackage.claimSummary.insuredName }}</span>
+                </div>
+                <div class="defense-summary-item" *ngIf="defensePackage.claimSummary.propertyAddress">
+                  <span class="defense-label">Property</span>
+                  <span class="defense-value">{{ defensePackage.claimSummary.propertyAddress }}</span>
+                </div>
+                <div class="defense-summary-item">
+                  <span class="defense-label">ACI Total</span>
+                  <span class="defense-value defense-money">{{ defensePackage.claimSummary.aciTotal | currency }}</span>
+                </div>
+                <div class="defense-summary-item">
+                  <span class="defense-label">Carrier Total</span>
+                  <span class="defense-value defense-money">{{ defensePackage.claimSummary.carrierTotal | currency }}</span>
+                </div>
+                <div class="defense-summary-item">
+                  <span class="defense-label">Supplement Amount</span>
+                  <span class="defense-value defense-money defense-highlight">{{ defensePackage.claimSummary.supplementTotal | currency }}</span>
+                </div>
+                <div class="defense-summary-item">
+                  <span class="defense-label">Variance</span>
+                  <span class="defense-value defense-pct">{{ defensePackage.claimSummary.percentDifference | number:'1.1-1' }}%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 2: Carrier Underpayment Summary -->
+            <div class="defense-section" *ngIf="defensePackage.underpaymentSummary.underpaidItemCount > 0">
+              <div class="defense-section-header">
+                <mat-icon>trending_down</mat-icon>
+                <h3>2. Carrier Underpayment Summary</h3>
+                <span class="defense-count-badge underpaid-badge">
+                  {{ defensePackage.underpaymentSummary.underpaidItemCount }} items &middot;
+                  {{ defensePackage.underpaymentSummary.totalUnderpaidAmount | currency }}
+                </span>
+              </div>
+              <table class="defense-table">
+                <thead>
+                  <tr>
+                    <th>Room</th>
+                    <th>Description</th>
+                    <th class="col-num">Carrier Paid</th>
+                    <th class="col-num">ACI Amount</th>
+                    <th class="col-num">Difference</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of defensePackage.underpaymentSummary.items" class="defense-row-underpaid">
+                    <td>{{ item.room }}</td>
+                    <td>{{ item.description }}</td>
+                    <td class="col-num">{{ item.carrierAmount | currency }}</td>
+                    <td class="col-num">{{ item.aciAmount | currency }}</td>
+                    <td class="col-num positive-diff">{{ item.difference | currency }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Section 3: Omitted Scope Summary -->
+            <div class="defense-section" *ngIf="defensePackage.omittedScopeSummary.omittedItemCount > 0">
+              <div class="defense-section-header">
+                <mat-icon>block</mat-icon>
+                <h3>3. Omitted Scope Summary</h3>
+                <span class="defense-count-badge omitted-badge">
+                  {{ defensePackage.omittedScopeSummary.omittedItemCount }} items &middot;
+                  {{ defensePackage.omittedScopeSummary.totalOmittedAmount | currency }}
+                </span>
+              </div>
+              <table class="defense-table">
+                <thead>
+                  <tr>
+                    <th>Room</th>
+                    <th>Description</th>
+                    <th class="col-num">ACI Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of defensePackage.omittedScopeSummary.items" class="defense-row-omitted">
+                    <td>{{ item.room }}</td>
+                    <td>{{ item.description }}</td>
+                    <td class="col-num">{{ item.aciAmount | currency }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Section 4: Pricing Variance Summary -->
+            <div class="defense-section" *ngIf="defensePackage.pricingVarianceSummary.varianceItemCount > 0">
+              <div class="defense-section-header">
+                <mat-icon>price_change</mat-icon>
+                <h3>4. Pricing Variance Summary</h3>
+                <span class="defense-count-badge variance-badge">
+                  {{ defensePackage.pricingVarianceSummary.varianceItemCount }} items &middot;
+                  {{ defensePackage.pricingVarianceSummary.totalVarianceAmount | currency }}
+                </span>
+              </div>
+              <table class="defense-table">
+                <thead>
+                  <tr>
+                    <th>Room</th>
+                    <th>Description</th>
+                    <th class="col-num">ACI Unit</th>
+                    <th class="col-num">Carrier Unit</th>
+                    <th class="col-num">ACI Qty</th>
+                    <th class="col-num">Carrier Qty</th>
+                    <th class="col-num">Difference</th>
+                    <th class="col-status">Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of defensePackage.pricingVarianceSummary.items">
+                    <td>{{ item.room }}</td>
+                    <td>{{ item.description }}</td>
+                    <td class="col-num">{{ item.aciUnitPrice | currency }}</td>
+                    <td class="col-num">{{ item.carrierUnitPrice | currency }}</td>
+                    <td class="col-num">{{ item.aciQuantity }}</td>
+                    <td class="col-num">{{ item.carrierQuantity }}</td>
+                    <td class="col-num positive-diff">{{ item.totalDifference | currency }}</td>
+                    <td class="col-status">
+                      <span class="variance-type-chip" [ngClass]="'variance-' + item.varianceType">
+                        {{ item.varianceType === 'price' ? 'Price' :
+                           item.varianceType === 'quantity' ? 'Quantity' : 'Both' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Section 5: Supporting Narrative / Defense Notes -->
+            <div class="defense-section">
+              <div class="defense-section-header">
+                <mat-icon>edit_note</mat-icon>
+                <h3>5. Supporting Narrative / Defense Notes</h3>
+                <span class="defense-save-status" *ngIf="defenseNotesSaving">
+                  <mat-icon class="save-spin">sync</mat-icon> Saving...
+                </span>
+                <span class="defense-save-status saved" *ngIf="defenseNotesSaved && !defenseNotesSaving">
+                  <mat-icon>check_circle</mat-icon> Saved
+                </span>
+              </div>
+              <p class="defense-notes-hint">
+                Enter defense language, use AI to generate a draft, or insert a template. Notes auto-save and are included in the supplement demand report.
+              </p>
+
+              <div class="defense-note-block">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>attach_money</mat-icon>
+                    Pricing Defense
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('pricing_defense').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('pricing_defense', $event.value); templatePricing.value = null" #templatePricing>
+                        <mat-option *ngFor="let t of getDefenseTemplates('pricing_defense')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('pricing_defense')"
+                      [disabled]="defenseGenerating['pricing_defense']">
+                      <mat-icon>{{ defenseGenerating['pricing_defense'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['pricing_defense'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.pricingDefense"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="4"
+                  placeholder="Cite applicable pricing standards, Xactimate pricing databases, local market rates, or code requirements that support ACI's unit pricing..."></textarea>
+              </div>
+
+              <div class="defense-note-block">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>visibility_off</mat-icon>
+                    Omitted Scope Defense
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('omitted_scope_defense').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('omitted_scope_defense', $event.value); templateOmitted.value = null" #templateOmitted>
+                        <mat-option *ngFor="let t of getDefenseTemplates('omitted_scope_defense')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('omitted_scope_defense')"
+                      [disabled]="defenseGenerating['omitted_scope_defense']">
+                      <mat-icon>{{ defenseGenerating['omitted_scope_defense'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['omitted_scope_defense'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.omittedScopeDefense"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="4"
+                  placeholder="Explain why omitted items are required for proper restoration (e.g. building code, manufacturer specs, industry standards)..."></textarea>
+              </div>
+
+              <div class="defense-note-block">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>dashboard_customize</mat-icon>
+                    Matching / Continuity Rationale
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('matching_continuity_defense').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('matching_continuity_defense', $event.value); templateMatching.value = null" #templateMatching>
+                        <mat-option *ngFor="let t of getDefenseTemplates('matching_continuity_defense')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('matching_continuity_defense')"
+                      [disabled]="defenseGenerating['matching_continuity_defense']">
+                      <mat-icon>{{ defenseGenerating['matching_continuity_defense'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['matching_continuity_defense'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.matchingContinuityDefense"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="4"
+                  placeholder="Explain matching requirements (e.g. flooring continuity, roofing uniformity, paint color matching across rooms)..."></textarea>
+              </div>
+
+              <div class="defense-note-block">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>straighten</mat-icon>
+                    Quantity / Scope Correction
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('quantity_scope_defense').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('quantity_scope_defense', $event.value); templateQty.value = null" #templateQty>
+                        <mat-option *ngFor="let t of getDefenseTemplates('quantity_scope_defense')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('quantity_scope_defense')"
+                      [disabled]="defenseGenerating['quantity_scope_defense']">
+                      <mat-icon>{{ defenseGenerating['quantity_scope_defense'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['quantity_scope_defense'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.quantityScopeDefense"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="4"
+                  placeholder="Explain quantity or measurement corrections based on field inspection, actual dimensions, or scope that the carrier missed..."></textarea>
+              </div>
+
+              <div class="defense-note-block">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>gavel</mat-icon>
+                    Code &amp; Standard Support
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('code_standard_support').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('code_standard_support', $event.value); templateCode.value = null" #templateCode>
+                        <mat-option *ngFor="let t of getDefenseTemplates('code_standard_support')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('code_standard_support')"
+                      [disabled]="defenseGenerating['code_standard_support']">
+                      <mat-icon>{{ defenseGenerating['code_standard_support'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['code_standard_support'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.codeStandardSupport"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="4"
+                  placeholder="Reference building codes (IBC, IRC, NEC, local amendments), manufacturer installation requirements, or industry standards (IICRC, OSHA) that support scope or pricing..."></textarea>
+              </div>
+            </div>
+
+            <!-- Section 6: Recommended Next Action -->
+            <div class="defense-section">
+              <div class="defense-section-header">
+                <mat-icon>next_plan</mat-icon>
+                <h3>6. Recommended Next Action</h3>
+              </div>
+              <div class="defense-next-action">
+                <mat-icon>arrow_forward</mat-icon>
+                <span>{{ defensePackage.recommendedNextAction }}</span>
+              </div>
+              <div class="defense-note-block" style="margin-top: 12px;">
+                <div class="defense-note-header">
+                  <label class="defense-note-label">
+                    <mat-icon>note_add</mat-icon>
+                    Adjuster Notes on Next Steps
+                  </label>
+                  <div class="defense-note-actions">
+                    <mat-form-field appearance="outline" class="template-select" *ngIf="getDefenseTemplates('recommended_action_notes').length > 0">
+                      <mat-select placeholder="Insert Template" (selectionChange)="insertDefenseTemplate('recommended_action_notes', $event.value); templateAction.value = null" #templateAction>
+                        <mat-option *ngFor="let t of getDefenseTemplates('recommended_action_notes')" [value]="t">{{ t.name }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <button mat-stroked-button type="button" class="ai-draft-btn"
+                      (click)="generateDefenseDraft('recommended_action_notes')"
+                      [disabled]="defenseGenerating['recommended_action_notes']">
+                      <mat-icon>{{ defenseGenerating['recommended_action_notes'] ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                      {{ defenseGenerating['recommended_action_notes'] ? 'Generating...' : 'AI Draft' }}
+                    </button>
+                  </div>
+                </div>
+                <textarea class="defense-note-textarea"
+                  [(ngModel)]="defenseNotes.recommendedActionNotes"
+                  [ngModelOptions]="{standalone: true}"
+                  (ngModelChange)="onDefenseNoteChanged()"
+                  rows="3"
+                  placeholder="Additional notes on recommended actions, follow-up timeline, or carrier contact instructions..."></textarea>
+              </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="defense-action-bar">
+              <button mat-raised-button color="primary" type="button" (click)="exportDefensePDF()"
+                [disabled]="supplementGenerating">
+                <mat-icon>picture_as_pdf</mat-icon> Export Defense Report
+              </button>
+              <button mat-stroked-button type="button" (click)="copyDefensePackage()">
+                <mat-icon>content_copy</mat-icon> Copy Defense Package
+              </button>
+              <button mat-stroked-button type="button" (click)="openSupplementEmailPreview()"
+                *ngIf="comparisonResult">
+                <mat-icon>email</mat-icon> Send to Carrier
+              </button>
+              <button mat-stroked-button type="button" (click)="saveDefenseNotesNow()"
+                [disabled]="defenseNotesSaving">
+                <mat-icon>{{ defenseNotesSaving ? 'sync' : 'save' }}</mat-icon>
+                {{ defenseNotesSaving ? 'Saving...' : 'Save Notes' }}
+              </button>
+            </div>
+
+            <div class="aci-comparison-footer">
+              Prepared using the ACI Adjuster Intelligence&trade; Claims Analysis Engine.
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- ══════ ORIGINAL VIEW (existing content) ══════ -->
+        <ng-container *ngIf="activeView === 'original'">
+
+        <!-- AI Scope Review Panel -->
+        <div class="ai-scope-review" *ngIf="showAIPanel">
+          <!-- Loading state -->
+          <div class="ai-scope-loading" *ngIf="aiAnalyzing || photoAnalyzing">
+            <mat-spinner diameter="32"></mat-spinner>
+            <p>{{ photoAnalyzing ? 'Running ACI Damage Analysis...' : 'Generating scope with ACI Adjuster Intelligence...' }}</p>
+            <span class="aci-loading-sub">This may take a moment depending on the number of photos and rooms.</span>
+          </div>
+
+          <!-- Results -->
+          <div class="ai-scope-results" *ngIf="!aiAnalyzing && !photoAnalyzing && aiAnalysisResults">
+            <div class="ai-scope-header">
+              <div class="ai-scope-title">
+                <mat-icon>{{ aciPanelSource === 'photos' ? 'image_search' : 'auto_awesome' }}</mat-icon>
+                <h3>{{ aciPanelSource === 'photos' ? 'ACI Damage Analysis' : 'ACI Scope Generator' }}</h3>
+                <span class="ai-total-badge">{{ aiAnalysisResults.total_estimated | currency }}</span>
+              </div>
+              <div class="ai-scope-actions">
+                <button mat-raised-button color="primary" type="button" (click)="approveAllAI()"
+                  *ngIf="getRemainingAISuggestionCount() > 0">
+                  <mat-icon>done_all</mat-icon> Approve All ({{ getRemainingAISuggestionCount() }})
+                </button>
+                <button mat-stroked-button type="button" (click)="closeAIPanel()">
+                  <mat-icon>close</mat-icon> Dismiss
+                </button>
+              </div>
+            </div>
+
+            <!-- Data Inputs Indicator -->
+            <div class="ai-data-inputs" *ngIf="aiAnalysisResults.metadata?.inputs_used">
+              <span class="input-chip" [class.active]="aiAnalysisResults.metadata.inputs_used.measurements">
+                <mat-icon>straighten</mat-icon>
+                Measurements
+                <span *ngIf="aiAnalysisResults.metadata.inputs_used.measurements && aiAnalysisResults.metadata.measurement_rooms">
+                  ({{ aiAnalysisResults.metadata.measurement_rooms }})
+                </span>
+              </span>
+              <span class="input-chip" [class.active]="aiAnalysisResults.metadata.inputs_used.photos">
+                <mat-icon>photo_camera</mat-icon>
+                Photos
+                <span *ngIf="aiAnalysisResults.metadata.inputs_used.photos && aiAnalysisResults.metadata.photo_count">
+                  ({{ aiAnalysisResults.metadata.photo_count }})
+                </span>
+              </span>
+              <span class="input-chip" [class.active]="aiAnalysisResults.metadata.inputs_used.fire_claim">
+                <mat-icon>local_fire_department</mat-icon>
+                Fire Claim
+              </span>
+              <span class="input-chip" [class.active]="aiAnalysisResults.metadata.inputs_used.policy">
+                <mat-icon>policy</mat-icon>
+                Policy
+              </span>
+              <span class="input-chip" [class.active]="aiAnalysisResults.metadata?.inputs_used?.vision">
+                <mat-icon>image_search</mat-icon>
+                ACI Vision
+              </span>
+            </div>
+
+            <!-- Per-photo damage annotation cards -->
+            <div class="ai-photo-annotations" *ngIf="aiAnalysisResults.metadata?.photo_annotations?.length > 0">
+              <div class="ai-photo-annotation-grid">
+                <div class="ai-photo-annotation-card" *ngFor="let ann of aiAnalysisResults.metadata.photo_annotations">
+                  <img *ngIf="ann.image_url" [src]="ann.image_url" class="annotation-thumbnail" alt="Analyzed photo" />
+                  <div class="annotation-details">
+                    <div class="annotation-room" *ngIf="ann.room_assignment">
+                      <mat-icon>meeting_room</mat-icon> {{ ann.room_assignment }}
+                    </div>
+                    <div class="annotation-chips">
+                      <span class="damage-type-chip" *ngFor="let dt of ann.damage_types">
+                        <mat-icon>{{ getDamageTypeIcon(dt + '_damage') }}</mat-icon>
+                        {{ dt | titlecase }}
+                      </span>
+                      <span *ngIf="ann.severity"
+                        class="severity-chip"
+                        [ngClass]="'severity-' + ann.severity">
+                        {{ ann.severity | titlecase }}
+                      </span>
+                    </div>
+                    <div class="annotation-observations" *ngIf="ann.observations">
+                      {{ ann.observations }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Per-room sections -->
+            <div class="ai-room-section" *ngFor="let aiRoom of aiAnalysisResults.rooms; let ari = index">
+              <div class="ai-room-header" *ngIf="aiRoom.suggestions?.length > 0">
+                <div class="ai-room-title">
+                  <mat-icon>meeting_room</mat-icon>
+                  <strong>{{ aiRoom.room_name }}</strong>
+                  <span class="ai-room-count">({{ aiRoom.suggestions.length }} items)</span>
+                </div>
+                <div class="ai-room-chips">
+                  <span class="damage-type-chip" *ngFor="let dt of aiRoom.damage_types || []">
+                    <mat-icon>{{ getDamageTypeIcon(dt) }}</mat-icon>
+                    {{ getDamageTypeLabel(dt) }}
+                  </span>
+                </div>
+                <button mat-stroked-button color="primary" type="button" class="ai-approve-room-btn"
+                  (click)="approveAllAIForRoom(ari)">
+                  <mat-icon>done_all</mat-icon> Approve Room
+                </button>
+              </div>
+
+              <!-- Category-grouped suggestions -->
+              <div class="ai-category-group" *ngFor="let catGroup of getAISuggestionsByCategory(ari)">
+                <div class="ai-category-header">
+                  <mat-icon class="ai-cat-icon">{{ catGroup.icon }}</mat-icon>
+                  <span class="ai-cat-label">{{ catGroup.label }}</span>
+                  <span class="ai-cat-subtotal">{{ getAICategorySubtotal(ari, catGroup.category) | currency }}</span>
+                </div>
+                <table class="ai-suggestion-table">
+                  <thead>
+                    <tr>
+                      <th class="ai-col-desc">Description</th>
+                      <th class="ai-col-qty">Qty</th>
+                      <th class="ai-col-unit">Unit</th>
+                      <th class="ai-col-price">Unit Price</th>
+                      <th class="ai-col-total">Total</th>
+                      <th class="ai-col-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let entry of catGroup.suggestions">
+                      <td>{{ entry.sug.description }}</td>
+                      <td>{{ entry.sug.quantity }}</td>
+                      <td>{{ entry.sug.unit }}</td>
+                      <td>{{ entry.sug.unit_price | currency }}</td>
+                      <td class="ai-total-cell">{{ entry.sug.total | currency }}</td>
+                      <td>
+                        <div class="ai-suggestion-actions">
+                          <button mat-icon-button color="primary" type="button"
+                            (click)="approveAISuggestion(ari, entry.originalIndex)" matTooltip="Approve">
+                            <mat-icon>check_circle</mat-icon>
+                          </button>
+                          <button mat-icon-button type="button"
+                            (click)="editAISuggestion(ari, entry.originalIndex)" matTooltip="Edit & Approve">
+                            <mat-icon>edit</mat-icon>
+                          </button>
+                          <button mat-icon-button color="warn" type="button"
+                            (click)="dismissAISuggestion(ari, entry.originalIndex)" matTooltip="Dismiss">
+                            <mat-icon>cancel</mat-icon>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- All reviewed message -->
+            <div class="ai-all-reviewed" *ngIf="getRemainingAISuggestionCount() === 0">
+              <mat-icon>task_alt</mat-icon>
+              <p>All items have been reviewed. Accepted items are now part of your estimate.</p>
+              <button mat-stroked-button type="button" (click)="closeAIPanel()">Close Panel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="rooms.length === 0 && !showAIPanel" class="center-empty-state">
+          <mat-icon class="empty-icon">meeting_room</mat-icon>
+          <h3>No Rooms Yet</h3>
+          <p>Add a room to start building your estimate.</p>
+          <button mat-raised-button color="primary" type="button" (click)="addRoom()">
+            <mat-icon>add</mat-icon> Add Room
+          </button>
+        </div>
+
+        <!-- Selected room content -->
+        <div *ngIf="rooms.length > 0" class="center-room-content" formArrayName="rooms">
+          <div [formGroupName]="selectedRoomIndex">
+            <!-- Room header fields -->
+            <div class="center-room-header">
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="field-name">
+                  <mat-label>Room Name</mat-label>
+                  <input matInput formControlName="name" [id]="'room-' + selectedRoomIndex + '-name'" placeholder="e.g. Kitchen" />
+                  <mat-error *ngIf="selectedRoom?.get('name')?.hasError('required')">
+                    Room Name is required
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="field-type">
+                  <mat-label>Room Type</mat-label>
+                  <mat-select formControlName="room_type" [id]="'room-' + selectedRoomIndex + '-type'">
+                    <mat-option value="">-- Select --</mat-option>
+                    <mat-option *ngFor="let t of roomTypeOptions" [value]="t">
+                      {{ t | titlecase }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="selectedRoom?.get('room_type')?.hasError('required')">
+                    Select a Room Type
+                  </mat-error>
+                </mat-form-field>
+              </div>
+            </div>
+
+            <!-- Line Items -->
+            <div class="line-items-section">
+              <div class="line-items-header">
+                <h4>Line Items</h4>
+                <div class="line-items-actions">
+                  <button mat-stroked-button type="button"
+                    (click)="showQuickAdd = !showQuickAdd"
+                    [class.active-toggle]="showQuickAdd"
+                    matTooltip="Quick Add from library">
+                    <mat-icon>library_add</mat-icon> Quick Add
+                  </button>
+                  <button mat-stroked-button color="primary" type="button"
+                    *ngIf="hasSuggestedItems(selectedRoomIndex)" (click)="approveAllInRoom(selectedRoomIndex)">
+                    <mat-icon>done_all</mat-icon> Approve All
+                  </button>
+                  <button mat-stroked-button type="button" (click)="toggleMeasurementImport(selectedRoomIndex)" matTooltip="Import LiDAR/RoomPlan measurements">
+                    <mat-icon>upload</mat-icon> Import Measurements
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Add Library -->
+              <div class="quick-add-bar" *ngIf="showQuickAdd">
+                <div class="quick-add-categories">
+                  <button *ngFor="let cat of activeCategoryList"
+                    class="quick-add-cat-btn"
+                    [class.active]="quickAddCategory === cat.key"
+                    (click)="quickAddCategory = cat.key"
+                    type="button">
+                    <mat-icon>{{ cat.icon }}</mat-icon>
+                    <span>{{ cat.label }}</span>
+                  </button>
+                </div>
+                <div class="quick-add-items">
+                  <button *ngFor="let item of QUICK_ADD_LIBRARY[quickAddCategory]"
+                    class="quick-add-item"
+                    type="button"
+                    (click)="quickAddItem(quickAddCategory, item)"
+                    matTooltip="Add to {{ getRoomName(selectedRoomIndex) }}">
+                    <mat-icon class="quick-add-item-icon">add_circle_outline</mat-icon>
+                    <span class="quick-add-item-desc">{{ item.description }}</span>
+                    <span class="quick-add-item-unit">{{ item.unit }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Measurement Import Area -->
+              <div *ngIf="showMeasurementImport.get(selectedRoomIndex)" class="measurement-import-area">
+                <label>Paste JSON measurements:</label>
+                <textarea
+                  #importTextarea
+                  class="import-textarea"
+                  rows="5"
+                  placeholder='{ "length": 15, "width": 12, "height": 8, "walls": [{ "name": "North Wall", "length": 15, "height": 8 }] }'
+                ></textarea>
+                <div class="import-actions">
+                  <button mat-raised-button color="primary" type="button" (click)="importMeasurements(selectedRoomIndex, importTextarea.value)">
+                    Apply
+                  </button>
+                  <button mat-stroked-button type="button" (click)="toggleMeasurementImport(selectedRoomIndex)">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category Cards -->
+              <div class="category-cards" formArrayName="line_items">
+                <div class="category-card" *ngFor="let cat of activeCategoryList">
+                  <div class="category-card-header" (click)="toggleCategoryCollapsed(selectedRoomIndex, cat.key)">
+                    <div class="category-header-left">
+                      <mat-icon class="collapse-icon" [class.collapsed]="isCategoryCollapsed(selectedRoomIndex, cat.key)">expand_more</mat-icon>
+                      <mat-icon class="category-icon">{{ cat.icon }}</mat-icon>
+                      <span class="category-label">{{ cat.label }}</span>
+                      <span class="category-count">({{ getCategoryItemCount(selectedRoomIndex, cat.key) }})</span>
+                    </div>
+                    <div class="category-header-right">
+                      <span class="category-subtotal">{{ getCategorySubtotal(selectedRoomIndex, cat.key) | currency }}</span>
+                      <button mat-icon-button color="primary" type="button"
+                        (click)="$event.stopPropagation(); openAddLineItemDialog(selectedRoomIndex, cat.key, cat.label)"
+                        matTooltip="Add {{ cat.label }} item">
+                        <mat-icon>add_circle_outline</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="category-card-body" *ngIf="!isCategoryCollapsed(selectedRoomIndex, cat.key)">
+                    <div *ngIf="getCategoryItemCount(selectedRoomIndex, cat.key) === 0" class="empty-msg category-empty">
+                      No {{ cat.label | lowercase }} items yet.
+                    </div>
+
+                    <table *ngIf="getCategoryItemCount(selectedRoomIndex, cat.key) > 0" class="category-table">
+                      <thead>
+                        <tr>
+                          <th class="cat-col-desc">Description</th>
+                          <th class="cat-col-qty">Qty</th>
+                          <th class="cat-col-unit">Unit</th>
+                          <th class="cat-col-price">Unit Price</th>
+                          <th class="cat-col-total">Total</th>
+                          <th class="cat-col-status">Status</th>
+                          <th class="cat-col-action">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <ng-container *ngFor="let catItem of getLineItemsForCategory(selectedRoomIndex, cat.key)">
+                          <tr *ngIf="shouldShowLineItem(selectedRoomIndex, catItem.index)"
+                            [class.suggested-row]="isSuggested(selectedRoomIndex, catItem.index)">
+                            <td class="desc-cell">
+                              {{ catItem.control.get('description')?.value }}
+                            </td>
+                            <td>
+                              {{ catItem.control.get('quantity')?.value }}
+                            </td>
+                            <td>
+                              {{ catItem.control.get('unit')?.value }}
+                            </td>
+                            <td class="price-cell">
+                              {{ catItem.control.get('material_cost')?.value | currency }}
+                            </td>
+                            <td class="total-cell">
+                              {{ getLineItemTotal(selectedRoomIndex, catItem.index) | currency }}
+                            </td>
+                            <td>
+                              <span class="status-chip" [class.suggested]="isSuggested(selectedRoomIndex, catItem.index)"
+                                [class.approved]="!isSuggested(selectedRoomIndex, catItem.index)">
+                                {{ getLineItemStatus(selectedRoomIndex, catItem.index) }}
+                              </span>
+                            </td>
+                            <td>
+                              <div class="line-item-actions">
+                                <ng-container *ngIf="isSuggested(selectedRoomIndex, catItem.index)">
+                                  <button mat-icon-button color="primary" type="button" (click)="approveLineItem(selectedRoomIndex, catItem.index)" matTooltip="Approve">
+                                    <mat-icon>check_circle</mat-icon>
+                                  </button>
+                                  <button mat-icon-button color="warn" type="button" (click)="rejectLineItem(selectedRoomIndex, catItem.index)" matTooltip="Reject">
+                                    <mat-icon>cancel</mat-icon>
+                                  </button>
+                                </ng-container>
+                                <ng-container *ngIf="!isSuggested(selectedRoomIndex, catItem.index)">
+                                  <button mat-icon-button type="button" (click)="openEditLineItemDialog(selectedRoomIndex, catItem.index)" matTooltip="Edit item">
+                                    <mat-icon>edit</mat-icon>
+                                  </button>
+                                  <button mat-icon-button color="warn" type="button" (click)="removeLineItem(selectedRoomIndex, catItem.index)" matTooltip="Delete item">
+                                    <mat-icon>delete</mat-icon>
+                                  </button>
+                                </ng-container>
+                              </div>
+                            </td>
+                          </tr>
+                        </ng-container>
+                      </tbody>
+                    </table>
+
+                    <div *ngIf="getCategoryItemCount(selectedRoomIndex, cat.key) > 0" class="category-subtotal-row">
+                      {{ cat.label }} Subtotal: <strong>{{ getCategorySubtotal(selectedRoomIndex, cat.key) | currency }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="getLineItems(selectedRoomIndex).length > 0" class="room-subtotal">
+                Room Subtotal: <strong>{{ getRoomSubtotal(selectedRoomIndex) | currency }}</strong>
+              </div>
+            </div>
+
+            <!-- Room Photos -->
+            <div class="room-photos-section" *ngIf="getRoomId(selectedRoomIndex)">
+              <div class="room-photos-header">
+                <h4>Room Photos</h4>
+                <button mat-stroked-button type="button" (click)="roomPhotoInput.click()"
+                  [disabled]="isPhotoUploading(getRoomId(selectedRoomIndex)!)">
+                  <mat-icon>add_a_photo</mat-icon> Add Photo
+                </button>
+                <input #roomPhotoInput type="file" accept="image/jpeg,image/png" multiple hidden
+                  (change)="onPhotoSelected($event, getRoomId(selectedRoomIndex))" />
+              </div>
+
+              <mat-progress-bar *ngIf="isPhotoUploading(getRoomId(selectedRoomIndex)!)"
+                mode="determinate" [value]="getPhotoUploadProgress(getRoomId(selectedRoomIndex)!)">
+              </mat-progress-bar>
+
+              <div class="photo-grid photo-grid-room" *ngIf="getRoomPhotos(selectedRoomIndex).length > 0">
+                <div class="photo-card" *ngFor="let photo of getRoomPhotos(selectedRoomIndex)"
+                  [class.photo-selected]="isPhotoSelected(photo.id)">
+                  <div class="photo-select-overlay room-photo-select" (click)="togglePhotoSelection(photo.id)">
+                    <mat-checkbox [checked]="isPhotoSelected(photo.id)" color="primary"
+                      (click)="$event.stopPropagation()" (change)="togglePhotoSelection(photo.id)">
+                    </mat-checkbox>
+                  </div>
+                  <img [src]="photo.image_url" [alt]="photo.caption || 'Room photo'"
+                    class="photo-thumbnail" (click)="openPhotoPreview(photo)" />
+                  <div class="photo-meta">
+                    <input class="caption-input" [value]="photo.caption || ''"
+                      placeholder="Caption..." (blur)="updatePhotoCaption(photo, $any($event.target).value)" />
+                    <select class="type-select" [value]="photo.photo_type || ''"
+                      (change)="updatePhotoType(photo, $any($event.target).value)">
+                      <option value="">Type</option>
+                      <option *ngFor="let t of photoTypeOptions" [value]="t">{{ t | titlecase }}</option>
+                    </select>
+                    <button mat-icon-button color="warn" type="button" (click)="deletePhoto(photo)" matTooltip="Delete photo">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                  <div class="ai-tags-indicator" *ngIf="photo.ai_tags">
+                    <mat-icon>auto_awesome</mat-icon> ACI analyzed
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="getRoomPhotos(selectedRoomIndex).length === 0 && !isPhotoUploading(getRoomId(selectedRoomIndex)!)" class="empty-msg">
+                No room photos yet.
+              </div>
+            </div>
+            <div *ngIf="!getRoomId(selectedRoomIndex)" class="empty-msg">
+              Save the estimate first to upload room photos.
+            </div>
+          </div>
+        </div>
+        </ng-container><!-- /original view -->
+      </main>
+
+      <!-- Right divider -->
+      <div class="panel-divider" (mousedown)="onDividerMouseDown($event, 'right')">
+        <div class="divider-handle"></div>
+      </div>
+
+      <!-- ═══════════ RIGHT PANEL ═══════════ -->
+      <aside class="panel panel-right">
+        <div class="panel-toggle panel-toggle-right" (click)="rightPanelCollapsed = !rightPanelCollapsed"
+             matTooltip="{{ rightPanelCollapsed ? 'Expand' : 'Collapse' }}">
+          <mat-icon>{{ rightPanelCollapsed ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+        </div>
+
+        <div class="panel-body" *ngIf="!rightPanelCollapsed">
+          <!-- Action Buttons -->
+          <div class="right-section right-actions">
+            <button mat-raised-button color="primary" type="button" class="action-btn-full"
+              (click)="saveEstimate()" [disabled]="saving">
+              <mat-icon>save</mat-icon>
+              {{ saving ? 'Saving...' : 'Save Estimate' }}
+            </button>
+            <div class="action-btn-row">
+              <button mat-stroked-button type="button" (click)="exportPDF()" class="action-btn-half">
+                <mat-icon>picture_as_pdf</mat-icon> PDF
+              </button>
+              <button mat-stroked-button type="button" routerLink="/app/estimating" class="action-btn-half">
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Project Photos -->
+          <div class="right-section">
+            <div class="right-section-title">
+              <span>Project Photos</span>
+              <button mat-icon-button color="primary" type="button"
+                (click)="projectPhotoInput.click()"
+                [disabled]="!estimateId || isPhotoUploading('project')"
+                matTooltip="Upload Photos">
+                <mat-icon>add_a_photo</mat-icon>
+              </button>
+              <input #projectPhotoInput type="file" accept="image/jpeg,image/png" multiple hidden
+                (change)="onPhotoSelected($event)" />
+            </div>
+
+            <p *ngIf="!estimateId" class="helper-text">Save first to upload photos.</p>
+
+            <mat-progress-bar *ngIf="isPhotoUploading('project')"
+              mode="determinate" [value]="getPhotoUploadProgress('project')">
+            </mat-progress-bar>
+
+            <div class="photo-grid-compact" *ngIf="projectPhotos.length > 0">
+              <div class="photo-card-compact" *ngFor="let photo of projectPhotos"
+                [class.photo-selected]="isPhotoSelected(photo.id)">
+                <div class="photo-select-overlay" (click)="togglePhotoSelection(photo.id)">
+                  <mat-checkbox [checked]="isPhotoSelected(photo.id)" color="primary"
+                    (click)="$event.stopPropagation()" (change)="togglePhotoSelection(photo.id)">
+                  </mat-checkbox>
+                </div>
+                <img [src]="photo.image_url" [alt]="photo.caption || 'Project photo'"
+                  class="photo-thumbnail-compact" (click)="openPhotoPreview(photo)" />
+                <div class="photo-meta-compact">
+                  <input class="caption-input" [value]="photo.caption || ''"
+                    placeholder="Caption..." (blur)="updatePhotoCaption(photo, $any($event.target).value)" />
+                  <button mat-icon-button color="warn" type="button" (click)="deletePhoto(photo)" matTooltip="Delete">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+                <div class="ai-tags-indicator" *ngIf="photo.ai_tags">
+                  <mat-icon>auto_awesome</mat-icon> ACI
+                </div>
+              </div>
+            </div>
+            <div class="photo-select-actions" *ngIf="projectPhotos.length > 1">
+              <button mat-stroked-button type="button" (click)="selectAllPhotos()" class="photo-select-btn">
+                Select All
+              </button>
+              <button mat-stroked-button type="button" (click)="deselectAllPhotos()" class="photo-select-btn"
+                *ngIf="selectedPhotoIds.size > 0">
+                Deselect All
+              </button>
+            </div>
+
+            <div *ngIf="projectPhotos.length === 0 && estimateId && !isPhotoUploading('project')" class="empty-msg">
+              No project photos yet.
+            </div>
+          </div>
+
+          <!-- Estimate Totals -->
+          <div class="right-section">
+            <div class="right-section-title">Estimate Totals</div>
+            <div class="totals-grid-right">
+              <div class="total-row">
+                <span>Material:</span>
+                <strong>{{ getMaterialTotal() | currency }}</strong>
+              </div>
+              <div class="total-row">
+                <span>Labor:</span>
+                <strong>{{ getLaborTotal() | currency }}</strong>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="total-row subtotal-row">
+                <span>Subtotal:</span>
+                <strong>{{ getGrandTotal() | currency }}</strong>
+              </div>
+
+              <div class="op-section">
+                <div class="op-header">Overhead &amp; Profit</div>
+                <div class="op-controls" *ngIf="!opStandard">
+                  <div class="op-row-pair">
+                    <div class="op-manual">
+                      <label>Overhead:</label>
+                      <mat-form-field appearance="outline" class="op-input">
+                        <input matInput type="number" min="0" [(ngModel)]="overheadPercent" [ngModelOptions]="{standalone: true}" (ngModelChange)="onOverheadChange()">
+                        <span matSuffix>%</span>
+                      </mat-form-field>
+                      <span class="op-amount-inline">{{ getOverheadAmount() | currency }}</span>
+                    </div>
+                    <div class="op-manual">
+                      <label>Profit:</label>
+                      <mat-form-field appearance="outline" class="op-input">
+                        <input matInput type="number" min="0" [(ngModel)]="profitPercent" [ngModelOptions]="{standalone: true}" (ngModelChange)="onProfitChange()">
+                        <span matSuffix>%</span>
+                      </mat-form-field>
+                      <span class="op-amount-inline">{{ getProfitAmount() | currency }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="op-validation-msg" *ngIf="opShowMinWarning">
+                  Combined O&amp;P minimum is 20%.
+                </div>
+                <div class="op-standard">
+                  <mat-checkbox [checked]="opStandard" (change)="toggleStandardOP($event.checked)">
+                    Standard 10% / 10%
+                  </mat-checkbox>
+                  <span *ngIf="opStandard" class="op-locked-value">20% total</span>
+                </div>
+              </div>
+
+              <div class="total-row">
+                <span>Overhead ({{ overheadPercent }}%):</span>
+                <strong>{{ getOverheadAmount() | currency }}</strong>
+              </div>
+              <div class="total-row">
+                <span>Profit ({{ profitPercent }}%):</span>
+                <strong>{{ getProfitAmount() | currency }}</strong>
+              </div>
+              <mat-divider></mat-divider>
+              <div class="total-row grand">
+                <span>Grand Total:</span>
+                <strong>{{ getAdjustedTotal() | currency }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════ SUPPLEMENT WORKFLOW RAIL ═══════ -->
+          <div class="workflow-rail">
+
+            <!-- STEP 1: Carrier Estimate Input -->
+            <div class="workflow-step" *ngIf="estimateId"
+                 [class.step-complete]="carrierEstimates.length > 0">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node">
+                  <mat-icon *ngIf="carrierEstimates.length > 0" class="step-check-icon">check</mat-icon>
+                  <span *ngIf="carrierEstimates.length === 0">1</span>
+                </div>
+                <div class="workflow-step-line"></div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Carrier Estimate Input</span>
+                </div>
+
+                <button mat-raised-button type="button" class="action-btn-full"
+                  (click)="carrierFileInput.click()"
+                  [disabled]="carrierUploading">
+                  <mat-icon>upload_file</mat-icon>
+                  {{ carrierUploading ? 'Parsing...' : 'Upload Carrier PDF' }}
+                </button>
+                <input #carrierFileInput type="file" accept=".pdf,.csv,.xls,.xlsx,.txt" hidden
+                  (change)="onCarrierFileSelected($event)" />
+
+                <button mat-stroked-button type="button" class="action-btn-full"
+                  (click)="showCarrierPasteDialog()"
+                  [disabled]="carrierUploading"
+                  style="margin-top: 6px;">
+                  <mat-icon>content_paste</mat-icon>
+                  Paste Carrier Estimate
+                </button>
+
+                <mat-progress-bar *ngIf="carrierUploading" mode="indeterminate" style="margin-top: 6px;"></mat-progress-bar>
+
+                <!-- Carrier estimates list -->
+                <div class="carrier-estimates-list" *ngIf="carrierEstimates.length > 0">
+                  <div class="carrier-estimate-item"
+                       *ngFor="let ce of carrierEstimates"
+                       [class.selected]="selectedCarrierEstimate?.id === ce.id"
+                       (click)="selectCarrierEstimate(ce)">
+                    <div class="carrier-estimate-info">
+                      <div class="carrier-name-row">
+                        <span class="carrier-name">{{ ce.carrier_name }}</span>
+                        <span class="carrier-status-badge" [ngClass]="getCarrierStatusClass(ce)">
+                          {{ getCarrierStatusLabel(ce) }}
+                        </span>
+                        <span class="parser-badge" *ngIf="ce.parser_type"
+                              [ngClass]="'parser-' + ce.parser_type">
+                          {{ ce.parser_type === 'xactimate' ? 'Xactimate' : ce.parser_type === 'generic' ? 'Generic PDF' : 'Pasted' }}
+                        </span>
+                        <span class="confidence-badge" *ngIf="ce.parse_confidence"
+                              [ngClass]="'confidence-' + ce.parse_confidence">
+                          {{ ce.parse_confidence | titlecase }} Confidence
+                        </span>
+                      </div>
+                      <span class="carrier-meta">
+                        {{ ce.line_items?.length || 0 }} items &middot; {{ ce.total_cost | currency }}
+                      </span>
+                      <span class="carrier-date" *ngIf="ce.created_at">
+                        {{ ce.created_at | date:'short' }}
+                      </span>
+                    </div>
+                    <button mat-icon-button color="warn" type="button"
+                      (click)="$event.stopPropagation(); deleteCarrierEstimate(ce)"
+                      matTooltip="Delete">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Empty state -->
+                <div class="carrier-empty-state" *ngIf="carrierEstimates.length === 0 && !carrierUploading">
+                  <mat-icon class="carrier-empty-icon">compare_arrows</mat-icon>
+                  <div class="carrier-empty-title">No carrier estimate uploaded yet</div>
+                  <div class="carrier-empty-desc">
+                    Upload a carrier PDF or paste a carrier estimate to begin.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: Comparison Actions -->
+            <div class="workflow-step" *ngIf="estimateId"
+                 [class.step-complete]="comparisonResult">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node">
+                  <mat-icon *ngIf="comparisonResult" class="step-check-icon">check</mat-icon>
+                  <span *ngIf="!comparisonResult">2</span>
+                </div>
+                <div class="workflow-step-line"></div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Comparison Actions</span>
+                </div>
+
+                <mat-form-field appearance="outline" class="compact-field" style="width: 100%;">
+                  <mat-label>Price Threshold (%)</mat-label>
+                  <input matInput type="number" [(ngModel)]="priceThreshold" [ngModelOptions]="{standalone: true}" min="0" max="100" />
+                </mat-form-field>
+
+                <button mat-raised-button color="accent" type="button" class="action-btn-full"
+                  (click)="runComparison()"
+                  [disabled]="!selectedCarrierEstimate || !hasAciLineItems || comparisonLoading">
+                  <mat-icon>compare_arrows</mat-icon>
+                  {{ comparisonLoading ? 'Comparing...' : 'Run Carrier Comparison' }}
+                </button>
+                <p class="carrier-action-hint" *ngIf="carrierEstimates.length === 0">
+                  Upload a carrier estimate first.
+                </p>
+                <p class="carrier-action-hint" *ngIf="!hasAciLineItems && carrierEstimates.length > 0">
+                  Create an ACI estimate first before comparing with a carrier estimate.
+                </p>
+                <p class="carrier-action-hint" *ngIf="hasAciLineItems && !selectedCarrierEstimate && carrierEstimates.length > 0">
+                  Select a carrier estimate above to run comparison.
+                </p>
+
+                <button mat-stroked-button color="warn" type="button"
+                  class="action-btn-full"
+                  (click)="exportSupplementPDF()"
+                  [disabled]="!comparisonResult || supplementGenerating"
+                  style="margin-top: 8px;">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  {{ supplementGenerating ? 'Generating...' : 'Generate Supplement Report' }}
+                </button>
+                <p class="carrier-action-hint" *ngIf="!comparisonResult && carrierEstimates.length > 0">
+                  Run a comparison first to generate the supplement report.
+                </p>
+
+                <button mat-raised-button color="accent" type="button"
+                  class="action-btn-full"
+                  (click)="generateSupplementArgument()"
+                  [disabled]="!comparisonResult || supplementArgumentGenerating"
+                  style="margin-top: 8px;">
+                  <mat-icon>{{ supplementArgumentGenerating ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                  {{ supplementArgumentGenerating ? 'Generating...' : 'Generate AI Supplement Argument' }}
+                </button>
+
+                <div class="supplement-argument-output" *ngIf="generatedSupplementArgument">
+                  <div class="supplement-argument-header">
+                    <span class="supplement-argument-label">AI Supplement Argument</span>
+                    <span class="policy-enhanced-badge" *ngIf="supplementArgumentHasPolicySupport">
+                      <mat-icon>verified</mat-icon> Policy Enhanced
+                    </span>
+                  </div>
+                  <textarea class="argument-textarea"
+                    [(ngModel)]="generatedSupplementArgument"
+                    [ngModelOptions]="{standalone: true}"
+                    rows="12"></textarea>
+                  <div class="argument-actions">
+                    <button mat-stroked-button type="button" class="argument-action-btn"
+                      (click)="generateSupplementArgument()">
+                      <mat-icon>refresh</mat-icon> Regenerate
+                    </button>
+                    <button mat-stroked-button type="button" class="argument-action-btn"
+                      (click)="copySupplementArgument()">
+                      <mat-icon>content_copy</mat-icon> Copy
+                    </button>
+                    <button mat-stroked-button type="button" class="argument-action-btn"
+                      (click)="insertSupplementArgumentIntoEmail()">
+                      <mat-icon>email</mat-icon> Into Email
+                    </button>
+                    <button mat-stroked-button type="button" class="argument-action-btn"
+                      (click)="insertSupplementArgumentIntoReport()"
+                      [disabled]="!comparisonResult">
+                      <mat-icon>picture_as_pdf</mat-icon> Into Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: Defense Package (only after comparison) -->
+            <div class="workflow-step" *ngIf="comparisonResult"
+                 [class.step-complete]="defensePackage">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node">
+                  <mat-icon *ngIf="defensePackage" class="step-check-icon">check</mat-icon>
+                  <span *ngIf="!defensePackage">3</span>
+                </div>
+                <div class="workflow-step-line"></div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Defense Package</span>
+                </div>
+                <button mat-raised-button color="accent" type="button" class="action-btn-full"
+                  (click)="openDefenseView()">
+                  <mat-icon>shield</mat-icon> Build Defense Package
+                </button>
+                <button mat-stroked-button type="button" class="action-btn-full"
+                  *ngIf="defensePackage"
+                  (click)="copyDefensePackage()" style="margin-top: 6px;">
+                  <mat-icon>content_copy</mat-icon> Copy Defense Package
+                </button>
+                <p class="carrier-action-hint" *ngIf="hasAnyDefenseNotes()" style="color: #2e7d32;">
+                  <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">edit_note</mat-icon>
+                  Defense notes saved
+                </p>
+              </div>
+            </div>
+
+            <!-- STEP 4: Deliver Supplement (only after comparison) -->
+            <div class="workflow-step" *ngIf="comparisonResult"
+                 [class.step-complete]="supplementReportGenerated">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node">
+                  <mat-icon *ngIf="supplementReportGenerated" class="step-check-icon">check</mat-icon>
+                  <span *ngIf="!supplementReportGenerated">4</span>
+                </div>
+                <div class="workflow-step-line"></div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Deliver Supplement</span>
+                </div>
+
+                <button mat-stroked-button class="action-btn-full" (click)="openSupplementEmailPreview()">
+                  <mat-icon>visibility</mat-icon> Preview Email
+                </button>
+                <button mat-stroked-button class="action-btn-full" (click)="copySupplementEmail()">
+                  <mat-icon>content_copy</mat-icon> Copy Email Message
+                </button>
+                <button mat-raised-button color="primary" class="action-btn-full" (click)="openSupplementEmailPreview()">
+                  <mat-icon>send</mat-icon> Send Supplement to Carrier
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 5: Carrier Payments (only after comparison) -->
+            <div class="workflow-step" *ngIf="comparisonResult">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node">
+                  <mat-icon *ngIf="totalRecovered > 0 && recoveryPct >= 100" class="step-check-icon">check</mat-icon>
+                  <span *ngIf="!(totalRecovered > 0 && recoveryPct >= 100)">5</span>
+                </div>
+                <div class="workflow-step-line"></div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Carrier Payments</span>
+                </div>
+
+                <!-- Recovery progress indicator -->
+                <div class="recovery-progress" *ngIf="comparisonResult">
+                  <div class="recovery-summary">
+                    <div class="recovery-stat">
+                      <span class="recovery-stat-label">Recoverable</span>
+                      <span class="recovery-stat-value">${{ comparisonResult.supplement_total | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="recovery-stat">
+                      <span class="recovery-stat-label">Recovered</span>
+                      <span class="recovery-stat-value recovered">${{ totalRecovered | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="recovery-stat">
+                      <span class="recovery-stat-label">Remaining</span>
+                      <span class="recovery-stat-value remaining">${{ remainingRecoverable | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                  <mat-progress-bar
+                    mode="determinate"
+                    [value]="recoveryPct > 100 ? 100 : recoveryPct"
+                    [color]="recoveryPct >= 100 ? 'primary' : 'accent'">
+                  </mat-progress-bar>
+                  <span class="recovery-pct-label">{{ recoveryPct | number:'1.1-1' }}% recovered</span>
+                </div>
+
+                <!-- Payment entry form -->
+                <div class="payment-form">
+                  <mat-form-field appearance="outline" class="payment-field">
+                    <mat-label>Amount ($)</mat-label>
+                    <input matInput type="number" [(ngModel)]="paymentAmount" [ngModelOptions]="{standalone: true}" min="0" step="0.01">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="payment-field">
+                    <mat-label>Date</mat-label>
+                    <input matInput type="date" [(ngModel)]="paymentDate" [ngModelOptions]="{standalone: true}">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="payment-field">
+                    <mat-label>Type</mat-label>
+                    <mat-select [(ngModel)]="paymentType" [ngModelOptions]="{standalone: true}">
+                      <mat-option *ngFor="let t of paymentTypes" [value]="t">{{ t }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="payment-field">
+                    <mat-label>Note (optional)</mat-label>
+                    <input matInput [(ngModel)]="paymentNote" [ngModelOptions]="{standalone: true}">
+                  </mat-form-field>
+                  <div class="payment-form-actions">
+                    <button mat-raised-button color="primary" class="action-btn-full"
+                      (click)="addPayment()"
+                      [disabled]="!paymentAmount || addingPayment">
+                      <mat-icon>add</mat-icon> {{ addingPayment ? 'Adding...' : 'Add Payment' }}
+                    </button>
+                    <button mat-stroked-button class="action-btn-full"
+                      (click)="cancelPayment()">
+                      <mat-icon>close</mat-icon> Cancel
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Payment history table -->
+                <div class="payment-history" *ngIf="carrierPayments.length > 0">
+                  <div class="wg-subsection-title">Payment History</div>
+                  <table class="payment-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Created By</th>
+                        <th>Created</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let p of carrierPayments" class="payment-row">
+                        <td>{{ p.payment_date | date:'shortDate' }}</td>
+                        <td>{{ p.payment_type }}</td>
+                        <td class="payment-row-amount">${{ p.payment_amount | number:'1.2-2' }}</td>
+                        <td class="payment-row-created-by">{{ p.created_by?.first_name }} {{ p.created_by?.last_name }}</td>
+                        <td class="payment-row-date">{{ p.created_at | date:'short' }}</td>
+                        <td>
+                          <button mat-icon-button color="warn" (click)="deletePayment(p.id)" matTooltip="Delete payment">
+                            <mat-icon>delete_outline</mat-icon>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 5: Supporting Intelligence (last step — no line) -->
+            <div class="workflow-step workflow-step-last step-info">
+              <div class="workflow-step-track">
+                <div class="workflow-step-node node-info">
+                  <span>5</span>
+                </div>
+              </div>
+              <div class="workflow-step-content">
+                <div class="workflow-step-header">
+                  <span class="workflow-step-title">Supporting Intelligence</span>
+                </div>
+
+                <!-- ACI Adjuster Intelligence -->
+                <div class="wg-subsection">
+                  <div class="wg-subsection-title">ACI Adjuster Intelligence</div>
+
+                  <button mat-raised-button color="accent" type="button" class="action-btn-full"
+                    (click)="generateAIScope()"
+                    [disabled]="!estimateId || aiAnalyzing || rooms.length === 0"
+                    [matTooltip]="getSuggestButtonTooltip()">
+                    <mat-icon>auto_awesome</mat-icon>
+                    {{ aiAnalyzing ? 'Generating Scope...' : 'ACI Scope Generator' }}
+                  </button>
+                  <p class="aci-helper-text" *ngIf="!estimateId">
+                    Save the estimate to enable ACI Scope Generator.
+                  </p>
+                  <p class="aci-helper-text" *ngIf="estimateId && rooms.length === 0">
+                    Add at least one room to generate scope.
+                  </p>
+
+                  <button mat-raised-button type="button" class="action-btn-full analyze-photos-btn"
+                    (click)="analyzePhotos()"
+                    [disabled]="!estimateId || photoAnalyzing || getTotalPhotoCount() === 0"
+                    [matTooltip]="getPhotoAnalysisTooltip()">
+                    <mat-icon>image_search</mat-icon>
+                    {{ photoAnalyzing ? 'Running Analysis...' : 'ACI Damage Analysis' }}
+                  </button>
+                  <p class="aci-helper-text" *ngIf="estimateId && getTotalPhotoCount() === 0">
+                    Upload project or room photos to enable damage analysis.
+                  </p>
+
+                  <div class="aci-photo-count" *ngIf="estimateId && getTotalPhotoCount() > 0 && !showAIPanel">
+                    <mat-icon>photo_library</mat-icon>
+                    {{ getTotalPhotoCount() }} photo{{ getTotalPhotoCount() > 1 ? 's' : '' }} available for analysis
+                  </div>
+
+                  <div class="ai-status-badge" *ngIf="showAIPanel && !aiAnalyzing && !photoAnalyzing && aiAnalysisResults">
+                    <mat-icon>auto_awesome</mat-icon>
+                    <span>{{ getRemainingAISuggestionCount() }} suggestions to review</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /workflow-rail -->
+
+          <!-- ═══════ POLICY INTELLIGENCE — standalone card ═══════ -->
+          <div class="right-section policy-intel-card">
+            <div class="policy-intel-header">
+              <div class="policy-intel-title-row">
+                <mat-icon class="policy-intel-shield">shield</mat-icon>
+                <span class="policy-intel-title">Policy Intelligence</span>
+                <mat-icon class="policy-intel-lock-icon" *ngIf="!policyDoc">lock</mat-icon>
+                <mat-icon class="policy-intel-info-icon"
+                  matTooltip="Policy Intelligence analyzes the insurance policy and identifies coverage language, exclusions, limits, and claim leverage points to support your estimate and supplement demand."
+                  matTooltipClass="policy-intel-tooltip"
+                  matTooltipPosition="below">info_outline</mat-icon>
+              </div>
+              <span class="policy-status-pill" [ngClass]="{
+                'not-analyzed': policyAnalysisStatus === 'not_analyzed',
+                'analyzing': policyAnalysisStatus === 'analyzing',
+                'complete': policyAnalysisStatus === 'complete',
+                'failed': policyAnalysisStatus === 'failed'
+              }" *ngIf="policyDoc">
+                <ng-container [ngSwitch]="policyAnalysisStatus">
+                  <span *ngSwitchCase="'not_analyzed'">Not Analyzed</span>
+                  <span *ngSwitchCase="'analyzing'">Analyzing…</span>
+                  <span *ngSwitchCase="'complete'">Complete</span>
+                  <span *ngSwitchCase="'failed'">Failed</span>
+                </ng-container>
+              </span>
+            </div>
+
+            <!-- Upload / Loading -->
+            <mat-progress-bar *ngIf="policyLoading || policyUploading" mode="indeterminate" style="margin: 8px 0;"></mat-progress-bar>
+
+            <!-- No policy state -->
+            <div *ngIf="!policyDoc && !policyLoading && !policyUploading">
+
+              <!-- Loading claim files -->
+              <mat-progress-bar *ngIf="claimFilesLoading || importingClaimFile" mode="indeterminate" style="margin: 8px 0;"></mat-progress-bar>
+
+              <!-- PDFs found in claim files -->
+              <div *ngIf="claimFilePDFs.length > 0 && !claimFilesLoading && !importingClaimFile" class="claim-file-import-list">
+                <div class="policy-onboard-msg" style="margin-bottom: 10px; text-align: center;">
+                  {{ claimFilePDFs.length }} PDF{{ claimFilePDFs.length > 1 ? 's' : '' }} found in claim files. Import one to unlock AI analysis.
+                </div>
+                <div *ngFor="let cf of claimFilePDFs" class="claim-file-import-row">
+                  <mat-icon class="policy-file-icon">picture_as_pdf</mat-icon>
+                  <span class="claim-file-name">{{ cf.name }}</span>
+                  <button mat-stroked-button color="primary" type="button"
+                    (click)="importClaimFileAsPolicy(cf)">
+                    Import as Policy
+                  </button>
+                </div>
+              </div>
+
+              <!-- No PDFs found — fallback -->
+              <div *ngIf="claimFilePDFs.length === 0 && !claimFilesLoading && !importingClaimFile">
+                <div class="policy-onboard-state">
+                  <mat-icon class="policy-onboard-icon">lock_outline</mat-icon>
+                  <div class="policy-onboard-msg">
+                    No policy PDFs found in claim files. Upload a policy document to unlock
+                    AI-powered policy analysis and coverage insights for this estimate.
+                  </div>
+                </div>
+                <button mat-raised-button color="primary" class="action-btn-full"
+                  *ngIf="canUploadPolicy"
+                  (click)="policyUploadInput.click()">
+                  <mat-icon>upload_file</mat-icon>
+                  Upload Policy
+                </button>
+                <input #policyUploadInput type="file" accept=".pdf" hidden
+                  (change)="onPolicyFileSelected($event)" />
+                <a mat-stroked-button class="action-btn-full" style="margin-top: 6px;"
+                  *ngIf="linkedClaim?.id"
+                  [routerLink]="['/app/fire-claims', linkedClaim.id]">
+                  <mat-icon>folder_open</mat-icon>
+                  Open Claim File
+                </a>
+                <p class="policy-onboard-helper" *ngIf="linkedClaim?.id">
+                  Navigate to the claim record to upload and manage policy documents.
+                </p>
+              </div>
+
+            </div>
+
+            <!-- Policy content -->
+            <ng-container *ngIf="policyDoc">
+              <!-- Policy file info -->
+              <div class="policy-file-row">
+                <mat-icon class="policy-file-icon">picture_as_pdf</mat-icon>
+                <div class="policy-file-info">
+                  <span class="policy-file-name">{{ policyDoc.file_name }}</span>
+                  <span class="policy-file-date" *ngIf="policyDoc.created_at">
+                    Uploaded {{ policyDoc.created_at | date: 'MM/dd/yyyy h:mm a' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="policy-action-btns">
+                <button mat-raised-button color="primary" type="button" class="action-btn-full"
+                  (click)="analyzePolicy()"
+                  [disabled]="policyAnalyzing">
+                  <mat-icon>{{ policyAnalyzing ? 'hourglass_empty' : 'auto_awesome' }}</mat-icon>
+                  {{ policyAnalyzing ? 'Analyzing…' : 'Analyze Policy' }}
+                </button>
+                <button mat-stroked-button type="button" class="action-btn-full"
+                  (click)="policyReplaceInput.click()"
+                  [disabled]="policyUploading || policyAnalyzing"
+                  style="margin-top: 6px;">
+                  <mat-icon>upload_file</mat-icon>
+                  Replace Policy PDF
+                </button>
+                <input #policyReplaceInput type="file" accept=".pdf" hidden
+                  (change)="onPolicyReplaceSelected($event)" />
+              </div>
+
+              <!-- Error message -->
+              <div class="policy-error-msg" *ngIf="policyError">
+                <mat-icon>error_outline</mat-icon> {{ policyError }}
+              </div>
+
+              <!-- Coverage Snapshot -->
+              <div class="policy-coverage-snapshot" *ngIf="policyAnalysisStatus === 'complete' || policyDoc.carrier || policyDoc.policy_number">
+                <div class="policy-snapshot-title">Coverage Snapshot</div>
+                <div class="policy-snapshot-grid">
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Carrier Name</span>
+                    <span class="ps-value">{{ policyIntel?.carrier || policyDoc.carrier || 'Not detected' }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Named Insured</span>
+                    <span class="ps-value">{{ policyIntel?.insured_name || policyDoc.insured_name || 'Not detected' }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Policy Number</span>
+                    <span class="ps-value">{{ policyIntel?.policy_number || policyDoc.policy_number || 'Not detected' }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Claim Number</span>
+                    <span class="ps-value">{{ policyDoc.claim_number || 'Not detected' }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Policy Period</span>
+                    <span class="ps-value" *ngIf="policyDoc.effective_date; else noPeriod">
+                      {{ policyDoc.effective_date | date: 'MM/dd/yyyy' }}
+                      <span *ngIf="policyDoc.expiration_date"> – {{ policyDoc.expiration_date | date: 'MM/dd/yyyy' }}</span>
+                    </span>
+                    <ng-template #noPeriod><span class="ps-value ps-empty">Not detected</span></ng-template>
+                  </div>
+                  <div class="policy-snapshot-card policy-snapshot-card-wide">
+                    <span class="ps-label">Property Address</span>
+                    <span class="ps-value" *ngIf="policyDoc.property_address; else noAddr">
+                      {{ policyDoc.property_address }}
+                      <span *ngIf="policyDoc.property_city">, {{ policyDoc.property_city }}</span>
+                      <span *ngIf="policyDoc.property_state"> {{ policyDoc.property_state }}</span>
+                      <span *ngIf="policyDoc.property_zip"> {{ policyDoc.property_zip }}</span>
+                    </span>
+                    <ng-template #noAddr><span class="ps-value ps-empty">Not detected</span></ng-template>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Dwelling Limit</span>
+                    <span class="ps-value ps-amount" [class.ps-empty]="!policyIntel?.coverage_a_dwelling">{{ formatPolicyCurrency(policyIntel?.coverage_a_dwelling) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Other Structures</span>
+                    <span class="ps-value ps-amount" [class.ps-empty]="!policyIntel?.coverage_b_other_structures">{{ formatPolicyCurrency(policyIntel?.coverage_b_other_structures) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Personal Property</span>
+                    <span class="ps-value ps-amount" [class.ps-empty]="!policyIntel?.coverage_c_personal_property">{{ formatPolicyCurrency(policyIntel?.coverage_c_personal_property) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Loss of Use / ALE</span>
+                    <span class="ps-value ps-amount" [class.ps-empty]="!policyIntel?.coverage_d_loss_of_use">{{ formatPolicyCurrency(policyIntel?.coverage_d_loss_of_use) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Deductible</span>
+                    <span class="ps-value ps-amount" [class.ps-empty]="!policyIntel?.deductible_amount">{{ formatPolicyCurrency(policyIntel?.deductible_amount) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card">
+                    <span class="ps-label">Coinsurance %</span>
+                    <span class="ps-value" [class.ps-empty]="!policyIntel?.deductible_percentage">{{ formatPolicyPercent(policyIntel?.deductible_percentage) }}</span>
+                  </div>
+                  <div class="policy-snapshot-card policy-snapshot-card-wide">
+                    <span class="ps-label">Replacement Cost Wording</span>
+                    <span class="ps-value" [class.ps-empty]="!policyIntel?.replacement_cost_language">{{ policyIntel?.replacement_cost_language || 'Not detected' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Key Claim Provisions -->
+              <div class="policy-provisions" *ngIf="policyAnalysisStatus === 'complete'">
+                <div class="policy-snapshot-title">Key Claim Provisions</div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('loss_settlement')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Loss Settlement</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('loss_settlement') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('loss_settlement')">
+                    {{ policyIntel?.loss_settlement_clause || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('duties_after_loss')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Duties After Loss</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('duties_after_loss') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('duties_after_loss')">
+                    {{ policyIntel?.duties_after_loss || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('ordinance_and_law')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Ordinance or Law</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('ordinance_and_law') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('ordinance_and_law')">
+                    {{ policyIntel?.ordinance_and_law || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('additional_coverages')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Additional Coverages</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('additional_coverages') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('additional_coverages')">
+                    {{ policyIntel?.ale_loss_of_use_details || policyIntel?.other_coverage_json || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('appraisal')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Appraisal</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('appraisal') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('appraisal')">
+                    {{ policyIntel?.appraisal_clause || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('suit_limitation')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Suit Limitation</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('suit_limitation') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('suit_limitation')">
+                    {{ policyIntel?.deadline_notice_details || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('exclusions')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Exclusions</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('exclusions') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('exclusions')">
+                    {{ policyIntel?.exclusions_json || 'Not detected' }}
+                  </div>
+                </div>
+
+                <div class="provision-expand-card" (click)="toggleProvision('endorsements')">
+                  <div class="provision-expand-header">
+                    <span class="pp-title">Endorsements</span>
+                    <mat-icon class="provision-chevron">{{ isProvisionExpanded('endorsements') ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </div>
+                  <div class="provision-expand-body" *ngIf="isProvisionExpanded('endorsements')">
+                    {{ policyIntel?.endorsements_json || 'Not detected' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Extracted Policy Notes (always shown, collapsible) -->
+              <div class="policy-notes-toggle">
+                <button mat-button type="button" class="notes-toggle-btn" (click)="togglePolicyNotes()">
+                  <mat-icon>{{ policyNotesExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  Extracted Policy Notes
+                </button>
+                <div class="policy-notes-body" *ngIf="policyNotesExpanded">
+                  <div class="policy-note-block" *ngIf="policyDoc.ai_summary">
+                    <div class="pn-title">AI Summary</div>
+                    <div class="pn-text">{{ policyDoc.ai_summary }}</div>
+                  </div>
+                  <div class="policy-note-block" *ngIf="policyDoc.claim_guidance_notes">
+                    <div class="pn-title">Claim Guidance Notes</div>
+                    <div class="pn-text">{{ policyDoc.claim_guidance_notes }}</div>
+                  </div>
+                  <div class="policy-note-block" *ngIf="!policyDoc.ai_summary && !policyDoc.claim_guidance_notes">
+                    <div class="pn-text pn-empty">No notes extracted yet. Run Analyze Policy to generate.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Policy Argument Engine -->
+              <div class="policy-argument-section">
+                <div class="policy-snapshot-title">Policy Argument Engine</div>
+
+                <div class="argument-disabled-msg" *ngIf="!policyDoc">
+                  Link a policy document to generate an AI-powered policy argument.
+                </div>
+
+                <ng-container *ngIf="policyDoc">
+                  <mat-form-field appearance="outline" class="compact-field argument-type-field">
+                    <mat-label>Argument Type</mat-label>
+                    <mat-select [(ngModel)]="argumentType" [ngModelOptions]="{standalone: true}">
+                      <mat-option *ngFor="let t of argumentTypes" [value]="t.value">{{ t.label }}</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <button mat-raised-button color="accent" type="button" class="action-btn-full"
+                    (click)="generatePolicyArgument()"
+                    [disabled]="argumentGenerating">
+                    <mat-icon>{{ argumentGenerating ? 'hourglass_empty' : 'gavel' }}</mat-icon>
+                    {{ argumentGenerating ? 'Generating…' : 'Generate Policy Argument' }}
+                  </button>
+
+                  <div class="argument-output" *ngIf="generatedArgument">
+                    <textarea class="argument-textarea"
+                      [(ngModel)]="generatedArgument"
+                      [ngModelOptions]="{standalone: true}"
+                      rows="10"></textarea>
+                    <div class="argument-actions">
+                      <button mat-stroked-button type="button" class="argument-action-btn" (click)="copyArgument()">
+                        <mat-icon>content_copy</mat-icon> Copy
+                      </button>
+                      <button mat-stroked-button type="button" class="argument-action-btn" (click)="insertArgumentIntoEmail()">
+                        <mat-icon>email</mat-icon> Into Email
+                      </button>
+                      <button mat-stroked-button type="button" class="argument-action-btn"
+                        (click)="insertArgumentIntoReport()"
+                        [disabled]="!comparisonResult">
+                        <mat-icon>picture_as_pdf</mat-icon> Into Report
+                      </button>
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- ═══════ DEVELOPER TOOLS — collapsed section ═══════ -->
+          <div class="dev-tools-section" *ngIf="isDevMode">
+            <button mat-button type="button" class="dev-tools-toggle"
+              (click)="devToolsExpanded = !devToolsExpanded">
+              <mat-icon>{{ devToolsExpanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+              Developer Tools (Advanced)
+            </button>
+            <div class="dev-tools-body" *ngIf="devToolsExpanded">
+              <button mat-stroked-button type="button" class="action-btn-full dev-btn"
+                (click)="loadMockComparisonData()">
+                <mat-icon>science</mat-icon>
+                Load Sample Data (Dev)
+              </button>
+              <p class="dev-tools-helper">Testing utilities used during development.</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ═══════════ STICKY BOTTOM BAR ═══════════ -->
+    <div class="sticky-bottom-bar">
+      <div class="bottom-stat">
+        <span class="bottom-label">Material</span>
+        <span class="bottom-value">{{ getMaterialTotal() | currency }}</span>
+      </div>
+      <div class="bottom-divider"></div>
+      <div class="bottom-stat">
+        <span class="bottom-label">Labor</span>
+        <span class="bottom-value">{{ getLaborTotal() | currency }}</span>
+      </div>
+      <div class="bottom-divider"></div>
+      <div class="bottom-stat">
+        <span class="bottom-label">Subtotal</span>
+        <span class="bottom-value">{{ getGrandTotal() | currency }}</span>
+      </div>
+      <div class="bottom-divider"></div>
+      <div class="bottom-stat">
+        <span class="bottom-label">OH ({{ overheadPercent }}%)</span>
+        <span class="bottom-value">{{ getOverheadAmount() | currency }}</span>
+      </div>
+      <div class="bottom-divider"></div>
+      <div class="bottom-stat">
+        <span class="bottom-label">Profit ({{ profitPercent }}%)</span>
+        <span class="bottom-value">{{ getProfitAmount() | currency }}</span>
+      </div>
+      <div class="bottom-divider"></div>
+      <div class="bottom-stat bottom-grand">
+        <span class="bottom-label">Estimate Total</span>
+        <span class="bottom-value bottom-grand-value">{{ getAdjustedTotal() | currency }}</span>
+      </div>
+      <button mat-raised-button color="primary" type="button" class="bottom-save-btn"
+        (click)="saveEstimate()" [disabled]="saving">
+        <mat-icon>save</mat-icon> {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+
+  <!-- Photo Preview Overlay -->
+  <div class="photo-preview-overlay" *ngIf="selectedPhotoForPreview" (click)="closePhotoPreview()">
+    <div class="preview-content" (click)="$event.stopPropagation()">
+      <button mat-icon-button class="preview-close" (click)="closePhotoPreview()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <img [src]="selectedPhotoForPreview.image_url" [alt]="selectedPhotoForPreview.caption || 'Photo preview'" />
+      <div class="preview-caption" *ngIf="selectedPhotoForPreview.caption">
+        {{ selectedPhotoForPreview.caption }}
+      </div>
+    </div>
+  </div>
+</div>

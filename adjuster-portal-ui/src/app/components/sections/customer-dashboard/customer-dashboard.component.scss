@@ -1,0 +1,154 @@
+@use '../../../../styles/variables' as vars;
+
+.customer-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.welcome-header {
+  margin-bottom: 32px;
+
+  .welcome-title {
+    font-size: 28px;
+    font-weight: 500;
+    margin: 0 0 4px 0;
+    color: vars.$primary-color;
+  }
+
+  .welcome-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+  }
+}
+
+.claims-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+}
+
+.claim-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  border: 1px solid #e0e0e0;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+
+  .claim-icon {
+    background: vars.$primary-color;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    overflow: visible;
+  }
+
+  mat-card-content {
+    padding-top: 12px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+
+    .info-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #888;
+    }
+
+    &.updated-row {
+      margin-top: 12px;
+      margin-bottom: 0;
+      font-size: 13px;
+    }
+  }
+
+  .phase-badge-row {
+    margin: 12px 0;
+  }
+
+  .phase-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: white;
+    letter-spacing: 0.3px;
+  }
+
+  .progress-section {
+    margin-top: 8px;
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      background: #e8e8e8;
+      border-radius: 3px;
+      overflow: hidden;
+
+      .progress-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+    }
+  }
+
+  mat-card-actions {
+    padding: 8px 16px 16px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+
+  .empty-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #555;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    color: #888;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+}
+
+.text-muted {
+  color: #999;
+}

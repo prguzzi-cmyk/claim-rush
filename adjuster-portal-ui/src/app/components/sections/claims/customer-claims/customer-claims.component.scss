@@ -1,0 +1,50 @@
+.claim-table {
+    table-layout: fixed;
+    width: auto !important;
+    min-width: 100%;
+  }
+  
+  .mat-mdc-form-field {
+    margin-right: 5px;
+  }
+  
+  .link-ref {
+    :hover {
+      color: #0dcaf0;
+    }
+  }
+  
+  .mat-mdc-cell {
+    padding: 0px 10px 0px 10px;
+    border: 1px solid #e0e0e0;
+  }
+  
+  th.mat-mdc-header-cell {
+    cursor: pointer;
+  }
+  
+  .mat-mdc-header-cell {
+    padding: 0px 10px 0px 10px;
+    white-space: nowrap;
+  }
+  
+  .mat-column-edit {
+    text-align: right;
+  }
+  
+  .mat-mdc-table-scroll-container {
+    overflow-x: auto;
+    max-width: 100%; /* Adjust the max-width as needed */
+  }
+  
+  .mat-mdc-card-content {
+    padding: 0; /* Adjust padding as needed */
+  }
+  
+  .link {
+    text-decoration: underline; 
+    color: rgb(13 110 253);
+    cursor: pointer;
+  }
+  
+  

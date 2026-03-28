@@ -1,0 +1,25 @@
+.data-table {
+  width: 100%;
+
+  .last-active-cell {
+      &:first-letter {
+          text-transform: uppercase;
+      }
+  }
+
+  .green {
+
+    background-color: #368136;
+    .mat-mdc-cell {
+      color: #fff !important;
+
+    }
+  }
+
+}
+
+.list-group-item:hover {
+  background-color: #172b4d; /* Light gray background on hover */
+  color: #fff;
+  font-weight: bold;
+}

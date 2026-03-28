@@ -1,0 +1,12 @@
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile.dev
+    ports:
+      - 4200:4200
+    volumes:
+      - ./:/usr/src/app/
+      - /usr/src/app/.cache
+      - /usr/src/app/node_modules
+      - /usr/src/app/public

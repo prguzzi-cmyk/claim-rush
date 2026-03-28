@@ -1,0 +1,118 @@
+<div class="map-wrapper">
+  <!-- Map controls -->
+  <div class="map-controls">
+    <button mat-stroked-button *ngIf="currentView === 'counties'" (click)="backToNational()">
+      <mat-icon>arrow_back</mat-icon> Back to US
+    </button>
+
+    <span class="view-label" *ngIf="currentView === 'counties'">
+      {{ currentStateName }} Counties
+    </span>
+
+    <span class="admin-hint" *ngIf="adminMode && currentView === 'national'">
+      Click a state to edit CP status. Double-click to view counties.
+    </span>
+
+    <span class="admin-hint" *ngIf="adminMode && currentView === 'counties'">
+      Click a county to edit agent slots and status.
+    </span>
+
+    <span class="spacer"></span>
+
+    <button
+      mat-stroked-button
+      *ngIf="!adminMode"
+      [color]="drawingMode ? 'warn' : 'primary'"
+      (click)="toggleDrawMode()"
+    >
+      <mat-icon>{{ drawingMode ? 'close' : 'edit' }}</mat-icon>
+      {{ drawingMode ? 'Cancel Draw' : 'Draw Custom' }}
+    </button>
+  </div>
+
+  <!-- Google Map -->
+  <google-map
+    class="territory-gmap"
+    height="100%"
+    width="100%"
+    [center]="mapCenter"
+    [zoom]="mapZoom"
+    [options]="mapOptions"
+    (mapInitialized)="onMapReady()">
+  </google-map>
+
+  <!-- Info Panel -->
+  <div class="info-panel" *ngIf="selectedTerritory">
+    <div class="info-panel-header">
+      <span class="info-panel-title">{{ selectedTerritory.name }}</span>
+      <button mat-icon-button (click)="closeInfoPanel()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="info-panel-body">
+      <p><strong>Type:</strong> {{ selectedTerritory.territory_type | titlecase }}</p>
+      <p *ngIf="selectedTerritory.state"><strong>State:</strong> {{ selectedTerritory.state }}</p>
+      <p *ngIf="selectedTerritory.county"><strong>County:</strong> {{ selectedTerritory.county }}</p>
+      <p *ngIf="selectedTerritory.zip_code"><strong>ZIP:</strong> {{ selectedTerritory.zip_code }}</p>
+
+      <!-- Territory Status -->
+      <p>
+        <strong>Status:</strong>
+        <span class="status-badge"
+          [class.status-available]="selectedTerritory.territory_status === 'Available'"
+          [class.status-cp-assigned]="selectedTerritory.territory_status === 'CP Assigned'"
+          [class.status-locked]="selectedTerritory.territory_status === 'Locked'">
+          {{ selectedTerritory.territory_status || 'Available' }}
+        </span>
+      </p>
+
+      <!-- Chapter President -->
+      <div class="cp-section">
+        <strong>Chapter President:</strong>
+        <span *ngIf="selectedTerritory.chapter_president" class="cp-name">
+          {{ selectedTerritory.chapter_president.first_name }} {{ selectedTerritory.chapter_president.last_name }}
+        </span>
+        <em *ngIf="!selectedTerritory.chapter_president">None assigned</em>
+      </div>
+
+      <!-- Adjuster Capacity -->
+      <div class="adjuster-section">
+        <div class="adjuster-header">
+          <strong>Adjusters:</strong>
+          <span class="capacity-badge"
+            [class.capacity-full]="(selectedTerritory.adjuster_count || 0) >= (selectedTerritory.max_adjusters || 3)">
+            {{ selectedTerritory.adjuster_count || 0 }}/{{ selectedTerritory.max_adjusters || 3 }}
+          </span>
+        </div>
+        <div *ngIf="(selectedTerritory.max_adjusters || 3) - (selectedTerritory.adjuster_count || 0) > 0" class="remaining-slots">
+          {{ (selectedTerritory.max_adjusters || 3) - (selectedTerritory.adjuster_count || 0) }} slot(s) remaining
+        </div>
+        <div *ngIf="(selectedTerritory.adjuster_count || 0) >= (selectedTerritory.max_adjusters || 3)" class="remaining-slots full">
+          No slots remaining
+        </div>
+        <mat-chip-set *ngIf="selectedTerritory.adjusters?.length">
+          <mat-chip *ngFor="let u of selectedTerritory.adjusters">
+            {{ u.first_name }} {{ u.last_name }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+
+      <div class="info-panel-actions">
+        <button mat-stroked-button color="primary" (click)="territoryClicked.emit(selectedTerritory)">
+          <mat-icon>edit</mat-icon> Edit
+        </button>
+        <button mat-stroked-button *ngIf="selectedTerritory.territory_type === 'state'" (click)="drillIntoState(selectedTerritory.state!)">
+          <mat-icon>zoom_in</mat-icon> Show Counties
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="map-legend">
+    <div class="legend-item"><span class="legend-color" style="background:#4CAF50;"></span> Available</div>
+    <div class="legend-item"><span class="legend-color" style="background:#2196F3;"></span> CP Assigned</div>
+    <div class="legend-item"><span class="legend-color" style="background:#f44336;"></span> Locked</div>
+    <div class="legend-item"><span class="legend-color" style="background:#e0e0e0;"></span> No territory</div>
+  </div>
+</div>

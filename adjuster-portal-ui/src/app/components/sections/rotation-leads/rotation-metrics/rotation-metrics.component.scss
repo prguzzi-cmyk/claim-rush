@@ -1,0 +1,105 @@
+.rotation-metrics-page {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  text-align: center;
+  padding: 20px;
+
+  .card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .card-label {
+    font-size: 13px;
+    color: #999;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &.signed .card-value { color: #22c55e; }
+  &.conversion .card-value { color: #3b82f6; }
+}
+
+.status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .bar-label {
+    width: 140px;
+    font-size: 13px;
+    text-align: right;
+    color: #555;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 20px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px;
+    min-width: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .bar-count {
+    width: 40px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 60px;
+  justify-content: center;
+  color: #666;
+}
+
+.empty-text {
+  color: #999;
+  text-align: center;
+  padding: 20px;
+}
+
+.mt-4 { margin-top: 24px; }

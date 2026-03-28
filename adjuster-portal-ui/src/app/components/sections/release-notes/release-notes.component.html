@@ -1,0 +1,122 @@
+<mat-card appearance="outlined" *ngIf="role == 'super-admin'">
+  <div class="row">
+    <div class="col-12">
+      <p class="mat-headline-4 section-title">Release notes</p>
+
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Release notes</a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+  <mat-card-content>
+
+    <h3>v2.0.0</h3>
+    <ul>
+      <li>Application software update</li>
+    </ul>
+
+    <h3>v1.3.2</h3>
+    <ul>
+      <li>Collaborator feature for claims</li>
+      <li>Extended export for client, leads and claims.</li>
+      <li>New sorting columns for claims.</li>
+    </ul>
+
+    <h3>v1.3.1</h3>
+    <ul>
+      <li>Revamp tasks.</li>
+      <li>New cliam fileds for policy types and sub policy types.</li>
+      <li>Leads sorting columns.</li>
+      <li>Recently added claims</li>
+    </ul>
+
+    <h3>v1.3.0</h3>
+    <ul>
+      <li>Portal UI revamp with fresh look and feel.</li>
+      <li>Pending leads notification on top navigation bar.</li>
+      <li>Quick search on top navigation bar.</li>
+      <li>New source by dropdown user selection for leads.</li>
+      <li>New policy type dropdown selection for leads.</li>
+      <li>New source by, signed by, and adjusted by dropdown column for claims.</li>
+      <li>Sign and approve multiple pending leads.</li>
+      <li>Pagination for search.</li>
+      <li>Sorting columns for claims and clients.</li>
+    </ul>
+
+    <h3>v1.2.7</h3>
+    <ul>
+      <li>User profile editing</li>
+      <li>Templete updates.</li>
+      <li>Bulk delete client files.</li>
+      <li>Bulk delete claim files.</li>
+
+    </ul>
+
+    <h3>v1.2.6</h3>
+    <ul>
+      <li>Templates for claims.</li>
+      <li>File sharing for claim files.</li>
+      <li>Tabs for clients, claims, leads.</li>
+    </ul>
+
+    <h3>v1.2.5</h3>
+    <ul>
+      <li>Server side pagination.</li>
+    </ul>
+
+    <h3>v1.2.4</h3>
+    <ul>
+      <li>Claims, clients and leads search.</li>
+      <li>Filter clients by period.</li>
+    </ul>
+
+    <h3>v1.2.3</h3>
+    <ul>
+      <li>Templates for claims.</li>
+      <li>Ability for super admin and admin users to delete multiple claims and clients.</li>
+      <li>Filter claims by period.</li>
+    </ul>
+
+    <h3>v1.2.2</h3>
+    <ul>
+      <li>Preview support for client and lead files.</li>
+      <li>Displays client full name on claims report.</li>
+      <li>UI updates for claims and clients.</li>
+    </ul>
+
+    <h3>v1.2.1</h3>
+    <ul>
+      <li>Bulk editing feature for leads.</li>
+      <li>Cancel button for claim files preview dialog.</li>
+      <li>Quick filter links for leads.</li>
+      <li>Bug fix client claims pagiination.</li>
+      <li>Preview support for PNG files.</li>
+    </ul>
+
+    <h3>v1.2.0</h3>
+    <ul>
+      <li>Document preview feature for claims.</li>
+      <li>Bulk editing feature for clients & claims.</li>
+      <li>Bulk files upload feature for clients & claims.</li>
+      <li>New <i>organization</i> column for clients.</li>
+      <li>New <i>policy type</i> and <i>date logged</i> columns for claims.</li>
+      <li>Bug fix claim timeline.</li>
+      <li>Improved performance by reducing number of rows fetched from the backend.</li>
+    </ul>
+    <h3>v1.1.0</h3>
+    <ul>
+      <li>Import feature for clients, claims and leads.</li>
+    </ul>
+  </mat-card-content>
+</mat-card>
+
+<mat-card appearance="outlined" *ngIf="role != 'super-admin'">
+  <mat-card-header>
+    <mat-card-title>Permission denied.</mat-card-title>
+  </mat-card-header>
+</mat-card>

@@ -1,0 +1,253 @@
+<mat-card appearance="outlined" [hidden]="this.userService.getUserPermissions('lead', 'read')">
+    You don't have permissions to view clients.
+</mat-card>
+
+<mat-card appearance="outlined" [hidden]="!this.userService.getUserPermissions('lead', 'read')">
+    <p class="mat-headline-4 section-title">Search leads</p>
+
+    <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"
+                >Home</a
+            >
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Search leads</a></li>
+    </ul>
+    <mat-card-header>
+        <!-- <mat-card-title>Search</mat-card-title> -->
+    </mat-card-header>
+    <mat-card-content>
+        <form [formGroup]="searchFormGroup">
+            <div class="row">
+                <div class="col-md-12">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Search</mat-label>
+                        <input
+                            matInput
+                            formControlName="search"
+                            placeholder="Enter search keyword" />
+                    </mat-form-field>
+                </div>
+
+                <div class="col-md-12 align-self-center text-center">
+                    <button
+                        class="btn btn-primary"
+                        color="primary"
+                        (click)="search()"
+                        [disabled]="
+                            !this.searchFormGroup.get('search').value ||
+                            this.searchFormGroup.get('search').value.length < 2
+                        ">
+                        Search 
+                    </button> &nbsp;
+                    <a routerLink="/app/leads" [queryParams]="{ period_type: 'all-time' }">
+                        <button type="button" class="btn btn-primary">Show All Leads</button>
+                    </a>
+                </div>
+            </div>
+        </form>
+        <div
+            class="mat-table-scroll-container pt-4"
+            *ngIf="dataSource?.data?.length > 0">
+            <mat-table
+                matTableExporter
+                [dataSource]="dataSource"
+                #exporter="matTableExporter"
+                class="leads-table">
+                <!-- Checkbox Column -->
+                <ng-container matColumnDef="select">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <mat-checkbox
+                            (change)="$event ? masterToggle() : null"
+                            [checked]="selection.hasValue() && isAllSelected()"
+                            [indeterminate]="
+                                selection.hasValue() && !isAllSelected()
+                            ">
+                        </mat-checkbox>
+                    </th>
+                    <td mat-cell *matCellDef="let row">
+                        <mat-checkbox
+                            (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(row) : null"
+                            [checked]="selection.isSelected(row)">
+                        </mat-checkbox>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="sn">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element; let i = index">
+                        {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="full_name">
+                    <th mat-header-cell *matHeaderCellDef>Name</th>
+                    <td mat-cell class="nowrap" *matCellDef="let lead">
+                        {{ lead.contact?.full_name }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="loss_address">
+                    <th mat-header-cell *matHeaderCellDef>Loss address</th>
+                    <td mat-cell class="nowrap" *matCellDef="let lead">
+                        {{ lead.contact?.address_loss }},
+                        {{ lead.contact?.address_loss }}
+                        {{ lead.contact?.city_loss }}
+                        {{ lead.contact?.state_loss }}
+                        {{ lead.contact?.zip_code_loss }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="ref_string">
+                    <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                    <td mat-cell *matCellDef="let lead" class="text-nowrap">
+                        <!-- <a [routerLink]="['/leads/', lead?.id]" routerLinkActive="router-link-active">{{ lead?.ref_string }}</a> -->
+                        <a
+                            type="button"
+                            class="link-ref"
+                            (click)="
+                                onLeadDetail(
+                                    lead?.id,
+                                    lead?.contact?.full_name +
+                                        '-' +
+                                        lead?.ref_string.slice(-3)
+                                )
+                            "
+                            >{{ lead?.ref_string }}</a
+                        >
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone_number">
+                    <th mat-header-cell *matHeaderCellDef>Phone</th>
+                    <td mat-cell class="nowrap" *matCellDef="let lead">
+                        {{ lead.contact?.phone_number | phoneNumberFormat }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                    <th mat-header-cell *matHeaderCellDef>Email</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead.contact?.email }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="source">
+                    <th mat-header-cell *matHeaderCellDef>Source</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead.source }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef>Status</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead.status }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="insurance_company">
+                    <th mat-header-cell *matHeaderCellDef>Insurance company</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead?.insurance_company }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="policy_number">
+                    <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead?.policy_number }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="claim_number">
+                    <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                    <td mat-cell *matCellDef="let lead">
+                        {{ lead.claim_number }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="assigned_to">
+                    <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                    <td mat-cell *matCellDef="let lead">
+                        <a
+                            href=""
+                            (click)="
+                                filterLeads('assigned_to', lead?.assigned_to);
+                                $event.preventDefault()
+                            "
+                            >{{ lead.assigned_user?.first_name }}
+                            {{ lead.assigned_user?.last_name }}</a
+                        >
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="created_at">
+                    <th mat-header-cell *matHeaderCellDef>Created at</th>
+                    <td
+                        mat-cell
+                        *matCellDef="let lead"
+                        class="expiry-date-cell">
+                        {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updated_at">
+                    <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                    <td
+                        mat-cell
+                        *matCellDef="let lead"
+                        class="last-active-cell">
+                        <span *ngIf="!lead.updated_at">-</span
+                        >{{ lead.updated_at | date : 'MMMM dd, yyyy' }}
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr
+                    mat-row
+                    *matRowDef="let lead; columns: displayedColumns"
+                    [ngClass]="{
+                        green: lead.status == 'signed-approved'
+                    }"></tr>
+            </mat-table>
+        </div>
+
+        <mat-paginator
+        [style.visibility]="
+                    dataSource?.data?.length <= 0 ? 'hidden' : 'visible'"
+            #paginator
+            showFirstLastButtons
+            (page)="changePage($event)"
+            [length]="totalRecords"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+        <div
+            class="row"
+            [style.visibility]="
+                dataSource?.data?.length <= 0 ? 'hidden' : 'visible'
+            ">
+            <div class="col-md-12">
+                <button
+                    mat-raised-button
+                    csvLink
+                    color="primary"
+                    (click)="downloadExcel(this.leads, 'leads')">
+                    <mat-icon>download</mat-icon>Excel</button
+                >&nbsp;
+                <button
+                    mat-raised-button
+                    csvLink
+                    color="primary"
+                    (click)="downloadCsv(this.leads, 'leads')">
+                    <mat-icon>download</mat-icon>Csv</button
+                >&nbsp;
+            </div>
+        </div>
+    </mat-card-content>
+
+    <mat-card-actions> </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

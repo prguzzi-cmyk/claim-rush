@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>Distribute Lead</h2>
+
+<mat-dialog-content>
+  <div class="distribute-form">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Territory</mat-label>
+      <mat-select [(ngModel)]="selectedTerritoryId" [disabled]="distributing">
+        <mat-option *ngFor="let t of countyTerritories" [value]="t.id">
+          {{ t.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Lead Type</mat-label>
+      <mat-select [(ngModel)]="selectedLeadType" [disabled]="distributing">
+        <mat-option *ngFor="let lt of leadTypes" [value]="lt.value">
+          {{ lt.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div *ngIf="distributionResult" class="distribution-result">
+      <h4>Result</h4>
+      <span class="badge" [ngClass]="distributionResult.is_exclusive ? 'badge-exclusive' : 'badge-shared'">
+        {{ distributionResult.is_exclusive ? 'Exclusive' : 'Shared' }}
+      </span>
+      <div class="assigned-agents">
+        <strong>Assigned Agents:</strong>
+        <span *ngFor="let agentId of distributionResult.assigned_agents; let last = last">
+          {{ agentId }}<span *ngIf="!last">, </span>
+        </span>
+        <span *ngIf="distributionResult.assigned_agents.length === 0">None</span>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()" [disabled]="distributing">Close</button>
+  <button mat-raised-button color="primary" (click)="distribute()" [disabled]="distributing || distributionResult">
+    Distribute
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,69 @@
+<mat-card appearance="outlined" class="mat-card">
+    <div class="row">
+        <div class="col-12">
+            <p class="mat-headline-4 section-title">UPA Assistant</p>
+        </div>
+    </div>
+    <!-- <mat-card-header class="mb-3"> </mat-card-header> -->
+
+    <mat-card-content class="mat-card-content h-100 position-relative">
+        <div id="message-display-container" class="message-display-container">
+            <div *ngFor="let message of messages" class="d-flex mb-3">
+                <mat-icon>person</mat-icon>
+
+                <div
+                    class="ml-3 p-3 text-white"
+                    ngClass="{{
+                        message.role == 'user' ? 'bg-primary' : 'bg-secondary'
+                    }}">
+                    <!-- {{ message.content }} -->
+                    <span [innerHtml]="message.content"></span>
+                </div>
+            </div>
+
+            <!-- <div class="d-flex">
+        <mat-icon>person</mat-icon>
+
+        <div class="ml-3 p-3 bg-secondary">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta labore
+          temporibus velit provident facilis dolor autem atque nam aliquam sint
+          architecto fuga tempore, magnam molestias culpa quisquam ratione
+          omnis.
+        </div>
+      </div> -->
+        </div>
+
+        <!-- mb-3 mt-6 -->
+        <div class="d-flex message-form-field-container">
+            <mat-form-field class="message-form-field flex-grow-1">
+                <div class="message-form-field-inner">
+                    <!-- (change)="handleInputChange()" -->
+                    <input
+                        #inputMessage
+                        [(ngModel)]="userMessageContent"
+                        matInput
+                        placeholder="Ask a question ..."
+                        name="userMessageContent"
+                        type="text"
+                        (keydown)="checkIfEnterKeyWasPressed($event)" />
+                </div>
+            </mat-form-field>
+            &nbsp;
+            <button
+                mat-raised-button
+                color="primary"
+                class="send-btn ml-3"
+                (click)="sendMessage()"
+                [disabled]="inputMessage.value == ''">
+                Send
+            </button>
+        </div>
+    </mat-card-content>
+
+    <!-- <mat-card-footer class="footer">
+
+  </mat-card-footer> -->
+</mat-card>
+
+<!-- <router-outlet></router-outlet> -->
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

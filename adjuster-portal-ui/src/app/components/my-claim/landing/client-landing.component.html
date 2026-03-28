@@ -1,0 +1,174 @@
+<div class="cpe-page">
+
+  <!-- ── Animated Background ── -->
+  <div class="cpe-bg">
+    <div class="cpe-gradient-orb cpe-orb-1"></div>
+    <div class="cpe-gradient-orb cpe-orb-2"></div>
+    <div class="cpe-gradient-orb cpe-orb-3"></div>
+    <div class="cpe-grid-overlay"></div>
+  </div>
+
+  <!-- ── Rotating Messages (background) ── -->
+  <div class="cpe-rotating-messages">
+    <div class="cpe-rotating-msg"
+         *ngFor="let msg of rotatingMessages; let i = index"
+         [class.cpe-msg-active]="i === currentMessageIndex">
+      {{ msg }}
+    </div>
+  </div>
+
+  <!-- ══════ CENTER CARD ══════ -->
+  <div class="cpe-center">
+
+    <!-- Brand -->
+    <div class="cpe-brand">
+      <div class="cpe-brand-icon">
+        <mat-icon>shield</mat-icon>
+      </div>
+    </div>
+
+    <!-- Glass Card -->
+    <div class="cpe-card">
+
+      <!-- ── Header ── -->
+      <div class="cpe-card-header">
+        <h1 *ngIf="!isReturningUser">Welcome to Your Claim</h1>
+        <h1 *ngIf="isReturningUser">Welcome back — continue your claim</h1>
+        <p>Access your claim, view updates, and upload documents in one place.</p>
+      </div>
+
+      <!-- ══════ MAGIC LINK MODE (Primary) ══════ -->
+      <div class="cpe-form" *ngIf="mode === 'magic'">
+        <div class="cpe-input-group">
+          <label>Enter your email to continue</label>
+          <div class="cpe-input-wrap">
+            <mat-icon>mail_outline</mat-icon>
+            <input type="email"
+                   [(ngModel)]="email"
+                   placeholder="you@example.com"
+                   (keyup.enter)="sendMagicLink()"
+                   autocomplete="email">
+          </div>
+        </div>
+
+        <div class="cpe-error" *ngIf="error">{{ error }}</div>
+
+        <button class="cpe-btn cpe-btn-primary" (click)="sendMagicLink()" [disabled]="loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">arrow_forward</mat-icon>
+          <span>{{ loading ? 'Sending...' : 'Access My Claim' }}</span>
+        </button>
+
+        <p class="cpe-btn-hint">We'll send you a secure link to access your claim.</p>
+
+        <div class="cpe-divider">
+          <span>or</span>
+        </div>
+
+        <button class="cpe-btn cpe-btn-secondary" (click)="switchToSms()">
+          <mat-icon>smartphone</mat-icon>
+          <span>Access with Phone Number</span>
+        </button>
+      </div>
+
+      <!-- ══════ MAGIC LINK SENT ══════ -->
+      <div class="cpe-form" *ngIf="mode === 'magic-sent'">
+        <div class="cpe-sent-state">
+          <div class="cpe-sent-icon">
+            <mat-icon>mark_email_read</mat-icon>
+          </div>
+          <h2>Check your email</h2>
+          <p>We sent a secure access link to<br><strong>{{ email }}</strong></p>
+          <p class="cpe-sent-hint">Click the link in the email to access your claim. It expires in 15 minutes.</p>
+        </div>
+        <button class="cpe-btn cpe-btn-secondary" (click)="resetMode()">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Try a different method</span>
+        </button>
+      </div>
+
+      <!-- ══════ SMS MODE ══════ -->
+      <div class="cpe-form" *ngIf="mode === 'sms'">
+        <div class="cpe-input-group">
+          <label>Enter your phone number to continue</label>
+          <div class="cpe-input-wrap">
+            <mat-icon>smartphone</mat-icon>
+            <input type="tel"
+                   [(ngModel)]="phone"
+                   placeholder="(555) 123-4567"
+                   (keyup.enter)="sendSmsCode()"
+                   autocomplete="tel">
+          </div>
+        </div>
+
+        <div class="cpe-error" *ngIf="error">{{ error }}</div>
+
+        <button class="cpe-btn cpe-btn-primary" (click)="sendSmsCode()" [disabled]="loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">sms</mat-icon>
+          <span>{{ loading ? 'Sending...' : 'Continue with Phone' }}</span>
+        </button>
+
+        <div class="cpe-divider">
+          <span>or</span>
+        </div>
+
+        <button class="cpe-btn cpe-btn-secondary" (click)="switchToMagic()">
+          <mat-icon>mail_outline</mat-icon>
+          <span>Access with Email</span>
+        </button>
+      </div>
+
+      <!-- ══════ SMS CODE VERIFICATION ══════ -->
+      <div class="cpe-form" *ngIf="mode === 'sms-sent'">
+        <div class="cpe-sent-state" style="margin-bottom:20px;">
+          <div class="cpe-sent-icon sms-icon">
+            <mat-icon>sms</mat-icon>
+          </div>
+          <h2>Enter your code</h2>
+          <p>We sent a 6-digit code to<br><strong>{{ phone }}</strong></p>
+        </div>
+
+        <div class="cpe-input-group">
+          <div class="cpe-input-wrap cpe-code-input">
+            <input type="text"
+                   [(ngModel)]="smsCode"
+                   placeholder="000000"
+                   maxlength="6"
+                   (keyup.enter)="verifySmsCode()"
+                   autocomplete="one-time-code">
+          </div>
+        </div>
+
+        <div class="cpe-error" *ngIf="error">{{ error }}</div>
+
+        <button class="cpe-btn cpe-btn-primary" (click)="verifySmsCode()" [disabled]="loading">
+          <mat-spinner diameter="20" *ngIf="loading"></mat-spinner>
+          <mat-icon *ngIf="!loading">arrow_forward</mat-icon>
+          <span>{{ loading ? 'Verifying...' : 'Access Your Claim' }}</span>
+        </button>
+
+        <button class="cpe-btn cpe-btn-secondary" (click)="resetMode()">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Try a different method</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Trust bar -->
+    <div class="cpe-trust">
+      <div class="cpe-trust-item">
+        <mat-icon>lock</mat-icon> 256-bit Encrypted
+      </div>
+      <div class="cpe-trust-item">
+        <mat-icon>verified_user</mat-icon> Secure Access
+      </div>
+      <div class="cpe-trust-item">
+        <mat-icon>shield</mat-icon> Private
+      </div>
+    </div>
+
+  </div>
+
+</div>

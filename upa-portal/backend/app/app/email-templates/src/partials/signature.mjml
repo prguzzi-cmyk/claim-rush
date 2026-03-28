@@ -1,0 +1,19 @@
+<mj-text padding="30px 40px 10px 40px">
+  Warm regards,
+  <br/>
+
+  <b>The {{ project_name }} Team</b>
+  <br/>
+
+  <a href="{{ project_url }}" style="color:#172b4d;text-decoration:none;">{{
+    project_url }}
+  </a>
+  |
+  <a href="mailto:{{ project_contact_email }}" style="color:#172b4d;text-decoration:none;">{{
+    project_contact_email }}
+  </a>
+  |
+  <a href="tel:{{ project_contact_phone }}" style="color:#172b4d;text-decoration: none;">{{
+    project_contact_phone }}
+  </a>
+</mj-text>

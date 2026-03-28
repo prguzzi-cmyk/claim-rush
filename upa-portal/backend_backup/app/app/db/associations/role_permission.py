@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+"""Association of Role and Permission"""
+
+from sqlalchemy import Column, ForeignKey, Table
+
+from app.db.base_class import Base
+
+associate_role_permission = Table(
+    "role_permission",
+    Base.metadata,
+    Column("role_id", ForeignKey("role.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "permission_id",
+        ForeignKey("permission.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+)

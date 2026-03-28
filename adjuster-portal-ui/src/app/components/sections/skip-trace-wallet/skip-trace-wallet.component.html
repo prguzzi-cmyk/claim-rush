@@ -1,0 +1,108 @@
+<!-- Summary Cards -->
+<div class="wallet-page">
+  <h2>Skip Trace Wallet</h2>
+
+  <div class="summary-cards" *ngIf="summary">
+    <mat-card class="summary-card balance-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>account_balance_wallet</mat-icon>
+        <mat-card-title>
+          <span *ngIf="!summary.is_unlimited">{{ summary.credit_balance }}</span>
+          <span *ngIf="summary.is_unlimited" class="unlimited-badge">Unlimited</span>
+        </mat-card-title>
+        <mat-card-subtitle>Credit Balance</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>calendar_today</mat-icon>
+        <mat-card-title>{{ summary.credits_used_this_month }}</mat-card-title>
+        <mat-card-subtitle>Used This Month</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+
+    <mat-card class="summary-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>bar_chart</mat-icon>
+        <mat-card-title>{{ summary.credits_used_total }}</mat-card-title>
+        <mat-card-subtitle>Total Credits Used</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+  </div>
+
+  <!-- Credit Packs -->
+  <h3>Purchase Credits</h3>
+  <div class="credit-packs">
+    <mat-card *ngFor="let pack of creditPacks" class="pack-card">
+      <mat-card-header>
+        <mat-card-title>{{ pack.size }} Credits</mat-card-title>
+        <mat-card-subtitle>{{ priceDisplay(pack.price_cents) }} &middot; {{ perCreditCost(pack) }}/credit</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions>
+        <button
+          mat-raised-button
+          color="primary"
+          [disabled]="purchasingPack !== null"
+          (click)="purchaseCredits(pack)"
+        >
+          <mat-icon *ngIf="purchasingPack === pack.size" class="spin">sync</mat-icon>
+          {{ purchasingPack === pack.size ? 'Processing...' : 'Buy' }}
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Transaction History -->
+  <h3>Transaction History</h3>
+  <ngx-spinner type="ball-spin-clockwise" size="medium"></ngx-spinner>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z2 full-width">
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+        <td mat-cell *matCellDef="let row">{{ row.created_at | date:'short' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="action_type">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+        <td mat-cell *matCellDef="let row">{{ row.action_type }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lead_id">
+        <th mat-header-cell *matHeaderCellDef>Lead ID</th>
+        <td mat-cell *matCellDef="let row">
+          <a *ngIf="row.lead_id" [routerLink]="['/app/leads', row.lead_id]">{{ row.lead_id | slice:0:8 }}...</a>
+          <span *ngIf="!row.lead_id">—</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="address_queried">
+        <th mat-header-cell *matHeaderCellDef>Address</th>
+        <td mat-cell *matCellDef="let row">{{ row.address_queried || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="credits_used">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Credits</th>
+        <td mat-cell *matCellDef="let row">{{ row.credits_used }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lookup_status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="status-chip" [ngClass]="statusColor(row.lookup_status)">
+            {{ row.lookup_status }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div *ngIf="dataSource.data.length === 0" class="empty-state">
+      No transactions yet.
+    </div>
+  </div>
+</div>

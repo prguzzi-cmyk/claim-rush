@@ -1,0 +1,149 @@
+<h2 mat-dialog-title>Convert Incident to Lead</h2>
+
+<mat-dialog-content>
+  <!-- Incident summary (read-only) -->
+  <div class="incident-summary">
+    <div class="summary-row">
+      <span class="label">Address:</span>
+      <span>{{ data.incident.address || '—' }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Call Type:</span>
+      <span>{{ data.incident.call_type_description || data.incident.call_type }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Received:</span>
+      <span>{{ data.incident.received_at ? (data.incident.received_at | date:'MM/dd/yyyy HH:mm') : '—' }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Source:</span>
+      <span>UPA Incident Intelligence Network</span>
+    </div>
+    <div class="summary-row" *ngIf="data.incident.agency?.name">
+      <span class="label">Agency:</span>
+      <span>{{ data.incident.agency?.name }}</span>
+    </div>
+  </div>
+
+  <!-- Skip trace section -->
+  <div class="skip-trace-section" *ngIf="skipTraceEnabled">
+    <!-- Loading state -->
+    <div class="skip-trace-loading" *ngIf="isLoadingSkipTrace">
+      <mat-progress-spinner diameter="20" mode="indeterminate"></mat-progress-spinner>
+      <span>Looking up property owner...</span>
+    </div>
+
+    <!-- Results -->
+    <div class="skip-trace-results" *ngIf="!isLoadingSkipTrace && residents.length > 0">
+      <div class="skip-trace-header">
+        <span class="status-chip traced">Skip traced</span>
+        <span class="resident-count">{{ residents.length }} resident{{ residents.length > 1 ? 's' : '' }} found</span>
+      </div>
+
+      <!-- Resident selector (when multiple) -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="residents.length > 1">
+        <mat-label>Select Resident</mat-label>
+        <mat-select [value]="selectedResidentIndex" (selectionChange)="selectResident($event.value)">
+          <mat-option *ngFor="let resident of residents; let i = index" [value]="i">
+            {{ resident.full_name }}
+            <span *ngIf="resident.age"> (Age {{ resident.age }})</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Selected resident details -->
+      <div class="resident-detail" *ngIf="selectedResidentIndex !== null">
+        <div class="detail-row" *ngIf="residents[selectedResidentIndex].phone_numbers.length > 1">
+          <span class="detail-label">Phone numbers:</span>
+          <div class="chip-list">
+            <span
+              class="clickable-chip"
+              *ngFor="let phone of residents[selectedResidentIndex].phone_numbers"
+              [class.selected]="form.get('phone_number')?.value === phone"
+              (click)="selectPhone(phone)"
+            >{{ phone }}</span>
+          </div>
+        </div>
+        <div class="detail-row" *ngIf="residents[selectedResidentIndex].emails.length > 1">
+          <span class="detail-label">Emails:</span>
+          <div class="chip-list">
+            <span
+              class="clickable-chip"
+              *ngFor="let email of residents[selectedResidentIndex].emails"
+              [class.selected]="form.get('email')?.value === email"
+              (click)="selectEmail(email)"
+            >{{ email }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No results -->
+    <div class="skip-trace-empty" *ngIf="!isLoadingSkipTrace && residents.length === 0">
+      <span class="status-chip manual">Manual entry</span>
+      <span class="empty-hint">No property owner data found — enter contact info manually.</span>
+    </div>
+  </div>
+
+  <mat-divider class="section-divider"></mat-divider>
+
+  <!-- Lead form -->
+  <form [formGroup]="form" class="lead-form">
+    <h3 class="section-title">Contact Information</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Full Name *</mat-label>
+      <input matInput formControlName="full_name" placeholder="Enter contact full name">
+      <mat-error *ngIf="form.get('full_name')?.hasError('required')">Full name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone Number *</mat-label>
+      <input matInput formControlName="phone_number" placeholder="Enter phone number">
+      <mat-error *ngIf="form.get('phone_number')?.hasError('required')">Phone number is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" placeholder="Enter email address" type="email">
+    </mat-form-field>
+
+    <h3 class="section-title">Lead Details</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Peril</mat-label>
+      <input matInput formControlName="peril" placeholder="e.g., Structure Fire">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Loss Date</mat-label>
+      <input matInput [matDatepicker]="lossDatePicker" formControlName="loss_date">
+      <mat-datepicker-toggle matIconSuffix [for]="lossDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #lossDatePicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Insurance Company</mat-label>
+      <input matInput formControlName="insurance_company" placeholder="Enter insurance company name">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes / Instructions</mat-label>
+      <textarea matInput formControlName="instructions_or_notes" rows="3" placeholder="Any notes for the agent..."></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="form.invalid || isSubmitting"
+    (click)="onSubmit()"
+  >
+    <mat-icon *ngIf="!isSubmitting">person_add</mat-icon>
+    <mat-progress-spinner *ngIf="isSubmitting" diameter="18" mode="indeterminate"></mat-progress-spinner>
+    {{ isSubmitting ? 'Creating...' : 'Create Lead' }}
+  </button>
+</mat-dialog-actions>

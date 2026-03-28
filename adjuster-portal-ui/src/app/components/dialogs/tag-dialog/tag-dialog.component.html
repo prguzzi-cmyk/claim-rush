@@ -1,0 +1,167 @@
+<h1 mat-dialog-title>
+  {{
+  type == "create"
+  ? "Create"
+  : type == "view"
+  ? "View"
+  : type == "edit"
+  ? "Edit"
+  : type == "delete"
+  ? "Delete"
+  : "Restore"
+  }}
+  Tag
+</h1>
+
+<div *ngIf="type == 'create' || type == 'edit'">
+  <form [formGroup]="tagForm">
+    <mat-form-field class="form-field">
+      <input matInput formControlName="name" type="text" placeholder="Name" required />
+    </mat-form-field>
+
+    <mat-form-field class="form-field">
+      <textarea matInput formControlName="description" placeholder="Description" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+
+  <div class="d-flex align-items-center mb-3">
+    Can be removed:
+
+    <mat-slide-toggle (change)="toggleCanBeRemoved($event)" [checked]="canBeRemoved" color="primary"
+      class="ml-3"></mat-slide-toggle>
+  </div>
+</div>
+
+<div *ngIf="type == 'view'">
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Name</h6>
+
+      <p>{{ tag?.name }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>Description:</h6>
+
+      <p>{{ tag?.description ? tag?.description : "N/A" }}</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Slug</h6>
+
+      <p>{{ tag?.slug }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>Created by</h6>
+
+      <p>
+        <span *ngIf="tag?.created_by?.first_name || tag?.created_by?.last_name">
+          {{ tag?.created_by?.first_name }} {{ tag?.created_by?.last_name }}
+        </span>
+
+        <span *ngIf="!tag?.created_by">N/A</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Created at</h6>
+
+      <p>{{ tag?.created_at | date : "MMMM dd, yyyy" }}</p>
+    </div>
+
+    <div class="col-md-6">
+      <h6>Updated by</h6>
+
+      <p>
+        <span *ngIf="tag?.updated_by?.first_name || tag?.updated_by?.last_name">{{ tag?.updated_by?.first_name }} {{
+          tag?.updated_by?.last_name }}
+        </span>
+
+        <span *ngIf="!tag?.updated_by">N/A</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h6>Updated at</h6>
+
+      <p>
+        <span>
+          {{ tag?.updated_at | date : "MMMM dd, yyyy" }}
+        </span>
+
+        <span *ngIf="!tag?.updated_at">N/A</span>
+      </p>
+    </div>
+
+    <div class="mb-3 col-md-6">
+      <div class="d-flex align-items-center">
+        <h6>Can be removed</h6>
+
+        <mat-slide-toggle [checked]="tag?.can_be_removed" disabled color="primary" class="ml-3"></mat-slide-toggle>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="d-flex align-items-center mb-3">
+      <p class="fw-normal mb-0">Is removed:</p>
+
+      <mat-slide-toggle [checked]="tag?.is_removed" disabled color="primary" class="ml-3"></mat-slide-toggle>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="type == 'delete'" mat-dialog-content>
+  Are you sure you want to delete {{ tag.name.toLowerCase() }}?
+</div>
+
+<div *ngIf="type == 'restore'" mat-dialog-content>
+  Are you sure you want to restore {{ tag.name.toLowerCase() }}?
+</div>
+
+<div mat-dialog-actions>
+  <button *ngIf="type == 'create'" (click)="createTag()" [disabled]="!tagForm.valid || tagFormDisabled"
+    mat-raised-button color="primary">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="tagFormDisabled"></mat-spinner>
+    </div>
+
+    Create tag
+  </button>
+
+  <button *ngIf="type == 'edit'" (click)="updateTag(tag.id)" [disabled]="!tagForm.valid || tagFormDisabled"
+    mat-raised-button color="primary">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="tagFormDisabled"></mat-spinner>
+    </div>
+
+    Save tag
+  </button>
+
+  <button *ngIf="type == 'delete'" (click)="deleteTag(tag.id)" [disabled]="tagFormDisabled" mat-raised-button
+    color="primary">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="tagFormDisabled"></mat-spinner>
+    </div>
+
+    Yes, delete this tag
+  </button>
+
+  <button *ngIf="type == 'restore'" (click)="restoreTag(tag.id)" [disabled]="tagFormDisabled" mat-raised-button
+    color="primary">
+    <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="tagFormDisabled"></mat-spinner>
+    </div>
+
+    Yes, restore this tag
+  </button>
+
+  <button mat-raised-button mat-dialog-close color="accent">Cancel</button>
+</div>

@@ -1,0 +1,294 @@
+<div class="intake-control-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h2><mat-icon class="header-icon">settings_input_component</mat-icon> Intake Control</h2>
+      <p class="subtitle">Configure ownership, hierarchy, routing, and public intake links</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreate()" *ngIf="!creating">
+        <mat-icon>add</mat-icon> New Intake Config
+      </button>
+      <button mat-icon-button (click)="loadConfigs()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Create Form -->
+  <mat-card *ngIf="creating" class="create-card">
+    <mat-card-content>
+      <h3><mat-icon>add_circle</mat-icon> Create Intake Configuration</h3>
+      <mat-form-field appearance="outline" class="slug-field">
+        <mat-label>Slug (unique URL path)</mat-label>
+        <input matInput [(ngModel)]="newSlug" placeholder="e.g. florida-storm-2026" />
+        <mat-hint>This becomes the public link: /intake/{{ newSlug || '...' }}</mat-hint>
+      </mat-form-field>
+      <div class="create-actions">
+        <button mat-raised-button color="primary" (click)="submitCreate()" [disabled]="!newSlug.trim()">Create</button>
+        <button mat-stroked-button (click)="cancelCreate()">Cancel</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading intake configs...</span>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && configs.length === 0 && !creating">
+    <mat-icon class="empty-icon">settings_input_component</mat-icon>
+    <h3>No Intake Configurations</h3>
+    <p>Create one to configure a public intake link with routing, hierarchy, and representative settings.</p>
+  </div>
+
+  <!-- Config Cards -->
+  <div class="config-list" *ngIf="!loading && configs.length > 0">
+    <mat-card *ngFor="let cfg of configs" class="config-card" [class.editing]="isEditing(cfg.id)">
+
+      <!-- Card Header -->
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="config-avatar">{{ cfg.is_active ? 'link' : 'link_off' }}</mat-icon>
+        <mat-card-title>{{ cfg.intake_name }}</mat-card-title>
+        <mat-card-subtitle>/intake/{{ cfg.slug }}</mat-card-subtitle>
+        <div class="card-header-right">
+          <span class="active-chip" [class.active]="cfg.is_active" [class.inactive]="!cfg.is_active">
+            {{ cfg.is_active ? 'Active' : 'Inactive' }}
+          </span>
+          <button mat-icon-button *ngIf="!isEditing(cfg.id)" (click)="startEdit(cfg)" matTooltip="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="primary" *ngIf="isEditing(cfg.id)" (click)="saveEdit()" matTooltip="Save">
+            <mat-icon>check</mat-icon>
+          </button>
+          <button mat-icon-button *ngIf="isEditing(cfg.id)" (click)="cancelEdit()" matTooltip="Cancel">
+            <mat-icon>close</mat-icon>
+          </button>
+          <button mat-icon-button *ngIf="!isEditing(cfg.id)" (click)="deleteConfig(cfg.id)" matTooltip="Delete" color="warn">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+
+        <!-- ── Section 1: Intake Identity ── -->
+        <div class="config-section">
+          <h4 class="section-title"><mat-icon>badge</mat-icon> Intake Identity</h4>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Intake Name</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.intake_name }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.intake_name" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Slug</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.slug }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.slug" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Active</span>
+              <mat-icon *ngIf="!isEditing(cfg.id)" [style.color]="cfg.is_active ? '#22c55e' : '#ef4444'">
+                {{ cfg.is_active ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <mat-slide-toggle *ngIf="isEditing(cfg.id)" [(ngModel)]="draft.is_active"></mat-slide-toggle>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Campaign Tag</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.campaign_tag || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.campaign_tag" placeholder="e.g. storm-q1-2026" />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 2: ACI Representative ── -->
+        <div class="config-section">
+          <h4 class="section-title"><mat-icon>person</mat-icon> ACI Representative</h4>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Name</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.rep_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.rep_name" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Title</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.rep_title || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.rep_title" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Phone</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.rep_phone || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.rep_phone" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Email</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.rep_email || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.rep_email" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">AI Secretary</span>
+              <mat-icon *ngIf="!isEditing(cfg.id)" [style.color]="cfg.ai_secretary_enabled ? '#22c55e' : '#94a3b8'">
+                {{ cfg.ai_secretary_enabled ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <mat-slide-toggle *ngIf="isEditing(cfg.id)" [(ngModel)]="draft.ai_secretary_enabled"></mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 3: Hierarchy Mapping ── -->
+        <div class="config-section">
+          <h4 class="section-title"><mat-icon>account_tree</mat-icon> Hierarchy Mapping</h4>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Chapter President</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.assigned_cp_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <mat-label>CP User ID</mat-label>
+                <input matInput [(ngModel)]="draft.assigned_cp_id" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">RVP</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.assigned_rvp_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <mat-label>RVP User ID</mat-label>
+                <input matInput [(ngModel)]="draft.assigned_rvp_id" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Agent</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.assigned_agent_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <mat-label>Agent User ID</mat-label>
+                <input matInput [(ngModel)]="draft.assigned_agent_id" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Territory</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.territory_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <mat-label>Territory ID</mat-label>
+                <input matInput [(ngModel)]="draft.territory_id" />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 4: Routing Rules ── -->
+        <div class="config-section">
+          <h4 class="section-title"><mat-icon>alt_route</mat-icon> Routing Rules</h4>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Default Assignee</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.default_assignee_name || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <mat-label>Assignee User ID</mat-label>
+                <input matInput [(ngModel)]="draft.default_assignee_id" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Fallback to Home Office</span>
+              <mat-icon *ngIf="!isEditing(cfg.id)" [style.color]="cfg.fallback_home_office ? '#22c55e' : '#94a3b8'">
+                {{ cfg.fallback_home_office ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <mat-slide-toggle *ngIf="isEditing(cfg.id)" [(ngModel)]="draft.fallback_home_office"></mat-slide-toggle>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Rescue Enabled</span>
+              <mat-icon *ngIf="!isEditing(cfg.id)" [style.color]="cfg.rescue_enabled ? '#22c55e' : '#94a3b8'">
+                {{ cfg.rescue_enabled ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <mat-slide-toggle *ngIf="isEditing(cfg.id)" [(ngModel)]="draft.rescue_enabled"></mat-slide-toggle>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Territory Enforcement</span>
+              <mat-icon *ngIf="!isEditing(cfg.id)" [style.color]="cfg.territory_enforcement ? '#22c55e' : '#94a3b8'">
+                {{ cfg.territory_enforcement ? 'check_circle' : 'cancel' }}
+              </mat-icon>
+              <mat-slide-toggle *ngIf="isEditing(cfg.id)" [(ngModel)]="draft.territory_enforcement"></mat-slide-toggle>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 5: AI / Script Settings ── -->
+        <div class="config-section">
+          <h4 class="section-title"><mat-icon>psychology</mat-icon> AI / Script Settings</h4>
+          <div class="field-grid">
+            <div class="field-item">
+              <span class="field-label">Voice Script</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.voice_script_version || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.voice_script_version" placeholder="e.g. v2.1" />
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">SMS Script</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.sms_script_version || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-wide">
+                <input matInput [(ngModel)]="draft.sms_script_version" placeholder="e.g. v1.3" />
+              </mat-form-field>
+            </div>
+            <div class="field-item full-width">
+              <span class="field-label">Opening Script</span>
+              <span class="field-value script-preview" *ngIf="!isEditing(cfg.id)">{{ cfg.intake_opening_script || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-full">
+                <textarea matInput [(ngModel)]="draft.intake_opening_script" rows="3"></textarea>
+              </mat-form-field>
+            </div>
+            <div class="field-item">
+              <span class="field-label">Brochure Link</span>
+              <span class="field-value" *ngIf="!isEditing(cfg.id)">{{ cfg.brochure_link || '—' }}</span>
+              <mat-form-field appearance="outline" *ngIf="isEditing(cfg.id)" class="edit-field-full">
+                <input matInput [(ngModel)]="draft.brochure_link" placeholder="https://..." />
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section 6: Public Link Output ── -->
+        <div class="config-section links-section">
+          <h4 class="section-title"><mat-icon>link</mat-icon> Public Link Output</h4>
+          <div class="link-row" *ngIf="cfg.public_url">
+            <span class="link-label">Public Intake URL</span>
+            <code class="link-value">{{ cfg.public_url }}</code>
+            <button mat-icon-button (click)="copyLink(cfg.public_url)" matTooltip="Copy">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <div class="link-row" *ngIf="cfg.tracked_outreach_url">
+            <span class="link-label">Tracked Outreach</span>
+            <code class="link-value">{{ cfg.tracked_outreach_url }}</code>
+            <button mat-icon-button (click)="copyLink(cfg.tracked_outreach_url)" matTooltip="Copy">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+          <div class="link-row" *ngIf="cfg.qr_link">
+            <span class="link-label">QR-Ready Link</span>
+            <code class="link-value">{{ cfg.qr_link }}</code>
+            <button mat-icon-button (click)="copyLink(cfg.qr_link)" matTooltip="Copy">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

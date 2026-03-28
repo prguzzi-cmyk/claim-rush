@@ -1,0 +1,157 @@
+<div class="mc-login-page">
+  <!-- Ambient gradient orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="mc-login-card">
+
+    <!-- Logo -->
+    <div class="mc-login-header">
+      <div class="mc-logo-mark">
+        <mat-icon>shield</mat-icon>
+      </div>
+      <h1>Client Claim Portal</h1>
+      <p class="mc-tagline">Track your insurance claim, upload documents, and communicate with your adjuster.</p>
+    </div>
+
+    <!-- ═══ MAIN MODE ═══ -->
+    <div class="mc-login-body" *ngIf="mode === 'main'">
+      <button class="mc-btn mc-btn-primary" (click)="switchMode('password')">
+        <mat-icon>lock</mat-icon>
+        Log In
+      </button>
+
+      <button class="mc-btn mc-btn-outline" (click)="switchMode('lookup')">
+        <mat-icon>search</mat-icon>
+        Check Claim Status
+      </button>
+
+      <div class="mc-divider">
+        <span>or</span>
+      </div>
+
+      <button class="mc-btn mc-btn-outline" (click)="switchMode('magic')">
+        <mat-icon>auto_awesome</mat-icon>
+        Send Me a Login Link
+      </button>
+    </div>
+
+    <!-- ═══ PASSWORD MODE ═══ -->
+    <div class="mc-login-body" *ngIf="mode === 'password'">
+      <div class="mc-field">
+        <label>Email Address</label>
+        <div class="mc-input-wrap">
+          <mat-icon>email</mat-icon>
+          <input type="email" [(ngModel)]="email" placeholder="you@example.com" (keyup.enter)="loginWithPassword()" />
+        </div>
+      </div>
+
+      <div class="mc-field">
+        <label>Password</label>
+        <div class="mc-input-wrap">
+          <mat-icon>lock</mat-icon>
+          <input type="password" [(ngModel)]="password" placeholder="Enter your password" (keyup.enter)="loginWithPassword()" />
+        </div>
+      </div>
+
+      <div class="mc-error" *ngIf="error">
+        <mat-icon>error_outline</mat-icon> {{ error }}
+      </div>
+
+      <button class="mc-btn mc-btn-primary" (click)="loginWithPassword()" [disabled]="loading">
+        <mat-icon *ngIf="!loading">arrow_forward</mat-icon>
+        <mat-icon *ngIf="loading" class="spin">sync</mat-icon>
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <button class="mc-back-link" (click)="switchMode('main')">
+        <mat-icon>arrow_back</mat-icon> Back to options
+      </button>
+    </div>
+
+    <!-- ═══ CLAIM LOOKUP MODE ═══ -->
+    <div class="mc-login-body" *ngIf="mode === 'lookup'">
+      <p class="mc-info-text">Enter your claim number and last name to check your claim status.</p>
+
+      <div class="mc-field">
+        <label>Claim Number</label>
+        <div class="mc-input-wrap">
+          <mat-icon>tag</mat-icon>
+          <input type="text" [(ngModel)]="claimNumber" placeholder="CLM-2024-00847" (keyup.enter)="lookupClaim()" />
+        </div>
+      </div>
+
+      <div class="mc-field">
+        <label>Last Name</label>
+        <div class="mc-input-wrap">
+          <mat-icon>person</mat-icon>
+          <input type="text" [(ngModel)]="lastName" placeholder="Your last name" (keyup.enter)="lookupClaim()" />
+        </div>
+      </div>
+
+      <div class="mc-error" *ngIf="error">
+        <mat-icon>error_outline</mat-icon> {{ error }}
+      </div>
+
+      <button class="mc-btn mc-btn-primary" (click)="lookupClaim()" [disabled]="loading">
+        <mat-icon *ngIf="!loading">search</mat-icon>
+        <mat-icon *ngIf="loading" class="spin">sync</mat-icon>
+        {{ loading ? 'Looking up...' : 'Check Claim Status' }}
+      </button>
+
+      <button class="mc-back-link" (click)="switchMode('main')">
+        <mat-icon>arrow_back</mat-icon> Back to options
+      </button>
+    </div>
+
+    <!-- ═══ MAGIC LINK MODE ═══ -->
+    <div class="mc-login-body" *ngIf="mode === 'magic'">
+      <p class="mc-info-text">Enter your email and we'll send you a secure login link. No password needed.</p>
+
+      <div class="mc-field">
+        <label>Email Address</label>
+        <div class="mc-input-wrap">
+          <mat-icon>email</mat-icon>
+          <input type="email" [(ngModel)]="email" placeholder="you@example.com" (keyup.enter)="requestMagicLink()" />
+        </div>
+      </div>
+
+      <div class="mc-error" *ngIf="error">
+        <mat-icon>error_outline</mat-icon> {{ error }}
+      </div>
+
+      <button class="mc-btn mc-btn-primary" (click)="requestMagicLink()">
+        <mat-icon>send</mat-icon> Send Login Link
+      </button>
+
+      <button class="mc-back-link" (click)="switchMode('main')">
+        <mat-icon>arrow_back</mat-icon> Back to options
+      </button>
+    </div>
+
+    <!-- ═══ MAGIC LINK SENT ═══ -->
+    <div class="mc-login-body mc-sent" *ngIf="mode === 'magic-sent'">
+      <div class="mc-sent-icon">
+        <mat-icon>mark_email_read</mat-icon>
+      </div>
+      <h2>Check Your Email</h2>
+      <p>We sent a secure login link to <strong>{{ email }}</strong>. Click the link to access your claim portal.</p>
+      <button class="mc-back-link" (click)="switchMode('main')">
+        <mat-icon>arrow_back</mat-icon> Back to login
+      </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="mc-login-footer">
+      <mat-icon>verified_user</mat-icon>
+      <span>Your data is encrypted and secure</span>
+    </div>
+  </div>
+
+  <!-- Bottom brand -->
+  <div class="mc-brand-footer">
+    <button class="mc-landing-link" (click)="goToLanding()">
+      <mat-icon>arrow_back</mat-icon> Back to Portal Home
+    </button>
+  </div>
+</div>

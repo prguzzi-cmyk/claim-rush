@@ -1,0 +1,41 @@
+<div class="task-board">
+  <div class="board-column" *ngFor="let column of columns; let i = index">
+    <div class="column-header" [style.borderTopColor]="column.color">
+      <span class="column-title">{{ column.label }}</span>
+      <span class="column-count">{{ column.tasks.length }}</span>
+    </div>
+
+    <div
+      cdkDropList
+      [id]="'board-col-' + i"
+      [cdkDropListData]="column.tasks"
+      [cdkDropListConnectedTo]="connectedLists"
+      class="column-body"
+      (cdkDropListDropped)="drop($event, column)"
+    >
+      <div
+        class="task-card"
+        *ngFor="let task of column.tasks"
+        cdkDrag
+      >
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-meta">
+          <span class="priority-badge" [style.backgroundColor]="getPriorityColor(task.priority)">
+            {{ task.priority }}
+          </span>
+          <span class="task-type" *ngIf="task.task_type">{{ task.task_type }}</span>
+        </div>
+        <div class="task-due" *ngIf="task.due_date">
+          {{ task.due_date | date : "MMM dd, yyyy" }}
+        </div>
+        <div class="task-phase" *ngIf="task.related_claim_phase">
+          {{ task.related_claim_phase }}
+        </div>
+      </div>
+
+      <div class="empty-column" *ngIf="!column.tasks.length">
+        No tasks
+      </div>
+    </div>
+  </div>
+</div>

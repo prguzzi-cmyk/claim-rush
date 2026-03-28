@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>
+    Recruiting
+</h2>
+<div mat-dialog-content>
+    <mat-card-title>Recruiter: {{this.data.uplineUserName}}</mat-card-title>
+    <form [formGroup]="hierarchyForm" class="hierarchy-form">
+        <mat-form-field appearance="outline" class="w-100">
+            <mat-label>New comer</mat-label>
+            <mat-select formControlName="downlineUserId" placeholder="Select an user" name="downlineUserId">
+                <mat-option *ngFor="let user of users" [value]="user.id">
+                    {{user.first_name}}&nbsp;{{user.last_name}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </form>
+</div>
+
+<div mat-dialog-actions>
+    <button mat-raised-button color="primary" (click)="saveHierarchy()" [disabled]="!hierarchyForm.valid || hierarchyFormDisabled"
+            *ngIf="type == 'add'">
+        <div class="spinner-container">
+            <mat-spinner diameter="25" *ngIf="hierarchyFormDisabled"></mat-spinner>
+        </div>
+        Recruit
+    </button>
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+</div>

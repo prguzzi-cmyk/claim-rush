@@ -1,0 +1,18 @@
+.search-field {
+  width: 250px;
+}
+
+.clickable-row {
+  cursor: pointer;
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.link-ref {
+  cursor: pointer;
+  color: #1976d2;
+  &:hover {
+    text-decoration: underline;
+  }
+}

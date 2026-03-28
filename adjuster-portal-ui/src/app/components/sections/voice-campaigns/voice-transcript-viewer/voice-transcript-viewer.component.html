@@ -1,0 +1,229 @@
+<!-- ══════════════ LIST MODE ══════════════ -->
+<ng-container *ngIf="mode === 'list'">
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon>article</mat-icon> Transcripts</h2>
+      <p>Browse and search call transcripts</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search transcripts</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (keyup)="onSearch()" placeholder="Search by lead name, phone, or summary..." />
+      <button mat-icon-button matSuffix *ngIf="searchTerm" (click)="clearSearch()" aria-label="Clear search">
+        <mat-icon>close</mat-icon>
+      </button>
+      <mat-icon matSuffix *ngIf="!searchTerm">search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="outcome-filter">
+      <mat-label>Outcome</mat-label>
+      <mat-select [(value)]="outcomeFilter" (selectionChange)="onOutcomeFilterChange()">
+        <mat-option value="">All Outcomes</mat-option>
+        <mat-option *ngFor="let opt of outcomeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loadingList">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="!loadingList && listError">
+    <mat-icon>error_outline</mat-icon>
+    <p>Failed to load transcripts</p>
+    <button mat-stroked-button color="primary" (click)="loadTranscriptList()">
+      <mat-icon>refresh</mat-icon> Retry
+    </button>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loadingList && !listError && callLogs.length === 0">
+    <mat-icon>article</mat-icon>
+    <p>No transcripts available yet</p>
+    <span class="empty-hint">Transcripts appear after completed calls. Launch a campaign to start AI voice outreach.</span>
+    <div class="empty-actions">
+      <button mat-raised-button color="primary" routerLink="/app/outreach/voice">
+        <mat-icon>campaign</mat-icon> Go to Campaigns
+      </button>
+      <button mat-stroked-button routerLink="/app/outreach/call-logs">
+        <mat-icon>call</mat-icon> View Call Logs
+      </button>
+    </div>
+  </div>
+
+  <!-- Transcript List -->
+  <div class="table-container" *ngIf="!loadingList && callLogs.length > 0">
+    <table mat-table [dataSource]="listDataSource" class="transcript-list-table">
+      <ng-container matColumnDef="lead_name">
+        <th mat-header-cell *matHeaderCellDef>Lead</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="lead-cell">
+            <span class="lead-name">{{ row.lead_name || 'Unknown' }}</span>
+            <span class="lead-summary" *ngIf="row.transcript_summary">{{ row.transcript_summary }}</span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone_number">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let row">{{ row.phone_number | phoneFormat }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="duration">
+        <th mat-header-cell *matHeaderCellDef>Duration</th>
+        <td mat-cell *matCellDef="let row">{{ row.duration_seconds | durationFormat }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="outcome">
+        <th mat-header-cell *matHeaderCellDef>Outcome</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="outcome-badge" *ngIf="row.outcome" [style.background]="getOutcomeColor(row.outcome)">
+            {{ getOutcomeLabel(row.outcome) }}
+          </span>
+          <span *ngIf="!row.outcome" class="no-outcome">—</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Date</th>
+        <td mat-cell *matCellDef="let row">{{ row.created_at | date:'short' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-raised-button color="primary" class="view-btn" (click)="openTranscript(row); $event.stopPropagation()">
+            <mat-icon>visibility</mat-icon> View
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="listColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: listColumns;" class="clickable-row" (click)="openTranscript(row)"></tr>
+    </table>
+    <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+  </div>
+</ng-container>
+
+<!-- ══════════════ DETAIL MODE ══════════════ -->
+<ng-container *ngIf="mode === 'detail'">
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()" class="back-btn" aria-label="Back to transcripts">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h2>Call Transcript</h2>
+    <span class="header-spacer"></span>
+    <div class="nav-buttons" *ngIf="transcriptIds.length > 1">
+      <button mat-stroked-button (click)="goToPrevious()" [disabled]="!hasPrevious || loadingDetail" aria-label="Previous transcript" matTooltip="Arrow Left">
+        <mat-icon>chevron_left</mat-icon> Previous
+      </button>
+      <span class="nav-position" aria-live="polite">{{ currentIndex + 1 }} / {{ transcriptIds.length }}</span>
+      <button mat-stroked-button (click)="goToNext()" [disabled]="!hasNext || loadingDetail" aria-label="Next transcript" matTooltip="Arrow Right">
+        Next <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loadingDetail">
+    <mat-spinner diameter="36"></mat-spinner>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="!loadingDetail && detailError">
+    <mat-icon>error_outline</mat-icon>
+    <p>Failed to load transcript</p>
+    <button mat-stroked-button color="primary" (click)="loadTranscript(callId!)">
+      <mat-icon>refresh</mat-icon> Retry
+    </button>
+  </div>
+
+  <!-- No data -->
+  <div class="empty-state" *ngIf="!loadingDetail && !detailError && !callDetail">
+    <mat-icon>article</mat-icon>
+    <p>No transcript found</p>
+    <button mat-stroked-button (click)="goBack()">Back to Transcripts</button>
+  </div>
+
+  <!-- Call Detail -->
+  <div class="transcript-container" *ngIf="!loadingDetail && callDetail">
+    <!-- Call Info Header -->
+    <mat-card appearance="outlined" class="call-info-card">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Lead</span>
+          <span class="info-value">{{ callDetail.lead_name || 'Unknown' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Phone</span>
+          <span class="info-value">{{ callDetail.phone_number | phoneFormat }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Duration</span>
+          <span class="info-value">{{ callDetail.duration_seconds | durationFormat }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Outcome</span>
+          <span class="outcome-badge" *ngIf="callDetail.outcome" [style.background]="getOutcomeColor(callDetail.outcome)">{{ getOutcomeLabel(callDetail.outcome) }}</span>
+          <span *ngIf="!callDetail.outcome" class="info-value">—</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Date</span>
+          <span class="info-value">{{ callDetail.created_at | date:'medium' }}</span>
+        </div>
+        <div class="info-item" *ngIf="callDetail.campaign_name">
+          <span class="info-label">Campaign</span>
+          <span class="info-value">{{ callDetail.campaign_name }}</span>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-section" *ngIf="callDetail.transcript_summary">
+        <h4>Summary</h4>
+        <p>{{ callDetail.transcript_summary }}</p>
+      </div>
+    </mat-card>
+
+    <!-- Audio Player -->
+    <mat-card appearance="outlined" class="audio-card" *ngIf="callDetail.recording_url">
+      <h4><mat-icon>headphones</mat-icon> Recording</h4>
+      <audio controls [src]="callDetail.recording_url" class="audio-player"></audio>
+    </mat-card>
+
+    <!-- Transcript -->
+    <mat-card appearance="outlined" class="transcript-card">
+      <div class="transcript-header">
+        <h4><mat-icon>chat</mat-icon> Conversation</h4>
+        <div class="transcript-actions" *ngIf="transcriptLines.length > 0">
+          <button mat-stroked-button (click)="copyTranscript()" matTooltip="Copy transcript to clipboard">
+            <mat-icon>content_copy</mat-icon> Copy
+          </button>
+          <button mat-stroked-button (click)="downloadTranscript()" matTooltip="Download transcript as text file">
+            <mat-icon>download</mat-icon> Download
+          </button>
+        </div>
+      </div>
+
+      <div class="empty-transcript" *ngIf="transcriptLines.length === 0">
+        <p>No transcript available for this call.</p>
+      </div>
+
+      <div class="chat-messages" *ngIf="transcriptLines.length > 0">
+        <div
+          *ngFor="let line of transcriptLines"
+          class="chat-bubble"
+          [class.ai-bubble]="isAISpeaker(line.speaker)"
+          [class.lead-bubble]="!isAISpeaker(line.speaker)"
+        >
+          <span class="speaker-label">{{ line.speaker }}</span>
+          <p class="message-text">{{ line.text }}</p>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</ng-container>

@@ -1,0 +1,30 @@
+:host { display: block; }
+
+.section-title { margin: 0 0 4px; font-weight: 500; }
+
+.breadcrumb {
+  list-style: none; display: flex; padding: 0; margin: 0 0 16px; font-size: 12px; gap: 4px;
+  li + li::before { content: '>'; margin-right: 4px; color: #999; }
+  a { color: #666; text-decoration: none; }
+}
+
+.compliance-section {
+  .section-header-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+    h3 { margin: 0; font-size: 16px; font-weight: 500; }
+  }
+  .section-desc {
+    font-size: 13px; color: #666; margin: 0 0 12px;
+  }
+}
+
+.quiet-hours-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  mat-form-field { width: 180px; }
+}
+
+.stop-words-container {
+  .add-word-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+}

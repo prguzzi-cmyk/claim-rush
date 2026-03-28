@@ -1,0 +1,101 @@
+.intake-container { min-height: calc(100vh - 64px); padding: 24px; }
+
+// ── Landing ──
+.intake-landing { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+.landing-card { text-align: center; max-width: 480px; padding: 48px; background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  h2 { margin: 16px 0 8px; font-size: 1.5rem; font-weight: 700; color: #111827; }
+  p { color: #6b7280; font-size: 0.88rem; margin-bottom: 24px; } }
+.landing-icon { font-size: 64px !important; width: 64px !important; height: 64px !important; color: #1565c0; }
+.start-btn { font-size: 1rem !important; padding: 0 32px !important; min-height: 48px !important;
+  mat-icon { margin-right: 8px; } }
+
+// ── Header ──
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;
+  .header-text { h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.5rem; font-weight: 700;
+    .header-icon { font-size: 28px; width: 28px; height: 28px; color: #1565c0; } }
+    .subtitle { margin: 0; font-size: 0.875rem; color: #6b7280; } } }
+
+.intake-progress { margin-bottom: 16px; border-radius: 6px; height: 8px; }
+
+// ── Step Nav ──
+.step-nav { display: flex; gap: 4px; margin-bottom: 20px; overflow-x: auto; padding: 4px 0; }
+.step-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 80px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s;
+  &.active { opacity: 1; .step-nav-dot { background: #1565c0; color: #fff; border-color: #1565c0; } }
+  &.completed { opacity: 1; .step-nav-dot { background: #4caf50; color: #fff; border-color: #4caf50; } } }
+.step-nav-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #d1d5db; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #6b7280; background: #fff;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+.step-nav-label { font-size: 0.6rem; color: #6b7280; text-align: center; white-space: nowrap; }
+
+// ── Wizard ──
+.wizard-layout { max-width: 720px; margin: 0 auto; }
+.panel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.panel-header { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; font-weight: 600; font-size: 0.875rem;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; color: #1565c0; } }
+.form-body { padding: 24px; }
+.full-width { width: 100%; }
+.form-row { display: flex; gap: 12px; }
+.field-third { flex: 1; }
+.field-half { flex: 1; }
+
+// ── Upload Section ──
+.upload-section { text-align: center; padding: 24px;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; color: #1565c0; display: block; margin: 0 auto 8px; }
+  h3 { margin: 0 0 8px; }
+  p { color: #6b7280; font-size: 0.85rem; margin-bottom: 16px; }
+  .upload-hint { font-size: 0.72rem; color: #9ca3af; margin-top: 8px; } }
+
+// ── Inspection Step ──
+.inspection-step { padding: 8px 0; }
+.inspection-header { text-align: center; margin-bottom: 20px;
+  h3 { margin: 0 0 8px; font-size: 1.15rem; font-weight: 700; color: #111827; }
+  .inspection-desc { margin: 0; font-size: 0.88rem; color: #6b7280; line-height: 1.5; max-width: 480px; margin: 0 auto; } }
+.inspection-icon-wrap {
+  width: 56px; height: 56px; border-radius: 50%; background: #e8eaf6;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+  mat-icon { font-size: 28px; width: 28px; height: 28px; color: #1565c0; } }
+.inspection-details {
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
+.inspection-detail-item {
+  display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.88rem; color: #374151;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #16a34a; flex-shrink: 0; } }
+.inspection-confirmed {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px;
+  background: #ecfdf5; border: 1px solid #bbf7d0; margin-bottom: 16px; font-size: 0.85rem; color: #166534;
+  mat-icon { font-size: 20px; color: #16a34a; flex-shrink: 0; } }
+.inspection-pending {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px;
+  background: #fffbeb; border: 1px solid #fde68a; margin-bottom: 16px; font-size: 0.85rem; color: #92400e;
+  mat-icon { font-size: 20px; color: #d97706; flex-shrink: 0; } }
+.inspection-actions { display: flex; gap: 12px; justify-content: center; }
+.inspection-primary-btn {
+  min-width: 200px; height: 48px; font-size: 0.95rem !important; font-weight: 600 !important; border-radius: 10px !important;
+  mat-icon { margin-right: 6px; }
+  &.selected { box-shadow: 0 0 0 2px #1565c0; } }
+.inspection-later-btn {
+  min-width: 160px; height: 48px; font-size: 0.95rem !important; border-radius: 10px !important;
+  color: #6b7280 !important; border-color: #d1d5db !important;
+  mat-icon { margin-right: 6px; }
+  &.selected { color: #92400e !important; border-color: #d97706 !important; background: #fffbeb !important; } }
+
+// ── Review Section ──
+.review-section { }
+.review-block { margin-bottom: 20px;
+  h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 0.88rem; font-weight: 600; color: #111827;
+    mat-icon { font-size: 18px; width: 18px; height: 18px; color: #1565c0; } } }
+.review-text { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; font-size: 0.78rem; line-height: 1.6; white-space: pre-wrap; font-family: inherit; margin: 0; max-height: 300px; overflow-y: auto; }
+
+.checklist { }
+.checklist-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 0.82rem; color: #111827;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #d1d5db; flex-shrink: 0; margin-top: 1px; } }
+
+.review-actions { display: flex; gap: 8px; margin-top: 12px;
+  button { font-size: 0.75rem !important;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; } } }
+
+// ── Step Buttons ──
+.step-buttons { display: flex; justify-content: space-between; padding: 16px 18px; border-top: 1px solid #e5e7eb;
+  button mat-icon { font-size: 18px; width: 18px; height: 18px; } }
+
+// ── Responsive ──
+@media (max-width: 768px) { .page-header { flex-direction: column; gap: 12px; } .form-row { flex-direction: column; gap: 0; } .inspection-actions { flex-direction: column; align-items: stretch; } .inspection-primary-btn, .inspection-later-btn { min-width: auto; } }
+@media (max-width: 600px) { .intake-container { padding: 16px; } .landing-card { padding: 32px 20px; } }

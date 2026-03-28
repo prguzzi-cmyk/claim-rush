@@ -1,0 +1,107 @@
+<div class="ca-tab-content">
+  <!-- Compliance Checklist -->
+  <mat-card class="checklist-card" *ngIf="checklist">
+    <mat-card-header>
+      <mat-card-title>{{ checklist.name }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="progress-bar-wrapper">
+        <div class="progress-label">{{ checklist.completion_percentage }}% Complete</div>
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="checklist.completion_percentage"></div>
+        </div>
+      </div>
+
+      <div class="check-items">
+        <div class="check-item" *ngFor="let item of checklist.items">
+          <mat-checkbox
+            [checked]="item.is_completed"
+            (change)="toggleCheckItem(item.id, $event.checked)">
+            {{ item.label }}
+          </mat-checkbox>
+          <span class="check-meta" *ngIf="item.is_completed">
+            Completed {{ item.completed_at | date:'shortDate' }} by {{ item.completed_by }}
+          </span>
+        </div>
+      </div>
+
+      <div class="last-reviewed">Last reviewed: {{ checklist.last_reviewed_at }}</div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Disclaimers -->
+  <div class="disclaimers-section">
+    <div class="toolbar">
+      <h3>Disclaimers</h3>
+      <button mat-raised-button color="primary" (click)="openEditor()">
+        <mat-icon>add</mat-icon> Add Disclaimer
+      </button>
+    </div>
+
+    <table mat-table [dataSource]="disclaimers" class="disclaimer-table" *ngIf="!showEditor">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Title</th>
+        <td mat-cell *matCellDef="let row">{{ row.title }}</td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let row"><mat-chip>{{ row.category }}</mat-chip></td>
+      </ng-container>
+      <ng-container matColumnDef="required">
+        <th mat-header-cell *matHeaderCellDef>Required</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon [style.color]="row.is_required ? '#f44336' : '#ccc'">{{ row.is_required ? 'error' : 'info' }}</mat-icon>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="approved">
+        <th mat-header-cell *matHeaderCellDef>Approved</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon [style.color]="row.is_approved ? '#4caf50' : '#ff9800'">{{ row.is_approved ? 'verified' : 'pending' }}</mat-icon>
+          <span *ngIf="row.is_approved" class="approved-by">by {{ row.approved_by }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="openEditor(row)" matTooltip="Edit"><mat-icon>edit</mat-icon></button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="disclaimerColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: disclaimerColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Disclaimer Editor -->
+  <mat-card *ngIf="showEditor" class="editor-card">
+    <mat-card-header>
+      <mat-card-title>{{ editingDisclaimer ? 'Edit' : 'New' }} Disclaimer</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput [(ngModel)]="disclaimerForm.title">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="disclaimerForm.category">
+            <mat-option value="general">General</mat-option>
+            <mat-option value="email">Email</mat-option>
+            <mat-option value="sms">SMS</mat-option>
+            <mat-option value="advertising">Advertising</mat-option>
+            <mat-option value="social">Social</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Content</mat-label>
+          <textarea matInput [(ngModel)]="disclaimerForm.content" rows="5"></textarea>
+        </mat-form-field>
+        <mat-checkbox [(ngModel)]="disclaimerForm.is_required">Required</mat-checkbox>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="closeEditor()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="saveDisclaimer()">Save</button>
+    </mat-card-actions>
+  </mat-card>
+</div>

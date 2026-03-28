@@ -1,0 +1,215 @@
+<!-- Popup Header -->
+<div class="popup-header">
+    <h2 mat-dialog-title class="header-title">
+        Readjusting Commissions for {{ this.ref_string }} <br />
+        <span class="header-subtitle">Check Amount: {{ this.originalCommission.check_amount | currency }}</span>
+    </h2>
+</div>
+
+<!-- Error Message Display -->
+<div *ngIf="readjustForm.errors?.rateSumError" class="error">
+    {{ readjustForm.errors?.errMsg }}
+</div>
+
+<mat-card appearance="outlined" class="popup-content">
+    <mat-card-content class="scroll-container">
+        <!-- Show check amount here -->
+        <form [formGroup]="readjustForm" class="form-grid">
+            <!-- Show contingency fee percentage/amount here -->
+            <div class="form-row">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Contingency fee percentage</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="contingency_fee_rate">
+                </mat-form-field>
+            </div>
+            <div class="form-row">
+                <mat-label>Commissionable Fee</mat-label>:
+                {{this.getCommisssionableFee()}}
+            </div>
+            <!-- Show commissionable fee percentage/amount here -->
+            <!-- Loop through each rate and select pair -->
+            <div class="form-row">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for source</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="sourcer_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Source</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="sourceUserId" placeholder="Select Source User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="form-row">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for signer</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="signer_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Signer</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="signerUserId" placeholder="Select Sign User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="form-row">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for adjuster</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="adjuster_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Adjuster</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="adjusterUserId" placeholder="Select Adjuster User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(2)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for SSA</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="ssa_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>SSA user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="ssaUserId" placeholder="Select SSA User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(3)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for DM</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="dm_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>DM user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="dmUserId" placeholder="Select DM User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(4)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for SDM</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="sdm_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>SDM user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="sdmUserId" placeholder="Select SDM User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(5)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for DVM</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="dvm_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>DVM user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="dvmUserId" placeholder="Select DVM User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(6)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for RVP</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="rvp_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>RVP user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="rvpUserId" placeholder="Select RVP User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(7)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for EVP</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="evp_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>EVP user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="evpUserId" placeholder="Select EVP User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
+            <div class="form-row" *ngIf="this.isManagerOverridesFieldRequired(8)">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for CP</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="cp_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>CP user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="cpUserId" placeholder="Select CP User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="form-row" *ngIf="this.showUpaOrgFields()">
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>Rate for UPA</mat-label>
+                    <input type="number" min="0" max="1" step="0.001" matInput formControlName="upaOrg_override_rate">
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="form-field">
+                    <mat-label>UPA Org user</mat-label> <!-- Label for the select -->
+                    <mat-select formControlName="upaOrgUserId" placeholder="Select UPA User">
+                        <mat-option *ngFor="let user of users" [value]="user.id">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+        </form>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+        <button mat-raised-button color="primary" (click)="doReadjust()" [disabled]="!readjustForm.valid || editing">
+            <div class="spinner-container" *ngIf="editing">
+                <mat-spinner diameter="20"></mat-spinner>
+            </div>
+            Save
+        </button>
+        <button mat-raised-button color="warn" mat-dialog-close>Cancel</button>
+    </mat-card-actions>
+</mat-card>

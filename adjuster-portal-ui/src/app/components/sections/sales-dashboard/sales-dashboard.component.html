@@ -1,0 +1,81 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10"><p class="mat-headline-4 section-title">Sales Dashboard</p></div>
+  </div>
+  <mat-card-header>
+    <mat-card-title>Welcome, {{ userName }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Summary Cards -->
+    <div class="row mt-3">
+      <div class="col-md-4 mb-3">
+        <mat-card appearance="outlined" class="summary-card">
+          <mat-card-content class="text-center">
+            <mat-icon color="primary" class="summary-icon">description</mat-icon>
+            <h2>{{ totalClaims }}</h2>
+            <p>Total Claims Sourced</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-md-4 mb-3">
+        <mat-card appearance="outlined" class="summary-card">
+          <mat-card-content class="text-center">
+            <mat-icon color="accent" class="summary-icon">pending_actions</mat-icon>
+            <h2>{{ activeClaims }}</h2>
+            <p>Active Claims</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-md-4 mb-3">
+        <mat-card appearance="outlined" class="summary-card">
+          <mat-card-content class="text-center">
+            <mat-icon color="warn" class="summary-icon">bar_chart</mat-icon>
+            <h2>{{ claimsByPhase.length }}</h2>
+            <p>Phases In Progress</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Claims by Phase -->
+    <div class="row mt-3" *ngIf="claimsByPhase.length > 0">
+      <div class="col-12">
+        <h5>Claims by Phase</h5>
+        <div class="phase-list">
+          <div *ngFor="let item of claimsByPhase" class="phase-item d-flex justify-content-between align-items-center py-1">
+            <span class="text-capitalize">{{ item.phase.replace('-', ' ') }}</span>
+            <span class="badge bg-primary">{{ item.count }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Claims -->
+    <div class="row mt-3" *ngIf="recentClaims.length > 0">
+      <div class="col-12">
+        <h5>Recent Claims</h5>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Ref #</th>
+              <th>Client</th>
+              <th>Phase</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let claim of recentClaims">
+              <td><a [routerLink]="['/app/claim', claim.id]">{{ claim.ref_string }}</a></td>
+              <td>{{ claim.client?.full_name || '-' }}</td>
+              <td class="text-capitalize">{{ (claim.current_phase || '-').replace('-', ' ') }}</td>
+              <td>{{ claim.updated_at | date: 'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

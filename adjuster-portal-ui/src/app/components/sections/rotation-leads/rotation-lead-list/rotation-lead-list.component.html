@@ -1,0 +1,237 @@
+<div class="rotation-lead-list-page">
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon class="header-icon">autorenew</mat-icon> Lead Rotation</h2>
+      <p class="subtitle">Manage and track rotation-assigned leads</p>
+    </div>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="toggleCreateForm()">
+        <mat-icon>add</mat-icon> New Lead
+      </button>
+      <button mat-icon-button (click)="loadLeads()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <a mat-stroked-button routerLink="/app/rotation-leads/metrics">
+        <mat-icon>bar_chart</mat-icon> Metrics
+      </a>
+    </div>
+  </div>
+
+  <!-- Create Form -->
+  <mat-card appearance="outlined" *ngIf="showCreateForm" class="create-card">
+    <mat-card-header>
+      <mat-card-title>Create New Rotation Lead</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="row">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Lead Source</mat-label>
+            <mat-select [(ngModel)]="newLead.lead_source" required>
+              <mat-option value="fire_incident">Fire Incident</mat-option>
+              <mat-option value="storm_intelligence">Storm Intelligence</mat-option>
+              <mat-option value="crime_claim">Crime Claim</mat-option>
+              <mat-option value="manual_entry">Manual Entry</mat-option>
+              <mat-option value="referral">Referral</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Owner Name</mat-label>
+            <input matInput [(ngModel)]="newLead.owner_name" required>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Phone</mat-label>
+            <input matInput [(ngModel)]="newLead.phone" required>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="newLead.email">
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Property Address</mat-label>
+            <input matInput [(ngModel)]="newLead.property_address" required>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>City</mat-label>
+            <input matInput [(ngModel)]="newLead.property_city" required>
+          </mat-form-field>
+        </div>
+        <div class="col-md-2">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>State</mat-label>
+            <input matInput [(ngModel)]="newLead.property_state" maxlength="2" required>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Zip</mat-label>
+            <input matInput [(ngModel)]="newLead.property_zip" required>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Incident Type</mat-label>
+            <mat-select [(ngModel)]="newLead.incident_type" required>
+              <mat-option value="fire">Fire</mat-option>
+              <mat-option value="storm">Storm</mat-option>
+              <mat-option value="hail">Hail</mat-option>
+              <mat-option value="flood">Flood</mat-option>
+              <mat-option value="theft">Theft/Vandalism</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row justify-content-end mt-2">
+        <button mat-button (click)="toggleCreateForm()">Cancel</button>
+        <button mat-raised-button color="primary" (click)="createLead()"
+                [disabled]="!newLead.lead_source || !newLead.owner_name || !newLead.phone || !newLead.property_address || !newLead.incident_type">
+          Create & Auto-Assign
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Filters -->
+  <mat-card appearance="outlined" class="filter-card">
+    <mat-card-content>
+      <div class="row align-items-center">
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilter()">
+              <mat-option value="">All</mat-option>
+              <mat-option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-3">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Incident Type</mat-label>
+            <mat-select [(ngModel)]="incidentTypeFilter" (selectionChange)="applyFilter()">
+              <mat-option value="">All</mat-option>
+              <mat-option value="fire">Fire</mat-option>
+              <mat-option value="storm">Storm</mat-option>
+              <mat-option value="hail">Hail</mat-option>
+              <mat-option value="flood">Flood</mat-option>
+              <mat-option value="theft">Theft/Vandalism</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="col-md-2">
+          <button mat-stroked-button (click)="clearFilters()">
+            <mat-icon>clear</mat-icon> Clear
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading leads...</span>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && leads.length === 0">
+    <mat-icon class="empty-icon">inbox</mat-icon>
+    <h3>No Rotation Leads</h3>
+    <p>Create a new lead to get started with the rotation engine.</p>
+  </div>
+
+  <!-- Table -->
+  <div class="mat-table-scroll-container" *ngIf="!loading && leads.length > 0">
+    <table mat-table [dataSource]="dataSource">
+      <ng-container matColumnDef="lead_source">
+        <th mat-header-cell *matHeaderCellDef>Source</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.lead_source }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="owner_name">
+        <th mat-header-cell *matHeaderCellDef>Owner</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.owner_name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.phone }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="property_address">
+        <th mat-header-cell *matHeaderCellDef>Address</th>
+        <td mat-cell *matCellDef="let lead" class="text-nowrap">
+          {{ lead.property_address }}, {{ lead.property_city }}, {{ lead.property_state }} {{ lead.property_zip }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="incident_type">
+        <th mat-header-cell *matHeaderCellDef>Incident</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.incident_type | titlecase }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lead_status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let lead">
+          <span class="status-chip"
+                [style.background]="getStatusColor(lead.lead_status) + '20'"
+                [style.color]="getStatusColor(lead.lead_status)">
+            {{ getStatusLabel(lead.lead_status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="assigned_agent">
+        <th mat-header-cell *matHeaderCellDef>Agent</th>
+        <td mat-cell *matCellDef="let lead">{{ getAgentName(lead) }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="assignment_date">
+        <th mat-header-cell *matHeaderCellDef>Assigned</th>
+        <td mat-cell *matCellDef="let lead" class="text-nowrap">
+          {{ lead.assignment_date ? (lead.assignment_date | date:'short') : '—' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="contact_attempt_count">
+        <th mat-header-cell *matHeaderCellDef>Attempts</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.contact_attempt_count }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="outcome">
+        <th mat-header-cell *matHeaderCellDef>Outcome</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.outcome || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let lead">
+          <button mat-icon-button (click)="openDetail(lead); $event.stopPropagation()" matTooltip="View Details">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let lead; columns: displayedColumns"
+          (click)="openDetail(lead)" class="clickable-row"></tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [pageSize]="25" showFirstLastButtons></mat-paginator>
+  </div>
+</div>

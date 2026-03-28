@@ -1,0 +1,10 @@
+<app-ng-organization-chart-node
+        *ngFor="let node of nodeList"
+        class="app-ng-organization-chart-node"
+        [editable] = editable
+        [node]="node"
+        (onChildClickedEvent)="onClickChild($event)"
+        (onChildAddedEvent)="onCreateChild($event)"
+        (onChildTitleEvaluatedEvent)="onEvaluateAgentTitle($event)"
+        (onNodeDeletedEvent)="onDeleteChild($event)">
+</app-ng-organization-chart-node>

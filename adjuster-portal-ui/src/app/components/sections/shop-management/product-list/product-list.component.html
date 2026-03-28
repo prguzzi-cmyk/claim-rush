@@ -1,0 +1,90 @@
+<p class="mat-headline-4 section-title">Products</p>
+<ul class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"><mat-icon>home</mat-icon></a>
+    </li>
+    <li class="breadcrumb-item"><a href="javascript:">Administration</a>
+    </li>
+    <li class="breadcrumb-item"><a href="javascript:">Products</a>
+    </li>
+</ul>
+<mat-card appearance="outlined" *ngxPermissionsOnly="['super-admin','admin']">
+    <mat-card-header>
+        <mat-card-title>Manage Products</mat-card-title>
+        <button mat-raised-button color="primary" (click)="openProductAddDialog()">Add Product</button>
+    </mat-card-header>
+
+    <mat-card-content>
+        <div class="mat-table-scroll-container">
+            <table mat-table [dataSource]="products" class="product-table">
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>#</th>
+                    <td mat-cell *matCellDef="let product; let i = index">{{i +1}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="category_name">
+                    <th mat-header-cell *matHeaderCellDef>Category</th>
+                    <td mat-cell *matCellDef="let product">{{product.category?.name}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="product_image">
+                    <th mat-header-cell *matHeaderCellDef>Product Image</th>
+                    <td mat-cell *matCellDef="let product">
+                        <img [src]="product.product_image" width="108px" />
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="product_name">
+                    <th mat-header-cell *matHeaderCellDef>Product Name</th>
+                    <td mat-cell *matCellDef="let product">{{product.name}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="price">
+                    <th mat-header-cell *matHeaderCellDef>Price</th>
+                    <td mat-cell *matCellDef="let product">{{product.price}}</td>
+                </ng-container>
+                
+                <ng-container matColumnDef="original_price">
+                    <th mat-header-cell *matHeaderCellDef>Original Price</th>
+                    <td mat-cell *matCellDef="let product">{{product.original_price}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="created_at">
+                    <th mat-header-cell *matHeaderCellDef>Created</th>
+                    <td mat-cell *matCellDef="let element">{{element.created_at|date: 'MMMM dd,
+                        yyyy'}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="updated_at">
+                    <th mat-header-cell *matHeaderCellDef>Updated</th>
+                    <td mat-cell *matCellDef="let element">{{element.updated_at| date: 'MMMM dd,
+                        yyyy'}}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="edit">
+                    <th mat-header-cell *matHeaderCellDef>Edit</th>
+                    <td mat-cell *matCellDef="let element">
+                        <button mat-icon-button (click)="openProductEditialog(element)"><mat-icon>edit</mat-icon></button>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="delete">
+                    <th mat-header-cell *matHeaderCellDef>Delete</th>
+                    <td mat-cell *matCellDef="let element">
+                        <div>
+                            <button mat-icon-button
+                                (click)="openProductDeleteDialog(element)"><mat-icon>delete</mat-icon></button>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </div>
+        <mat-paginator [style.visibility]="dataSource.length <= 0 ? 'hidden' : 'visible'" #paginator
+            [length]="totalRecords" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+            (page)="changePage($event)">
+        </mat-paginator>
+    </mat-card-content>
+</mat-card>

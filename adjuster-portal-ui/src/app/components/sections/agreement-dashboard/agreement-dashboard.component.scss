@@ -1,0 +1,251 @@
+$bg: #f8f9fc; $card: #fff; $border: #e5e7eb; $dk: #111827; $mid: #6b7280; $muted: #9ca3af;
+$blue: #1565c0; $blue-l: #e3f2fd; $green: #16a34a; $amber: #d97706; $red: #dc2626; $purple: #7c3aed;
+$gold: #c9a84c; $gold-dark: #b8942f; $gold-l: #fef3c7; $gold-xl: #fffdf5;
+
+.us-page { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+
+// ── HEADER ──
+.us-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;
+  h1 { margin: 0; font-size: 1.75rem; font-weight: 800; color: $dk; letter-spacing: -0.02em;
+    sup { font-size: 0.55em; color: $mid; } } }
+.us-subtitle { margin: 4px 0 0; font-size: 0.82rem; color: $mid; font-weight: 500; }
+.us-header-actions { display: flex; align-items: center; gap: 14px; }
+
+// ── BUTTONS ──
+.us-primary-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: 10px; border: none; background: $blue; color: #fff; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover:not(:disabled) { box-shadow: 0 3px 12px rgba(21,101,192,0.3); transform: translateY(-1px); }
+  &:disabled { opacity: 0.4; } &.us-full { width: 100%; justify-content: center; margin-top: 8px; } }
+.us-secondary-btn { padding: 10px 22px; border-radius: 10px; border: 1px solid $border; background: $card; color: $mid; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { background: #f9fafb; } }
+.us-back { display: flex; align-items: center; gap: 4px; background: none; border: none; color: $mid; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; } &:hover { color: $dk; } }
+
+// ── CERTIFIED BANNER ──
+.us-cert-banner { display: flex; align-items: center; gap: 12px; padding: 12px 20px; margin-bottom: 20px; border-radius: 12px;
+  background: linear-gradient(90deg, $gold-xl, $gold-l); border: 1px solid rgba(201,168,76,0.25);
+  > mat-icon { font-size: 20px; width: 20px; height: 20px; color: $gold; flex-shrink: 0; }
+  strong { display: block; font-size: 0.82rem; color: #78350f; }
+  span { display: block; font-size: 0.75rem; color: #92400e; margin-top: 1px; } }
+
+// ── CERTIFIED TOGGLE ──
+.us-cert-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: 1.5px solid $border; border-radius: 10px; cursor: pointer; transition: all 0.15s; font-size: 0.8rem; font-weight: 600; color: $mid;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { border-color: $gold; }
+  &.us-cert-on { border-color: $gold; background: linear-gradient(135deg, $gold-xl, $gold-l); color: #92400e;
+    mat-icon { color: $gold; } } }
+.us-toggle-pill { padding: 2px 10px; border-radius: 10px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; background: #f3f4f6; color: $muted;
+  &.us-pill-on { background: $gold; color: #fff; } }
+
+// ── KPI ROW ──
+.us-kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+.us-kpi { background: $card; border: 1px solid $border; border-radius: 14px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.us-kpi-val { display: block; font-size: 1.8rem; font-weight: 800; color: $dk; font-family: 'SF Mono', monospace;
+  &.blue { color: $blue; } &.green { color: $green; } &.amber { color: $amber; } &.gold { color: $gold; } }
+.us-kpi-lbl { display: block; font-size: 0.65rem; color: $muted; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; font-weight: 600; }
+.us-kpi-cert { border-color: $gold-l; background: linear-gradient(135deg, $gold-xl, #fff); }
+
+// ── FILTERS ──
+.us-filters { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
+  button { padding: 6px 16px; border: 1px solid $border; border-radius: 20px; background: $card; font-size: 0.75rem; font-weight: 600; color: $mid; cursor: pointer; font-family: inherit; transition: all 0.12s;
+    &:hover { border-color: $blue; color: $blue; } &.us-f-active { background: $blue; color: #fff; border-color: $blue; } } }
+
+// ── TABLE ──
+.us-table-wrap { background: $card; border: 1px solid $border; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.us-table { width: 100%; border-collapse: collapse;
+  th { font-size: 0.7rem; color: $muted; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 16px; text-align: left; border-bottom: 1px solid $border; font-weight: 600; }
+  td { font-size: 0.84rem; color: $dk; padding: 14px 16px; border-bottom: 1px solid #f3f4f6; }
+  tr:hover td { background: #f9fafb; } }
+.us-doc-name { font-weight: 600; }
+.us-muted { color: $muted; font-size: 0.78rem; }
+
+// ── CERTIFIED ROW ──
+.us-row-cert {
+  position: relative;
+  td { background: linear-gradient(90deg, rgba(201,168,76,0.05) 0%, rgba(201,168,76,0.02) 60%, transparent 100%); }
+  td:first-child { border-left: 3px solid $gold; }
+  &:hover { transform: scale(1.005); td { background: linear-gradient(90deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 60%, transparent 100%) !important; } }
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  &:hover { box-shadow: 0 2px 16px rgba(201,168,76,0.1); }
+}
+
+// Inline certified badge next to doc name
+.us-inline-cert { display: inline-flex; align-items: center; gap: 2px; margin-left: 8px; padding: 2px 8px; border-radius: 8px;
+  background: linear-gradient(135deg, $gold-l, #fde68a); color: $gold-dark; font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; vertical-align: middle;
+  mat-icon { font-size: 9px; width: 9px; height: 9px; } }
+
+// Certification column
+.us-cert-col { display: flex; flex-direction: column; gap: 3px; }
+.us-cert-badge-full { display: inline-flex; align-items: center; gap: 5px; padding: 5px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; cursor: default; letter-spacing: 0.04em;
+  background: linear-gradient(135deg, $gold, $gold-dark); color: #fff; border: none;
+  box-shadow: 0 2px 8px rgba(201,168,76,0.3); animation: certGlow 3s ease-in-out infinite;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; color: #fff; } }
+@keyframes certGlow { 0%,100% { box-shadow: 0 2px 8px rgba(201,168,76,0.2); } 50% { box-shadow: 0 2px 16px rgba(201,168,76,0.45); } }
+.us-cert-micro { font-size: 0.58rem; color: $muted; letter-spacing: 0.02em; }
+.us-std-badge { font-size: 0.68rem; color: $muted; }
+.us-status { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+
+// View Certificate pill button
+.us-view-cert-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; border-radius: 20px; border: none; cursor: pointer; font-family: inherit; font-size: 0.72rem; font-weight: 700; color: #fff; white-space: nowrap;
+  background: linear-gradient(135deg, $gold, $gold-dark); box-shadow: 0 2px 10px rgba(201,168,76,0.3);
+  transition: all 0.2s ease;
+  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+  &:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(201,168,76,0.4); } }
+
+.us-actions { display: flex; gap: 4px; align-items: center;
+  > button:not(.us-act-cert-btn) { width: 32px; height: 32px; border: 1px solid $border; border-radius: 8px; background: $card; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; color: $mid; }
+    &:hover { border-color: $blue; mat-icon { color: $blue; } } } }
+.us-empty { text-align: center; padding: 48px; color: $muted;
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.2; } p { margin: 8px 0 0; font-size: 0.85rem; } }
+
+// ── CREATE MODAL ──
+.us-modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn 0.15s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.us-modal { background: $card; border-radius: 20px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: slideUp 0.2s; }
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.us-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  h2 { margin: 0; font-size: 1.15rem; font-weight: 700; color: $dk; }
+  button { background: none; border: none; color: $muted; cursor: pointer; } }
+.us-source-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.us-source-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 28px 16px; border: 1.5px solid $border; border-radius: 14px; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; font-weight: 600; color: $dk;
+  mat-icon { font-size: 32px; width: 32px; height: 32px; color: $blue; }
+  &:hover { border-color: $blue; background: #fafcff; } }
+.us-create-form { display: flex; flex-direction: column; gap: 14px;
+  label { font-size: 0.72rem; font-weight: 700; color: $mid; text-transform: uppercase; letter-spacing: 0.04em; }
+  input { height: 44px; padding: 0 14px; border: 1.5px solid $border; border-radius: 10px; font-size: 0.9rem; color: $dk; outline: none; font-family: inherit;
+    &:focus { border-color: $blue; box-shadow: 0 0 0 3px rgba(21,101,192,0.08); } &::placeholder { color: $muted; } } }
+
+// ── EDITOR ──
+.us-editor { height: calc(100vh - 64px); display: flex; flex-direction: column; }
+.us-editor-top { display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: $card; border-bottom: 1px solid $border; .us-primary-btn { margin-left: auto; } }
+.us-editor-title { font-size: 0.95rem; font-weight: 700; color: $dk; }
+.us-editor-body { display: flex; flex: 1; overflow: hidden; }
+.us-tools { width: 200px; background: $card; border-right: 1px solid $border; padding: 16px; overflow-y: auto; flex-shrink: 0; }
+.us-tools-label { font-size: 0.65rem; font-weight: 700; color: $muted; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; display: flex; align-items: center; gap: 4px;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; color: $purple; } }
+.us-tool { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 1px solid $border; border-radius: 10px; background: $card; font-size: 0.8rem; font-weight: 600; color: $dk; cursor: pointer; font-family: inherit; margin-bottom: 6px; transition: all 0.12s;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $blue; }
+  &:hover { border-color: $blue; background: $blue-l; }
+  &.us-tool-active { border-color: $blue; background: $blue; color: #fff; mat-icon { color: #fff; } } }
+.us-ai-section { margin-top: 20px; border-top: 1px solid $border; padding-top: 14px; }
+.us-ai-btn { display: block; width: 100%; text-align: left; padding: 8px 10px; border: 1px dashed #d8b4fe; border-radius: 8px; background: #faf5ff; font-size: 0.72rem; color: $purple; cursor: pointer; font-family: inherit; margin-bottom: 6px;
+  &:hover { background: #f3e8ff; border-style: solid; } }
+.us-canvas { flex: 1; background: #eef0f4; overflow: auto; display: flex; justify-content: center; padding: 32px; cursor: crosshair; }
+.us-canvas-page { width: 612px; min-height: 792px; background: $card; border: 1px solid $border; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: relative; }
+.us-canvas-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: $muted; font-size: 0.9rem; }
+.us-placed-field { position: absolute; display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: rgba(21,101,192,0.1); border: 1.5px solid $blue; border-radius: 6px; cursor: move; animation: fieldPop 0.15s; }
+@keyframes fieldPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.us-pf-label { font-size: 0.68rem; font-weight: 700; color: $blue; }
+.us-pf-remove { background: none; border: none; cursor: pointer; padding: 0; mat-icon { font-size: 14px; width: 14px; height: 14px; color: $muted; } &:hover mat-icon { color: $red; } }
+.us-props { width: 240px; background: $card; border-left: 1px solid $border; padding: 16px; overflow-y: auto; flex-shrink: 0; }
+.us-prop-item { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.78rem; color: $dk;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: $blue; } span:first-of-type { flex: 1; font-weight: 600; } }
+.us-prop-signer { font-size: 0.65rem; color: $muted; }
+.us-prop-req { padding: 2px 8px; border-radius: 6px; border: 1px solid $border; background: $card; font-size: 0.6rem; font-weight: 700; color: $muted; cursor: pointer; font-family: inherit;
+  &.us-req-on { background: $blue-l; color: $blue; border-color: #bbdefb; } }
+.us-prop-empty { text-align: center; padding: 24px 0; color: $muted; font-size: 0.78rem; }
+
+// ── REVIEW ──
+.us-review { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+.us-review-card { background: $card; border: 1px solid $border; border-radius: 16px; padding: 28px; margin-top: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.us-review-field { margin-bottom: 18px;
+  label { display: block; font-size: 0.72rem; font-weight: 700; color: $mid; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+  input, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid $border; border-radius: 10px; font-size: 0.88rem; color: $dk; outline: none; font-family: inherit; box-sizing: border-box;
+    &:focus { border-color: $blue; box-shadow: 0 0 0 3px rgba(21,101,192,0.08); } } textarea { resize: vertical; } }
+.us-mode-toggle { display: flex; gap: 8px;
+  button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 1.5px solid $border; border-radius: 10px; background: $card; font-size: 0.82rem; font-weight: 600; color: $mid; cursor: pointer; font-family: inherit;
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    &:hover { border-color: $blue; } &.us-mode-on { border-color: $blue; background: $blue-l; color: $blue; } } }
+.us-review-summary { display: flex; gap: 16px; padding: 12px 0; margin-bottom: 12px; border-top: 1px solid #f3f4f6; font-size: 0.78rem; color: $muted; font-weight: 600; }
+.us-review-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+// ══════ CERTIFICATE OF AUTHENTICITY ══════
+.us-cert-overlay { position: fixed; inset: 0; z-index: 2000; overflow-y: auto;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 20px;
+  animation: certOverlayIn 0.3s ease; }
+@keyframes certOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+.us-cert-modal-body { width: 100%; max-width: 720px; animation: certDocOpen 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.us-cert-top-bar { padding: 8px 0 12px; }
+.us-cert-page { padding: 0 0 40px; }
+@keyframes certDocOpen { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.us-cert-card { background: $card; border: 3px solid $gold; border-radius: 4px; box-shadow: 0 8px 40px rgba(201,168,76,0.15), inset 0 0 0 6px $gold-xl, inset 0 0 0 8px rgba(201,168,76,0.15); position: relative; overflow: hidden; }
+
+// Decorative corners
+.us-cert-corner { position: absolute; width: 40px; height: 40px; border-color: $gold; border-style: solid; z-index: 1; }
+.us-cert-tl { top: 12px; left: 12px; border-width: 3px 0 0 3px; }
+.us-cert-tr { top: 12px; right: 12px; border-width: 3px 3px 0 0; }
+.us-cert-bl { bottom: 12px; left: 12px; border-width: 0 0 3px 3px; }
+.us-cert-br { bottom: 12px; right: 12px; border-width: 0 3px 3px 0; }
+
+// Header
+.us-cert-header { text-align: center; padding: 40px 32px 24px; background: linear-gradient(180deg, $gold-xl 0%, $card 100%);
+  h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 800; color: $dk; letter-spacing: 0.02em; } }
+.us-cert-sub { margin: 0 0 20px; font-size: 0.82rem; color: $mid; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
+.us-cert-divider { width: 80px; height: 2px; background: linear-gradient(90deg, transparent, $gold, transparent); margin: 0 auto 16px; }
+
+// Seal
+.us-cert-seal-wrap { position: relative; width: 80px; height: 80px; margin: 0 auto 16px; }
+.us-cert-seal { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, $gold-l, #fde68a); display: flex; align-items: center; justify-content: center; border: 3px solid $gold; position: relative; z-index: 1;
+  mat-icon { font-size: 36px; width: 36px; height: 36px; color: $gold-dark; } }
+.us-cert-seal-ring { position: absolute; inset: -8px; border: 2px dashed rgba(201,168,76,0.3); border-radius: 50%; animation: sealSpin 30s linear infinite; }
+@keyframes sealSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+// Verified badge
+.us-cert-verified-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 18px; border-radius: 20px; background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #bbf7d0; color: $green; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+
+// Sections
+.us-cert-section { padding: 24px 32px; border-top: 1px solid #f3f4f6;
+  h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 0.82rem; font-weight: 700; color: $dk; text-transform: uppercase; letter-spacing: 0.04em;
+    mat-icon { font-size: 18px; width: 18px; height: 18px; color: $green; } } }
+.us-cert-grid { display: flex; flex-direction: column; }
+.us-cert-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9fafb; &:last-child { border-bottom: none; } }
+.us-cert-label { font-size: 0.7rem; font-weight: 600; color: $muted; text-transform: uppercase; letter-spacing: 0.04em; }
+.us-cert-value { font-size: 0.84rem; font-weight: 600; color: $dk; text-align: right; }
+.us-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.78rem; }
+
+// Security
+.us-cert-hash-block { margin-bottom: 16px;
+  code { display: block; margin-top: 6px; padding: 10px 14px; background: #f9fafb; border: 1px solid $border; border-radius: 8px; font-family: 'SF Mono', monospace; font-size: 0.65rem; color: $mid; word-break: break-all; line-height: 1.6; } }
+.us-cert-status-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.us-cert-status-item { }
+.us-cert-status-ok { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 0.88rem; font-weight: 800; color: $green;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; } }
+
+// Legal
+.us-cert-legal { padding: 20px 32px; margin: 0 24px; border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; background: $gold-xl;
+  p { margin: 0; font-size: 0.8rem; color: #78716c; line-height: 1.6; font-style: italic; text-align: center; } }
+
+// Actions
+.us-cert-actions { display: flex; gap: 10px; padding: 24px 32px; justify-content: center; }
+.us-cert-gold-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 12px; border: none; background: linear-gradient(135deg, $gold, $gold-dark); color: #fff; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 4px 16px rgba(201,168,76,0.3);
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  animation: goldShine 3s ease-in-out infinite;
+  &:hover { box-shadow: 0 6px 24px rgba(201,168,76,0.4); transform: translateY(-1px); } }
+@keyframes goldShine { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.08); } }
+
+// ══════ AUDIT TRAIL ══════
+.us-audit-overlay { position: fixed; inset: 0; z-index: 2001; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; animation: fadeIn 0.3s; }
+.us-audit-modal-body { width: 100%; max-width: 600px; animation: slideUp 0.3s; }
+.us-audit-page { background: $card; border-radius: 16px; padding: 28px 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  h2 { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 700; color: $dk; margin: 0 0 4px;
+    mat-icon { font-size: 24px; width: 24px; height: 24px; color: $blue; } } }
+.us-audit-sub { font-size: 0.82rem; color: $mid; margin: 0 0 24px; }
+.us-audit-timeline { }
+.us-audit-item { display: flex; gap: 14px; }
+.us-audit-marker { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.us-audit-dot { width: 12px; height: 12px; border-radius: 50%; background: $blue; border: 2px solid $blue-l; }
+.us-audit-line { width: 2px; flex: 1; min-height: 20px; background: $border; }
+.us-audit-content { flex: 1; padding-bottom: 20px; }
+.us-audit-action { font-size: 0.88rem; font-weight: 700; color: $dk; }
+.us-audit-detail { font-size: 0.78rem; color: $mid; margin-top: 2px; }
+.us-audit-time { font-size: 0.65rem; color: $muted; margin-top: 4px; font-family: 'SF Mono', monospace; }
+
+// ── RESPONSIVE ──
+@media (max-width: 900px) { .us-kpi-row { grid-template-columns: repeat(3, 1fr); } .us-tools, .us-props { display: none; } }
+@media (max-width: 600px) { .us-page { padding: 16px; } .us-header { flex-direction: column; gap: 12px; } .us-table-wrap { overflow-x: auto; } .us-kpi-row { grid-template-columns: repeat(2, 1fr); } .us-cert-section { padding: 20px 16px; } .us-cert-header { padding: 28px 16px 20px; } .us-cert-status-row { grid-template-columns: 1fr; } }

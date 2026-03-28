@@ -1,0 +1,11 @@
+# ipython notebook checkpoints
+.ipynb_checkpoints
+
+# Tests
+.pytest_cache
+
+# Tests coverage
+coverage
+
+# MyPy Python
+.mypy_cache

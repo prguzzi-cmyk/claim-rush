@@ -1,0 +1,52 @@
+<h2 mat-dialog-title>Initiate Voice Call</h2>
+
+<mat-dialog-content>
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Search leads by name, phone, or address</mat-label>
+    <input matInput [(ngModel)]="searchTerm" (ngModelChange)="filterLeads()" placeholder="Type to search...">
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <div class="lead-list-container" *ngIf="!loading && !selectedLead">
+    <div *ngIf="filteredLeads.length === 0" class="empty-msg">No leads match your search.</div>
+    <div class="lead-item" *ngFor="let lead of filteredLeads"
+         (click)="selectLead(lead)"
+         [class.selected]="selectedLead?.id === lead.id">
+      <div class="lead-name">{{ lead.owner_name }}</div>
+      <div class="lead-meta">{{ lead.phone }} &middot; {{ lead.property_address }}, {{ lead.property_city }}</div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <mat-spinner diameter="32"></mat-spinner>
+    <span>Loading leads...</span>
+  </div>
+
+  <div *ngIf="selectedLead" class="selected-lead-card">
+    <div class="selected-header">
+      <mat-icon>person</mat-icon>
+      <span class="selected-name">{{ selectedLead.owner_name }}</span>
+      <button mat-icon-button (click)="selectedLead = null" matTooltip="Change lead">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="selected-detail">{{ selectedLead.property_address }}, {{ selectedLead.property_city }}, {{ selectedLead.property_state }}</div>
+
+    <mat-form-field appearance="outline" class="w-100 mt-12">
+      <mat-label>Phone Number</mat-label>
+      <input matInput [(ngModel)]="phoneNumber" placeholder="Enter phone number">
+      <mat-icon matPrefix>phone</mat-icon>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary"
+          [disabled]="!selectedLead || !phoneNumber || initiating"
+          (click)="initiateCall()">
+    <mat-spinner *ngIf="initiating" diameter="18" class="inline-spinner"></mat-spinner>
+    <mat-icon *ngIf="!initiating">call</mat-icon>
+    {{ initiating ? 'Calling...' : 'Call Now' }}
+  </button>
+</mat-dialog-actions>

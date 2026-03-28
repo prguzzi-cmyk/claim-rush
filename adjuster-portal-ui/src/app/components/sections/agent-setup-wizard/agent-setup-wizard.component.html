@@ -1,0 +1,271 @@
+<div class="wizard-page">
+
+  <div class="wizard-header">
+    <mat-icon class="header-icon">person_add</mat-icon>
+    <div>
+      <h2>Agent Setup Wizard</h2>
+      <p class="subtitle">Onboard a new ACI rep in one guided flow</p>
+    </div>
+  </div>
+
+  <mat-stepper #stepper [linear]="false" class="wizard-stepper">
+
+    <!-- STEP 1: IDENTITY -->
+    <mat-step label="Identity">
+      <div class="step-content">
+        <h3><mat-icon>badge</mat-icon> Basic Identity</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"><mat-label>First Name</mat-label>
+            <input matInput [(ngModel)]="first_name" (ngModelChange)="onNameChange()" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Last Name</mat-label>
+            <input matInput [(ngModel)]="last_name" (ngModelChange)="onNameChange()" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Email</mat-label>
+            <input matInput type="email" [(ngModel)]="email" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Phone</mat-label>
+            <input matInput [(ngModel)]="phone" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Title</mat-label>
+            <input matInput [(ngModel)]="title" placeholder="e.g. Public Adjuster" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Chapter / Team</mat-label>
+            <input matInput [(ngModel)]="chapter" placeholder="e.g. Florida South" />
+          </mat-form-field>
+        </div>
+        <div class="step-actions"><span></span>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!isStep1Valid()">Next <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 2: ROLE -->
+    <mat-step label="Role">
+      <div class="step-content">
+        <h3><mat-icon>account_tree</mat-icon> Role &amp; Hierarchy</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"><mat-label>Role Type</mat-label>
+            <mat-select [(ngModel)]="role_type">
+              <mat-option *ngFor="let r of roleOptions" [value]="r.value">{{r.label}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Assigned CP</mat-label>
+            <input matInput [(ngModel)]="assigned_cp_id" placeholder="UUID or leave blank" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Assigned RVP</mat-label>
+            <input matInput [(ngModel)]="assigned_rvp_id" placeholder="UUID or leave blank" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Supervisor</mat-label>
+            <input matInput [(ngModel)]="supervisor_id" placeholder="UUID or leave blank" />
+          </mat-form-field>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!isStep2Valid()">Next <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 3: TERRITORY -->
+    <mat-step label="Territory">
+      <div class="step-content">
+        <h3><mat-icon>map</mat-icon> Territory</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"><mat-label>State</mat-label>
+            <input matInput [(ngModel)]="state" placeholder="e.g. FL" maxlength="2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>County</mat-label>
+            <input matInput [(ngModel)]="county" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width"><mat-label>ZIP Codes</mat-label>
+            <input matInput [(ngModel)]="zip_codes" placeholder="Comma-separated" />
+          </mat-form-field>
+        </div>
+        <div class="toggle-row">
+          <mat-slide-toggle [(ngModel)]="national_access">National Access</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="exclusive_territory">Exclusive Territory</mat-slide-toggle>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!isStep3Valid()">Next <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 4: AI SETUP -->
+    <mat-step label="AI Setup">
+      <div class="step-content">
+        <h3><mat-icon>smart_toy</mat-icon> AI Setup</h3>
+        <div class="toggle-grid">
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="ai_secretary_enabled"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">AI Secretary</span><span class="toggle-desc">Auto-answer calls</span></div>
+          </div>
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="ai_voice_enabled"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">AI Voice Outreach</span><span class="toggle-desc">Outbound calling</span></div>
+          </div>
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="ai_sales_enabled"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">AI Sales Agent</span><span class="toggle-desc">Lead conversion</span></div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: 16px;">
+          <mat-form-field appearance="outline"><mat-label>Greeting Style</mat-label>
+            <mat-select [(ngModel)]="greeting_style">
+              <mat-option *ngFor="let g of greetingOptions" [value]="g.value">{{g.label}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Rep Display Name</mat-label>
+            <input matInput [(ngModel)]="rep_display_name" />
+          </mat-form-field>
+        </div>
+        <div class="brand-note"><mat-icon>info</mat-icon> ACI remains the sole brand on all public-facing materials.</div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext>Next <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 5: INTAKE -->
+    <mat-step label="Intake">
+      <div class="step-content">
+        <h3><mat-icon>link</mat-icon> Intake Ownership</h3>
+        <div class="form-grid">
+          <mat-form-field appearance="outline"><mat-label>Intake Slug</mat-label>
+            <input matInput [(ngModel)]="intake_slug" />
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Source Credit Owner</mat-label>
+            <mat-select [(ngModel)]="source_credit_owner">
+              <mat-option *ngFor="let o of creditOwnerOptions" [value]="o.value">{{o.label}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="toggle-row">
+          <mat-slide-toggle [(ngModel)]="fallback_home_office">Fallback to Home Office</mat-slide-toggle>
+          <mat-slide-toggle [(ngModel)]="rescue_enabled">Rescue Enabled</mat-slide-toggle>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" matStepperNext [disabled]="!isStep5Valid()">Next <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 6: HANDLING -->
+    <mat-step label="Handling">
+      <div class="step-content">
+        <h3><mat-icon>paid</mat-icon> Compensation &amp; Handling</h3>
+        <div class="toggle-grid">
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="sales_credit"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">Sales Source Credit</span><span class="toggle-desc">Lead sourcing credit</span></div>
+          </div>
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="close_credit"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">Close Credit</span><span class="toggle-desc">Deal closing credit</span></div>
+          </div>
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="adjuster_credit"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">Adjuster Credit</span><span class="toggle-desc">Claim adjustment credit</span></div>
+          </div>
+          <div class="toggle-card">
+            <mat-slide-toggle [(ngModel)]="hierarchy_payout"></mat-slide-toggle>
+            <div class="toggle-info"><span class="toggle-title">Hierarchy Payout</span><span class="toggle-desc">Upline commission splits</span></div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top: 16px;">
+          <mat-form-field appearance="outline"><mat-label>Handling Mode</mat-label>
+            <mat-select [(ngModel)]="handling_mode">
+              <mat-option *ngFor="let h of handlingOptions" [value]="h.value">{{h.label}}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="step-actions">
+          <button mat-button matStepperPrevious>Back</button>
+          <button mat-raised-button color="primary" (click)="submitWizard()" [disabled]="saving">
+            <mat-icon *ngIf="!saving">check</mat-icon>
+            <mat-spinner *ngIf="saving" [diameter]="20"></mat-spinner>
+            {{saving ? 'Creating...' : 'Complete Setup'}}
+          </button>
+        </div>
+      </div>
+    </mat-step>
+
+    <!-- STEP 7: SUMMARY (includes Digital Identity panel) -->
+    <mat-step label="Summary">
+      <div class="step-content summary-step">
+        <div class="summary-header">
+          <mat-icon class="success-icon">check_circle</mat-icon>
+          <h3>Setup Complete</h3>
+          <p>{{first_name}} {{last_name}} is ready to go.</p>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h4><mat-icon>badge</mat-icon> Identity</h4>
+            <div class="summary-row"><span>Name</span><strong>{{first_name}} {{last_name}}</strong></div>
+            <div class="summary-row"><span>Email</span><strong>{{email}}</strong></div>
+            <div class="summary-row"><span>Phone</span><strong>{{phone || '—'}}</strong></div>
+            <div class="summary-row"><span>Title</span><strong>{{title || '—'}}</strong></div>
+            <div class="summary-row"><span>Role</span><strong>{{role_type}}</strong></div>
+          </div>
+          <div class="summary-card">
+            <h4><mat-icon>map</mat-icon> Territory</h4>
+            <div class="summary-row"><span>State</span><strong>{{state || '—'}}</strong></div>
+            <div class="summary-row"><span>County</span><strong>{{county || '—'}}</strong></div>
+            <div class="summary-row"><span>ZIPs</span><strong>{{zip_codes || '—'}}</strong></div>
+            <div class="summary-row"><span>National</span><strong>{{national_access ? 'Yes' : 'No'}}</strong></div>
+          </div>
+          <div class="summary-card">
+            <h4><mat-icon>smart_toy</mat-icon> AI Tools</h4>
+            <div class="summary-row"><span>Secretary</span><strong>{{ai_secretary_enabled ? 'On' : 'Off'}}</strong></div>
+            <div class="summary-row"><span>Voice</span><strong>{{ai_voice_enabled ? 'On' : 'Off'}}</strong></div>
+            <div class="summary-row"><span>Sales</span><strong>{{ai_sales_enabled ? 'On' : 'Off'}}</strong></div>
+          </div>
+          <div class="summary-card">
+            <h4><mat-icon>paid</mat-icon> Handling</h4>
+            <div class="summary-row"><span>Mode</span><strong>{{handling_mode}}</strong></div>
+            <div class="summary-row"><span>Sales Credit</span><strong>{{sales_credit ? 'Yes' : 'No'}}</strong></div>
+            <div class="summary-row"><span>Close Credit</span><strong>{{close_credit ? 'Yes' : 'No'}}</strong></div>
+            <div class="summary-row"><span>Hierarchy</span><strong>{{hierarchy_payout ? 'Yes' : 'No'}}</strong></div>
+          </div>
+        </div>
+
+        <!-- Digital Identity (embedded in summary) -->
+        <div class="summary-card" style="grid-column: 1 / -1; margin-bottom: 16px;">
+          <h4><mat-icon>contact_page</mat-icon> Digital Identity</h4>
+          <div class="summary-row"><span>Display Name</span><strong>{{card_display_name || first_name + ' ' + last_name}}</strong></div>
+          <div class="summary-row"><span>Title</span><strong>{{card_title || title || '—'}}</strong></div>
+          <div class="summary-row"><span>Phone</span><strong>{{card_phone || phone || '—'}}</strong></div>
+          <div class="summary-row"><span>Email</span><strong>{{card_email || email || '—'}}</strong></div>
+          <div class="summary-row"><span>Intake URL</span><strong>{{intakeUrl || '—'}}</strong></div>
+          <div class="summary-row"><span>vCard</span><button mat-stroked-button (click)="downloadVcard()" style="height:28px;font-size:12px;">Download .vcf</button></div>
+          <div class="summary-row"><span>QR Code</span><strong class="placeholder-text">Coming soon</strong></div>
+          <div class="summary-row"><span>Apple Wallet</span><strong class="placeholder-text">Coming soon</strong></div>
+        </div>
+
+        <!-- Generated Links -->
+        <div class="summary-card links-card" *ngIf="generatedPublicUrl">
+          <h4><mat-icon>link</mat-icon> Generated Links</h4>
+          <div class="link-row">
+            <span class="link-label">Public Intake</span><code>{{generatedPublicUrl}}</code>
+            <button mat-icon-button (click)="copyToClipboard(generatedPublicUrl)" matTooltip="Copy"><mat-icon>content_copy</mat-icon></button>
+          </div>
+          <div class="link-row" *ngIf="generatedTrackedUrl">
+            <span class="link-label">Tracked</span><code>{{generatedTrackedUrl}}</code>
+            <button mat-icon-button (click)="copyToClipboard(generatedTrackedUrl)" matTooltip="Copy"><mat-icon>content_copy</mat-icon></button>
+          </div>
+        </div>
+
+        <div class="summary-actions">
+          <button mat-raised-button color="primary" (click)="goToUsers()"><mat-icon>manage_accounts</mat-icon> Go to Users</button>
+          <button mat-stroked-button (click)="startAnother()"><mat-icon>person_add</mat-icon> Onboard Another</button>
+        </div>
+      </div>
+    </mat-step>
+
+  </mat-stepper>
+</div>

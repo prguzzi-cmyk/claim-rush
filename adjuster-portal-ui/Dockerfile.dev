@@ -1,0 +1,32 @@
+# Angular serving the content
+FROM node:18.16-alpine3.18
+
+# Install required dependencies
+RUN apk add --no-cache \
+    libpng-dev autoconf libtool nasm automake \
+    make dpkg pkgconfig libpng g++ vips-dev fftw-dev \
+    && rm -fR /var/cache/apk/*
+
+# Setup Environment variables
+ENV NODE_ENV=development
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Bundle app source
+COPY package.json .
+
+# Install node dependencies
+RUN npm install --legacy-peer-deps
+
+# Install Angular cli tool
+RUN npm install -g @angular/cli@16.1.1 && npm cache clean --force
+
+# Bundle app source
+COPY . .
+
+# Expose Ports
+EXPOSE 4200
+
+# Run Command
+CMD ["ng", "serve", "--host", "0.0.0.0", "--port" ,"4200", "--poll", "2000"]

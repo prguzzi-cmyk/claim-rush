@@ -1,0 +1,28 @@
+.data-table {
+    width: 100%;
+  
+    .last-active-cell {
+        &:first-letter {
+            text-transform: uppercase;
+        }
+    }
+  
+    .green-disabled {
+
+      a {
+        color: #ffffff;
+      }
+  
+      background-color: green;
+      .mat-mdc-cell {
+        color: #fff !important;
+      }
+    }
+  
+  }
+
+  .mat-mdc-table-scroll-container {
+    overflow-x: auto;
+    max-width: 100%; /* Adjust the max-width as needed */
+  }
+  

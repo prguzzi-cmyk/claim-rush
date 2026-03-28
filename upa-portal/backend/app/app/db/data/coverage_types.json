@@ -1,0 +1,124 @@
+{
+  "coverage_types": [
+    {
+      "name": "Dwelling Coverage",
+      "slug": "dwelling-coverage",
+      "description": "Coverage A"
+    },
+    {
+      "name": "Other Structures Coverage",
+      "slug": "other-structures-coverage",
+      "description": "Coverage B"
+    },
+    {
+      "name": "Personal Property Coverage",
+      "slug": "personal-property-coverage",
+      "description": "Coverage C"
+    },
+    {
+      "name": "Loss of Use (Additional Living Expenses) Coverage",
+      "slug": "loss-of-use-additional-living-expenses-coverage",
+      "description": "Coverage D"
+    },
+    {
+      "name": "Liability Coverage",
+      "slug": "liability-coverage",
+      "description": "Coverage E"
+    },
+    {
+      "name": "Medical Payments Coverage",
+      "slug": "medical-payments-coverage",
+      "description": "Coverage F"
+    },
+    {
+      "name": "Replacement Cost Coverage",
+      "slug": "replacement-cost-coverage",
+      "description": "Part of Coverage A, B, or C, depending on the policy"
+    },
+    {
+      "name": "Actual Cash Value Coverage",
+      "slug": "actual-cash-value-coverage",
+      "description": "Part of Coverage A, B, or C, depending on the policy"
+    },
+    {
+      "name": "Extended Replacement Cost Coverage",
+      "slug": "extended-replacement-cost-coverage",
+      "description": "Endorsement to Coverage A"
+    },
+    {
+      "name": "Guaranteed Replacement Cost Coverage",
+      "slug": "guaranteed-replacement-cost-coverage",
+      "description": "Endorsement to Coverage A"
+    },
+    {
+      "name": "Scheduled Personal Property Coverage",
+      "slug": "scheduled-personal-property-coverage",
+      "description": "Endorsement to Coverage C"
+    },
+    {
+      "name": "Flood Insurance Coverage",
+      "slug": "flood-insurance-coverage",
+      "description": "Separate policy, not typically labeled as A-F"
+    },
+    {
+      "name": "Earthquake Insurance Coverage",
+      "slug": "earthquake-insurance-coverage",
+      "description": "Separate policy, not typically labeled as A-F"
+    },
+    {
+      "name": "Ordinance or Law Coverage",
+      "slug": "ordinance-or-law-coverage",
+      "description": "Coverage A or Endorsement"
+    },
+    {
+      "name": "Water Backup Coverage",
+      "slug": "water-backup-coverage",
+      "description": "Endorsement"
+    },
+    {
+      "name": "Identity Theft Coverage",
+      "slug": "identity-theft-coverage",
+      "description": "Endorsement"
+    },
+    {
+      "name": "Umbrella Liability Coverage",
+      "slug": "umbrella-liability-coverage",
+      "description": "Separate policy, not typically labeled as A-F"
+    },
+    {
+      "name": "Business Property Coverage",
+      "slug": "business-property-coverage",
+      "description": "Endorsement"
+    },
+    {
+      "name": "Debris Removal Coverage",
+      "slug": "debris-removal-coverage",
+      "description": "Part of Coverage A"
+    },
+    {
+      "name": "Fire Department Service Charge Coverage",
+      "slug": "fire-department-service-charge-coverage",
+      "description": "Part of Coverage D"
+    },
+    {
+      "name": "Glass Breakage Coverage",
+      "slug": "glass-breakage-coverage",
+      "description": "Part of Coverage A or Endorsement"
+    },
+    {
+      "name": "Building and Personal Property Coverage Form (BPP)",
+      "slug": "glass-breakage-coverage",
+      "description": "Part of Coverage A, B, or C, depending on the policy"
+    },
+    {
+      "name": "Business Income Coverage (Business Interruption Insurance)",
+      "slug": "water-backup-coverage",
+      "description": "Endorsement"
+    },
+    {
+      "name": "Extra Expense Coverage",
+      "slug": "water-backup-coverage",
+      "description": "Endorsement"
+    }
+  ]
+}

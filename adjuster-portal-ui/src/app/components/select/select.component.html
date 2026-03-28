@@ -1,0 +1,14 @@
+<div class="ml-4">
+  <span>{{ select.displayName }}:</span>
+
+  <mat-form-field color="primary" class="select-form-field">
+    <mat-select
+      (valueChange)="onValueChange(select.name, $event)"
+      [(value)]="value"
+    >
+      <mat-option *ngFor="let option of options" value="{{ option.name }}">{{
+        option.displayName
+      }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>

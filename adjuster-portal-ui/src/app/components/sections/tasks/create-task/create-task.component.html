@@ -1,0 +1,164 @@
+<div class="scroll-height">
+  <h2 mat-dialog-title>Tasks</h2>
+
+  <ng-container *ngIf="this.type != 'view' && this.type != 'delete'" style="overflow-y: scroll; height: 60vh;">
+
+    <form [formGroup]="taskForm" class="lead-form" (ngSubmit)="saveTask()">
+      <mat-card-content>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput maxlength="255" formControlName="title" placeholder="Title" required>
+        </mat-form-field>
+
+        <!-- <mat-form-field appearance="outline">
+      <mat-label>Description</mat-label>
+      <textarea matInput rows="10" formControlName="description"
+        placeholder="Enter description"></textarea>
+    </mat-form-field> -->
+        <!-- <mat-form-field appearance="outline">
+      <mat-label>Description</mat-label>
+    <angular-editor formControlName="description" [config]="config"></angular-editor>
+    </mat-form-field> -->
+
+        <div class="editor">
+          <!-- <mat-form-field appearance="outline"> -->
+          <mat-label>Description</mat-label>
+          <angular-editor id="e1" #angularEditor formControlName="description" [config]="editorConfig"></angular-editor>
+          <!-- </mat-form-field> -->
+        </div>
+
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estimated Duration</mat-label>
+          <input type="number" matInput formControlName="estimated_duration" placeholder="Estimated Duration" required>
+        </mat-form-field>
+
+        <div class="d-flex align-items-center mb-3">
+          Is active:
+
+          <mat-slide-toggle (change)="toggleIsActive($event)" [checked]="isActive" color="primary"
+            class="ml-3"></mat-slide-toggle>
+        </div>
+
+        <div class="d-flex align-items-center mb-3">
+          Can be removed:
+
+          <mat-slide-toggle (change)="toggleCanBeRemoved($event)" [checked]="canBeRemoved" color="primary"
+            class="ml-3"></mat-slide-toggle>
+        </div>
+
+      </mat-card-content>
+    </form>
+    <div class="d-flex-add-task" *ngFor="let item of taskMetaArray let i = index">
+
+      <mat-form-field appearance="outline" class="w-20">
+        <mat-label>Key</mat-label>
+        <input matInput maxlength="50" placeholder="Size" value="" [(ngModel)]="item.key">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class=" ml-5 w-55">
+        <mat-label>Content</mat-label>
+        <input matInput placeholder="Task Meta" value="" [(ngModel)]="item.content">
+      </mat-form-field>
+
+      <button mat-raised-button *ngIf="item.content!=='' && i == taskMetaArray?.length-1"
+        [disabled]="item.key=='' || item.content==''" color="primary" class="allign-center"
+        (click)="addNewRow(item)">Add Task Meta </button>
+
+      <button mat-raised-button *ngIf="item.content!=='' && i !== taskMetaArray?.length-1" color="primary"
+        class="allign-center" (click)="deleteTaskMetaRow(i)">Delete Task Meta</button>
+
+    </div>
+
+    <!-- <button mat-raised-button color="primary" type="submit" [disabled]="!taskForm?.valid">Save</button> -->
+    <button mat-raised-button color="primary" (click)="saveTask()" [disabled]="!taskForm?.valid || taskFormDisabled">
+      <div class="spinner-container">
+        <mat-spinner diameter="25" *ngIf="taskFormDisabled"></mat-spinner>
+      </div>
+      Save
+    </button>
+    <button class="ml-1rem" color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+
+  </ng-container>
+
+  <div mat-dialog-content *ngIf="this.type == 'view'">
+
+    <div class="row">
+      <div class="col-md-12">
+
+        <dl class="row">
+          <dt class="col-sm-12">Title</dt>
+          <dd class="col-sm-12">{{ task?.title }}</dd>
+        </dl>
+
+        <dl class="row">
+          <dt class="col-sm-12">Description</dt>
+          <dd class="col-sm-12">{{ removeStyleTags(task?.description) }}</dd>
+        </dl>
+
+      </div>
+
+      <div class="col-md-6">
+        <dl class="row">
+          <dt class="col-sm-12">Estimated duration</dt>
+          <dd class="col-sm-12">{{ task?.estimated_duration}}</dd>
+        </dl>
+      </div>
+
+      <div class="col-md-6">
+
+        <dl class="row">
+          <dt class="col-sm-12">Active</dt>
+          <dd class="col-sm-12"><mat-slide-toggle [checked]="!!+task.is_active" disabled
+              color="primary"></mat-slide-toggle></dd>
+        </dl>
+
+      </div>
+
+      <div class="col-md-6">
+
+        <dl class="row">
+          <dt class="col-sm-12">Removed</dt>
+          <mat-slide-toggle [checked]="!!+task.can_be_removed" disabled color="primary"></mat-slide-toggle>
+        </dl>
+
+      </div>
+
+      <div class="col-md-12">
+
+        <dl class="row">
+          <dt class="col-sm-12">Task Meta</dt>
+          <dd>
+            <ul>
+              <li *ngFor="let item of taskMetaArray let i = index">
+                {{ item.key}} : {{ item.content}}
+              </li>
+            </ul>
+          </dd>
+        </dl>
+
+      </div>
+
+    </div>
+
+    <button color="accent" mat-raised-button mat-dialog-close>Cancel</button>
+    <!-- <button mat-button mat-dialog-close>Cancel</button> -->
+  </div>
+
+
+
+  <div mat-dialog-content *ngIf="this.type == 'delete'">
+    Are you sure you want to delete this task?
+    <p></p>
+
+    <button mat-raised-button color="warn" (click)="deleteTask(taskId)" *ngIf="type == 'delete'">
+      <!-- <div class="spinner-container">
+      <mat-spinner diameter="25" *ngIf="roleFormDisabled"></mat-spinner>
+    </div> -->
+      Yes, delete this task
+    </button>
+    <button mat-button mat-dialog-close>Cancel</button>
+  </div>
+
+</div>

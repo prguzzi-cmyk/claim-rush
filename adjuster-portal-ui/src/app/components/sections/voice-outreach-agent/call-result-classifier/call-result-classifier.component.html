@@ -1,0 +1,77 @@
+<div class="voa-dark">
+  <div class="voa-header">
+    <div>
+      <h1>Call Result Classifier</h1>
+      <p class="voa-subtitle">AI-classified call outcomes with auto-routing for qualified leads.</p>
+    </div>
+  </div>
+
+  <div class="voa-body">
+
+    <!-- ══════ OUTCOME DISTRIBUTION ══════ -->
+    <div class="outcome-strip">
+      <div *ngFor="let o of outcomes" class="outcome-card" [ngClass]="'card-' + o.color">
+        <mat-icon>{{ o.icon }}</mat-icon>
+        <div class="outcome-count">{{ getOutcomeCount(o.value) }}</div>
+        <div class="outcome-label">{{ o.label }}</div>
+        <div class="outcome-pct">{{ getOutcomePercentage(o.value) }}%</div>
+        <div class="outcome-bar">
+          <div class="outcome-bar-fill" [style.width.%]="getOutcomePercentage(o.value)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ CLASSIFIED CALLS ══════ -->
+    <div class="dark-panel">
+      <div class="dark-panel-header"><mat-icon>analytics</mat-icon> Classified Calls <span class="header-count">{{ classifiedCalls.length }} classified</span></div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Lead</th>
+              <th>Campaign</th>
+              <th>AI Classification</th>
+              <th>AI Score</th>
+              <th>Duration</th>
+              <th>Intent</th>
+              <th>Routed</th>
+              <th>Reclassify</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of classifiedCalls">
+              <td>
+                <div class="cell-name">{{ c.leadName }}</div>
+                <div class="cell-sub">{{ c.leadPhone }}</div>
+              </td>
+              <td class="cell-sub">{{ c.campaignName }}</td>
+              <td><span class="status-badge" [ngClass]="getOutcomeBadgeClass(c.outcome)">{{ formatOutcome(c.outcome!) }}</span></td>
+              <td>
+                <span *ngIf="c.aiQualificationScore !== null" class="score" [class.score-high]="c.aiQualificationScore! >= 80" [class.score-mid]="c.aiQualificationScore! >= 50 && c.aiQualificationScore! < 80" [class.score-low]="c.aiQualificationScore! < 50">{{ c.aiQualificationScore }}</span>
+                <span *ngIf="c.aiQualificationScore === null" class="cell-sub">—</span>
+              </td>
+              <td>{{ formatDuration(c.duration) }}</td>
+              <td class="cell-intent">{{ c.intentDetected || '—' }}</td>
+              <td>
+                <mat-icon *ngIf="c.routedToSalesAgent" class="routed-icon">check_circle</mat-icon>
+                <span *ngIf="!c.routedToSalesAgent" class="cell-sub">—</span>
+              </td>
+              <td>
+                <select class="dark-select-mini" [value]="c.outcome" (change)="reclassify(c, $any($event.target).value)">
+                  <option *ngFor="let o of outcomes" [value]="o.value">{{ o.label }}</option>
+                </select>
+              </td>
+              <td>
+                <button mat-icon-button class="view-btn" (click)="viewTimeline(c)" matTooltip="View Timeline">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="classifiedCalls.length === 0"><td colspan="9" class="empty-state">No classified calls yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

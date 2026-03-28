@@ -1,0 +1,256 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2>
+      <mat-icon>{{ isEditMode ? 'edit' : 'build' }}</mat-icon>
+      {{ isEditMode ? 'Edit Campaign' : 'Campaign Builder' }}
+    </h2>
+    <p>Configure your outreach campaign targeting, channels, and messaging</p>
+  </div>
+  <button mat-stroked-button (click)="cancel()">
+    <mat-icon>arrow_back</mat-icon> Back
+  </button>
+</div>
+
+<!-- Loading state for edit mode -->
+<div class="loading-state" *ngIf="loadingCampaign">
+  <mat-spinner diameter="36"></mat-spinner>
+</div>
+
+<mat-card appearance="outlined" *ngIf="!loadingCampaign">
+  <div class="row">
+    <div class="col-12">
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item"><a [routerLink]="['/app/dashboard']">Home</a></li>
+        <li class="breadcrumb-item"><a [routerLink]="['/app/outreach/campaigns']">Campaign Manager</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">{{ isEditMode ? 'Edit' : 'Create' }}</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <form [formGroup]="campaignForm">
+
+    <!-- Section 1: Campaign Info -->
+    <mat-card appearance="outlined" class="form-section">
+      <mat-card-header>
+        <mat-card-title>Campaign Info</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Campaign Name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g. Fire Lead AI Voice Outreach" />
+            <mat-error *ngIf="campaignForm.get('name')?.hasError('required')">
+              Campaign name is required
+            </mat-error>
+            <mat-error *ngIf="campaignForm.get('name')?.hasError('maxlength')">
+              Maximum 200 characters
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="2" placeholder="Optional description..."></textarea>
+            <mat-error *ngIf="campaignForm.get('description')?.hasError('maxlength')">
+              Maximum 500 characters
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Campaign Type Selector -->
+        <div class="type-selector">
+          <label class="type-label">Campaign Type</label>
+          <div class="type-cards">
+            <div *ngFor="let ct of campaignTypes"
+              class="type-card"
+              [class.selected]="campaignForm.get('campaign_type')?.value === ct.value"
+              (click)="campaignForm.get('campaign_type')?.setValue(ct.value); onCampaignTypeChange(ct.value)">
+              <mat-icon>{{ ct.icon }}</mat-icon>
+              <div class="type-card-label">{{ ct.label }}</div>
+              <div class="type-card-desc">{{ ct.description }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px">
+          <mat-form-field appearance="outline">
+            <mat-label>Contact Method</mat-label>
+            <mat-select formControlName="contact_method">
+              <mat-option *ngFor="let m of channelOptions" [value]="m">{{ m | uppercase }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Template</mat-label>
+            <mat-select formControlName="template_id" (selectionChange)="onTemplateSelect($event.value)">
+              <mat-option *ngFor="let t of getFilteredTemplates(campaignForm.get('contact_method')?.value)" [value]="t.id">
+                {{ t.name }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="campaignForm.get('template_id')?.hasError('required')">
+              Template is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Trigger On</mat-label>
+            <mat-select formControlName="trigger_on">
+              <mat-option *ngFor="let t of triggerOptions" [value]="t">{{ t }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Delay (minutes)</mat-label>
+            <input matInput type="number" formControlName="delay_minutes" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Max Attempts</mat-label>
+            <input matInput type="number" formControlName="max_attempts" />
+          </mat-form-field>
+        </div>
+
+        <!-- Template Preview -->
+        <div class="template-preview" *ngIf="selectedTemplate">
+          <div class="preview-header">
+            <mat-icon>preview</mat-icon> Template Preview
+            <span class="preview-channel">{{ selectedTemplate.channel | uppercase }}</span>
+          </div>
+          <div class="preview-subject" *ngIf="selectedTemplate.subject">
+            Subject: {{ selectedTemplate.subject }}
+          </div>
+          <div class="preview-body">{{ selectedTemplate.body }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section 2: Targeting -->
+    <mat-card appearance="outlined" class="form-section">
+      <mat-card-header>
+        <mat-card-title>Targeting</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Incident Type</mat-label>
+            <mat-select formControlName="incident_type">
+              <mat-option *ngFor="let it of incidentTypes" [value]="it.value">{{ it.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Target Zip Code</mat-label>
+            <input matInput formControlName="target_zip_code" maxlength="10" placeholder="e.g. 90210" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Radius (miles)</mat-label>
+            <mat-select formControlName="target_radius_miles">
+              <mat-option *ngFor="let r of radiusOptions" [value]="r">{{ r }} mi</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Lead Source</mat-label>
+            <mat-select formControlName="lead_source">
+              <mat-option value="">All Sources</mat-option>
+              <mat-option *ngFor="let s of leadSourceOptions" [value]="s">{{ s }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>State (2-letter)</mat-label>
+            <input matInput formControlName="territory_state" maxlength="2" placeholder="e.g. CA" />
+          </mat-form-field>
+        </div>
+
+        <button mat-stroked-button color="primary" type="button" (click)="previewLeads()">
+          <mat-icon>visibility</mat-icon> Preview Matching Leads
+        </button>
+
+        <div *ngIf="previewResult" class="preview-result">
+          <div class="preview-count">
+            <mat-icon>people</mat-icon>
+            <strong>{{ previewResult.total_leads }}</strong> matching leads found
+          </div>
+          <table *ngIf="previewResult.sample_leads.length > 0" class="preview-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Zip</th>
+                <th>Peril</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let lead of previewResult.sample_leads">
+                <td>{{ lead.name }}</td>
+                <td>{{ lead.address }}</td>
+                <td>{{ lead.zip }}</td>
+                <td>{{ lead.peril || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Section 3: Steps (Multi-Step only) -->
+    <mat-card appearance="outlined" class="form-section"
+      *ngIf="campaignForm.get('campaign_type')?.value === 'multi_step'">
+      <mat-card-header>
+        <mat-card-title>Multi-Step Sequence</mat-card-title>
+      </mat-card-header>
+      <mat-card-content formArrayName="steps">
+        <div *ngFor="let step of steps.controls; let i = index" class="step-row" [formGroupName]="i">
+          <div class="step-number">Step {{ i + 1 }}</div>
+          <div class="step-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>Channel</mat-label>
+              <mat-select formControlName="channel">
+                <mat-option *ngFor="let ch of channelOptions" [value]="ch">{{ ch | uppercase }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Template</mat-label>
+              <mat-select formControlName="template_id">
+                <mat-option *ngFor="let t of getFilteredTemplates(step.get('channel')?.value)" [value]="t.id">
+                  {{ t.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="narrow">
+              <mat-label>Delay (min)</mat-label>
+              <input matInput type="number" formControlName="delay_minutes" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="step.get('channel')?.value === 'email'">
+              <mat-label>Subject</mat-label>
+              <input matInput formControlName="subject" />
+            </mat-form-field>
+          </div>
+          <button mat-icon-button color="warn" (click)="removeStep(i)" type="button">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+
+        <button mat-stroked-button color="primary" type="button" (click)="addStep()">
+          <mat-icon>add</mat-icon> Add Step
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button mat-raised-button color="primary" (click)="saveDraft()" [disabled]="campaignForm.invalid || saving || launching">
+        <mat-icon>save</mat-icon> {{ isEditMode ? 'Update Draft' : 'Save as Draft' }}
+      </button>
+      <button mat-raised-button color="accent" (click)="saveAndLaunch()" [disabled]="campaignForm.invalid || saving || launching">
+        <mat-icon>rocket_launch</mat-icon> Save &amp; Launch
+      </button>
+      <button mat-button (click)="cancel()" [disabled]="saving || launching">Cancel</button>
+    </div>
+  </form>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

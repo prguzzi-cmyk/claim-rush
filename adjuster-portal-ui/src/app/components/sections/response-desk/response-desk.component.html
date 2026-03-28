@@ -1,0 +1,137 @@
+<div class="response-desk">
+  <div class="page-header">
+    <h2>
+      <mat-icon>support_agent</mat-icon>
+      Response Desk
+    </h2>
+    <span class="subtitle">Fire lead follow-up workflow</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner diameter="36" mode="indeterminate"></mat-progress-spinner>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table mat-table [dataSource]="leads" class="desk-table">
+      <!-- Address -->
+      <ng-container matColumnDef="address">
+        <th mat-header-cell *matHeaderCellDef>Lead Address</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.address || '—' }}</td>
+      </ng-container>
+
+      <!-- Phone -->
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let lead">
+          <a *ngIf="lead.phone" [href]="'tel:' + lead.phone" class="phone-link">{{ lead.phone }}</a>
+          <span *ngIf="!lead.phone">—</span>
+        </td>
+      </ng-container>
+
+      <!-- Status -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let lead">
+          <span class="status-badge" [ngClass]="getStatusClass(lead.status)">
+            {{ getStatusLabel(lead.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Assigned Agent -->
+      <ng-container matColumnDef="assigned_agent">
+        <th mat-header-cell *matHeaderCellDef>Assigned Agent</th>
+        <td mat-cell *matCellDef="let lead">{{ lead.assigned_agent || 'Unassigned' }}</td>
+      </ng-container>
+
+      <!-- Last Message -->
+      <ng-container matColumnDef="last_message">
+        <th mat-header-cell *matHeaderCellDef>Last Message</th>
+        <td mat-cell *matCellDef="let lead" class="message-cell">
+          <span *ngIf="lead.last_message" class="message-preview">
+            <mat-icon class="msg-direction-icon">{{ lead.last_message_direction === 'inbound' ? 'call_received' : 'call_made' }}</mat-icon>
+            {{ lead.last_message | slice:0:60 }}{{ lead.last_message?.length > 60 ? '...' : '' }}
+          </span>
+          <span *ngIf="!lead.last_message" class="no-message">No messages</span>
+        </td>
+      </ng-container>
+
+      <!-- Actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let lead" class="actions-cell">
+          <a
+            *ngIf="lead.phone"
+            mat-icon-button
+            [href]="'tel:' + lead.phone"
+            matTooltip="Call"
+          >
+            <mat-icon>call</mat-icon>
+          </a>
+
+          <button
+            mat-icon-button
+            [matMenuTriggerFor]="statusMenu"
+            matTooltip="Update Status"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <mat-menu #statusMenu="matMenu">
+            <button
+              mat-menu-item
+              *ngFor="let s of fireStatuses"
+              (click)="updateStatus(lead, s.value)"
+              [disabled]="lead.status === s.value"
+            >
+              <span class="status-badge small" [ngClass]="getStatusClass(s.value)">{{ s.label }}</span>
+            </button>
+          </mat-menu>
+
+          <button
+            mat-icon-button
+            (click)="viewLead(lead)"
+            matTooltip="View Lead"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        [class.highlighted-row]="isHighlighted(row)"
+      ></tr>
+    </table>
+
+    <!-- Empty state — guided next step -->
+    <div *ngIf="leads.length === 0" class="empty-state-panel">
+      <div class="empty-state-icon-ring">
+        <mat-icon>support_agent</mat-icon>
+      </div>
+      <h3>No active follow-ups yet</h3>
+      <p>Leads will appear here after outreach or when responses come in.</p>
+      <div class="empty-state-actions">
+        <a mat-raised-button color="primary" routerLink="/app/voice-outreach-agent">
+          <mat-icon>phone_forwarded</mat-icon> Start Outreach
+        </a>
+        <a mat-stroked-button routerLink="/app/leads">
+          <mat-icon>people</mat-icon> View Leads
+        </a>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <mat-paginator
+      *ngIf="total > 0"
+      [length]="total"
+      [pageSize]="size"
+      [pageIndex]="page - 1"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPageChange($event)"
+    ></mat-paginator>
+  </div>
+</div>

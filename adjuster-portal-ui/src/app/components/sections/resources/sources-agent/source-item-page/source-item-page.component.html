@@ -1,0 +1,119 @@
+<mat-card appearance="outlined">
+  <div mat-card-header class="mb-4">
+    <p class="mat-headline-4 section-title mb-3">
+      {{ sourceItem?.title }}
+    </p>
+
+    <ul class="breadcrumb w-100">
+      <li class="breadcrumb-item">
+        <a [routerLink]="['/app/dashboard']">Home</a>
+      </li>
+
+      <li class="breadcrumb-item">
+        <a [routerLink]="['/app/resources/sources']">Sources</a>
+      </li>
+
+      <li class="breadcrumb-item">
+        <a href="javascript:">
+          {{ sourceItem?.title }}
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <mat-card-content class="mb-3">
+    <div class="row">
+      <div class="col-md-12">
+        <h6 class="fw-bold">Title</h6>
+
+        <p>{{ sourceItem?.title }}</p>
+      </div>
+
+      <div
+        *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+        class="col-md-12"
+      >
+        <h6 class="fw-bold">Target</h6>
+
+        <p>{{ sourceItem?.target }}</p>
+      </div>
+
+      <div
+        *ngIf="isElementDisplayed(['npo_initiative', 'partnership'])"
+        class="col-md-12"
+      >
+        <h6 class="fw-bold">Mission</h6>
+
+        <p>{{ sourceItem?.mission }}</p>
+      </div>
+
+      <div *ngIf="isElementDisplayed(['network'])" class="col-md-12">
+        <h6 class="fw-bold">Environment</h6>
+
+        <p>{{ sourceItem?.environment }}</p>
+      </div>
+
+      <div class="col-md-12">
+        <h6 class="fw-bold">Key elements</h6>
+
+        <p
+          *ngFor="
+            let item of getArrayFromString(sourceItem?.key_elements);
+            let itemIndex = index
+          "
+          class="d-flex"
+        >
+          {{ itemIndex + 1 }}.
+
+          <span class="ml-2">
+            {{ item }}
+          </span>
+        </p>
+      </div>
+
+      <div *ngIf="isElementDisplayed(['network'])" class="col-md-6">
+        <h6 class="fw-bold">Summary</h6>
+
+        <p>{{ sourceItem?.summary }}</p>
+      </div>
+    </div>
+  </mat-card-content>
+
+  <mat-card-footer class="m-0">
+    <button
+      *ngIf="
+        source.name === 'npo_initiative' &&
+        sourceItem?.title !== 'Project Restore'
+      "
+      (click)="handleQueryButtonClick(sourceItem)"
+      mat-raised-button
+      color="primary"
+    >
+      {{ sourceItem?.search_term }}
+    </button>
+
+    <a
+      *ngIf="
+        source.name === 'partnership' ||
+        source.name === 'network' ||
+        sourceItem?.title === 'Project Restore'
+      "
+      mat-raised-button
+      color="primary"
+      href="{{
+        sourceItem?.search_term
+          ? 'https://www.google.com/search?q=' + sourceItem.search_term
+          : sourceItem?.exploration_type == 'hyperlink'
+          ? sourceItem.exploration_term
+          : 'https://www.google.com/search?q=' + sourceItem?.exploration_term
+      }}"
+      target="_blank"
+    >
+      {{
+        sourceItem?.search_term ? sourceItem.search_term : "Visit exploration"
+      }}
+    </a>
+  </mat-card-footer>
+</mat-card>
+
+<router-outlet></router-outlet>

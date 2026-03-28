@@ -1,0 +1,4741 @@
+{
+  "Corvallis Fire Department (00001)": {
+    "agency": {
+      "agencyid": "00001",
+      "agencyname": "Corvallis Fire Department",
+      "state": "OR"
+    }
+  },
+  "Albany Fire Department (00004)": {
+    "agency": {
+      "agencyid": "00004",
+      "agencyname": "Albany Fire Department",
+      "state": "OR"
+    }
+  },
+  "Ashland Fire & Rescue (00012)": {
+    "agency": {
+      "agencyid": "00012",
+      "agencyname": "Ashland Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Aumsville Fire District (00015)": {
+    "agency": {
+      "agencyid": "00015",
+      "agencyname": "Aumsville Fire District",
+      "state": "OR"
+    }
+  },
+  "Aurora Fire District (00016)": {
+    "agency": {
+      "agencyid": "00016",
+      "agencyname": "Aurora Fire District",
+      "state": "OR"
+    }
+  },
+  "Bend Fire & Rescue (00024)": {
+    "agency": {
+      "agencyid": "00024",
+      "agencyname": "Bend Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Black Butte Ranch Fire (00026)": {
+    "agency": {
+      "agencyid": "00026",
+      "agencyname": "Black Butte Ranch Fire",
+      "state": "OR"
+    }
+  },
+  "Brownsville Rural Fire District (00036)": {
+    "agency": {
+      "agencyid": "00036",
+      "agencyname": "Brownsville Rural Fire District",
+      "state": "OR"
+    }
+  },
+  "Canby Fire District (00042)": {
+    "agency": {
+      "agencyid": "00042",
+      "agencyname": "Canby Fire District",
+      "state": "OR"
+    }
+  },
+  "Clackamas Fire District #1 (00057)": {
+    "agency": {
+      "agencyid": "00057",
+      "agencyname": "Clackamas Fire District #1",
+      "state": "OR"
+    }
+  },
+  "Cloverdale Fire (00062)": {
+    "agency": {
+      "agencyid": "00062",
+      "agencyname": "Cloverdale Fire",
+      "state": "OR"
+    }
+  },
+  "Coburg Fire District (00064)": {
+    "agency": {
+      "agencyid": "00064",
+      "agencyname": "Coburg Fire District",
+      "state": "OR"
+    }
+  },
+  "Colton Rural Fire Protection District #70 (00065)": {
+    "agency": {
+      "agencyid": "00065",
+      "agencyname": "Colton Rural Fire Protection District #70",
+      "state": "OR"
+    }
+  },
+  "SPRINGDALE Fire Department (00067)": {
+    "agency": {
+      "agencyid": "00067",
+      "agencyname": "SPRINGDALE Fire Department",
+      "state": "AR"
+    }
+  },
+  "Dallas Fire & EMS (00086)": {
+    "agency": {
+      "agencyid": "00086",
+      "agencyname": "Dallas Fire & EMS",
+      "state": "OR"
+    }
+  },
+  "SW Polk Fire District (00087)": {
+    "agency": {
+      "agencyid": "00087",
+      "agencyname": "SW Polk Fire District",
+      "state": "OR"
+    }
+  },
+  "Depoe Bay Fire District (00092)": {
+    "agency": {
+      "agencyid": "00092",
+      "agencyname": "Depoe Bay Fire District",
+      "state": "OR"
+    }
+  },
+  "Dexter Rural Fire Department (00094)": {
+    "agency": {
+      "agencyid": "00094",
+      "agencyname": "Dexter Rural Fire Department",
+      "state": "OR"
+    }
+  },
+  "Drakes Crossing Fire District (00097)": {
+    "agency": {
+      "agencyid": "00097",
+      "agencyname": "Drakes Crossing Fire District",
+      "state": "OR"
+    }
+  },
+  "Dundee Fire & Rescue (00099)": {
+    "agency": {
+      "agencyid": "00099",
+      "agencyname": "Dundee Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Estacada Rural Fire District (00109)": {
+    "agency": {
+      "agencyid": "00109",
+      "agencyname": "Estacada Rural Fire District",
+      "state": "OR"
+    }
+  },
+  "Evans Valley Fire District #6 (00116)": {
+    "agency": {
+      "agencyid": "00116",
+      "agencyname": "Evans Valley Fire District #6",
+      "state": "OR"
+    }
+  },
+  "Bennett Fire Rescue (0011x)": {
+    "agency": {
+      "agencyid": "0011x",
+      "agencyname": "Bennett Fire Rescue",
+      "state": "CO"
+    }
+  },
+  "Gladstone Fire Department (00132)": {
+    "agency": {
+      "agencyid": "00132",
+      "agencyname": "Gladstone Fire Department",
+      "state": "OR"
+    }
+  },
+  "Goshen Fire District (00139)": {
+    "agency": {
+      "agencyid": "00139",
+      "agencyname": "Goshen Fire District",
+      "state": "OR"
+    }
+  },
+  "Grants Pass Fire Rescue (00140)": {
+    "agency": {
+      "agencyid": "00140",
+      "agencyname": "Grants Pass Fire Rescue",
+      "state": "OR"
+    }
+  },
+  "Gresham Fire and Emergency Services (00144)": {
+    "agency": {
+      "agencyid": "00144",
+      "agencyname": "Gresham Fire and Emergency Services",
+      "state": "OR"
+    }
+  },
+  "Halsey-Shedd R.F.P.D (00147)": {
+    "agency": {
+      "agencyid": "00147",
+      "agencyname": "Halsey-Shedd R.F.P.D",
+      "state": "OR"
+    }
+  },
+  "Harrisburg Fire/Rescue (00154)": {
+    "agency": {
+      "agencyid": "00154",
+      "agencyname": "Harrisburg Fire/Rescue",
+      "state": "OR"
+    }
+  },
+  "Sable Altura Fire Protection District (00155)": {
+    "agency": {
+      "agencyid": "00155",
+      "agencyname": "Sable Altura Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Hillsboro Fire & Rescue (00161)": {
+    "agency": {
+      "agencyid": "00161",
+      "agencyname": "Hillsboro Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Hoodland Fire District (00163)": {
+    "agency": {
+      "agencyid": "00163",
+      "agencyname": "Hoodland Fire District",
+      "state": "OR"
+    }
+  },
+  "Hubbard Fire District (00165)": {
+    "agency": {
+      "agencyid": "00165",
+      "agencyname": "Hubbard Fire District",
+      "state": "OR"
+    }
+  },
+  "Idanha Detroit Rural Fire Protection District (00167)": {
+    "agency": {
+      "agencyid": "00167",
+      "agencyname": "Idanha Detroit Rural Fire Protection District",
+      "state": "OR"
+    }
+  },
+  "Illinois Valley Fire District (00168)": {
+    "agency": {
+      "agencyid": "00168",
+      "agencyname": "Illinois Valley Fire District",
+      "state": "OR"
+    }
+  },
+  "Strasburg Fire Protection District 8 (00170)": {
+    "agency": {
+      "agencyid": "00170",
+      "agencyname": "Strasburg Fire Protection District 8",
+      "state": "CO"
+    }
+  },
+  "Jackson County Fire Dist. 3 (00173)": {
+    "agency": {
+      "agencyid": "00173",
+      "agencyname": "Jackson County Fire Dist. 3",
+      "state": "OR"
+    }
+  },
+  "Jackson County Fire District #5 (00174)": {
+    "agency": {
+      "agencyid": "00174",
+      "agencyname": "Jackson County Fire District #5",
+      "state": "OR"
+    }
+  },
+  "Jacksonville Fire Department (00175)": {
+    "agency": {
+      "agencyid": "00175",
+      "agencyname": "Jacksonville Fire Department",
+      "state": "OR"
+    }
+  },
+  "Jefferson Fire District (00176)": {
+    "agency": {
+      "agencyid": "00176",
+      "agencyname": "Jefferson Fire District",
+      "state": "OR"
+    }
+  },
+  "Junction City Fire Department (00182)": {
+    "agency": {
+      "agencyid": "00182",
+      "agencyname": "Junction City Fire Department",
+      "state": "OR"
+    }
+  },
+  "Keizer Fire District (00186)": {
+    "agency": {
+      "agencyid": "00186",
+      "agencyname": "Keizer Fire District",
+      "state": "OR"
+    }
+  },
+  "Lake Oswego Fire Department (00195)": {
+    "agency": {
+      "agencyid": "00195",
+      "agencyname": "Lake Oswego Fire Department",
+      "state": "OR"
+    }
+  },
+  "LA PINE Fire Department (00203)": {
+    "agency": {
+      "agencyid": "00203",
+      "agencyname": "LA PINE Fire Department",
+      "state": "OR"
+    }
+  },
+  "Lebanon Fire District (00204)": {
+    "agency": {
+      "agencyid": "00204",
+      "agencyname": "Lebanon Fire District",
+      "state": "OR"
+    }
+  },
+  "Lowell Fire District (00211)": {
+    "agency": {
+      "agencyid": "00211",
+      "agencyname": "Lowell Fire District",
+      "state": "OR"
+    }
+  },
+  "DETROIT Fire Department (00212)": {
+    "agency": {
+      "agencyid": "00212",
+      "agencyname": "DETROIT Fire Department",
+      "state": "OR"
+    }
+  },
+  "Marion County Fire District #1 (00219)": {
+    "agency": {
+      "agencyid": "00219",
+      "agencyname": "Marion County Fire District #1",
+      "state": "OR"
+    }
+  },
+  "Medford Fire Department (00224)": {
+    "agency": {
+      "agencyid": "00224",
+      "agencyname": "Medford Fire Department",
+      "state": "OR"
+    }
+  },
+  "Molalla Fire District # 73 (00233)": {
+    "agency": {
+      "agencyid": "00233",
+      "agencyname": "Molalla Fire District # 73",
+      "state": "OR"
+    }
+  },
+  "Monitor Fire District (00234)": {
+    "agency": {
+      "agencyid": "00234",
+      "agencyname": "Monitor Fire District",
+      "state": "OR"
+    }
+  },
+  "MONROE Fire Department (00237)": {
+    "agency": {
+      "agencyid": "00237",
+      "agencyname": "MONROE Fire Department",
+      "state": "OR"
+    }
+  },
+  "Newport Fire Department (00259)": {
+    "agency": {
+      "agencyid": "00259",
+      "agencyname": "Newport Fire Department",
+      "state": "OR"
+    }
+  },
+  "Oakridge Westfir Hazeldell Fire Departments (00270)": {
+    "agency": {
+      "agencyid": "00270",
+      "agencyname": "Oakridge Westfir Hazeldell Fire Departments",
+      "state": "OR"
+    }
+  },
+  "Portland Fire & Rescue (00291)": {
+    "agency": {
+      "agencyid": "00291",
+      "agencyname": "Portland Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "STANDARDSVILLE Fire Department (00300)": {
+    "agency": {
+      "agencyid": "00300",
+      "agencyname": "STANDARDSVILLE Fire Department",
+      "state": "VA"
+    }
+  },
+  "Rogue River Fire District (00318)": {
+    "agency": {
+      "agencyid": "00318",
+      "agencyname": "Rogue River Fire District",
+      "state": "OR"
+    }
+  },
+  "Salem Fire Department (00321)": {
+    "agency": {
+      "agencyid": "00321",
+      "agencyname": "Salem Fire Department",
+      "state": "OR"
+    }
+  },
+  "Sandy Fire District No. 72 (00323)": {
+    "agency": {
+      "agencyid": "00323",
+      "agencyname": "Sandy Fire District No. 72",
+      "state": "OR"
+    }
+  },
+  "Scio Fire District (00327)": {
+    "agency": {
+      "agencyid": "00327",
+      "agencyname": "Scio Fire District",
+      "state": "OR"
+    }
+  },
+  "Seal Rock Fire (00330)": {
+    "agency": {
+      "agencyid": "00330",
+      "agencyname": "Seal Rock Fire",
+      "state": "OR"
+    }
+  },
+  "Jackson County Fire District 4 (00334)": {
+    "agency": {
+      "agencyid": "00334",
+      "agencyname": "Jackson County Fire District 4",
+      "state": "OR"
+    }
+  },
+  "Siletz Valley Fire District (00337)": {
+    "agency": {
+      "agencyid": "00337",
+      "agencyname": "Siletz Valley Fire District",
+      "state": "OR"
+    }
+  },
+  "Silverton Fire District (00340)": {
+    "agency": {
+      "agencyid": "00340",
+      "agencyname": "Silverton Fire District",
+      "state": "OR"
+    }
+  },
+  "Sisters/Camp Sherman Fire (00342)": {
+    "agency": {
+      "agencyid": "00342",
+      "agencyname": "Sisters/Camp Sherman Fire",
+      "state": "OR"
+    }
+  },
+  "St Paul Fire District (00352)": {
+    "agency": {
+      "agencyid": "00352",
+      "agencyname": "St Paul Fire District",
+      "state": "OR"
+    }
+  },
+  "Stayton Fire District (00355)": {
+    "agency": {
+      "agencyid": "00355",
+      "agencyname": "Stayton Fire District",
+      "state": "OR"
+    }
+  },
+  "Sunriver Fire (00363)": {
+    "agency": {
+      "agencyid": "00363",
+      "agencyname": "Sunriver Fire",
+      "state": "OR"
+    }
+  },
+  "Sweet Home Fire District (00365)": {
+    "agency": {
+      "agencyid": "00365",
+      "agencyname": "Sweet Home Fire District",
+      "state": "OR"
+    }
+  },
+  "North Lincoln Fire & Rescue District #1 (00368)": {
+    "agency": {
+      "agencyid": "00368",
+      "agencyname": "North Lincoln Fire & Rescue District #1",
+      "state": "OR"
+    }
+  },
+  "Tangent Fire District (00370)": {
+    "agency": {
+      "agencyid": "00370",
+      "agencyname": "Tangent Fire District",
+      "state": "OR"
+    }
+  },
+  "McKenzie Fire & Rescue (00374)": {
+    "agency": {
+      "agencyid": "00374",
+      "agencyname": "McKenzie Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Central Coast Fire and Rescue District (00392)": {
+    "agency": {
+      "agencyid": "00392",
+      "agencyname": "Central Coast Fire and Rescue District",
+      "state": "OR"
+    }
+  },
+  "Williams Fire Rescue (00412)": {
+    "agency": {
+      "agencyid": "00412",
+      "agencyname": "Williams Fire Rescue",
+      "state": "OR"
+    }
+  },
+  "Wolf Creek Rural Fire Protection District (00415)": {
+    "agency": {
+      "agencyid": "00415",
+      "agencyname": "Wolf Creek Rural Fire Protection District",
+      "state": "OR"
+    }
+  },
+  "Woodburn Fire District (00416)": {
+    "agency": {
+      "agencyid": "00416",
+      "agencyname": "Woodburn Fire District",
+      "state": "OR"
+    }
+  },
+  "Crooked River Ranch Fire (00422)": {
+    "agency": {
+      "agencyid": "00422",
+      "agencyname": "Crooked River Ranch Fire",
+      "state": "OR"
+    }
+  },
+  "Mowhawk Valley Fire District (00424)": {
+    "agency": {
+      "agencyid": "00424",
+      "agencyname": "Mowhawk Valley Fire District",
+      "state": "OR"
+    }
+  },
+  "Applegate Fire (00428)": {
+    "agency": {
+      "agencyid": "00428",
+      "agencyname": "Applegate Fire",
+      "state": "OR"
+    }
+  },
+  "Rural Metro Fire (00429)": {
+    "agency": {
+      "agencyid": "00429",
+      "agencyname": "Rural Metro Fire",
+      "state": "OR"
+    }
+  },
+  "Lake Creek Rural Fire District (00448)": {
+    "agency": {
+      "agencyid": "00448",
+      "agencyname": "Lake Creek Rural Fire District",
+      "state": "OR"
+    }
+  },
+  "Lorane Fire District (00459)": {
+    "agency": {
+      "agencyid": "00459",
+      "agencyname": "Lorane Fire District",
+      "state": "OR"
+    }
+  },
+  "Upper Mckenzie Fire Rescue (00461)": {
+    "agency": {
+      "agencyid": "00461",
+      "agencyname": "Upper Mckenzie Fire Rescue",
+      "state": "OR"
+    }
+  },
+  "Sauvie Island Fire District (00467)": {
+    "agency": {
+      "agencyid": "00467",
+      "agencyname": "Sauvie Island Fire District",
+      "state": "OR"
+    }
+  },
+  "Polk County Fire District No.1 (00472)": {
+    "agency": {
+      "agencyid": "00472",
+      "agencyname": "Polk County Fire District No.1",
+      "state": "OR"
+    }
+  },
+  "Tualatin Valley Fire & Rescue (00485)": {
+    "agency": {
+      "agencyid": "00485",
+      "agencyname": "Tualatin Valley Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Byers Fire Protection District #9 (00515)": {
+    "agency": {
+      "agencyid": "00515",
+      "agencyname": "Byers Fire Protection District #9",
+      "state": "CO"
+    }
+  },
+  "South Metro Fire Rescue (00520)": {
+    "agency": {
+      "agencyid": "00520",
+      "agencyname": "South Metro Fire Rescue",
+      "state": "CO"
+    }
+  },
+  "Banks Fire District #13 (00530)": {
+    "agency": {
+      "agencyid": "00530",
+      "agencyname": "Banks Fire District #13",
+      "state": "OR"
+    }
+  },
+  "PHILOMATH Fire Department (00534)": {
+    "agency": {
+      "agencyid": "00534",
+      "agencyname": "PHILOMATH Fire Department",
+      "state": "OR"
+    }
+  },
+  "Redmond Fire & Rescue (00538)": {
+    "agency": {
+      "agencyid": "00538",
+      "agencyname": "Redmond Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Deer Trail Fire Protection District (00540)": {
+    "agency": {
+      "agencyid": "00540",
+      "agencyname": "Deer Trail Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "South Lane Fire & Rescue - Cottage Grove (00543)": {
+    "agency": {
+      "agencyid": "00543",
+      "agencyname": "South Lane Fire & Rescue - Cottage Grove",
+      "state": "OR"
+    }
+  },
+  "Mt Angel Fire District (00545)": {
+    "agency": {
+      "agencyid": "00545",
+      "agencyname": "Mt Angel Fire District",
+      "state": "OR"
+    }
+  },
+  "South Lane Fire & Rescue - Creswell (0054B)": {
+    "agency": {
+      "agencyid": "0054B",
+      "agencyname": "South Lane Fire & Rescue - Creswell",
+      "state": "OR"
+    }
+  },
+  "Greensprings Rural Fire District (00554)": {
+    "agency": {
+      "agencyid": "00554",
+      "agencyname": "Greensprings Rural Fire District",
+      "state": "OR"
+    }
+  },
+  "Eugene Springfield Fire (00569)": {
+    "agency": {
+      "agencyid": "00569",
+      "agencyname": "Eugene Springfield Fire",
+      "state": "OR"
+    }
+  },
+  "Alfalfa Fire District (00570)": {
+    "agency": {
+      "agencyid": "00570",
+      "agencyname": "Alfalfa Fire District",
+      "state": "OR"
+    }
+  },
+  "Cornelius Fire Department (00740)": {
+    "agency": {
+      "agencyid": "00740",
+      "agencyname": "Cornelius Fire Department",
+      "state": "OR"
+    }
+  },
+  "Renner Fire Department (01001)": {
+    "agency": {
+      "agencyid": "01001",
+      "agencyname": "Renner Fire Department",
+      "state": "SD"
+    }
+  },
+  "Colton Fire Department (01002)": {
+    "agency": {
+      "agencyid": "01002",
+      "agencyname": "Colton Fire Department",
+      "state": "SD"
+    }
+  },
+  "Split Rock Fire & Rescue (01003)": {
+    "agency": {
+      "agencyid": "01003",
+      "agencyname": "Split Rock Fire & Rescue",
+      "state": "SD"
+    }
+  },
+  "Hartford Area Fire & Rescue (01004)": {
+    "agency": {
+      "agencyid": "01004",
+      "agencyname": "Hartford Area Fire & Rescue",
+      "state": "SD"
+    }
+  },
+  "Alameda Fire Department (01005)": {
+    "agency": {
+      "agencyid": "01005",
+      "agencyname": "Alameda Fire Department",
+      "state": "CA"
+    }
+  },
+  "Albuquerque Fire Rescue (01007)": {
+    "agency": {
+      "agencyid": "01007",
+      "agencyname": "Albuquerque Fire Rescue",
+      "state": "NM"
+    }
+  },
+  "Alameda County Fire Department (01008)": {
+    "agency": {
+      "agencyid": "01008",
+      "agencyname": "Alameda County Fire Department",
+      "state": "CA"
+    }
+  },
+  "Garretson Fire Department (01009)": {
+    "agency": {
+      "agencyid": "01009",
+      "agencyname": "Garretson Fire Department",
+      "state": "SD"
+    }
+  },
+  "Crooks Fire Department (01010)": {
+    "agency": {
+      "agencyid": "01010",
+      "agencyname": "Crooks Fire Department",
+      "state": "SD"
+    }
+  },
+  "Dell Rapids Fire Department (01011)": {
+    "agency": {
+      "agencyid": "01011",
+      "agencyname": "Dell Rapids Fire Department",
+      "state": "SD"
+    }
+  },
+  "Lyons Fire Department (01012)": {
+    "agency": {
+      "agencyid": "01012",
+      "agencyname": "Lyons Fire Department",
+      "state": "SD"
+    }
+  },
+  "Carson City Fire Department (0101x)": {
+    "agency": {
+      "agencyid": "0101x",
+      "agencyname": "Carson City Fire Department",
+      "state": "NV"
+    }
+  },
+  "South Frontenac Fire and Rescue (01020)": {
+    "agency": {
+      "agencyid": "01020",
+      "agencyname": "South Frontenac Fire and Rescue",
+      "state": "ON"
+    }
+  },
+  "Fremont Fire Department (01040)": {
+    "agency": {
+      "agencyid": "01040",
+      "agencyname": "Fremont Fire Department",
+      "state": "CA"
+    }
+  },
+  "Livermore Pleasanton Fire Department (01065)": {
+    "agency": {
+      "agencyid": "01065",
+      "agencyname": "Livermore Pleasanton Fire Department",
+      "state": "CA"
+    }
+  },
+  "Sioux Falls Fire Rescue (01101)": {
+    "agency": {
+      "agencyid": "01101",
+      "agencyname": "Sioux Falls Fire Rescue",
+      "state": "SD"
+    }
+  },
+  "Loyalist Township Emergency Service (01105)": {
+    "agency": {
+      "agencyid": "01105",
+      "agencyname": "Loyalist Township Emergency Service",
+      "state": "ON"
+    }
+  },
+  "Forest Grove Fire and Rescue (01200)": {
+    "agency": {
+      "agencyid": "01200",
+      "agencyname": "Forest Grove Fire and Rescue",
+      "state": "OR"
+    }
+  },
+  "Gaston Rural Fire District (01260)": {
+    "agency": {
+      "agencyid": "01260",
+      "agencyname": "Gaston Rural Fire District",
+      "state": "OR"
+    }
+  },
+  "Pleasant Hill Goshen Fire & Rescue (0139B)": {
+    "agency": {
+      "agencyid": "0139B",
+      "agencyname": "Pleasant Hill Goshen Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Harrisburg Fire & Rescue (0154A)": {
+    "agency": {
+      "agencyid": "0154A",
+      "agencyname": "Harrisburg Fire & Rescue",
+      "state": "OR"
+    }
+  },
+  "Cape Girardeau Fire Department (01603)": {
+    "agency": {
+      "agencyid": "01603",
+      "agencyname": "Cape Girardeau Fire Department",
+      "state": "MO"
+    }
+  },
+  "Lincoln Fire & Rescue (02006)": {
+    "agency": {
+      "agencyid": "02006",
+      "agencyname": "Lincoln Fire & Rescue",
+      "state": "NE"
+    }
+  },
+  "SOUTH BEND Fire Department (02017)": {
+    "agency": {
+      "agencyid": "02017",
+      "agencyname": "SOUTH BEND Fire Department",
+      "state": "IN"
+    }
+  },
+  "Lane Fire Authority Central Battalion (0201C)": {
+    "agency": {
+      "agencyid": "0201C",
+      "agencyname": "Lane Fire Authority Central Battalion",
+      "state": "OR"
+    }
+  },
+  "Lane Fire Authority North Battalion (0201N)": {
+    "agency": {
+      "agencyid": "0201N",
+      "agencyname": "Lane Fire Authority North Battalion",
+      "state": "OR"
+    }
+  },
+  "Lane Fire Authority South Battalion (0201S)": {
+    "agency": {
+      "agencyid": "0201S",
+      "agencyname": "Lane Fire Authority South Battalion",
+      "state": "OR"
+    }
+  },
+  "Sierra Vista Fire & Medical Services (02083)": {
+    "agency": {
+      "agencyid": "02083",
+      "agencyname": "Sierra Vista Fire & Medical Services",
+      "state": "AZ"
+    }
+  },
+  "Rapid City Fire Department (02101)": {
+    "agency": {
+      "agencyid": "02101",
+      "agencyname": "Rapid City Fire Department",
+      "state": "SD"
+    }
+  },
+  "Fry Fire District (02193)": {
+    "agency": {
+      "agencyid": "02193",
+      "agencyname": "Fry Fire District",
+      "state": "AZ"
+    }
+  },
+  "Monroe Fire Department (0237A)": {
+    "agency": {
+      "agencyid": "0237A",
+      "agencyname": "Monroe Fire Department",
+      "state": "OR"
+    }
+  },
+  "Aberdeen Rural Fire Protection District (03001)": {
+    "agency": {
+      "agencyid": "03001",
+      "agencyname": "Aberdeen Rural Fire Protection District",
+      "state": "SD"
+    }
+  },
+  "Las Vegas Fire & Rescue (03002)": {
+    "agency": {
+      "agencyid": "03002",
+      "agencyname": "Las Vegas Fire & Rescue",
+      "state": "NV"
+    }
+  },
+  "Columbia Area Fire Protection District (03004)": {
+    "agency": {
+      "agencyid": "03004",
+      "agencyname": "Columbia Area Fire Protection District",
+      "state": "SD"
+    }
+  },
+  "Frederick Area Fire Department (03005)": {
+    "agency": {
+      "agencyid": "03005",
+      "agencyname": "Frederick Area Fire Department",
+      "state": "SD"
+    }
+  },
+  "Groton Area Fire and Rescue (03006)": {
+    "agency": {
+      "agencyid": "03006",
+      "agencyname": "Groton Area Fire and Rescue",
+      "state": "SD"
+    }
+  },
+  "Hecla Area Fire Protection District (03007)": {
+    "agency": {
+      "agencyid": "03007",
+      "agencyname": "Hecla Area Fire Protection District",
+      "state": "SD"
+    }
+  },
+  "Warner Fire Department (03009)": {
+    "agency": {
+      "agencyid": "03009",
+      "agencyname": "Warner Fire Department",
+      "state": "SD"
+    }
+  },
+  "Aberdeen Fire Rescue (03101)": {
+    "agency": {
+      "agencyid": "03101",
+      "agencyname": "Aberdeen Fire Rescue",
+      "state": "SD"
+    }
+  },
+  "Sedona Fire District (03142)": {
+    "agency": {
+      "agencyid": "03142",
+      "agencyname": "Sedona Fire District",
+      "state": "AZ"
+    }
+  },
+  "Castle Rock Fire and Rescue Department (03510)": {
+    "agency": {
+      "agencyid": "03510",
+      "agencyname": "Castle Rock Fire and Rescue Department",
+      "state": "CO"
+    }
+  },
+  "Franktown Fire District (03525)": {
+    "agency": {
+      "agencyid": "03525",
+      "agencyname": "Franktown Fire District",
+      "state": "CO"
+    }
+  },
+  "Jackson 105 Fire Protection District (03530)": {
+    "agency": {
+      "agencyid": "03530",
+      "agencyname": "Jackson 105 Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Larkspur Fire Protection District (03535)": {
+    "agency": {
+      "agencyid": "03535",
+      "agencyname": "Larkspur Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "West Douglas County Fire Protection District (03570)": {
+    "agency": {
+      "agencyid": "03570",
+      "agencyname": "West Douglas County Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Pacific Fire Protection District (03601)": {
+    "agency": {
+      "agencyid": "03601",
+      "agencyname": "Pacific Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "DOTHAN Fire Department (03801)": {
+    "agency": {
+      "agencyid": "03801",
+      "agencyname": "DOTHAN Fire Department",
+      "state": "AL"
+    }
+  },
+  "Benton and Franklin County (03M04)": {
+    "agency": {
+      "agencyid": "03M04",
+      "agencyname": "Benton and Franklin County",
+      "state": "WA"
+    }
+  },
+  "GARDNERVILLE RANCHOS Fire Department (04050)": {
+    "agency": {
+      "agencyid": "04050",
+      "agencyname": "GARDNERVILLE RANCHOS Fire Department",
+      "state": "NV"
+    }
+  },
+  "STATELINE Fire Department (04100)": {
+    "agency": {
+      "agencyid": "04100",
+      "agencyname": "STATELINE Fire Department",
+      "state": "NV"
+    }
+  },
+  "Rogers Fire Department (04600)": {
+    "agency": {
+      "agencyid": "04600",
+      "agencyname": "Rogers Fire Department",
+      "state": "AR"
+    }
+  },
+  "Morenci Fire Department (04612)": {
+    "agency": {
+      "agencyid": "04612",
+      "agencyname": "Morenci Fire Department",
+      "state": "MI"
+    }
+  },
+  "Kansas City Missouri Fire Department (04813)": {
+    "agency": {
+      "agencyid": "04813",
+      "agencyname": "Kansas City Missouri Fire Department",
+      "state": "MO"
+    }
+  },
+  "Clark County Fire Department (05031)": {
+    "agency": {
+      "agencyid": "05031",
+      "agencyname": "Clark County Fire Department",
+      "state": "NV"
+    }
+  },
+  "Fairfax County Fire and Rescue Department (05900)": {
+    "agency": {
+      "agencyid": "05900",
+      "agencyname": "Fairfax County Fire and Rescue Department",
+      "state": "VA"
+    }
+  },
+  "West Metro Fire Rescue (05909)": {
+    "agency": {
+      "agencyid": "05909",
+      "agencyname": "West Metro Fire Rescue",
+      "state": "CO"
+    }
+  },
+  "JEFFERSON COUNTY Fire Department (05930)": {
+    "agency": {
+      "agencyid": "05930",
+      "agencyname": "JEFFERSON COUNTY Fire Department",
+      "state": "CO"
+    }
+  },
+  "EVERGREEN Fire Department (05933)": {
+    "agency": {
+      "agencyid": "05933",
+      "agencyname": "EVERGREEN Fire Department",
+      "state": "CO"
+    }
+  },
+  "Fairmount Fire Rescue (05936)": {
+    "agency": {
+      "agencyid": "05936",
+      "agencyname": "Fairmount Fire Rescue",
+      "state": "CO"
+    }
+  },
+  "JEFFERSON COUNTY Fire Department (05939)": {
+    "agency": {
+      "agencyid": "05939",
+      "agencyname": "JEFFERSON COUNTY Fire Department",
+      "state": "CO"
+    }
+  },
+  "GOLDEN Fire Department (05942)": {
+    "agency": {
+      "agencyid": "05942",
+      "agencyname": "GOLDEN Fire Department",
+      "state": "CO"
+    }
+  },
+  "Atlanta Fire Rescue Department (06001)": {
+    "agency": {
+      "agencyid": "06001",
+      "agencyname": "Atlanta Fire Rescue Department",
+      "state": "GA"
+    }
+  },
+  "College Park Fire Rescue (06004)": {
+    "agency": {
+      "agencyid": "06004",
+      "agencyname": "College Park Fire Rescue",
+      "state": "GA"
+    }
+  },
+  "Palm Beach Gardens Fire Rescue (06042)": {
+    "agency": {
+      "agencyid": "06042",
+      "agencyname": "Palm Beach Gardens Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Greenacres Fire Rescue (06062)": {
+    "agency": {
+      "agencyid": "06062",
+      "agencyname": "Greenacres Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "North Palm Beach Fire Rescue (06102)": {
+    "agency": {
+      "agencyid": "06102",
+      "agencyname": "North Palm Beach Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Boca Raton Fire Rescue (06142)": {
+    "agency": {
+      "agencyid": "06142",
+      "agencyname": "Boca Raton Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Delray Beach Fire Rescue (06172)": {
+    "agency": {
+      "agencyid": "06172",
+      "agencyname": "Delray Beach Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "West Palm Beach Fire Rescue (06272)": {
+    "agency": {
+      "agencyid": "06272",
+      "agencyname": "West Palm Beach Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Palm Beach County Fire Rescue (06301)": {
+    "agency": {
+      "agencyid": "06301",
+      "agencyname": "Palm Beach County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Crystal Lakes Volunteer Fire Department (06920)": {
+    "agency": {
+      "agencyid": "06920",
+      "agencyname": "Crystal Lakes Volunteer Fire Department",
+      "state": "CO"
+    }
+  },
+  "Estes Valley Fire Protection District (06925)": {
+    "agency": {
+      "agencyid": "06925",
+      "agencyname": "Estes Valley Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Glacier View Fire Department (06930)": {
+    "agency": {
+      "agencyid": "06930",
+      "agencyname": "Glacier View Fire Department",
+      "state": "CO"
+    }
+  },
+  "Poudre Canyon Fire Protection District (06940)": {
+    "agency": {
+      "agencyid": "06940",
+      "agencyname": "Poudre Canyon Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Loveland Fire Rescue Authority (06945)": {
+    "agency": {
+      "agencyid": "06945",
+      "agencyname": "Loveland Fire Rescue Authority",
+      "state": "CO"
+    }
+  },
+  "Poudre Fire Authority (06960)": {
+    "agency": {
+      "agencyid": "06960",
+      "agencyname": "Poudre Fire Authority",
+      "state": "CO"
+    }
+  },
+  "Red Feather Lakes Volunteer Fire Department (06975)": {
+    "agency": {
+      "agencyid": "06975",
+      "agencyname": "Red Feather Lakes Volunteer Fire Department",
+      "state": "CO"
+    }
+  },
+  "Wellington Fire Protection District (06980)": {
+    "agency": {
+      "agencyid": "06980",
+      "agencyname": "Wellington Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Norfolk Fire and Rescue (07006)": {
+    "agency": {
+      "agencyid": "07006",
+      "agencyname": "Norfolk Fire and Rescue",
+      "state": "NE"
+    }
+  },
+  "East Contra Costa Fire (07015)": {
+    "agency": {
+      "agencyid": "07015",
+      "agencyname": "East Contra Costa Fire",
+      "state": "CA"
+    }
+  },
+  "Crockett-Carquinez Fire Department (07030)": {
+    "agency": {
+      "agencyid": "07030",
+      "agencyname": "Crockett-Carquinez Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Ramon Valley Fire Protection District (07035)": {
+    "agency": {
+      "agencyid": "07035",
+      "agencyname": "San Ramon Valley Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "El Cerrito-Kensington Fire Department (07040)": {
+    "agency": {
+      "agencyid": "07040",
+      "agencyname": "El Cerrito-Kensington Fire Department",
+      "state": "CA"
+    }
+  },
+  "Winter Park Fire-Rescue (07042)": {
+    "agency": {
+      "agencyid": "07042",
+      "agencyname": "Winter Park Fire-Rescue",
+      "state": "FL"
+    }
+  },
+  "Moraga-Orinda Fire District (07060)": {
+    "agency": {
+      "agencyid": "07060",
+      "agencyname": "Moraga-Orinda Fire District",
+      "state": "CA"
+    }
+  },
+  "Pinole Fire Department (07075)": {
+    "agency": {
+      "agencyid": "07075",
+      "agencyname": "Pinole Fire Department",
+      "state": "CA"
+    }
+  },
+  "Contra Costa County Fire Protection District (07090)": {
+    "agency": {
+      "agencyid": "07090",
+      "agencyname": "Contra Costa County Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Rodeo-Hercules Fire District (07100)": {
+    "agency": {
+      "agencyid": "07100",
+      "agencyname": "Rodeo-Hercules Fire District",
+      "state": "CA"
+    }
+  },
+  "Hilton Head Island Fire Rescue (07131)": {
+    "agency": {
+      "agencyid": "07131",
+      "agencyname": "Hilton Head Island Fire Rescue",
+      "state": "SC"
+    }
+  },
+  "Orlando Fire Department (07212)": {
+    "agency": {
+      "agencyid": "07212",
+      "agencyname": "Orlando Fire Department",
+      "state": "FL"
+    }
+  },
+  "TC1 Fire Department (09063)": {
+    "agency": {
+      "agencyid": "09063",
+      "agencyname": "TC1 Fire Department",
+      "state": "AZ"
+    }
+  },
+  "Fargo Fire Department (09109)": {
+    "agency": {
+      "agencyid": "09109",
+      "agencyname": "Fargo Fire Department",
+      "state": "ND"
+    }
+  },
+  "West Fargo Fire Department (09372)": {
+    "agency": {
+      "agencyid": "09372",
+      "agencyname": "West Fargo Fire Department",
+      "state": "ND"
+    }
+  },
+  "James City County Fire Department (09500)": {
+    "agency": {
+      "agencyid": "09500",
+      "agencyname": "James City County Fire Department",
+      "state": "VA"
+    }
+  },
+  "Robertson Fire Protection District (09501)": {
+    "agency": {
+      "agencyid": "09501",
+      "agencyname": "Robertson Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Valley Park Fire Protection District (09502)": {
+    "agency": {
+      "agencyid": "09502",
+      "agencyname": "Valley Park Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Arvada Fire Protection District (09503)": {
+    "agency": {
+      "agencyid": "09503",
+      "agencyname": "Arvada Fire Protection District",
+      "state": "CO"
+    }
+  },
+  "Mehlville Fire Protection District (09504)": {
+    "agency": {
+      "agencyid": "09504",
+      "agencyname": "Mehlville Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Spanish Lake Fire Protection District (09505)": {
+    "agency": {
+      "agencyid": "09505",
+      "agencyname": "Spanish Lake Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Ladue Fire Department (09506)": {
+    "agency": {
+      "agencyid": "09506",
+      "agencyname": "Ladue Fire Department",
+      "state": "MO"
+    }
+  },
+  "Metro West Fire Protection District (09507)": {
+    "agency": {
+      "agencyid": "09507",
+      "agencyname": "Metro West Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Frontenac Fire Department (09508)": {
+    "agency": {
+      "agencyid": "09508",
+      "agencyname": "Frontenac Fire Department",
+      "state": "MO"
+    }
+  },
+  "Pattonville Fire Protection District (0950x)": {
+    "agency": {
+      "agencyid": "0950x",
+      "agencyname": "Pattonville Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Creve Coeur Fire Protection District (09510)": {
+    "agency": {
+      "agencyid": "09510",
+      "agencyname": "Creve Coeur Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Maplewood Fire Department (09511)": {
+    "agency": {
+      "agencyid": "09511",
+      "agencyname": "Maplewood Fire Department",
+      "state": "MO"
+    }
+  },
+  "Lemay Fire Protection District (09512)": {
+    "agency": {
+      "agencyid": "09512",
+      "agencyname": "Lemay Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Crestwood Fire Department (09513)": {
+    "agency": {
+      "agencyid": "09513",
+      "agencyname": "Crestwood Fire Department",
+      "state": "MO"
+    }
+  },
+  "West County EMS & Fire Protection District (09514)": {
+    "agency": {
+      "agencyid": "09514",
+      "agencyname": "West County EMS & Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Webster Groves Fire Department (09515)": {
+    "agency": {
+      "agencyid": "09515",
+      "agencyname": "Webster Groves Fire Department",
+      "state": "MO"
+    }
+  },
+  "Eureka Fire Protection District (09518)": {
+    "agency": {
+      "agencyid": "09518",
+      "agencyname": "Eureka Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Kinloch Fire Protection District (09519)": {
+    "agency": {
+      "agencyid": "09519",
+      "agencyname": "Kinloch Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Northeast Ambulance & Fire Protection District (09520)": {
+    "agency": {
+      "agencyid": "09520",
+      "agencyname": "Northeast Ambulance & Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Monarch Fire Protection District (09521)": {
+    "agency": {
+      "agencyid": "09521",
+      "agencyname": "Monarch Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Richmond Heights Fire Department (09522)": {
+    "agency": {
+      "agencyid": "09522",
+      "agencyname": "Richmond Heights Fire Department",
+      "state": "MO"
+    }
+  },
+  "Shrewsbury Fire Department (09523)": {
+    "agency": {
+      "agencyid": "09523",
+      "agencyname": "Shrewsbury Fire Department",
+      "state": "MO"
+    }
+  },
+  "Berkeley Fire Department (09524)": {
+    "agency": {
+      "agencyid": "09524",
+      "agencyname": "Berkeley Fire Department",
+      "state": "MO"
+    }
+  },
+  "Clayton Fire Department (09525)": {
+    "agency": {
+      "agencyid": "09525",
+      "agencyname": "Clayton Fire Department",
+      "state": "MO"
+    }
+  },
+  "West Overland Fire Protection District (09526)": {
+    "agency": {
+      "agencyid": "09526",
+      "agencyname": "West Overland Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Maryland Heights Fire Protection District (09527)": {
+    "agency": {
+      "agencyid": "09527",
+      "agencyname": "Maryland Heights Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Fenton Fire Protection District (09528)": {
+    "agency": {
+      "agencyid": "09528",
+      "agencyname": "Fenton Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Brentwood Fire Department (09529)": {
+    "agency": {
+      "agencyid": "09529",
+      "agencyname": "Brentwood Fire Department",
+      "state": "MO"
+    }
+  },
+  "Black Jack Fire Protection District (09530)": {
+    "agency": {
+      "agencyid": "09530",
+      "agencyname": "Black Jack Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Florissant Valley Fire Protection District (09531)": {
+    "agency": {
+      "agencyid": "09531",
+      "agencyname": "Florissant Valley Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Rock Hill Fire-EMS (09532)": {
+    "agency": {
+      "agencyid": "09532",
+      "agencyname": "Rock Hill Fire-EMS",
+      "state": "MO"
+    }
+  },
+  "UNIVERSITY CITY Fire Department (09533)": {
+    "agency": {
+      "agencyid": "09533",
+      "agencyname": "UNIVERSITY CITY Fire Department",
+      "state": "MO"
+    }
+  },
+  "Mid-County Fire Protection District (09534)": {
+    "agency": {
+      "agencyid": "09534",
+      "agencyname": "Mid-County Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Olivette Fire Department (09535)": {
+    "agency": {
+      "agencyid": "09535",
+      "agencyname": "Olivette Fire Department",
+      "state": "MO"
+    }
+  },
+  "Community Fire Protection District (09536)": {
+    "agency": {
+      "agencyid": "09536",
+      "agencyname": "Community Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Ferguson Fire Department (09538)": {
+    "agency": {
+      "agencyid": "09538",
+      "agencyname": "Ferguson Fire Department",
+      "state": "MO"
+    }
+  },
+  "Affton Fire Protection District (09539)": {
+    "agency": {
+      "agencyid": "09539",
+      "agencyname": "Affton Fire Protection District",
+      "state": "MO"
+    }
+  },
+  "Hazelwood Fire (09540)": {
+    "agency": {
+      "agencyid": "09540",
+      "agencyname": "Hazelwood Fire",
+      "state": "MO"
+    }
+  },
+  "North County Fire and Rescue (09544)": {
+    "agency": {
+      "agencyid": "09544",
+      "agencyname": "North County Fire and Rescue",
+      "state": "MO"
+    }
+  },
+  "COCONUT CREEK Fire Department (10021)": {
+    "agency": {
+      "agencyid": "10021",
+      "agencyname": "COCONUT CREEK Fire Department",
+      "state": "FL"
+    }
+  },
+  "KINGSBURG Fire Department (10045)": {
+    "agency": {
+      "agencyid": "10045",
+      "agencyname": "KINGSBURG Fire Department",
+      "state": "CA"
+    }
+  },
+  "Hollywood Fire Rescue (10052)": {
+    "agency": {
+      "agencyid": "10052",
+      "agencyname": "Hollywood Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Lauderhill Fire Rescue (10062)": {
+    "agency": {
+      "agencyid": "10062",
+      "agencyname": "Lauderhill Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Pembroke Pines Fire Rescue (10082)": {
+    "agency": {
+      "agencyid": "10082",
+      "agencyname": "Pembroke Pines Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Margate Fire Rescue (10092)": {
+    "agency": {
+      "agencyid": "10092",
+      "agencyname": "Margate Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Kingston Fire & Rescue (10100)": {
+    "agency": {
+      "agencyid": "10100",
+      "agencyname": "Kingston Fire & Rescue",
+      "state": "ON"
+    }
+  },
+  "Pompano Beach Fire Rescue (10125)": {
+    "agency": {
+      "agencyid": "10125",
+      "agencyname": "Pompano Beach Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "North Lauderdale Fire Rescue (10132)": {
+    "agency": {
+      "agencyid": "10132",
+      "agencyname": "North Lauderdale Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Coral Springs-Parkland Fire Department (10151)": {
+    "agency": {
+      "agencyid": "10151",
+      "agencyname": "Coral Springs-Parkland Fire Department",
+      "state": "FL"
+    }
+  },
+  "Sunrise Fire Rescue (10162)": {
+    "agency": {
+      "agencyid": "10162",
+      "agencyname": "Sunrise Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Oakland Park Fire Rescue (10182)": {
+    "agency": {
+      "agencyid": "10182",
+      "agencyname": "Oakland Park Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Fort Lauderdale Fire Rescue (10192)": {
+    "agency": {
+      "agencyid": "10192",
+      "agencyname": "Fort Lauderdale Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Tamarac Fire Rescue (10202)": {
+    "agency": {
+      "agencyid": "10202",
+      "agencyname": "Tamarac Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Miramar Fire-Rescue (10232)": {
+    "agency": {
+      "agencyid": "10232",
+      "agencyname": "Miramar Fire-Rescue",
+      "state": "FL"
+    }
+  },
+  "Davie Fire Rescue (10242)": {
+    "agency": {
+      "agencyid": "10242",
+      "agencyname": "Davie Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Lighthouse Point Fire Rescue (10252)": {
+    "agency": {
+      "agencyid": "10252",
+      "agencyname": "Lighthouse Point Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Broward Sheriffs Office Department of Fire Rescue and Emergency Services (10282)": {
+    "agency": {
+      "agencyid": "10282",
+      "agencyname": "Broward Sheriffs Office Department of Fire Rescue and Emergency Services",
+      "state": "FL"
+    }
+  },
+  "Tucson Rural/Metro (11165)": {
+    "agency": {
+      "agencyid": "11165",
+      "agencyname": "Tucson Rural/Metro",
+      "state": "AZ"
+    }
+  },
+  "Greater Tucson Area (11223)": {
+    "agency": {
+      "agencyid": "11223",
+      "agencyname": "Greater Tucson Area",
+      "state": "AZ"
+    }
+  },
+  "Casa Grande Fire Department (12033)": {
+    "agency": {
+      "agencyid": "12033",
+      "agencyname": "Casa Grande Fire Department",
+      "state": "AZ"
+    }
+  },
+  "Howard County Fire and Rescue (13000)": {
+    "agency": {
+      "agencyid": "13000",
+      "agencyname": "Howard County Fire and Rescue",
+      "state": "MD"
+    }
+  },
+  "Madison Fire Department (13010)": {
+    "agency": {
+      "agencyid": "13010",
+      "agencyname": "Madison Fire Department",
+      "state": "WI"
+    }
+  },
+  "Dane County EMS and Fire (13030)": {
+    "agency": {
+      "agencyid": "13030",
+      "agencyname": "Dane County EMS and Fire",
+      "state": "WI"
+    }
+  },
+  "Cottonwood Fire and Medical Department (14102)": {
+    "agency": {
+      "agencyid": "14102",
+      "agencyname": "Cottonwood Fire and Medical Department",
+      "state": "AZ"
+    }
+  },
+  "Jerome Fire (14131)": {
+    "agency": {
+      "agencyid": "14131",
+      "agencyname": "Jerome Fire",
+      "state": "AZ"
+    }
+  },
+  "Marion County Fire Rescue (14162)": {
+    "agency": {
+      "agencyid": "14162",
+      "agencyname": "Marion County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Verde Valley Fire District (14291)": {
+    "agency": {
+      "agencyid": "14291",
+      "agencyname": "Verde Valley Fire District",
+      "state": "AZ"
+    }
+  },
+  "Moorhead Fire Department (14307)": {
+    "agency": {
+      "agencyid": "14307",
+      "agencyname": "Moorhead Fire Department",
+      "state": "MN"
+    }
+  },
+  "Copper Canyon Fire & Medical Auhority (14363)": {
+    "agency": {
+      "agencyid": "14363",
+      "agencyname": "Copper Canyon Fire & Medical Auhority",
+      "state": "AZ"
+    }
+  },
+  "Prince William County Department of Fire and Rescue (15301)": {
+    "agency": {
+      "agencyid": "15301",
+      "agencyname": "Prince William County Department of Fire and Rescue",
+      "state": "VA"
+    }
+  },
+  "Prince George's County Fire/EMS Department (16000)": {
+    "agency": {
+      "agencyid": "16000",
+      "agencyname": "Prince George's County Fire/EMS Department",
+      "state": "MD"
+    }
+  },
+  "Reno Fire Department (16001)": {
+    "agency": {
+      "agencyid": "16001",
+      "agencyname": "Reno Fire Department",
+      "state": "NV"
+    }
+  },
+  "INCLINE VILLAGE Fire Department (16051)": {
+    "agency": {
+      "agencyid": "16051",
+      "agencyname": "INCLINE VILLAGE Fire Department",
+      "state": "NV"
+    }
+  },
+  "Sarasota County (16072)": {
+    "agency": {
+      "agencyid": "16072",
+      "agencyname": "Sarasota County",
+      "state": "FL"
+    }
+  },
+  "Rockingham County Fire & Rescue (16500)": {
+    "agency": {
+      "agencyid": "16500",
+      "agencyname": "Rockingham County Fire & Rescue",
+      "state": "VA"
+    }
+  },
+  "Seminole County Fire Department (17022)": {
+    "agency": {
+      "agencyid": "17022",
+      "agencyname": "Seminole County Fire Department",
+      "state": "FL"
+    }
+  },
+  "FREDERICKSBURG Fire Department (17700)": {
+    "agency": {
+      "agencyid": "17700",
+      "agencyname": "FREDERICKSBURG Fire Department",
+      "state": "VA"
+    }
+  },
+  "Stafford County Fire and Rescue (17900)": {
+    "agency": {
+      "agencyid": "17900",
+      "agencyname": "Stafford County Fire and Rescue",
+      "state": "VA"
+    }
+  },
+  "Seattle Fire Department (17M15)": {
+    "agency": {
+      "agencyid": "17M15",
+      "agencyname": "Seattle Fire Department",
+      "state": "WA"
+    }
+  },
+  "WestShore Fire Departments (18001)": {
+    "agency": {
+      "agencyid": "18001",
+      "agencyname": "WestShore Fire Departments",
+      "state": "OH"
+    }
+  },
+  "Brooklyn Fire Department (18021)": {
+    "agency": {
+      "agencyid": "18021",
+      "agencyname": "Brooklyn Fire Department",
+      "state": "OH"
+    }
+  },
+  "Cleveland Heights Fire Department (18029)": {
+    "agency": {
+      "agencyid": "18029",
+      "agencyname": "Cleveland Heights Fire Department",
+      "state": "OH"
+    }
+  },
+  "Lakewood Division of Fire (18050)": {
+    "agency": {
+      "agencyid": "18050",
+      "agencyname": "Lakewood Division of Fire",
+      "state": "OH"
+    }
+  },
+  "North Olmsted Fire Department (18075)": {
+    "agency": {
+      "agencyid": "18075",
+      "agencyname": "North Olmsted Fire Department",
+      "state": "OH"
+    }
+  },
+  "Parma Heights Fire Department (18083)": {
+    "agency": {
+      "agencyid": "18083",
+      "agencyname": "Parma Heights Fire Department",
+      "state": "OH"
+    }
+  },
+  "Shaker Heights Fire Rescue (18084)": {
+    "agency": {
+      "agencyid": "18084",
+      "agencyname": "Shaker Heights Fire Rescue",
+      "state": "OH"
+    }
+  },
+  "Richmond Heights Division of Fire/EMS (18087)": {
+    "agency": {
+      "agencyid": "18087",
+      "agencyname": "Richmond Heights Division of Fire/EMS",
+      "state": "OH"
+    }
+  },
+  "South Euclid Fire Rescue (18090)": {
+    "agency": {
+      "agencyid": "18090",
+      "agencyname": "South Euclid Fire Rescue",
+      "state": "OH"
+    }
+  },
+  "University Heights Fire (18092)": {
+    "agency": {
+      "agencyid": "18092",
+      "agencyname": "University Heights Fire",
+      "state": "OH"
+    }
+  },
+  "Parma Fire Department (18801)": {
+    "agency": {
+      "agencyid": "18801",
+      "agencyname": "Parma Fire Department",
+      "state": "OH"
+    }
+  },
+  "Central Kitsap Fire and Rescue (18D01)": {
+    "agency": {
+      "agencyid": "18D01",
+      "agencyname": "Central Kitsap Fire and Rescue",
+      "state": "WA"
+    }
+  },
+  "Bainbridge Island Fire Department (18D02)": {
+    "agency": {
+      "agencyid": "18D02",
+      "agencyname": "Bainbridge Island Fire Department",
+      "state": "WA"
+    }
+  },
+  "South Kitsap Fire & Rescue (18D07)": {
+    "agency": {
+      "agencyid": "18D07",
+      "agencyname": "South Kitsap Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "North Kitsap Fire and Rescue (18D10)": {
+    "agency": {
+      "agencyid": "18D10",
+      "agencyname": "North Kitsap Fire and Rescue",
+      "state": "WA"
+    }
+  },
+  "Bremerton Fire Department (18M01)": {
+    "agency": {
+      "agencyid": "18M01",
+      "agencyname": "Bremerton Fire Department",
+      "state": "WA"
+    }
+  },
+  "Poulsbo Fire Department (18M04)": {
+    "agency": {
+      "agencyid": "18M04",
+      "agencyname": "Poulsbo Fire Department",
+      "state": "WA"
+    }
+  },
+  "Alhambra Fire Department (19005)": {
+    "agency": {
+      "agencyid": "19005",
+      "agencyname": "Alhambra Fire Department",
+      "state": "CA"
+    }
+  },
+  "Arcadia Fire Department (19010)": {
+    "agency": {
+      "agencyid": "19010",
+      "agencyname": "Arcadia Fire Department",
+      "state": "CA"
+    }
+  },
+  "Burbank-Hollywood Airport (19027)": {
+    "agency": {
+      "agencyid": "19027",
+      "agencyname": "Burbank-Hollywood Airport",
+      "state": "CA"
+    }
+  },
+  "Burbank Fire Department (19030)": {
+    "agency": {
+      "agencyid": "19030",
+      "agencyname": "Burbank Fire Department",
+      "state": "CA"
+    }
+  },
+  "Compton Fire Department (19040)": {
+    "agency": {
+      "agencyid": "19040",
+      "agencyname": "Compton Fire Department",
+      "state": "CA"
+    }
+  },
+  "Downey Fire Department (19055)": {
+    "agency": {
+      "agencyid": "19055",
+      "agencyname": "Downey Fire Department",
+      "state": "CA"
+    }
+  },
+  "Glendale Fire Department (19075)": {
+    "agency": {
+      "agencyid": "19075",
+      "agencyname": "Glendale Fire Department",
+      "state": "CA"
+    }
+  },
+  "Long Beach Fire Department (19100)": {
+    "agency": {
+      "agencyid": "19100",
+      "agencyname": "Long Beach Fire Department",
+      "state": "CA"
+    }
+  },
+  "Idaho Falls Fire Department (19101)": {
+    "agency": {
+      "agencyid": "19101",
+      "agencyname": "Idaho Falls Fire Department",
+      "state": "ID"
+    }
+  },
+  "Los Angeles Fire Department (Valley Bureau) (19105)": {
+    "agency": {
+      "agencyid": "19105",
+      "agencyname": "Los Angeles Fire Department (Valley Bureau)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 3) (19110)": {
+    "agency": {
+      "agencyid": "19110",
+      "agencyname": "Los Angeles County FD (Division 3)",
+      "state": "CA"
+    }
+  },
+  "Monrovia Fire Department (19125)": {
+    "agency": {
+      "agencyid": "19125",
+      "agencyname": "Monrovia Fire Department",
+      "state": "CA"
+    }
+  },
+  "Montebello Fire Department (19130)": {
+    "agency": {
+      "agencyid": "19130",
+      "agencyname": "Montebello Fire Department",
+      "state": "CA"
+    }
+  },
+  "Monterey Park Fire Department (19135)": {
+    "agency": {
+      "agencyid": "19135",
+      "agencyname": "Monterey Park Fire Department",
+      "state": "CA"
+    }
+  },
+  "Pasadena Fire Department (19145)": {
+    "agency": {
+      "agencyid": "19145",
+      "agencyname": "Pasadena Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Gabriel Fire Department (19165)": {
+    "agency": {
+      "agencyid": "19165",
+      "agencyname": "San Gabriel Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Marino Fire Department (19170)": {
+    "agency": {
+      "agencyid": "19170",
+      "agencyname": "San Marino Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santa Fe Springs Fire Rescue (19175)": {
+    "agency": {
+      "agencyid": "19175",
+      "agencyname": "Santa Fe Springs Fire Rescue",
+      "state": "CA"
+    }
+  },
+  "Sierra Madre Fire Department (19185)": {
+    "agency": {
+      "agencyid": "19185",
+      "agencyname": "Sierra Madre Fire Department",
+      "state": "CA"
+    }
+  },
+  "South Pasadena Fire Department (19195)": {
+    "agency": {
+      "agencyid": "19195",
+      "agencyname": "South Pasadena Fire Department",
+      "state": "CA"
+    }
+  },
+  "La Habra Heights Fire (19225)": {
+    "agency": {
+      "agencyid": "19225",
+      "agencyname": "La Habra Heights Fire",
+      "state": "CA"
+    }
+  },
+  "York County Fire and Life Safety (19900)": {
+    "agency": {
+      "agencyid": "19900",
+      "agencyname": "York County Fire and Life Safety",
+      "state": "VA"
+    }
+  },
+  "Marin County (21105)": {
+    "agency": {
+      "agencyid": "21105",
+      "agencyname": "Marin County",
+      "state": "CA"
+    }
+  },
+  "ANCHORAGE Fire Department (23100)": {
+    "agency": {
+      "agencyid": "23100",
+      "agencyname": "ANCHORAGE Fire Department",
+      "state": "AK"
+    }
+  },
+  "Anne Arundel County (24000)": {
+    "agency": {
+      "agencyid": "24000",
+      "agencyname": "Anne Arundel County",
+      "state": "MD"
+    }
+  },
+  "Columbus Division of Fire (25009)": {
+    "agency": {
+      "agencyid": "25009",
+      "agencyname": "Columbus Division of Fire",
+      "state": "OH"
+    }
+  },
+  "Washington Township Fire Dublin, Ohio - NRECC (25013)": {
+    "agency": {
+      "agencyid": "25013",
+      "agencyname": "Washington Township Fire Dublin, Ohio - NRECC",
+      "state": "OH"
+    }
+  },
+  "Upper Arlington Fire - NRECC (25049)": {
+    "agency": {
+      "agencyid": "25049",
+      "agencyname": "Upper Arlington Fire - NRECC",
+      "state": "OH"
+    }
+  },
+  "Norwich Township Fire - NRECC (25123)": {
+    "agency": {
+      "agencyid": "25123",
+      "agencyname": "Norwich Township Fire - NRECC",
+      "state": "OH"
+    }
+  },
+  "Worthington Division of Fire - NRECC (25133)": {
+    "agency": {
+      "agencyid": "25133",
+      "agencyname": "Worthington Division of Fire - NRECC",
+      "state": "OH"
+    }
+  },
+  "Archbold Fire Department (26001)": {
+    "agency": {
+      "agencyid": "26001",
+      "agencyname": "Archbold Fire Department",
+      "state": "OH"
+    }
+  },
+  "Delta Community Fire Department (26003)": {
+    "agency": {
+      "agencyid": "26003",
+      "agencyname": "Delta Community Fire Department",
+      "state": "OH"
+    }
+  },
+  "Gorham-Fayette Fire Department (26005)": {
+    "agency": {
+      "agencyid": "26005",
+      "agencyname": "Gorham-Fayette Fire Department",
+      "state": "OH"
+    }
+  },
+  "Lyons-Royalton Volunteer Fire Department (26007)": {
+    "agency": {
+      "agencyid": "26007",
+      "agencyname": "Lyons-Royalton Volunteer Fire Department",
+      "state": "OH"
+    }
+  },
+  "Metamora-Amboy Volunteer Fire Department (26009)": {
+    "agency": {
+      "agencyid": "26009",
+      "agencyname": "Metamora-Amboy Volunteer Fire Department",
+      "state": "OH"
+    }
+  },
+  "Swanton Fire and Rescue Division (26011)": {
+    "agency": {
+      "agencyid": "26011",
+      "agencyname": "Swanton Fire and Rescue Division",
+      "state": "OH"
+    }
+  },
+  "Wauseon Fire Department (26013)": {
+    "agency": {
+      "agencyid": "26013",
+      "agencyname": "Wauseon Fire Department",
+      "state": "OH"
+    }
+  },
+  "Corona Fire Department (27025)": {
+    "agency": {
+      "agencyid": "27025",
+      "agencyname": "Corona Fire Department",
+      "state": "CA"
+    }
+  },
+  "SOLEDAD Fire Department (27090)": {
+    "agency": {
+      "agencyid": "27090",
+      "agencyname": "SOLEDAD Fire Department",
+      "state": "CA"
+    }
+  },
+  "PEBBLE BEACH Fire Department (27115)": {
+    "agency": {
+      "agencyid": "27115",
+      "agencyname": "PEBBLE BEACH Fire Department",
+      "state": "CA"
+    }
+  },
+  "KING CITY Fire Department (27155)": {
+    "agency": {
+      "agencyid": "27155",
+      "agencyname": "KING CITY Fire Department",
+      "state": "CA"
+    }
+  },
+  "St Louis Park Fire Department (27229)": {
+    "agency": {
+      "agencyid": "27229",
+      "agencyname": "St Louis Park Fire Department",
+      "state": "MN"
+    }
+  },
+  "Gig Harbor Fire & Medic One (27D05)": {
+    "agency": {
+      "agencyid": "27D05",
+      "agencyname": "Gig Harbor Fire & Medic One",
+      "state": "WA"
+    }
+  },
+  "Central Pierce Fire & Rescue (27D06)": {
+    "agency": {
+      "agencyid": "27D06",
+      "agencyname": "Central Pierce Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Browns Point Fire & Rescue (27D13)": {
+    "agency": {
+      "agencyid": "27D13",
+      "agencyname": "Browns Point Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Riverside Fire & Rescue (27D14)": {
+    "agency": {
+      "agencyid": "27D14",
+      "agencyname": "Riverside Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Key Peninsula Fire & Rescue (27D16)": {
+    "agency": {
+      "agencyid": "27D16",
+      "agencyname": "Key Peninsula Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "South Pierce Fire & Rescue (27D17)": {
+    "agency": {
+      "agencyid": "27D17",
+      "agencyname": "South Pierce Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Graham Fire & Rescue (27D21)": {
+    "agency": {
+      "agencyid": "27D21",
+      "agencyname": "Graham Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "East Pierce Fire & Rescue (27D22)": {
+    "agency": {
+      "agencyid": "27D22",
+      "agencyname": "East Pierce Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Ashford/Elbe Fire & Rescue (27D23)": {
+    "agency": {
+      "agencyid": "27D23",
+      "agencyname": "Ashford/Elbe Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Crystal Mountain Fire Department (27D25)": {
+    "agency": {
+      "agencyid": "27D25",
+      "agencyname": "Crystal Mountain Fire Department",
+      "state": "WA"
+    }
+  },
+  "Greenwater Fire Department (27D26)": {
+    "agency": {
+      "agencyid": "27D26",
+      "agencyname": "Greenwater Fire Department",
+      "state": "WA"
+    }
+  },
+  "Anderson Island Fire & Rescue (27D27)": {
+    "agency": {
+      "agencyid": "27D27",
+      "agencyname": "Anderson Island Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Buckley Fire Department (27M02)": {
+    "agency": {
+      "agencyid": "27M02",
+      "agencyname": "Buckley Fire Department",
+      "state": "WA"
+    }
+  },
+  "Carbonado Fire Department (27M03)": {
+    "agency": {
+      "agencyid": "27M03",
+      "agencyname": "Carbonado Fire Department",
+      "state": "WA"
+    }
+  },
+  "DuPont Fire Department (27M04)": {
+    "agency": {
+      "agencyid": "27M04",
+      "agencyname": "DuPont Fire Department",
+      "state": "WA"
+    }
+  },
+  "Orting Valley Fire & Rescue (27M08)": {
+    "agency": {
+      "agencyid": "27M08",
+      "agencyname": "Orting Valley Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Tacoma Fire Department (27M16)": {
+    "agency": {
+      "agencyid": "27M16",
+      "agencyname": "Tacoma Fire Department",
+      "state": "WA"
+    }
+  },
+  "Pasco County Fire Rescue (28042)": {
+    "agency": {
+      "agencyid": "28042",
+      "agencyname": "Pasco County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Carmel Fire Department (29003)": {
+    "agency": {
+      "agencyid": "29003",
+      "agencyname": "Carmel Fire Department",
+      "state": "IN"
+    }
+  },
+  "Cicero Fire Department (29004)": {
+    "agency": {
+      "agencyid": "29004",
+      "agencyname": "Cicero Fire Department",
+      "state": "IN"
+    }
+  },
+  "Fishers Fire Department (29005)": {
+    "agency": {
+      "agencyid": "29005",
+      "agencyname": "Fishers Fire Department",
+      "state": "IN"
+    }
+  },
+  "Noblesville Fire Department (29007)": {
+    "agency": {
+      "agencyid": "29007",
+      "agencyname": "Noblesville Fire Department",
+      "state": "IN"
+    }
+  },
+  "Sheridan Fire Department (29008)": {
+    "agency": {
+      "agencyid": "29008",
+      "agencyname": "Sheridan Fire Department",
+      "state": "IN"
+    }
+  },
+  "Westfield Fire (29010)": {
+    "agency": {
+      "agencyid": "29010",
+      "agencyname": "Westfield Fire",
+      "state": "IN"
+    }
+  },
+  "TRUCKEE Fire Department (29060)": {
+    "agency": {
+      "agencyid": "29060",
+      "agencyname": "TRUCKEE Fire Department",
+      "state": "CA"
+    }
+  },
+  "Anaheim Fire & Rescue (30005)": {
+    "agency": {
+      "agencyid": "30005",
+      "agencyname": "Anaheim Fire & Rescue",
+      "state": "CA"
+    }
+  },
+  "Brea Fire Department (30010)": {
+    "agency": {
+      "agencyid": "30010",
+      "agencyname": "Brea Fire Department",
+      "state": "CA"
+    }
+  },
+  "Henderson Fire Department (3001X)": {
+    "agency": {
+      "agencyid": "3001X",
+      "agencyname": "Henderson Fire Department",
+      "state": "NV"
+    }
+  },
+  "Fountain Valley Fire Department (30025)": {
+    "agency": {
+      "agencyid": "30025",
+      "agencyname": "Fountain Valley Fire Department",
+      "state": "CA"
+    }
+  },
+  "Fullerton Fire Department (30030)": {
+    "agency": {
+      "agencyid": "30030",
+      "agencyname": "Fullerton Fire Department",
+      "state": "CA"
+    }
+  },
+  "Huntington Beach Fire Department (30040)": {
+    "agency": {
+      "agencyid": "30040",
+      "agencyname": "Huntington Beach Fire Department",
+      "state": "CA"
+    }
+  },
+  "Newport Beach Fire Department (30055)": {
+    "agency": {
+      "agencyid": "30055",
+      "agencyname": "Newport Beach Fire Department",
+      "state": "CA"
+    }
+  },
+  "Orange Fire Department (30060)": {
+    "agency": {
+      "agencyid": "30060",
+      "agencyname": "Orange Fire Department",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 1) (30065)": {
+    "agency": {
+      "agencyid": "30065",
+      "agencyname": "Orange County Fire Authority OCFA (Division 1)",
+      "state": "CA"
+    }
+  },
+  "PLACENTIA Fire Department (30070)": {
+    "agency": {
+      "agencyid": "30070",
+      "agencyname": "PLACENTIA Fire Department",
+      "state": "CA"
+    }
+  },
+  "CINCINNATI Fire Department (31015)": {
+    "agency": {
+      "agencyid": "31015",
+      "agencyname": "CINCINNATI Fire Department",
+      "state": "OH"
+    }
+  },
+  "OLYMPIC VALLEY Fire Department (31044)": {
+    "agency": {
+      "agencyid": "31044",
+      "agencyname": "OLYMPIC VALLEY Fire Department",
+      "state": "CA"
+    }
+  },
+  "AUBURN Fire Department (31125)": {
+    "agency": {
+      "agencyid": "31125",
+      "agencyname": "AUBURN Fire Department",
+      "state": "CA"
+    }
+  },
+  "Spokane Valley Fire Department (32D01)": {
+    "agency": {
+      "agencyid": "32D01",
+      "agencyname": "Spokane Valley Fire Department",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 3 (32D03)": {
+    "agency": {
+      "agencyid": "32D03",
+      "agencyname": "Spokane County Fire District 3",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 4 (32D04)": {
+    "agency": {
+      "agencyid": "32D04",
+      "agencyname": "Spokane County Fire District 4",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 8 (32D08)": {
+    "agency": {
+      "agencyid": "32D08",
+      "agencyname": "Spokane County Fire District 8",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 9 (32D09)": {
+    "agency": {
+      "agencyid": "32D09",
+      "agencyname": "Spokane County Fire District 9",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 10 (32D10)": {
+    "agency": {
+      "agencyid": "32D10",
+      "agencyname": "Spokane County Fire District 10",
+      "state": "WA"
+    }
+  },
+  "Spokane County Fire District 13 (32D13)": {
+    "agency": {
+      "agencyid": "32D13",
+      "agencyname": "Spokane County Fire District 13",
+      "state": "WA"
+    }
+  },
+  "Airway Heights Fire Department (32M01)": {
+    "agency": {
+      "agencyid": "32M01",
+      "agencyname": "Airway Heights Fire Department",
+      "state": "WA"
+    }
+  },
+  "Cheney Fire & EMS (32M02)": {
+    "agency": {
+      "agencyid": "32M02",
+      "agencyname": "Cheney Fire & EMS",
+      "state": "WA"
+    }
+  },
+  "Spokane Fire Department (32M10)": {
+    "agency": {
+      "agencyid": "32M10",
+      "agencyname": "Spokane Fire Department",
+      "state": "WA"
+    }
+  },
+  "Murrieta Fire & Rescue (33055)": {
+    "agency": {
+      "agencyid": "33055",
+      "agencyname": "Murrieta Fire & Rescue",
+      "state": "CA"
+    }
+  },
+  "RIVERSIDE Fire Department (33075)": {
+    "agency": {
+      "agencyid": "33075",
+      "agencyname": "RIVERSIDE Fire Department",
+      "state": "CA"
+    }
+  },
+  "Courtland Fire Protection District (34015)": {
+    "agency": {
+      "agencyid": "34015",
+      "agencyname": "Courtland Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Cosumnes Fire Department (34020)": {
+    "agency": {
+      "agencyid": "34020",
+      "agencyname": "Cosumnes Fire Department",
+      "state": "CA"
+    }
+  },
+  "Folsom Fire Department (34035)": {
+    "agency": {
+      "agencyid": "34035",
+      "agencyname": "Folsom Fire Department",
+      "state": "CA"
+    }
+  },
+  "Herald Fire Protection District (34050)": {
+    "agency": {
+      "agencyid": "34050",
+      "agencyname": "Herald Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Sacramento Fire Department (34080)": {
+    "agency": {
+      "agencyid": "34080",
+      "agencyname": "Sacramento Fire Department",
+      "state": "CA"
+    }
+  },
+  "Sacramento Metropolitan Fire District (34090)": {
+    "agency": {
+      "agencyid": "34090",
+      "agencyname": "Sacramento Metropolitan Fire District",
+      "state": "CA"
+    }
+  },
+  "Walnut Grove Fire Protection District (34120)": {
+    "agency": {
+      "agencyid": "34120",
+      "agencyname": "Walnut Grove Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Wilton Fire Protection District (34125)": {
+    "agency": {
+      "agencyid": "34125",
+      "agencyname": "Wilton Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "River Delta Fire District (34135)": {
+    "agency": {
+      "agencyid": "34135",
+      "agencyname": "River Delta Fire District",
+      "state": "CA"
+    }
+  },
+  "Eagle Mountain Unified Fire Authority (35002)": {
+    "agency": {
+      "agencyid": "35002",
+      "agencyname": "Eagle Mountain Unified Fire Authority",
+      "state": "UT"
+    }
+  },
+  "Hollister Fire Department (35010)": {
+    "agency": {
+      "agencyid": "35010",
+      "agencyname": "Hollister Fire Department",
+      "state": "CA"
+    }
+  },
+  "Rancho Cucamonga Fire District (36010)": {
+    "agency": {
+      "agencyid": "36010",
+      "agencyname": "Rancho Cucamonga Fire District",
+      "state": "CA"
+    }
+  },
+  "INLET BEACH Fire Department (36011)": {
+    "agency": {
+      "agencyid": "36011",
+      "agencyname": "INLET BEACH Fire Department",
+      "state": "FL"
+    }
+  },
+  "Apple Valley Fire Protection District (36015)": {
+    "agency": {
+      "agencyid": "36015",
+      "agencyname": "Apple Valley Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Big Bear Fire Department (36042)": {
+    "agency": {
+      "agencyid": "36042",
+      "agencyname": "Big Bear Fire Department",
+      "state": "CA"
+    }
+  },
+  "Chino Valley Fire District (36058)": {
+    "agency": {
+      "agencyid": "36058",
+      "agencyname": "Chino Valley Fire District",
+      "state": "CA"
+    }
+  },
+  "COLTON CITY Fire Department (36065)": {
+    "agency": {
+      "agencyid": "36065",
+      "agencyname": "COLTON CITY Fire Department",
+      "state": "CA"
+    }
+  },
+  "Loma Linda Fire Department (36125)": {
+    "agency": {
+      "agencyid": "36125",
+      "agencyname": "Loma Linda Fire Department",
+      "state": "CA"
+    }
+  },
+  "Montclair Fire Department (36140)": {
+    "agency": {
+      "agencyid": "36140",
+      "agencyname": "Montclair Fire Department",
+      "state": "CA"
+    }
+  },
+  "Ontario Fire Department (36170)": {
+    "agency": {
+      "agencyid": "36170",
+      "agencyname": "Ontario Fire Department",
+      "state": "CA"
+    }
+  },
+  "Redlands Fire Department (36180)": {
+    "agency": {
+      "agencyid": "36180",
+      "agencyname": "Redlands Fire Department",
+      "state": "CA"
+    }
+  },
+  "Rialto Fire Department (36185)": {
+    "agency": {
+      "agencyid": "36185",
+      "agencyname": "Rialto Fire Department",
+      "state": "CA"
+    }
+  },
+  "Running Springs Fire Department (36190)": {
+    "agency": {
+      "agencyid": "36190",
+      "agencyname": "Running Springs Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Bernardino County Fire Department (36193)": {
+    "agency": {
+      "agencyid": "36193",
+      "agencyname": "San Bernardino County Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Manuel Fire Department (36199)": {
+    "agency": {
+      "agencyid": "36199",
+      "agencyname": "San Manuel Fire Department",
+      "state": "CA"
+    }
+  },
+  "Victorville Fire Department (36220)": {
+    "agency": {
+      "agencyid": "36220",
+      "agencyname": "Victorville Fire Department",
+      "state": "CA"
+    }
+  },
+  "Alpine Fire Protection District (37005)": {
+    "agency": {
+      "agencyid": "37005",
+      "agencyname": "Alpine Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Bonita Sunnyside Fire Protection District (37010)": {
+    "agency": {
+      "agencyid": "37010",
+      "agencyname": "Bonita Sunnyside Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Carlsbad Fire Department (37025)": {
+    "agency": {
+      "agencyid": "37025",
+      "agencyname": "Carlsbad Fire Department",
+      "state": "CA"
+    }
+  },
+  "City of Chula Vista (37030)": {
+    "agency": {
+      "agencyid": "37030",
+      "agencyname": "City of Chula Vista",
+      "state": "CA"
+    }
+  },
+  "Coronado Fire Department (37045)": {
+    "agency": {
+      "agencyid": "37045",
+      "agencyname": "Coronado Fire Department",
+      "state": "CA"
+    }
+  },
+  "CAL FIRE/San Diego County Fire Authority (37047)": {
+    "agency": {
+      "agencyid": "37047",
+      "agencyname": "CAL FIRE/San Diego County Fire Authority",
+      "state": "CA"
+    }
+  },
+  "Del Mar Fire Department (37050)": {
+    "agency": {
+      "agencyid": "37050",
+      "agencyname": "Del Mar Fire Department",
+      "state": "CA"
+    }
+  },
+  "Encinitas Fire Department (37065)": {
+    "agency": {
+      "agencyid": "37065",
+      "agencyname": "Encinitas Fire Department",
+      "state": "CA"
+    }
+  },
+  "Escondido Fire Department (37070)": {
+    "agency": {
+      "agencyid": "37070",
+      "agencyname": "Escondido Fire Department",
+      "state": "CA"
+    }
+  },
+  "North County Fire Protection District (37075)": {
+    "agency": {
+      "agencyid": "37075",
+      "agencyname": "North County Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Heartland Fire & Rescue Department (37084)": {
+    "agency": {
+      "agencyid": "37084",
+      "agencyname": "Heartland Fire & Rescue Department",
+      "state": "CA"
+    }
+  },
+  "Imperial Beach Fire Rescue (37085)": {
+    "agency": {
+      "agencyid": "37085",
+      "agencyname": "Imperial Beach Fire Rescue",
+      "state": "CA"
+    }
+  },
+  "Lakeside Fire Protection District (37090)": {
+    "agency": {
+      "agencyid": "37090",
+      "agencyname": "Lakeside Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "National City Fire Department (37110)": {
+    "agency": {
+      "agencyid": "37110",
+      "agencyname": "National City Fire Department",
+      "state": "CA"
+    }
+  },
+  "Oceanside Fire Department (37115)": {
+    "agency": {
+      "agencyid": "37115",
+      "agencyname": "Oceanside Fire Department",
+      "state": "CA"
+    }
+  },
+  "Poway Fire Department (37125)": {
+    "agency": {
+      "agencyid": "37125",
+      "agencyname": "Poway Fire Department",
+      "state": "CA"
+    }
+  },
+  "Rancho Santa Fe Fire Protection District (37135)": {
+    "agency": {
+      "agencyid": "37135",
+      "agencyname": "Rancho Santa Fe Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "San Diego Fire-Rescue Department (37140)": {
+    "agency": {
+      "agencyid": "37140",
+      "agencyname": "San Diego Fire-Rescue Department",
+      "state": "CA"
+    }
+  },
+  "San Marcos Fire Department (37145)": {
+    "agency": {
+      "agencyid": "37145",
+      "agencyname": "San Marcos Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santee Fire Department (37150)": {
+    "agency": {
+      "agencyid": "37150",
+      "agencyname": "Santee Fire Department",
+      "state": "CA"
+    }
+  },
+  "Solana Beach Fire Department (37160)": {
+    "agency": {
+      "agencyid": "37160",
+      "agencyname": "Solana Beach Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Miguel Fire & Rescue (37165)": {
+    "agency": {
+      "agencyid": "37165",
+      "agencyname": "San Miguel Fire & Rescue",
+      "state": "CA"
+    }
+  },
+  "Vista Fire Department (37170)": {
+    "agency": {
+      "agencyid": "37170",
+      "agencyname": "Vista Fire Department",
+      "state": "CA"
+    }
+  },
+  "Valley Center Fire Protection District (37175)": {
+    "agency": {
+      "agencyid": "37175",
+      "agencyname": "Valley Center Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Pauma Fire Department (37215)": {
+    "agency": {
+      "agencyid": "37215",
+      "agencyname": "Pauma Fire Department",
+      "state": "CA"
+    }
+  },
+  "Rincon Fire Department (37219)": {
+    "agency": {
+      "agencyid": "37219",
+      "agencyname": "Rincon Fire Department",
+      "state": "CA"
+    }
+  },
+  "Viejas Fire Department (37235)": {
+    "agency": {
+      "agencyid": "37235",
+      "agencyname": "Viejas Fire Department",
+      "state": "CA"
+    }
+  },
+  "FRANKLIN Fire Department (40010)": {
+    "agency": {
+      "agencyid": "40010",
+      "agencyname": "FRANKLIN Fire Department",
+      "state": "WI"
+    }
+  },
+  "Oak Creek Fire Department (40020)": {
+    "agency": {
+      "agencyid": "40020",
+      "agencyname": "Oak Creek Fire Department",
+      "state": "WI"
+    }
+  },
+  "CUDAHY Fire Department (40030)": {
+    "agency": {
+      "agencyid": "40030",
+      "agencyname": "CUDAHY Fire Department",
+      "state": "WI"
+    }
+  },
+  "GREENDALE Fire Department (40050)": {
+    "agency": {
+      "agencyid": "40050",
+      "agencyname": "GREENDALE Fire Department",
+      "state": "WI"
+    }
+  },
+  "San Luis Obispo City Fire Department (40060)": {
+    "agency": {
+      "agencyid": "40060",
+      "agencyname": "San Luis Obispo City Fire Department",
+      "state": "CA"
+    }
+  },
+  "St. Francis Fire Department (40070)": {
+    "agency": {
+      "agencyid": "40070",
+      "agencyname": "St. Francis Fire Department",
+      "state": "WI"
+    }
+  },
+  "West Allis Fire Department (40100)": {
+    "agency": {
+      "agencyid": "40100",
+      "agencyname": "West Allis Fire Department",
+      "state": "WI"
+    }
+  },
+  "Wauwatosa Fire Department (40110)": {
+    "agency": {
+      "agencyid": "40110",
+      "agencyname": "Wauwatosa Fire Department",
+      "state": "WI"
+    }
+  },
+  "HALES CORNERS Fire Department (40160)": {
+    "agency": {
+      "agencyid": "40160",
+      "agencyname": "HALES CORNERS Fire Department",
+      "state": "WI"
+    }
+  },
+  "Milwaukee Fire Department (40200)": {
+    "agency": {
+      "agencyid": "40200",
+      "agencyname": "Milwaukee Fire Department",
+      "state": "WI"
+    }
+  },
+  "Greenfield Fire Department (40210)": {
+    "agency": {
+      "agencyid": "40210",
+      "agencyname": "Greenfield Fire Department",
+      "state": "WI"
+    }
+  },
+  "SOUTH MILWAUKEE Fire Department (40220)": {
+    "agency": {
+      "agencyid": "40220",
+      "agencyname": "SOUTH MILWAUKEE Fire Department",
+      "state": "WI"
+    }
+  },
+  "North Shore Fire/Rescue (40260)": {
+    "agency": {
+      "agencyid": "40260",
+      "agencyname": "North Shore Fire/Rescue",
+      "state": "WI"
+    }
+  },
+  "San Luis Obispo County Fire Department (40555)": {
+    "agency": {
+      "agencyid": "40555",
+      "agencyname": "San Luis Obispo County Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Mateo County Office of Public Safety Communications (41000)": {
+    "agency": {
+      "agencyid": "41000",
+      "agencyname": "San Mateo County Office of Public Safety Communications",
+      "state": "CA"
+    }
+  },
+  "Carpinteria-Summerland Fire District (42005)": {
+    "agency": {
+      "agencyid": "42005",
+      "agencyname": "Carpinteria-Summerland Fire District",
+      "state": "CA"
+    }
+  },
+  "Guadalupe Fire Department (42010)": {
+    "agency": {
+      "agencyid": "42010",
+      "agencyname": "Guadalupe Fire Department",
+      "state": "CA"
+    }
+  },
+  "LOMPOC Fire Department (42015)": {
+    "agency": {
+      "agencyid": "42015",
+      "agencyname": "LOMPOC Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santa Barbara City Fire Department (42025)": {
+    "agency": {
+      "agencyid": "42025",
+      "agencyname": "Santa Barbara City Fire Department",
+      "state": "CA"
+    }
+  },
+  "Montecito Fire District (42030)": {
+    "agency": {
+      "agencyid": "42030",
+      "agencyname": "Montecito Fire District",
+      "state": "CA"
+    }
+  },
+  "Santa Barbara County (42035)": {
+    "agency": {
+      "agencyid": "42035",
+      "agencyname": "Santa Barbara County",
+      "state": "CA"
+    }
+  },
+  "Gilroy Fire Department (43010)": {
+    "agency": {
+      "agencyid": "43010",
+      "agencyname": "Gilroy Fire Department",
+      "state": "CA"
+    }
+  },
+  "Milpitas Fire Department (43030)": {
+    "agency": {
+      "agencyid": "43030",
+      "agencyname": "Milpitas Fire Department",
+      "state": "CA"
+    }
+  },
+  "Morgan Hill Fire Department (43040)": {
+    "agency": {
+      "agencyid": "43040",
+      "agencyname": "Morgan Hill Fire Department",
+      "state": "CA"
+    }
+  },
+  "South Santa Clara County Fire District (43045)": {
+    "agency": {
+      "agencyid": "43045",
+      "agencyname": "South Santa Clara County Fire District",
+      "state": "CA"
+    }
+  },
+  "Mountain View Fire Department (43050)": {
+    "agency": {
+      "agencyid": "43050",
+      "agencyname": "Mountain View Fire Department",
+      "state": "CA"
+    }
+  },
+  "Palo Alto Fire Department (43060)": {
+    "agency": {
+      "agencyid": "43060",
+      "agencyname": "Palo Alto Fire Department",
+      "state": "CA"
+    }
+  },
+  "San Jose Fire Department (43070)": {
+    "agency": {
+      "agencyid": "43070",
+      "agencyname": "San Jose Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santa Clara County Fire Department (43080)": {
+    "agency": {
+      "agencyid": "43080",
+      "agencyname": "Santa Clara County Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santa Clara Fire Department (43090)": {
+    "agency": {
+      "agencyid": "43090",
+      "agencyname": "Santa Clara Fire Department",
+      "state": "CA"
+    }
+  },
+  "Sunnyvale Department of Public Safety (43105)": {
+    "agency": {
+      "agencyid": "43105",
+      "agencyname": "Sunnyvale Department of Public Safety",
+      "state": "CA"
+    }
+  },
+  "NASA Ames Fire Department (43810)": {
+    "agency": {
+      "agencyid": "43810",
+      "agencyname": "NASA Ames Fire Department",
+      "state": "CA"
+    }
+  },
+  "Aptos-La Selva Fire Protection District (44005)": {
+    "agency": {
+      "agencyid": "44005",
+      "agencyname": "Aptos-La Selva Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Ben Lomond Fire Protection District (44015)": {
+    "agency": {
+      "agencyid": "44015",
+      "agencyname": "Ben Lomond Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Boulder Creek Fire Protection District (44020)": {
+    "agency": {
+      "agencyid": "44020",
+      "agencyname": "Boulder Creek Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Felton Fire Protection District (44035)": {
+    "agency": {
+      "agencyid": "44035",
+      "agencyname": "Felton Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Zayante Fire Protection District (44040)": {
+    "agency": {
+      "agencyid": "44040",
+      "agencyname": "Zayante Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Santa Cruz Fire Department (44055)": {
+    "agency": {
+      "agencyid": "44055",
+      "agencyname": "Santa Cruz Fire Department",
+      "state": "CA"
+    }
+  },
+  "Branciforte Fire Protection District (44060)": {
+    "agency": {
+      "agencyid": "44060",
+      "agencyname": "Branciforte Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Central Fire Protection District (44065)": {
+    "agency": {
+      "agencyid": "44065",
+      "agencyname": "Central Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Scotts Valley Fire District (44070)": {
+    "agency": {
+      "agencyid": "44070",
+      "agencyname": "Scotts Valley Fire District",
+      "state": "CA"
+    }
+  },
+  "Watsonville Fire Department (44080)": {
+    "agency": {
+      "agencyid": "44080",
+      "agencyname": "Watsonville Fire Department",
+      "state": "CA"
+    }
+  },
+  "Santa Cruz County Fire (44555)": {
+    "agency": {
+      "agencyid": "44555",
+      "agencyname": "Santa Cruz County Fire",
+      "state": "CA"
+    }
+  },
+  "Clay County Fire Rescue (48032)": {
+    "agency": {
+      "agencyid": "48032",
+      "agencyname": "Clay County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Providence Township Fire Department (48101)": {
+    "agency": {
+      "agencyid": "48101",
+      "agencyname": "Providence Township Fire Department",
+      "state": "OH"
+    }
+  },
+  "Lone Peak Fire District (49001)": {
+    "agency": {
+      "agencyid": "49001",
+      "agencyname": "Lone Peak Fire District",
+      "state": "UT"
+    }
+  },
+  "American Fork Fire Department (49002)": {
+    "agency": {
+      "agencyid": "49002",
+      "agencyname": "American Fork Fire Department",
+      "state": "UT"
+    }
+  },
+  "Genola Fire Department (49004)": {
+    "agency": {
+      "agencyid": "49004",
+      "agencyname": "Genola Fire Department",
+      "state": "UT"
+    }
+  },
+  "Goshen Fire Department (49005)": {
+    "agency": {
+      "agencyid": "49005",
+      "agencyname": "Goshen Fire Department",
+      "state": "UT"
+    }
+  },
+  "Lehi Fire Department (49007)": {
+    "agency": {
+      "agencyid": "49007",
+      "agencyname": "Lehi Fire Department",
+      "state": "UT"
+    }
+  },
+  "Mapleton Fire Department (49009)": {
+    "agency": {
+      "agencyid": "49009",
+      "agencyname": "Mapleton Fire Department",
+      "state": "UT"
+    }
+  },
+  "Orem Fire Department (49010)": {
+    "agency": {
+      "agencyid": "49010",
+      "agencyname": "Orem Fire Department",
+      "state": "UT"
+    }
+  },
+  "Payson Fire & Rescue (49011)": {
+    "agency": {
+      "agencyid": "49011",
+      "agencyname": "Payson Fire & Rescue",
+      "state": "UT"
+    }
+  },
+  "Provo Fire & Rescue (49013)": {
+    "agency": {
+      "agencyid": "49013",
+      "agencyname": "Provo Fire & Rescue",
+      "state": "UT"
+    }
+  },
+  "Elk Ridge Fire Department (49015)": {
+    "agency": {
+      "agencyid": "49015",
+      "agencyname": "Elk Ridge Fire Department",
+      "state": "UT"
+    }
+  },
+  "Santaquin Fire/EMS (49016)": {
+    "agency": {
+      "agencyid": "49016",
+      "agencyname": "Santaquin Fire/EMS",
+      "state": "UT"
+    }
+  },
+  "Spanish Fork Public Safety (49017)": {
+    "agency": {
+      "agencyid": "49017",
+      "agencyname": "Spanish Fork Public Safety",
+      "state": "UT"
+    }
+  },
+  "Springville Fire & Rescue (49018)": {
+    "agency": {
+      "agencyid": "49018",
+      "agencyname": "Springville Fire & Rescue",
+      "state": "UT"
+    }
+  },
+  "Pleasant Grove City (4901x)": {
+    "agency": {
+      "agencyid": "4901x",
+      "agencyname": "Pleasant Grove City",
+      "state": "UT"
+    }
+  },
+  "North Fork Fire Department (49020)": {
+    "agency": {
+      "agencyid": "49020",
+      "agencyname": "North Fork Fire Department",
+      "state": "UT"
+    }
+  },
+  "Woodland Hills Fire Department (49021)": {
+    "agency": {
+      "agencyid": "49021",
+      "agencyname": "Woodland Hills Fire Department",
+      "state": "UT"
+    }
+  },
+  "Saratoga Springs Fire & Rescue (49025)": {
+    "agency": {
+      "agencyid": "49025",
+      "agencyname": "Saratoga Springs Fire & Rescue",
+      "state": "UT"
+    }
+  },
+  "Hawaii Fire Department (51000)": {
+    "agency": {
+      "agencyid": "51000",
+      "agencyname": "Hawaii Fire Department",
+      "state": "HI"
+    }
+  },
+  "Polk County Fire Rescue (5102x)": {
+    "agency": {
+      "agencyid": "5102x",
+      "agencyname": "Polk County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "HILLS Fire Department (52002)": {
+    "agency": {
+      "agencyid": "52002",
+      "agencyname": "HILLS Fire Department",
+      "state": "IA"
+    }
+  },
+  "IOWA CITY Fire Department (52003)": {
+    "agency": {
+      "agencyid": "52003",
+      "agencyname": "IOWA CITY Fire Department",
+      "state": "IA"
+    }
+  },
+  "LONE TREE Fire Department (52004)": {
+    "agency": {
+      "agencyid": "52004",
+      "agencyname": "LONE TREE Fire Department",
+      "state": "IA"
+    }
+  },
+  "NORTH LIBERTY Fire Department (52005)": {
+    "agency": {
+      "agencyid": "52005",
+      "agencyname": "NORTH LIBERTY Fire Department",
+      "state": "IA"
+    }
+  },
+  "OXFORD Fire Department (52006)": {
+    "agency": {
+      "agencyid": "52006",
+      "agencyname": "OXFORD Fire Department",
+      "state": "IA"
+    }
+  },
+  "IOWA CITY Fire Department (52008)": {
+    "agency": {
+      "agencyid": "52008",
+      "agencyname": "IOWA CITY Fire Department",
+      "state": "IA"
+    }
+  },
+  "TIFFIN Fire Department (52010)": {
+    "agency": {
+      "agencyid": "52010",
+      "agencyname": "TIFFIN Fire Department",
+      "state": "IA"
+    }
+  },
+  "CHARLOTTESVILLE Fire Department (54000)": {
+    "agency": {
+      "agencyid": "54000",
+      "agencyname": "CHARLOTTESVILLE Fire Department",
+      "state": "VA"
+    }
+  },
+  "Chesapeake Fire Department (55000)": {
+    "agency": {
+      "agencyid": "55000",
+      "agencyname": "Chesapeake Fire Department",
+      "state": "VA"
+    }
+  },
+  "Ventura County Regional Dispatch (56020)": {
+    "agency": {
+      "agencyid": "56020",
+      "agencyname": "Ventura County Regional Dispatch",
+      "state": "CA"
+    }
+  },
+  "Capay Valley Fire Protection District (57010)": {
+    "agency": {
+      "agencyid": "57010",
+      "agencyname": "Capay Valley Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Clarksburg Fire Protection District (57020)": {
+    "agency": {
+      "agencyid": "57020",
+      "agencyname": "Clarksburg Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Davis Fire Department (57025)": {
+    "agency": {
+      "agencyid": "57025",
+      "agencyname": "Davis Fire Department",
+      "state": "CA"
+    }
+  },
+  "West Plainfield Fire Department (57035)": {
+    "agency": {
+      "agencyid": "57035",
+      "agencyname": "West Plainfield Fire Department",
+      "state": "CA"
+    }
+  },
+  "Dunnigan Fire Protection District (57040)": {
+    "agency": {
+      "agencyid": "57040",
+      "agencyname": "Dunnigan Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Knights Landing Fire Protection District (57050)": {
+    "agency": {
+      "agencyid": "57050",
+      "agencyname": "Knights Landing Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Madison Fire Protection District (57055)": {
+    "agency": {
+      "agencyid": "57055",
+      "agencyname": "Madison Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Elkhorn Fire Protection District (57060)": {
+    "agency": {
+      "agencyid": "57060",
+      "agencyname": "Elkhorn Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "West Sacramento Fire Department (57065)": {
+    "agency": {
+      "agencyid": "57065",
+      "agencyname": "West Sacramento Fire Department",
+      "state": "CA"
+    }
+  },
+  "Winters Fire Department (57070)": {
+    "agency": {
+      "agencyid": "57070",
+      "agencyname": "Winters Fire Department",
+      "state": "CA"
+    }
+  },
+  "Woodland Fire Department (57075)": {
+    "agency": {
+      "agencyid": "57075",
+      "agencyname": "Woodland Fire Department",
+      "state": "CA"
+    }
+  },
+  "Yolo Fire Protection District (57090)": {
+    "agency": {
+      "agencyid": "57090",
+      "agencyname": "Yolo Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "UC Davis Fire Department (57760)": {
+    "agency": {
+      "agencyid": "57760",
+      "agencyname": "UC Davis Fire Department",
+      "state": "CA"
+    }
+  },
+  "Yocha Dehe Wintun Nation (57775)": {
+    "agency": {
+      "agencyid": "57775",
+      "agencyname": "Yocha Dehe Wintun Nation",
+      "state": "CA"
+    }
+  },
+  "West Feliciana Hospital EMS (63010)": {
+    "agency": {
+      "agencyid": "63010",
+      "agencyname": "West Feliciana Hospital EMS",
+      "state": "LA"
+    }
+  },
+  "Hampton Division of Fire & Rescue (65000)": {
+    "agency": {
+      "agencyid": "65000",
+      "agencyname": "Hampton Division of Fire & Rescue",
+      "state": "VA"
+    }
+  },
+  "Orange County Fire Rescue Department (65060)": {
+    "agency": {
+      "agencyid": "65060",
+      "agencyname": "Orange County Fire Rescue Department",
+      "state": "FL"
+    }
+  },
+  "Harrisonburg Fire Department (66000)": {
+    "agency": {
+      "agencyid": "66000",
+      "agencyname": "Harrisonburg Fire Department",
+      "state": "VA"
+    }
+  },
+  "Kent Fire Department (67015)": {
+    "agency": {
+      "agencyid": "67015",
+      "agencyname": "Kent Fire Department",
+      "state": "OH"
+    }
+  },
+  "WAUKESHA Fire Department (67060)": {
+    "agency": {
+      "agencyid": "67060",
+      "agencyname": "WAUKESHA Fire Department",
+      "state": "WI"
+    }
+  },
+  "Lynchburg Fire Department (68000)": {
+    "agency": {
+      "agencyid": "68000",
+      "agencyname": "Lynchburg Fire Department",
+      "state": "VA"
+    }
+  },
+  "Newport News Fire Department (70001)": {
+    "agency": {
+      "agencyid": "70001",
+      "agencyname": "Newport News Fire Department",
+      "state": "VA"
+    }
+  },
+  "Norfolk Fire-Rescue VA (71000)": {
+    "agency": {
+      "agencyid": "71000",
+      "agencyname": "Norfolk Fire-Rescue VA",
+      "state": "VA"
+    }
+  },
+  "Clay Fire Territory (71002)": {
+    "agency": {
+      "agencyid": "71002",
+      "agencyname": "Clay Fire Territory",
+      "state": "IN"
+    }
+  },
+  "Mishawaka Fire Department (71008)": {
+    "agency": {
+      "agencyid": "71008",
+      "agencyname": "Mishawaka Fire Department",
+      "state": "IN"
+    }
+  },
+  "South Bend Fire Department (71016)": {
+    "agency": {
+      "agencyid": "71016",
+      "agencyname": "South Bend Fire Department",
+      "state": "IN"
+    }
+  },
+  "Penn Township Fire Department (71019)": {
+    "agency": {
+      "agencyid": "71019",
+      "agencyname": "Penn Township Fire Department",
+      "state": "IN"
+    }
+  },
+  "Broken Arrow Fire Department (72002)": {
+    "agency": {
+      "agencyid": "72002",
+      "agencyname": "Broken Arrow Fire Department",
+      "state": "OK"
+    }
+  },
+  "Poquoson Fire Department (73500)": {
+    "agency": {
+      "agencyid": "73500",
+      "agencyname": "Poquoson Fire Department",
+      "state": "VA"
+    }
+  },
+  "Richmond Fire / RAA / DEC (76000)": {
+    "agency": {
+      "agencyid": "76000",
+      "agencyname": "Richmond Fire / RAA / DEC",
+      "state": "VA"
+    }
+  },
+  "Akron Fire Department (77001)": {
+    "agency": {
+      "agencyid": "77001",
+      "agencyname": "Akron Fire Department",
+      "state": "OH"
+    }
+  },
+  "STAUNTON Fire Department (79000)": {
+    "agency": {
+      "agencyid": "79000",
+      "agencyname": "STAUNTON Fire Department",
+      "state": "VA"
+    }
+  },
+  "DOVER Fire Department (79043)": {
+    "agency": {
+      "agencyid": "79043",
+      "agencyname": "DOVER Fire Department",
+      "state": "OH"
+    }
+  },
+  "Suffolk Fire and Rescue (80000)": {
+    "agency": {
+      "agencyid": "80000",
+      "agencyname": "Suffolk Fire and Rescue",
+      "state": "VA"
+    }
+  },
+  "Williamsburg Fire Department (83000)": {
+    "agency": {
+      "agencyid": "83000",
+      "agencyname": "Williamsburg Fire Department",
+      "state": "VA"
+    }
+  },
+  "WOOSTER Fire Department (85031)": {
+    "agency": {
+      "agencyid": "85031",
+      "agencyname": "WOOSTER Fire Department",
+      "state": "OH"
+    }
+  },
+  "Winnipeg Fire Paramedic Service (9-911)": {
+    "agency": {
+      "agencyid": "9-911",
+      "agencyname": "Winnipeg Fire Paramedic Service",
+      "state": "MB"
+    }
+  },
+  "Willow Oak Fire Protection District (94-60)": {
+    "agency": {
+      "agencyid": "94-60",
+      "agencyname": "Willow Oak Fire Protection District",
+      "state": "CA"
+    }
+  },
+  "Collier County Sheriff's Office (CCSO1)": {
+    "agency": {
+      "agencyid": "CCSO1",
+      "agencyname": "Collier County Sheriff's Office",
+      "state": "FL"
+    }
+  },
+  "Plano Fire-Rescue (CN713)": {
+    "agency": {
+      "agencyid": "CN713",
+      "agencyname": "Plano Fire-Rescue",
+      "state": "TX"
+    }
+  },
+  "Naperville Fire Department (DD132)": {
+    "agency": {
+      "agencyid": "DD132",
+      "agencyname": "Naperville Fire Department",
+      "state": "IL"
+    }
+  },
+  "Gundersen Tri-State Ambulance (EMS1001)": {
+    "agency": {
+      "agencyid": "EMS1001",
+      "agencyname": "Gundersen Tri-State Ambulance",
+      "state": "MN"
+    }
+  },
+  "Suffolk County Fire, Rescue & Emergency Services (EMS1010)": {
+    "agency": {
+      "agencyid": "EMS1010",
+      "agencyname": "Suffolk County Fire, Rescue & Emergency Services",
+      "state": "NY"
+    }
+  },
+  "Clark County, Washington - CRESA (EMS1020)": {
+    "agency": {
+      "agencyid": "EMS1020",
+      "agencyname": "Clark County, Washington - CRESA",
+      "state": "WA"
+    }
+  },
+  "Chagrin Valley Dispatch (EMS1034)": {
+    "agency": {
+      "agencyid": "EMS1034",
+      "agencyname": "Chagrin Valley Dispatch",
+      "state": "OH"
+    }
+  },
+  "Cleveland EMS (EMS1035)": {
+    "agency": {
+      "agencyid": "EMS1035",
+      "agencyname": "Cleveland EMS",
+      "state": "OH"
+    }
+  },
+  "Vail Public Safety Communications Center (EMS1037)": {
+    "agency": {
+      "agencyid": "EMS1037",
+      "agencyname": "Vail Public Safety Communications Center",
+      "state": "CO"
+    }
+  },
+  "Winona Area Ambulance Service (EMS1063)": {
+    "agency": {
+      "agencyid": "EMS1063",
+      "agencyname": "Winona Area Ambulance Service",
+      "state": "MN"
+    }
+  },
+  "Lucas County EMS (EMS1071)": {
+    "agency": {
+      "agencyid": "EMS1071",
+      "agencyname": "Lucas County EMS",
+      "state": "OH"
+    }
+  },
+  "Burlington County (EMS1078)": {
+    "agency": {
+      "agencyid": "EMS1078",
+      "agencyname": "Burlington County",
+      "state": "NJ"
+    }
+  },
+  "Hardin County Emergency Medical Services (EMS1087)": {
+    "agency": {
+      "agencyid": "EMS1087",
+      "agencyname": "Hardin County Emergency Medical Services",
+      "state": "KY"
+    }
+  },
+  "Chatham Emergency Services (EMS1093)": {
+    "agency": {
+      "agencyid": "EMS1093",
+      "agencyname": "Chatham Emergency Services",
+      "state": "GA"
+    }
+  },
+  "Whatcom County Fire and EMS (EMS1094)": {
+    "agency": {
+      "agencyid": "EMS1094",
+      "agencyname": "Whatcom County Fire and EMS",
+      "state": "WA"
+    }
+  },
+  "New Castle County (DE) Emergency Medical Services (EMS1095)": {
+    "agency": {
+      "agencyid": "EMS1095",
+      "agencyname": "New Castle County (DE) Emergency Medical Services",
+      "state": "DE"
+    }
+  },
+  "Dearborn County Communications (EMS1103)": {
+    "agency": {
+      "agencyid": "EMS1103",
+      "agencyname": "Dearborn County Communications",
+      "state": "IN"
+    }
+  },
+  "Kenton County Emergency Communications Center (EMS1105)": {
+    "agency": {
+      "agencyid": "EMS1105",
+      "agencyname": "Kenton County Emergency Communications Center",
+      "state": "KY"
+    }
+  },
+  "Saratoga County (EMS1107)": {
+    "agency": {
+      "agencyid": "EMS1107",
+      "agencyname": "Saratoga County",
+      "state": "NY"
+    }
+  },
+  "Allegheny County Emergency Services (EMS1110)": {
+    "agency": {
+      "agencyid": "EMS1110",
+      "agencyname": "Allegheny County Emergency Services",
+      "state": "PA"
+    }
+  },
+  "Yolo County EMS Agency (EMS1119)": {
+    "agency": {
+      "agencyid": "EMS1119",
+      "agencyname": "Yolo County EMS Agency",
+      "state": "CA"
+    }
+  },
+  "Campbell County Consolidated Dispatch Center (EMS1122)": {
+    "agency": {
+      "agencyid": "EMS1122",
+      "agencyname": "Campbell County Consolidated Dispatch Center",
+      "state": "KY"
+    }
+  },
+  "Advanced Medical Transport - AMT (EMS1124)": {
+    "agency": {
+      "agencyid": "EMS1124",
+      "agencyname": "Advanced Medical Transport - AMT",
+      "state": "IL"
+    }
+  },
+  "Kern County (EMS1127)": {
+    "agency": {
+      "agencyid": "EMS1127",
+      "agencyname": "Kern County",
+      "state": "CA"
+    }
+  },
+  "Napa 911 Dispatch (EMS1140)": {
+    "agency": {
+      "agencyid": "EMS1140",
+      "agencyname": "Napa 911 Dispatch",
+      "state": "CA"
+    }
+  },
+  "Greenville County EMS (EMS1152)": {
+    "agency": {
+      "agencyid": "EMS1152",
+      "agencyname": "Greenville County EMS",
+      "state": "SC"
+    }
+  },
+  "Honolulu EMS (EMS1157)": {
+    "agency": {
+      "agencyid": "EMS1157",
+      "agencyname": "Honolulu EMS",
+      "state": "HI"
+    }
+  },
+  "Boone County PSCC (EMS1161)": {
+    "agency": {
+      "agencyid": "EMS1161",
+      "agencyname": "Boone County PSCC",
+      "state": "KY"
+    }
+  },
+  "Sussex County Emergency Operations (EMS1168)": {
+    "agency": {
+      "agencyid": "EMS1168",
+      "agencyname": "Sussex County Emergency Operations",
+      "state": "DE"
+    }
+  },
+  "Ada County-City Emergency Services System (EMS1169)": {
+    "agency": {
+      "agencyid": "EMS1169",
+      "agencyname": "Ada County-City Emergency Services System",
+      "state": "ID"
+    }
+  },
+  "Champaign County - OSF East Central Illinois EMS (EMS1174)": {
+    "agency": {
+      "agencyid": "EMS1174",
+      "agencyname": "Champaign County - OSF East Central Illinois EMS",
+      "state": "IL"
+    }
+  },
+  "Vermilion County - OSF East Central Illinois EMS (EMS1175)": {
+    "agency": {
+      "agencyid": "EMS1175",
+      "agencyname": "Vermilion County - OSF East Central Illinois EMS",
+      "state": "IL"
+    }
+  },
+  "Williamson County EMS (EMS1176)": {
+    "agency": {
+      "agencyid": "EMS1176",
+      "agencyname": "Williamson County EMS",
+      "state": "TX"
+    }
+  },
+  "Montgomery County Dept. of Public Safety (EMS1179)": {
+    "agency": {
+      "agencyid": "EMS1179",
+      "agencyname": "Montgomery County Dept. of Public Safety",
+      "state": "PA"
+    }
+  },
+  "Gold Cross Ambulance Service, Inc. (EMS1180)": {
+    "agency": {
+      "agencyid": "EMS1180",
+      "agencyname": "Gold Cross Ambulance Service, Inc.",
+      "state": "WI"
+    }
+  },
+  "Johnson County (EMS1186)": {
+    "agency": {
+      "agencyid": "EMS1186",
+      "agencyname": "Johnson County",
+      "state": "KS"
+    }
+  },
+  "Putnam County 911 (EMS1189)": {
+    "agency": {
+      "agencyid": "EMS1189",
+      "agencyname": "Putnam County 911",
+      "state": "TN"
+    }
+  },
+  "Chester County Emergency Services (EMS1192)": {
+    "agency": {
+      "agencyid": "EMS1192",
+      "agencyname": "Chester County Emergency Services",
+      "state": "PA"
+    }
+  },
+  "Geauga County Sheriffs Office (EMS1194)": {
+    "agency": {
+      "agencyid": "EMS1194",
+      "agencyname": "Geauga County Sheriffs Office",
+      "state": "OH"
+    }
+  },
+  "American Medical Response- Josephine County (EMS1198)": {
+    "agency": {
+      "agencyid": "EMS1198",
+      "agencyname": "American Medical Response- Josephine County",
+      "state": "OR"
+    }
+  },
+  "Huntsville-Madison County 9-1-1 Center (EMS1200)": {
+    "agency": {
+      "agencyid": "EMS1200",
+      "agencyname": "Huntsville-Madison County 9-1-1 Center",
+      "state": "AL"
+    }
+  },
+  "BCEHS (EMS1201)": {
+    "agency": {
+      "agencyid": "EMS1201",
+      "agencyname": "BCEHS",
+      "state": "BC"
+    }
+  },
+  "Manatee County Department of Public Safety (EMS1203)": {
+    "agency": {
+      "agencyid": "EMS1203",
+      "agencyname": "Manatee County Department of Public Safety",
+      "state": "FL"
+    }
+  },
+  "Erie County (EMS1204)": {
+    "agency": {
+      "agencyid": "EMS1204",
+      "agencyname": "Erie County",
+      "state": "PA"
+    }
+  },
+  "Washington DC - Office of Unified Communications (EMS1205)": {
+    "agency": {
+      "agencyid": "EMS1205",
+      "agencyname": "Washington DC - Office of Unified Communications",
+      "state": "DC"
+    }
+  },
+  "Escambia County EMS (EMS1206)": {
+    "agency": {
+      "agencyid": "EMS1206",
+      "agencyname": "Escambia County EMS",
+      "state": "FL"
+    }
+  },
+  "Hancock County 911 (EMS1210)": {
+    "agency": {
+      "agencyid": "EMS1210",
+      "agencyname": "Hancock County 911",
+      "state": "IN"
+    }
+  },
+  "Metro Area Ambulance Service (EMS1225)": {
+    "agency": {
+      "agencyid": "EMS1225",
+      "agencyname": "Metro Area Ambulance Service",
+      "state": "ND"
+    }
+  },
+  "Elk County Emergency Services (EMS1226)": {
+    "agency": {
+      "agencyid": "EMS1226",
+      "agencyname": "Elk County Emergency Services",
+      "state": "PA"
+    }
+  },
+  "Bloomington, IN (EMS1232)": {
+    "agency": {
+      "agencyid": "EMS1232",
+      "agencyname": "Bloomington, IN",
+      "state": "IN"
+    }
+  },
+  "Pitt County EMS (EMS1234)": {
+    "agency": {
+      "agencyid": "EMS1234",
+      "agencyname": "Pitt County EMS",
+      "state": "NC"
+    }
+  },
+  "Brevard County Fire Rescue (EMS1236)": {
+    "agency": {
+      "agencyid": "EMS1236",
+      "agencyname": "Brevard County Fire Rescue",
+      "state": "FL"
+    }
+  },
+  "Warren County Public Safety (EMS1239)": {
+    "agency": {
+      "agencyid": "EMS1239",
+      "agencyname": "Warren County Public Safety",
+      "state": "PA"
+    }
+  },
+  "Cox Health and Mercy EMS - Southwest/Central Missouri (EMS1241)": {
+    "agency": {
+      "agencyid": "EMS1241",
+      "agencyname": "Cox Health and Mercy EMS - Southwest/Central Missouri",
+      "state": "MO"
+    }
+  },
+  "Hamilton County Emergency Communications District (EMS1247)": {
+    "agency": {
+      "agencyid": "EMS1247",
+      "agencyname": "Hamilton County Emergency Communications District",
+      "state": "TN"
+    }
+  },
+  "Cameron County Office of Emergency Services (EMS1252)": {
+    "agency": {
+      "agencyid": "EMS1252",
+      "agencyname": "Cameron County Office of Emergency Services",
+      "state": "PA"
+    }
+  },
+  "Crawford County Department of Public Safety (EMS1255)": {
+    "agency": {
+      "agencyid": "EMS1255",
+      "agencyname": "Crawford County Department of Public Safety",
+      "state": "PA"
+    }
+  },
+  "Clarion County Department of Public Safety (EMS1258)": {
+    "agency": {
+      "agencyid": "EMS1258",
+      "agencyname": "Clarion County Department of Public Safety",
+      "state": "PA"
+    }
+  },
+  "Virginia Beach Department of EMS (EMS1264)": {
+    "agency": {
+      "agencyid": "EMS1264",
+      "agencyname": "Virginia Beach Department of EMS",
+      "state": "VA"
+    }
+  },
+  "McKean County Department of Emergency Services (EMS1265)": {
+    "agency": {
+      "agencyid": "EMS1265",
+      "agencyname": "McKean County Department of Emergency Services",
+      "state": "PA"
+    }
+  },
+  "REMSA (EMS1284)": {
+    "agency": {
+      "agencyid": "EMS1284",
+      "agencyname": "REMSA",
+      "state": "NV"
+    }
+  },
+  "Verde Valley Ambulance Company (EMS1295)": {
+    "agency": {
+      "agencyid": "EMS1295",
+      "agencyname": "Verde Valley Ambulance Company",
+      "state": "AZ"
+    }
+  },
+  "Alachua County and Gainesville (EMS1296)": {
+    "agency": {
+      "agencyid": "EMS1296",
+      "agencyname": "Alachua County and Gainesville",
+      "state": "FL"
+    }
+  },
+  "Kent County Department of Public Safety (EMS1304)": {
+    "agency": {
+      "agencyid": "EMS1304",
+      "agencyname": "Kent County Department of Public Safety",
+      "state": "DE"
+    }
+  },
+  "Sonoma County (EMS1305)": {
+    "agency": {
+      "agencyid": "EMS1305",
+      "agencyname": "Sonoma County",
+      "state": "CA"
+    }
+  },
+  "Wicomico County Dept. of Emergency Services (EMS1312)": {
+    "agency": {
+      "agencyid": "EMS1312",
+      "agencyname": "Wicomico County Dept. of Emergency Services",
+      "state": "MD"
+    }
+  },
+  "Clark County (EMS1315)": {
+    "agency": {
+      "agencyid": "EMS1315",
+      "agencyname": "Clark County",
+      "state": "IN"
+    }
+  },
+  "Mecklenburg EMS Agency (EMS1316)": {
+    "agency": {
+      "agencyid": "EMS1316",
+      "agencyname": "Mecklenburg EMS Agency",
+      "state": "NC"
+    }
+  },
+  "Portage County EMS (EMS1318)": {
+    "agency": {
+      "agencyid": "EMS1318",
+      "agencyname": "Portage County EMS",
+      "state": "WI"
+    }
+  },
+  "Boone County (EMS1321)": {
+    "agency": {
+      "agencyid": "EMS1321",
+      "agencyname": "Boone County",
+      "state": "IN"
+    }
+  },
+  "Meramec Ambulance District (EMS1328)": {
+    "agency": {
+      "agencyid": "EMS1328",
+      "agencyname": "Meramec Ambulance District",
+      "state": "MO"
+    }
+  },
+  "Ramsey County Emergency Communications (EMS1329)": {
+    "agency": {
+      "agencyid": "EMS1329",
+      "agencyname": "Ramsey County Emergency Communications",
+      "state": "MN"
+    }
+  },
+  "Oklahoma City - Emergency Medical Services Authority - West (EMS1337)": {
+    "agency": {
+      "agencyid": "EMS1337",
+      "agencyname": "Oklahoma City - Emergency Medical Services Authority - West",
+      "state": "OK"
+    }
+  },
+  "Tulsa - Emergency Medical Services Authority - East (EMS1338)": {
+    "agency": {
+      "agencyid": "EMS1338",
+      "agencyname": "Tulsa - Emergency Medical Services Authority - East",
+      "state": "OK"
+    }
+  },
+  "Livingston County Fire and EMS (EMS1340)": {
+    "agency": {
+      "agencyid": "EMS1340",
+      "agencyname": "Livingston County Fire and EMS",
+      "state": "MI"
+    }
+  },
+  "Douglas County 911 Emergency Services (EMS1344)": {
+    "agency": {
+      "agencyid": "EMS1344",
+      "agencyname": "Douglas County 911 Emergency Services",
+      "state": "NV"
+    }
+  },
+  "Fairbanks Emergency Communications Center (EMS1347)": {
+    "agency": {
+      "agencyid": "EMS1347",
+      "agencyname": "Fairbanks Emergency Communications Center",
+      "state": "AK"
+    }
+  },
+  "Anoka County Central Communications (EMS1355)": {
+    "agency": {
+      "agencyid": "EMS1355",
+      "agencyname": "Anoka County Central Communications",
+      "state": "MN"
+    }
+  },
+  "Madison County Central Dispatch (EMS1363)": {
+    "agency": {
+      "agencyid": "EMS1363",
+      "agencyname": "Madison County Central Dispatch",
+      "state": "IN"
+    }
+  },
+  "Forest County (EMS1365)": {
+    "agency": {
+      "agencyid": "EMS1365",
+      "agencyname": "Forest County",
+      "state": "PA"
+    }
+  },
+  "Westcom Emergency Communications (EMS1366)": {
+    "agency": {
+      "agencyid": "EMS1366",
+      "agencyname": "Westcom Emergency Communications",
+      "state": "IA"
+    }
+  },
+  "North Texas Emergency Communications Center (EMS1372)": {
+    "agency": {
+      "agencyid": "EMS1372",
+      "agencyname": "North Texas Emergency Communications Center",
+      "state": "TX"
+    }
+  },
+  "Canyon County Emergency Service System (EMS1375)": {
+    "agency": {
+      "agencyid": "EMS1375",
+      "agencyname": "Canyon County Emergency Service System",
+      "state": "ID"
+    }
+  },
+  "Montgomery County Hospital District (EMS1376)": {
+    "agency": {
+      "agencyid": "EMS1376",
+      "agencyname": "Montgomery County Hospital District",
+      "state": "TX"
+    }
+  },
+  "Ruston Fire Department (EMS1383)": {
+    "agency": {
+      "agencyid": "EMS1383",
+      "agencyname": "Ruston Fire Department",
+      "state": "WA"
+    }
+  },
+  "Brainerd Fire and Crow Wing County Fire & EMS (EMS1385)": {
+    "agency": {
+      "agencyid": "EMS1385",
+      "agencyname": "Brainerd Fire and Crow Wing County Fire & EMS",
+      "state": "MN"
+    }
+  },
+  "Clearfield County 911 (EMS1394)": {
+    "agency": {
+      "agencyid": "EMS1394",
+      "agencyname": "Clearfield County 911",
+      "state": "PA"
+    }
+  },
+  "Aurora Fire - Falck Rocky Mountain (EMS1395)": {
+    "agency": {
+      "agencyid": "EMS1395",
+      "agencyname": "Aurora Fire - Falck Rocky Mountain",
+      "state": "CO"
+    }
+  },
+  "Boone County Joint Communications (EMS1424)": {
+    "agency": {
+      "agencyid": "EMS1424",
+      "agencyname": "Boone County Joint Communications",
+      "state": "MO"
+    }
+  },
+  "El Paso Fire Department (GB803)": {
+    "agency": {
+      "agencyid": "GB803",
+      "agencyname": "El Paso Fire Department",
+      "state": "TX"
+    }
+  },
+  "Olathe Fire Department (JO101)": {
+    "agency": {
+      "agencyid": "JO101",
+      "agencyname": "Olathe Fire Department",
+      "state": "KS"
+    }
+  },
+  "Los Angeles County FD (Division 1) (LAC01)": {
+    "agency": {
+      "agencyid": "LAC01",
+      "agencyname": "Los Angeles County FD (Division 1)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 2) (LAC02)": {
+    "agency": {
+      "agencyid": "LAC02",
+      "agencyname": "Los Angeles County FD (Division 2)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 4) (LAC04)": {
+    "agency": {
+      "agencyid": "LAC04",
+      "agencyname": "Los Angeles County FD (Division 4)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 5) (LAC05)": {
+    "agency": {
+      "agencyid": "LAC05",
+      "agencyname": "Los Angeles County FD (Division 5)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 6) (LAC06)": {
+    "agency": {
+      "agencyid": "LAC06",
+      "agencyname": "Los Angeles County FD (Division 6)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 7) (LAC07)": {
+    "agency": {
+      "agencyid": "LAC07",
+      "agencyname": "Los Angeles County FD (Division 7)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 8) (LAC08)": {
+    "agency": {
+      "agencyid": "LAC08",
+      "agencyname": "Los Angeles County FD (Division 8)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles County FD (Division 9) (LAC09)": {
+    "agency": {
+      "agencyid": "LAC09",
+      "agencyname": "Los Angeles County FD (Division 9)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles Fire Department (Central Bureau) (LAFDC)": {
+    "agency": {
+      "agencyid": "LAFDC",
+      "agencyname": "Los Angeles Fire Department (Central Bureau)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles Fire Department (South Bureau) (LAFDS)": {
+    "agency": {
+      "agencyid": "LAFDS",
+      "agencyname": "Los Angeles Fire Department (South Bureau)",
+      "state": "CA"
+    }
+  },
+  "Los Angeles Fire Department (West Bureau) (LAFDW)": {
+    "agency": {
+      "agencyid": "LAFDW",
+      "agencyname": "Los Angeles Fire Department (West Bureau)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 2) (OCFA2)": {
+    "agency": {
+      "agencyid": "OCFA2",
+      "agencyname": "Orange County Fire Authority OCFA (Division 2)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 3) (OCFA3)": {
+    "agency": {
+      "agencyid": "OCFA3",
+      "agencyname": "Orange County Fire Authority OCFA (Division 3)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 4) (OCFA4)": {
+    "agency": {
+      "agencyid": "OCFA4",
+      "agencyname": "Orange County Fire Authority OCFA (Division 4)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 5) (OCFA5)": {
+    "agency": {
+      "agencyid": "OCFA5",
+      "agencyname": "Orange County Fire Authority OCFA (Division 5)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 6) (OCFA6)": {
+    "agency": {
+      "agencyid": "OCFA6",
+      "agencyname": "Orange County Fire Authority OCFA (Division 6)",
+      "state": "CA"
+    }
+  },
+  "Orange County Fire Authority OCFA (Division 7) (OCFA7)": {
+    "agency": {
+      "agencyid": "OCFA7",
+      "agencyname": "Orange County Fire Authority OCFA (Division 7)",
+      "state": "CA"
+    }
+  },
+  "West Pierce Fire & Rescue (SS911)": {
+    "agency": {
+      "agencyid": "SS911",
+      "agencyname": "West Pierce Fire & Rescue",
+      "state": "WA"
+    }
+  },
+  "Grapevine Fire Department (WB616)": {
+    "agency": {
+      "agencyid": "WB616",
+      "agencyname": "Grapevine Fire Department",
+      "state": "TX"
+    }
+  },
+  "Rockford Fire Department (WJ111)": {
+    "agency": {
+      "agencyid": "WJ111",
+      "agencyname": "Rockford Fire Department",
+      "state": "IL"
+    }
+  },
+  "Cherry Valley Fire Protection District (WJ124)": {
+    "agency": {
+      "agencyid": "WJ124",
+      "agencyname": "Cherry Valley Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "Blackhawk Fire (WJ134)": {
+    "agency": {
+      "agencyid": "WJ134",
+      "agencyname": "Blackhawk Fire",
+      "state": "IL"
+    }
+  },
+  "Durand Fire Department (WJ143)": {
+    "agency": {
+      "agencyid": "WJ143",
+      "agencyname": "Durand Fire Department",
+      "state": "IL"
+    }
+  },
+  "Harlem-Roscoe Fire Protection District (WJ153)": {
+    "agency": {
+      "agencyid": "WJ153",
+      "agencyname": "Harlem-Roscoe Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "Loves Park Fire Department (WJ164)": {
+    "agency": {
+      "agencyid": "WJ164",
+      "agencyname": "Loves Park Fire Department",
+      "state": "IL"
+    }
+  },
+  "New Milford Fire Protection District (WJ173)": {
+    "agency": {
+      "agencyid": "WJ173",
+      "agencyname": "New Milford Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "North Park Fire Protection District (WJ184)": {
+    "agency": {
+      "agencyid": "WJ184",
+      "agencyname": "North Park Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "Northwest Fire Protection District (WJ194)": {
+    "agency": {
+      "agencyid": "WJ194",
+      "agencyname": "Northwest Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "Pecatonica Fire Protection District (WJ203)": {
+    "agency": {
+      "agencyid": "WJ203",
+      "agencyname": "Pecatonica Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "Rockton Fire Protection District (WJ213)": {
+    "agency": {
+      "agencyid": "WJ213",
+      "agencyname": "Rockton Fire Protection District",
+      "state": "IL"
+    }
+  },
+  "South Beloit Fire (WJ222)": {
+    "agency": {
+      "agencyid": "WJ222",
+      "agencyname": "South Beloit Fire",
+      "state": "IL"
+    }
+  },
+  "WEST SUBURBAN FIRE (WJ234)": {
+    "agency": {
+      "agencyid": "WJ234",
+      "agencyname": "WEST SUBURBAN FIRE",
+      "state": "IL"
+    }
+  },
+  "WIN-BUR-SEW FIRE (WJ243)": {
+    "agency": {
+      "agencyid": "WJ243",
+      "agencyname": "WIN-BUR-SEW FIRE",
+      "state": "IL"
+    }
+  },
+  "Shirland Fire (WJ263)": {
+    "agency": {
+      "agencyid": "WJ263",
+      "agencyname": "Shirland Fire",
+      "state": "IL"
+    }
+  },
+  "Kansas City Kansas Fire Department (WY101)": {
+    "agency": {
+      "agencyid": "WY101",
+      "agencyname": "Kansas City Kansas Fire Department",
+      "state": "KS"
+    }
+  },
+  "Brandon Fire Department (X1005)": {
+    "agency": {
+      "agencyid": "X1005",
+      "agencyname": "Brandon Fire Department",
+      "state": "SD"
+    }
+  },
+  "Baltic Fire Department (X1008)": {
+    "agency": {
+      "agencyid": "X1008",
+      "agencyname": "Baltic Fire Department",
+      "state": "SD"
+    }
+  },
+  "Miami Beach Fire Department (X1012)": {
+    "agency": {
+      "agencyid": "X1012",
+      "agencyname": "Miami Beach Fire Department",
+      "state": "FL"
+    }
+  },
+  "North Las Vegas Fire Department (X3004)": {
+    "agency": {
+      "agencyid": "X3004",
+      "agencyname": "North Las Vegas Fire Department",
+      "state": "NV"
+    }
+  },
+  "Sumter County, FL (X4015)": {
+    "agency": {
+      "agencyid": "X4015",
+      "agencyname": "Sumter County, FL",
+      "state": "FL"
+    }
+  },
+  "Georgetown Fire Department (XV503)": {
+    "agency": {
+      "agencyid": "XV503",
+      "agencyname": "Georgetown Fire Department",
+      "state": "TX"
+    }
+  }
+}

@@ -1,0 +1,1282 @@
+<div class="container" *ngIf="this.client_id">
+
+  <!-- {{permissions | json}} -->
+
+  <mat-card appearance="outlined" *ngIf="!this.userService.getUserPermissions('claim','read')">
+    You don't have permissions to view claims.
+  </mat-card>
+
+  <mat-card appearance="outlined" *ngIf="this.userService.getUserPermissions('claim','read')">
+    <div class="row">
+      <div class="col-sm-6">
+        <p *ngIf="claim.is_collaborator && !isSalesRep" class="fst-italic collaborator">Limited access / collaborator view</p>
+        <p *ngIf="isSalesRep" class="fst-italic sales-rep-view" style="color: #1976d2; font-weight: 500;">Sales Rep View — Read-only access</p>
+        
+
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a routerLink="/app/dashboard" (click)="onSidebarClick('Dashboard')">Home</a>
+          </li>
+          <li class="breadcrumb-item"><a routerLink="/app/claims" (click)="onSidebarClick('Claims')">Claims</a></li>
+          <li class="breadcrumb-item"><a routerLink="/app/claims" (click)="onClientDetail(client?.id, client?.full_name + '-' + client?.ref_string.slice(-3))">{{client?.full_name?? 'Claims'}}</a></li>
+          <li class="breadcrumb-item"><a>{{claim?.ref_string ?? 'Claim'}}</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-6 text-end" *ngIf="!isSalesRep">
+
+        <button [hidden]="!userService.getUserPermissions('collaborators', 'read')"  mat-mini-fab color="primary" *ngIf="!claim.is_collaborator"
+          matTooltip="Manage Collaborators" matTooltipPosition="below" class="m-1" (click)="openCollaboratorsDialog(claim)">
+          <mat-icon>manage_accounts</mat-icon>
+        </button>
+
+        <button [disabled]="!userService.getUserPermissions('template_file', 'create')" mat-mini-fab color="primary"
+          matTooltip="Open templates" matTooltipPosition="below" class="m-1" (click)="openTemplatesDialog(claim)">
+          <mat-icon>edit_document</mat-icon>
+        </button>
+
+        <button  color="primary" [disabled]="!userService.getUserPermissions('claim_file', 'create')"
+          mat-mini-fab matTooltip="Bulk upload files" matTooltipPosition="below" class="m-1"
+          (click)="openBulkFileUploadDialog(claim)">
+          <mat-icon>upload</mat-icon>
+        </button>
+
+        <button  color="primary" [disabled]="!userService.getUserPermissions('claim_file', 'create')"
+          mat-mini-fab matTooltip="Upload claim file" matTooltipPosition="below" class="m-1"
+          (click)="openFileUploadDialog(claim)">
+          <mat-icon>upload_file</mat-icon>
+        </button>
+
+        <button  color="primary" [disabled]="!userService.getUserPermissions('claim_task', 'create')"
+          mat-mini-fab matTooltip="Create a new task" matTooltipPosition="below" class="m-1"
+          (click)="openTaskAddDialog(claim)">
+          <mat-icon>add_task</mat-icon>
+        </button>
+
+        <button  color="primary" [disabled]="
+        !userService.getUserPermissions('claim_comment', 'create')
+      " (click)="openCommentsAddDialog(claim)" mat-mini-fab matTooltip="Add new comment" matTooltipPosition="below"
+          class="m-1">
+          <mat-icon>comment</mat-icon>
+        </button>
+
+        <button  color="warn" [disabled]="
+              !userService.getUserPermissions('claim_payment', 'create')
+            " (click)="openPaymentAddDialog(claim)" mat-mini-fab matTooltip="Add new payment"
+          matTooltipPosition="below" class="m-1">
+          <mat-icon>payments</mat-icon>
+
+        </button>
+      </div>
+    </div>
+    <div class="col-xl-6 d-xl-block bg-light p-3 mb-3">
+      <h4 class="mat-h4">{{ client?.full_name }}</h4>
+      <div class="row" *ngIf="claim?.claim_contact.address_loss">
+        <div class="col-12">
+          {{ claim?.claim_contact.address_loss }},
+          {{ claim?.claim_contact.city_loss ? claim?.claim_contact.city_loss : "" }}
+          {{ claim?.claim_contact.state_loss }}
+          {{ claim?.claim_contact.zip_code_loss }}
+        </div>
+      </div>
+      <div class="row" *ngIf="claim?.client?.phone_number">
+        <div class="col-12">
+          <a href="tel:{{claim?.client?.phone_number}}">{{ claim?.client?.phone_number ? '' + (claim?.client?.phone_number | phoneNumberFormat) : '' }}</a>
+        </div>
+      </div>
+      <div class="row" *ngIf="claim?.client?.email">
+        <div class="col-12">
+          <a href="mailto:{{ claim?.client?.email }}">{{ claim?.client?.email }}</a>
+        </div>
+      </div>
+    </div>
+
+    <mat-card-header>
+      
+    </mat-card-header>
+
+    <mat-card-content>
+
+      
+
+      <div class="container" *ngIf="this.userService.getUserPermissions('claim_payment','read') && !isSalesRep">
+        <p style="margin: 0px; font-weight: bold">
+          Claim progress ({{ totalPaymentPercentage + "%" }})
+        </p>
+        <div class="progress" style="height: 20px">
+          <div class="progress-bar bg-success" role="progressbar" [style.width]="totalPaymentPercentage + '%'"
+            aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+            ${{ totalPaymentReceived | number : "1.0" }}
+          </div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div><strong>$0</strong></div>
+          <div>
+            <strong>{{ this.claim?.anticipated_amount | currency:'USD':'symbol-narrow':'1.2-2':'en-US' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase Tracker -->
+      <div class="phase-tracker">
+        <div class="phase-header">
+          <span class="phase-title">
+            Claim Phase
+            <span class="phase-badge">{{ phaseMilestones[currentPhaseIndex]?.label }}</span>
+          </span>
+          <span class="phase-pct">{{ phaseProgress }}%</span>
+          <button *ngIf="permissions?.includes('claim:update')"
+            mat-icon-button class="phase-override-btn"
+            matTooltip="Override phase" (click)="togglePhaseOverride()">
+            <mat-icon>tune</mat-icon>
+          </button>
+        </div>
+
+        <!-- Thin progress bar (burgundy) -->
+        <div class="progress phase-progress-bar">
+          <div class="progress-bar" role="progressbar"
+            [style.width.%]="phaseProgress"
+            [style.background-color]="'#800020'">
+          </div>
+        </div>
+
+        <!-- Step dots -->
+        <div class="phase-steps">
+          <div *ngFor="let m of phaseMilestones; let i = index"
+            class="phase-step" [ngClass]="getPhaseStatus(i)">
+            <div class="step-connector" *ngIf="i > 0"></div>
+            <div class="step-dot">
+              <mat-icon *ngIf="getPhaseStatus(i) === 'completed'">check</mat-icon>
+              <mat-icon *ngIf="getPhaseStatus(i) !== 'completed'">{{ m.icon }}</mat-icon>
+            </div>
+            <div class="step-label">{{ m.label }}</div>
+          </div>
+        </div>
+
+        <!-- Escalation & sub-status badges -->
+        <div class="phase-metadata">
+          <span *ngIf="hasEscalation" class="escalation-badge"
+            [style.background-color]="currentEscalation.color">
+            <mat-icon>{{ currentEscalation.icon }}</mat-icon>
+            {{ currentEscalation.label }}
+          </span>
+          <span *ngIf="hasSubStatus" class="sub-status-badge">
+            {{ currentSubStatusLabel }}
+          </span>
+        </div>
+
+        <!-- Admin override panel -->
+        <div *ngIf="showPhaseOverride" class="phase-override-panel">
+          <span class="override-section-label">Phase</span>
+          <small>Click a phase to set it manually:</small>
+          <div class="override-chips">
+            <button *ngFor="let m of phaseMilestones; let i = index"
+              class="override-chip" [class.active]="i === currentPhaseIndex"
+              [disabled]="phaseUpdating" (click)="setPhase(i)">
+              {{ m.label }}
+            </button>
+          </div>
+
+          <span class="override-section-label">Escalation Path</span>
+          <div class="override-chips">
+            <button *ngFor="let ep of escalationPaths"
+              class="override-chip" [class.active]="ep.slug === claim?.escalation_path"
+              [disabled]="escalationUpdating" (click)="setEscalation(ep.slug)">
+              {{ ep.label }}
+            </button>
+          </div>
+
+          <span class="override-section-label">Sub-Status</span>
+          <div class="override-chips">
+            <button *ngFor="let ss of subStatuses"
+              class="override-chip" [class.active]="ss.slug === claim?.sub_status"
+              [disabled]="subStatusUpdating" (click)="setSubStatus(ss.slug)">
+              {{ ss.display_name }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <mat-tab-group (selectedIndexChange)="tabChange($event)" #tabGroup>
+        <mat-tab [disabled]="!permissions?.includes('claim:read')">
+          <ng-template mat-tab-label><mat-icon
+              [ngStyle]="{ color: 'green' }">description</mat-icon>&nbsp;Claim</ng-template>
+          <p></p>
+
+          <div class="row">
+            <div class="col-xs-6 col-sm-12 col-xl-9">
+              <div class="row">
+                <!-- First Column -->
+                <div class="col-xs-6 col-sm-12 col-md-6 col-lg-6">
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Ref. #:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.ref_string }}</dd>
+                    </div>
+                  </div>
+                  <div class="row d-sm-none">
+                    <div class="col-6">
+                      <dt>Claim #:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.claim_number ? this.claim?.claim_number : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Email tracker:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>
+                        {{ this.claim?.claim_business_email?.email }}
+                        <a href="javascript:" *ngIf="showEmailLinkingLink" (click)="fixBusinessEmail(claim_id)">Create business email</a>
+                      </dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Loss date:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.loss_date | date : "MMMM dd, yyyy" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Loss address:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>
+                        {{
+                        claim?.claim_contact.address_loss
+                        ? claim?.claim_contact.address_loss
+                        : "-"
+                        }}<br />
+                        {{
+                        claim?.claim_contact.city_loss
+                        ? claim?.claim_contact.city_loss + ","
+                        : ""
+                        }}
+                        {{ claim?.claim_contact.state_loss }}
+                        {{ claim?.claim_contact.zip_code_loss }}
+                      </dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Peril:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.peril ? this.claim?.peril : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Insurance company:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.insurance_company ? this.claim?.insurance_company : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Mortgage company:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.mortgage_company ? this.claim?.mortgage_company : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Current phase:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ phaseMilestones[currentPhaseIndex]?.label || claim?.current_phase }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Escalation:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ currentEscalation.label }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Sub-status:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ currentSubStatusLabel }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="claim?.origin_type">
+                    <div class="col-6">
+                      <dt>Origin type:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.origin_type | titlecase }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="claim?.date_aci_entered">
+                    <div class="col-6">
+                      <dt>Date ACI entered:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.date_aci_entered | date : 'MMMM dd, yyyy' }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="claim?.prior_carrier_payments">
+                    <div class="col-6">
+                      <dt>Prior carrier payments:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.prior_carrier_payments | currency:'USD':'symbol-narrow':'1.2-2':'en-US' }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="claim?.recovery_mode && claim?.recovery_mode !== 'none'">
+                    <div class="col-6">
+                      <dt>Recovery mode:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.recovery_mode | titlecase }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Policy #:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.policy_number ? this.claim?.policy_number : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Policy type:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.policy_type ?? "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Sub policy type:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.sub_policy_type ?? "-" }}</dd>
+                    </div>
+                  </div>
+
+                  <div class="row" *ngFor="let coverage of claim?.coverages; let i = index;">
+                    <div class="col-6">
+                      <dt *ngIf="i==0">Coverage type:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ getCoverageType(coverage?.coverage_type) }}<br>Policy Limit: ${{  coverage?.policy_limit | number }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Source by:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.source_user ? claim?.source_user?.first_name + ' ' + claim?.source_user?.last_name :
+                        "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Source info:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.source_info ? claim?.source_info : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Signed by:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.signed_by_user ? claim?.signed_by_user?.first_name + ' ' +
+                        claim?.signed_by_user?.last_name : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Adjusted by:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.adjusted_by_user ? claim?.adjusted_by_user?.first_name + ' ' +
+                        claim?.adjusted_by_user?.last_name : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="!isSalesRep">
+                    <div class="col-6">
+                      <dt>Instructions / notes:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.instructions_or_notes ? claim?.instructions_or_notes : "-" }}</dd>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <!-- Second Column -->
+                <div class="col-xs-6 col-sm-12 col-md-6 col-lg-6">
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Claim #:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.claim_number ? this.claim?.claim_number : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="!isSalesRep">
+                    <div class="col-6">
+                      <dt>Claim estimate:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.anticipated_amount ? "$" : "-" }}{{ claim?.anticipated_amount | number : "1.2-2" }}
+                      </dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="!isSalesRep">
+                    <div class="col-6">
+                      <dt>Claim fee type:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.fee_type ? claim?.fee_type : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row" *ngIf="!isSalesRep">
+                    <div class="col-6">
+                      <dt>Claim fee:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.fee_type != "percentage" ? "$" : "" }}{{ claim?.fee | number : "1.0" }}{{
+                        claim?.fee_type == "percentage" ? "%" : "" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Date logged:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.date_logged ? (this.claim?.date_logged | date : "MMMM dd, yyyy") : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Lawsuit deadline:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.lawsuit_deadline ? (this.claim?.lawsuit_deadline | date : "MMMM dd, yyyy") :
+                        "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Contract sign date:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ this.claim?.contract_sign_date ? (this.claim?.contract_sign_date | date : "MMMM dd, yyyy")
+                        : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>FEMA claim:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.fema_claim ? 'Yes' : "No" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>State of emergency:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.state_of_emergency ? 'Yes' : "No" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Inhabitable:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.inhabitable ? 'Yes' : "No" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Assigned to:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.assigned_user.first_name }} {{ claim?.assigned_user.last_name }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Created by:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.created_by?.first_name ? claim?.created_by?.first_name + " " +
+                        claim?.created_by?.last_name : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Created at:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.created_at !== null ? (claim?.created_at | date : "MMMM dd, yyyy hh:mm:ss a") : "-"
+                        }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Updated by:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.updated_by?.first_name ? claim?.updated_by?.first_name + " " +
+                        claim?.updated_by?.last_name : "-" }}</dd>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-6">
+                      <dt>Updated at:</dt>
+                    </div>
+                    <div class="col-6">
+                      <dd>{{ claim?.updated_at !== null ? (claim?.updated_at | date : "MMMM dd, yyyy hh:mm:ss a") : "-"
+                        }}</dd>
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+              <div class="row" *ngIf="!isSalesRep">
+                <div class="col-md-12">
+                  <button mat-raised-button color="primary" class="mr-1"
+                    [disabled]="!userService.getUserPermissions('claim', 'update')"
+                    (click)="openClaimEditDialog(claim)">
+                    <mat-icon>edit</mat-icon>Edit
+                  </button>&nbsp;
+                  <button *ngIf="userService.getUserPermissions('claim', 'remove')" color="warn" mat-raised-button
+                    [disabled]="!claim?.can_be_removed || !!+claim?.is_removed || !this.userService.getUserPermissions('claim','remove')"
+                    (click)="openClaimDeleteDialog(claim)">
+                    <mat-icon>delete</mat-icon>Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 d-none d-xl-block bg-light" *ngIf="this.client">
+              <div class="row">
+                <div class="col-12 pt-2 pb-2">
+                  <h5>Client:</h5>
+                </div>
+
+                <div class="col-12">
+                  <dt class="col-sm-12">Ref. #</dt>
+                  <dd class="col-sm-12">{{client?.ref_string}}</dd>
+
+                  <dt class="col-sm-12">Full name</dt>
+                  <dd class="col-sm-12">
+                    <a type="button" class="link-ref"
+                      (click)="onClientDetail(claim?.client_id, claim?.client?.full_name )">{{claim?.client?.full_name}}</a>
+                  </dd>
+
+                  <dt class="col-sm-12" *ngIf="client?.email">Email</dt>
+                  <dd class="col-sm-12" *ngIf="client?.email">
+                    <a href="mailto:{{client?.email? client?.email : '-' }}">{{client?.email?
+                      client?.email : '-' }}</a>
+                  </dd>
+
+                  <dt class="col-sm-12" *ngIf="client?.phone_number">Phone #</dt>
+                  <dd class="col-sm-12" *ngIf="client?.phone_number"><a
+                      href="tel:{{client?.phone_number}}">{{client?.phone_number | mask :
+                      '000-000-0000'}}</a></dd>
+
+                  <dt class="col-sm-12" *ngIf="client?.address">Address</dt>
+                  <dd class="col-sm-12" *ngIf="client?.address">{{client?.address}}<br>
+                    {{client?.city? client?.city + ',' : ''}} {{client?.state}}
+                    {{client?.zip_code}}
+                  </dd>
+
+                  <dt class="col-sm-12" *ngIf="client?.organization">Organization</dt>
+                  <dd class="col-sm-12" *ngIf="client?.organization">
+                    {{client?.organization ?? '-'}}
+                  </dd>
+
+                  <dt class="col-sm-12">Assigned to</dt>
+                  <dd class="col-sm-12">
+                    {{client?.belonged_user?.first_name}} {{client?.belonged_user?.last_name}}<br>
+                  </dd>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Tasks -->
+        <mat-tab [disabled]="!permissions?.includes('claim_task:read') || !claimRolepermissions?.includes('claim_task:read')">
+          <ng-template mat-tab-label><mat-icon [ngStyle]="{ color: 'blue' }">task</mat-icon>Tasks</ng-template>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <div>
+              <button mat-icon-button [color]="taskViewMode === 'table' ? 'primary' : ''" (click)="taskViewMode = 'table'" matTooltip="Table view">
+                <mat-icon>view_list</mat-icon>
+              </button>
+              <button mat-icon-button [color]="taskViewMode === 'board' ? 'primary' : ''" (click)="taskViewMode = 'board'" matTooltip="Board view">
+                <mat-icon>view_kanban</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <ng-container *ngIf="taskViewMode === 'board'">
+            <app-claim-task-board
+              [tasks]="claimTasks"
+              (taskUpdated)="getClaimTasks()"
+            ></app-claim-task-board>
+          </ng-container>
+
+          <ng-container *ngIf="taskViewMode === 'table'">
+          <p *ngIf="!dataSourceTasks?.data.length">No tasks found.</p>
+
+          <mat-form-field class="w-100">
+            <mat-label>Filter tasks</mat-label>
+            <input matInput (keyup)="applyFilter($event.target.value, 'tasks')" placeholder="Search tasks" />
+          </mat-form-field>
+
+          <table mat-table [dataSource]="dataSourceTasks" class="claim-table" *ngIf="dataSourceTasks?.data.length">
+            <ng-container matColumnDef="sn">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let element; let i = index">
+                {{ i + 1 }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="title">
+              <th mat-header-cell *matHeaderCellDef>Title</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.title }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="task_type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.task_type }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="priority">
+              <th mat-header-cell *matHeaderCellDef>Priority</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.priority }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.status }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="due_date">
+              <th mat-header-cell *matHeaderCellDef>Due date</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.due_date | date : "MMMM dd, yyyy" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Created at</th>
+              <td mat-cell *matCellDef="let task" (click)="openTasksViewDialog(task)">
+                {{ task.created_at | date : "MMMM dd, yyyy" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_by">
+              <th mat-header-cell *matHeaderCellDef>Created by</th>
+              <td mat-cell *matCellDef="let task">
+                {{
+                task?.created_by?.first_name
+                ? task?.created_by?.first_name
+                : "-"
+                }}
+                {{ task?.created_by?.last_name }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="edit">
+              <th mat-header-cell *matHeaderCellDef>Edit</th>
+              <td mat-cell *matCellDef="let task">
+                <button mat-icon-button (click)="openTasksEditDialog(task, client.id)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="delete">
+              <th mat-header-cell *matHeaderCellDef>Delete</th>
+              <td mat-cell *matCellDef="let task">
+                <div>
+                  <button mat-icon-button
+                    [disabled]="!task.can_be_removed || !this.userService.getUserPermissions('claim_task','remove')"
+                    (click)="openTasksDeleteDialog(task)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsTasks"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsTasks"
+              [ngClass]="{ green: row?.status == 'completed' }">
+            </tr>
+          </table>
+
+          <mat-paginator *ngIf="dataSourceTasks?.data.length" [style.visibility]="
+              dataSourceTasks?.length <= 0 ? 'hidden' : 'visible'
+            " #paginator [length]="totalRecordsTasks" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+            (page)="changePage($event, 'task')">
+          </mat-paginator>
+          </ng-container>
+        </mat-tab>
+
+        <!-- Files -->
+        <mat-tab [disabled]="!permissions?.includes('claim_file:read') || !claimRolepermissions?.includes('claim_file:read')">
+          <ng-template mat-tab-label><mat-icon [ngStyle]="{ color: 'teal' }">upload</mat-icon>&nbsp;Files</ng-template>
+          <p *ngIf="!dataSourceFile?.data.length">No files found.</p>
+
+          <mat-form-field class="w-100">
+            <mat-label>Filter files</mat-label>
+            <input matInput (keyup)="applyFilter($event.target.value, 'files')" placeholder="Search files" />
+          </mat-form-field>
+
+          <table mat-table [dataSource]="dataSourceFile" class="claim-table" *ngIf="dataSourceFile?.data.length">
+            <ng-container matColumnDef="sn">
+              <th class="checkbox-row" mat-header-cell *matHeaderCellDef>
+                <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="
+                            selection.hasValue() && isAllSelected()
+                        " [indeterminate]="
+                            selection.hasValue() && !isAllSelected()
+                        ">
+                </mat-checkbox>
+              </th>
+              <td class="checkbox-row" mat-cell *matCellDef="let row">
+                <!-- {{
+              paginatorFiles.pageIndex * paginatorFiles.pageSize + (i + 1)
+              }} -->
+                <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null"
+                  [checked]="selection.isSelected(row)">
+                </mat-checkbox>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>File name</th>
+              <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                <i *ngIf="file.type == 'application/pdf'" style="color: red" class="fa fa-file-pdf-o"></i>
+                <i *ngIf="file.type == 'application/zip'" style="color: orange" class="fa fa-file-archive-o"></i>
+                <i *ngIf="file.type == 'image/jpeg' || file.type == 'image/png'" style="color: blue"
+                  class="fa fa-file-image-o"></i>
+                {{ file.name }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                {{ file.description }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                {{ file.type }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Created at</th>
+              <td mat-cell *matCellDef="let file" (click)="openFileViewDialog(file)">
+                {{ file.created_at | date : "MMMM dd, yyyy" }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_by">
+              <th mat-header-cell *matHeaderCellDef>Created by</th>
+              <td mat-cell *matCellDef="let file">
+                {{
+                file?.created_by?.first_name
+                ? file?.created_by?.first_name
+                : "-"
+                }}
+                {{ file?.created_by?.last_name }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="download">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let file">
+                <button mat-icon-button (click)="openFile(file.path, file.type)" matTooltip="View document">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button (click)="openFileEditDialog(file, client?.id)" [disabled]="
+                    !userService.getUserPermissions('client', 'update')
+                  " matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button
+                  [disabled]="!file.can_be_removed || !this.userService.getUserPermissions('claim_file','remove')"
+                  (click)="openFileDeleteDialog(file)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsFiles"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsFiles"></tr>
+          </table>
+
+          <mat-paginator #paginatorFiles [length]="totalRecordsFiles" [pageSize]="pageSizeFiles"
+            [pageSizeOptions]="pageSizeOptions" (page)="changePage($event, 'file')">
+          </mat-paginator>
+
+          <div class="row" [style.visibility]="
+                dataSourceFile?.data?.length <= 0 ? 'hidden' : 'visible'
+            ">
+            <div class="col-md-12">
+              <button [hidden]="!userService.getUserPermissions('claim_file_share', 'create')" mat-raised-button
+                [disabled]="selection.selected.length == 0" color="primary" (click)="openShareClaimFileDialog()">
+                <mat-icon>share</mat-icon>
+                Share
+              </button>
+              &nbsp;
+              <button [hidden]="!userService.getUserPermissions('claim_file', 'remove')" mat-raised-button
+                [disabled]="selectionLength == 0" color="warn" (click)="openClaimFilesMultipleDeleteDialog()">
+                <mat-icon>delete</mat-icon>Delete
+              </button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Policy -->
+        <mat-tab>
+          <ng-template mat-tab-label><mat-icon [ngStyle]="{ color: 'teal' }">policy</mat-icon>&nbsp;Policy</ng-template>
+          <app-policy-section-inline entityType="claim" [entityId]="claim.id"></app-policy-section-inline>
+        </mat-tab>
+
+        <!-- Comments -->
+        <mat-tab [disabled]="!permissions?.includes('claim_comment:read') || !claimRolepermissions?.includes('claim_comment:read')">
+          <ng-template mat-tab-label><mat-icon
+              [ngStyle]="{ color: 'maroon' }">chat</mat-icon>&nbsp;Comments</ng-template>
+
+          <form [formGroup]="commentForm" class="comment-form">
+            <div class="row">
+              <div class="col-md-12">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Comments</mat-label>
+                  <textarea matInput rows="4" formControlName="text"
+                    placeholder="Enter comments"></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+            <div class="col-md-12 d-flex align-items-center justify-content-end pr-0">
+              <mat-slide-toggle *ngIf="!isSalesRep" [(ngModel)]="isCommentExternal" [ngModelOptions]="{standalone: true}" color="primary" class="mr-3">
+                {{ isCommentExternal ? 'Visible to Sales Rep / Client' : 'Internal Only' }}
+              </mat-slide-toggle>
+              <button mat-raised-button class="mr-0" color="primary" (click)="addComment()"
+                [disabled]="!commentForm.valid || commentFormDisabled">
+                <div class="spinner-container">
+                  <mat-spinner diameter="25" *ngIf="commentFormDisabled"></mat-spinner>
+                </div>
+                Add comment
+              </button>
+            </div>
+          </form>
+
+          <p *ngIf="!dataSourceComments?.data.length">No comments found.</p>
+
+          <mat-form-field class="w-100">
+            <mat-label>Filter comments</mat-label>
+            <input matInput (keyup)="applyFilter($event.target.value, 'comments')" placeholder="Search comments" />
+          </mat-form-field>
+
+          <table mat-table [dataSource]="dataSourceComments" class="claim-table"
+            *ngIf="dataSourceComments?.data.length">
+            <!-- <ng-container matColumnDef="sn">
+              <th mat-header-cell *matHeaderCellDef>#</th>
+              <td mat-cell *matCellDef="let element; let i = index;" (click)="openCommentViewDialog(comment)">{{i+1}}
+              </td>
+            </ng-container> -->
+
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef>Description</th>
+              <td mat-cell *matCellDef="let comment" (click)="openCommentViewDialog(comment)">
+                <strong>{{
+                  comment?.created_by?.first_name
+                  ? comment?.created_by?.first_name
+                  : "-"
+                  }}
+                  {{ comment?.created_by?.last_name }}</strong>
+                |
+                <strong>{{
+                  comment.created_at
+                  | date
+                  : "MMMM dd,
+                  yyyy h:mm:ssa"
+                  }}</strong>
+                <span *ngIf="!isSalesRep && comment.visibility === 'external'" class="badge badge-info ml-2" style="font-size: 0.7em;">Shared</span>
+                <br />
+                {{ comment.text }}
+              </td>
+            </ng-container>
+            <!--
+            <ng-container matColumnDef="created_at">
+              <th mat-header-cell *matHeaderCellDef>Created at</th>
+              <td mat-cell *matCellDef="let comment" (click)="openCommentViewDialog(comment)">{{comment.created_at |
+                date:
+                "MMM dd, yyyy"}}</td>
+            </ng-container> -->
+
+            <!-- <ng-container matColumnDef="created_by">
+              <th mat-header-cell *matHeaderCellDef>Created by</th>
+              <td mat-cell *matCellDef="let comment">{{comment?.created_by?.first_name ? comment?.created_by?.first_name
+                : '-'}} {{comment?.created_by?.last_name}}</td>
+            </ng-container> -->
+
+            <ng-container matColumnDef="edit">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let comment">
+                <button mat-icon-button (click)="openCommentEditDialog(comment)" matTooltip="Edit">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="delete">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let comment">
+                <div>
+                  <button mat-icon-button color="warn"
+                    [disabled]="!comment.can_be_removed || !this.userService.getUserPermissions('claim_comment','remove')"
+                    (click)="openCommentDeleteDialog(comment)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumnsComments"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsComments"></tr>
+          </table>
+
+          <mat-paginator #paginatorComments [length]="totalRecordsComments" [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions" (page)="changePage($event, 'comment')">
+          </mat-paginator>
+        </mat-tab>
+
+        <mat-tab [disabled]="!permissions?.includes('claim:read') || !claimRolepermissions?.includes('claim:read')">
+          <ng-template mat-tab-label><mat-icon
+              [ngStyle]="{ color: 'orange' }">timeline</mat-icon>&nbsp;Timeline</ng-template>
+
+          <!-- Filter Bar -->
+          <div class="timeline-filter-bar" *ngIf="claimTimeline?.length > 0">
+            <mat-form-field appearance="outline" class="timeline-filter-select">
+              <mat-label>Filter by event type</mat-label>
+              <mat-select [(value)]="timelineFilter">
+                <mat-option value="">All Events</mat-option>
+                <mat-option *ngFor="let type of activityTypes" [value]="type">
+                  {{ getActivityLabel(type) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <span class="timeline-count">{{ filteredTimeline.length }} event{{ filteredTimeline.length !== 1 ? 's' : '' }}</span>
+          </div>
+
+          <!-- Activity Feed -->
+          <div class="activity-timeline" *ngIf="filteredTimeline.length > 0">
+            <div class="activity-event" *ngFor="let event of filteredTimeline; let last = last">
+              <div class="activity-icon-col">
+                <div class="activity-icon-circle" [style.backgroundColor]="getActivityColor(event.activity_type)">
+                  <mat-icon class="activity-icon">{{ getActivityIcon(event.activity_type) }}</mat-icon>
+                </div>
+                <div class="activity-connector" *ngIf="!last"></div>
+              </div>
+              <div class="activity-content">
+                <div class="activity-header">
+                  <span class="activity-type-badge" [style.backgroundColor]="getActivityColor(event.activity_type) + '18'" [style.color]="getActivityColor(event.activity_type)">
+                    {{ getActivityLabel(event.activity_type) }}
+                  </span>
+                  <span class="activity-timestamp">{{ event.timestamp | date:'MMM dd, yyyy h:mm a' }}</span>
+                </div>
+                <div class="activity-title">{{ event.title }}</div>
+                <div class="activity-details" *ngIf="event.details">{{ event.details }}</div>
+                <div class="activity-author" *ngIf="event.created_by">
+                  {{ event.created_by?.first_name }} {{ event.created_by?.last_name }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-tab" *ngIf="claimTimeline !== null && claimTimeline?.length === 0">
+            <mat-icon>history</mat-icon>
+            <p>No timeline events recorded yet.</p>
+          </div>
+        </mat-tab>
+
+        <!-- Estimates -->
+        <mat-tab [disabled]="!permissions?.includes('claim:read')">
+          <ng-template mat-tab-label>
+            <mat-icon [ngStyle]="{ color: '#0277bd' }">calculate</mat-icon>&nbsp;Estimates
+          </ng-template>
+          <div class="estimates-tab" *ngIf="claim">
+            <div class="estimates-header">
+              <h3>Estimate Projects</h3>
+              <button mat-raised-button color="primary" (click)="openNewEstimate()">
+                <mat-icon>add</mat-icon> New Estimate
+              </button>
+            </div>
+
+            <div *ngIf="estimatesLoading" style="text-align: center; padding: 32px;">
+              <mat-spinner diameter="32"></mat-spinner>
+            </div>
+
+            <div *ngIf="!estimatesLoading && estimateProjects.length === 0" class="estimates-empty">
+              <mat-icon>calculate</mat-icon>
+              <p>No estimates linked to this claim yet.</p>
+              <button mat-stroked-button (click)="loadEstimateProjects()"><mat-icon>refresh</mat-icon> Check Again</button>
+            </div>
+
+            <div class="estimate-cards" *ngIf="!estimatesLoading && estimateProjects.length > 0">
+              <div class="estimate-card" *ngFor="let proj of estimateProjects" (click)="openEstimateProject(proj.id)">
+                <div class="est-card-header">
+                  <mat-icon [ngStyle]="{ color: '#0277bd' }">description</mat-icon>
+                  <div class="est-card-info">
+                    <strong>{{ proj.name }}</strong>
+                    <span class="est-mode">{{ proj.estimate_mode || 'residential' }}</span>
+                  </div>
+                  <span class="est-status-badge" [ngClass]="'est-status-' + (proj.status || 'draft')">{{ proj.status || 'draft' }}</span>
+                </div>
+                <div class="est-card-totals" *ngIf="proj.total_cost">
+                  <span class="est-total">${{ proj.total_cost | number:'1.2-2' }}</span>
+                  <span class="est-total-label">ACI Estimate Total</span>
+                </div>
+                <div class="est-card-actions">
+                  <button mat-stroked-button class="est-action-btn" (click)="$event.stopPropagation(); openEstimateProject(proj.id)">
+                    <mat-icon>edit</mat-icon> Open Estimate
+                  </button>
+                  <button mat-stroked-button class="est-action-btn" (click)="$event.stopPropagation(); openBlackoutView(proj.id)">
+                    <mat-icon>compare_arrows</mat-icon> Blackout View
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="estimates-load-btn" *ngIf="estimateProjects.length === 0 && !estimatesLoading">
+              <button mat-stroked-button (click)="loadEstimateProjects()"><mat-icon>search</mat-icon> Load Linked Estimates</button>
+            </div>
+          </div>
+        </mat-tab>
+
+        <mat-tab [disabled]="!permissions?.includes('claim_payment:read') || !claimRolepermissions?.includes('claim_payment:read')">
+          <ng-template mat-tab-label><mat-icon
+              [ngStyle]="{ color: 'red' }">payments</mat-icon>&nbsp;Payments</ng-template>
+          <app-claim-ledger (getClaimPayments)="getClaimPayments()" [claim]="claim"></app-claim-ledger>
+        </mat-tab>
+
+        <!-- Recovery -->
+        <mat-tab [disabled]="!permissions?.includes('claim_payment:read') || !claimRolepermissions?.includes('claim_payment:read')">
+          <ng-template mat-tab-label>
+            <mat-icon [ngStyle]="{ color: '#800020' }">account_balance</mat-icon>&nbsp;Recovery
+          </ng-template>
+          <app-claim-recovery-tab [claim]="claim"></app-claim-recovery-tab>
+        </mat-tab>
+
+        <!-- Communications Hub -->
+        <mat-tab [disabled]="!permissions?.includes('claim_communication:read')">
+          <ng-template mat-tab-label>
+            <mat-icon [ngStyle]="{ color: '#FF6B35' }">mail</mat-icon>&nbsp;Communications
+            <span *ngIf="commSummary?.total_count" class="badge badge-secondary ml-1" style="font-size: 0.65em;">
+              {{ commSummary.total_count }}
+            </span>
+          </ng-template>
+
+          <!-- Summary badges -->
+          <div class="row mt-3 mb-3" *ngIf="commSummary">
+            <div class="col-md-4">
+              <div class="card text-center p-2" style="border-left: 3px solid #1565C0;">
+                <small class="text-muted">Carrier Messages</small>
+                <h5 class="mb-0">{{ commSummary.carrier_count }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center p-2" style="border-left: 3px solid #2E7D32;">
+                <small class="text-muted">Client Messages</small>
+                <h5 class="mb-0">{{ commSummary.client_count }}</h5>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card text-center p-2" style="border-left: 3px solid #E65100;">
+                <small class="text-muted">Internal Notes</small>
+                <h5 class="mb-0">{{ commSummary.internal_count }}</h5>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter by type -->
+          <div class="row mb-2">
+            <div class="col-md-4">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Filter by type</mat-label>
+                <mat-select [(ngModel)]="commMessageTypeFilter" (selectionChange)="onCommTypeFilterChange()">
+                  <mat-option value="">All Messages</mat-option>
+                  <mat-option value="carrier">Carrier Messages</mat-option>
+                  <mat-option value="client">Client Messages</mat-option>
+                  <mat-option value="internal">Internal Notes</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Compose Form -->
+          <mat-expansion-panel class="mb-3">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="mr-2">create</mat-icon> Compose New
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <form [formGroup]="commForm">
+              <div class="row">
+                <div class="col-md-4">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Type</mat-label>
+                    <mat-select formControlName="message_type" (selectionChange)="onCommFormTypeChange()">
+                      <mat-option value="carrier">Carrier Message</mat-option>
+                      <mat-option value="client">Client Message</mat-option>
+                      <mat-option value="internal">Internal Note</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <div class="col-md-4" *ngIf="commFormMessageType === 'carrier'">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Recipient Name</mat-label>
+                    <input matInput formControlName="recipient_name" placeholder="Adjuster name">
+                  </mat-form-field>
+                </div>
+                <div class="col-md-4" *ngIf="commFormMessageType === 'carrier'">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Recipient Email</mat-label>
+                    <input matInput formControlName="recipient_email" placeholder="adjuster@carrier.com">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="row" *ngIf="commFormMessageType === 'carrier'">
+                <div class="col-md-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>Subject</mat-label>
+                    <input matInput formControlName="subject" placeholder="Email subject">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-12">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ commFormMessageType === 'internal' ? 'Note' : 'Message' }}</mat-label>
+                    <textarea matInput rows="4" formControlName="body"
+                      placeholder="{{ commFormMessageType === 'internal' ? 'Enter internal note...' : 'Enter message...' }}"></textarea>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button mat-raised-button color="primary"
+                  (click)="addCommunication()"
+                  [disabled]="!commForm.valid || commFormDisabled">
+                  <div class="spinner-container" *ngIf="commFormDisabled">
+                    <mat-spinner diameter="20"></mat-spinner>
+                  </div>
+                  <mat-icon class="mr-1">send</mat-icon>
+                  {{ commFormMessageType === 'internal' ? 'Save Note' : 'Send' }}
+                </button>
+              </div>
+            </form>
+          </mat-expansion-panel>
+
+          <!-- Communications list -->
+          <p *ngIf="claimCommunications && !communicationsFiltered?.length" class="text-muted mt-3">
+            No communications found.
+          </p>
+
+          <div *ngIf="communicationsFiltered?.length" class="mt-2">
+            <div *ngFor="let comm of communicationsFiltered"
+              class="card mb-2 p-3"
+              [ngStyle]="{ 'border-left': '4px solid ' + messageTypeColors[comm.message_type] }">
+
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex align-items-center">
+                  <mat-icon [ngStyle]="{ color: messageTypeColors[comm.message_type] }" class="mr-2">
+                    {{ messageTypeIcons[comm.message_type] }}
+                  </mat-icon>
+                  <span class="badge mr-2"
+                    [ngStyle]="{ 'background-color': messageTypeColors[comm.message_type], color: '#fff' }">
+                    {{ messageTypeLabels[comm.message_type] }}
+                  </span>
+                  <span *ngIf="comm.is_system_generated" class="badge badge-light mr-2">System</span>
+                  <span *ngIf="comm.direction === 'inbound'" class="badge badge-outline-primary mr-2">Inbound</span>
+                </div>
+                <small class="text-muted">
+                  {{ comm.created_at | date: 'MMM dd, yyyy h:mm a' }}
+                </small>
+              </div>
+
+              <div class="mt-2">
+                <strong>
+                  {{ comm.sender?.first_name || 'System' }}
+                  {{ comm.sender?.last_name || '' }}
+                </strong>
+                <span *ngIf="comm.recipient_name" class="text-muted">
+                  &rarr; {{ comm.recipient_name }}
+                  <span *ngIf="comm.recipient_email">({{ comm.recipient_email }})</span>
+                </span>
+              </div>
+
+              <div *ngIf="comm.subject" class="mt-1">
+                <strong>Subject:</strong> {{ comm.subject }}
+              </div>
+
+              <div class="mt-2" style="white-space: pre-wrap;">{{ comm.body }}</div>
+
+              <div class="d-flex justify-content-end mt-2"
+                *ngIf="comm.can_be_removed && !comm.is_system_generated">
+                <button mat-icon-button color="warn" (click)="deleteCommunication(comm)" matTooltip="Delete">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!claimCommunications" class="text-center mt-4">
+            <mat-spinner diameter="40" class="mx-auto"></mat-spinner>
+            <p class="text-muted mt-2">Loading communications...</p>
+          </div>
+
+        </mat-tab>
+
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+
+  <ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+</div>

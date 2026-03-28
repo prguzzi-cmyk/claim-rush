@@ -1,0 +1,190 @@
+<div class="ca-container">
+  <!-- Dev Role Switcher -->
+  <div class="dev-role-switcher" *ngIf="isDev">
+    <span class="dev-label">DEV Role:</span>
+    <mat-button-toggle-group [value]="caRole" (change)="switchDevRole($event.value)">
+      <mat-button-toggle value="advocate">Advocate</mat-button-toggle>
+      <mat-button-toggle value="chapter-president">Chapter Pres.</mat-button-toggle>
+      <mat-button-toggle value="regional-vp">Regional VP</mat-button-toggle>
+      <mat-button-toggle value="admin">Admin</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
+  <!-- Header -->
+  <div class="ca-header">
+    <div class="ca-header-text">
+      <h1>{{ pageTitle }}</h1>
+      <p class="ca-subtitle">{{ pageSubtitle }}</p>
+    </div>
+  </div>
+
+  <!-- KPI Cards — Advocate (personal) -->
+  <div class="ca-kpi-row" *ngIf="kpiSummary && caRole === 'advocate'">
+    <mat-card class="ca-kpi-card">
+      <mat-icon>campaign</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.active_campaigns }}</span>
+        <span class="kpi-label">My Campaigns</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>share</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.total_referrals }}</span>
+        <span class="kpi-label">My Referrals</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>home</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.homeowners_reached | number }}</span>
+        <span class="kpi-label">Homeowners I Reached</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>web</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ myProfile ? 'Live' : 'Draft' }}</span>
+        <span class="kpi-label">My Page Status</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>pending_actions</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.community_events }}</span>
+        <span class="kpi-label">Pending Items</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>star</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.avg_satisfaction | number:'1.1-1' }}</span>
+        <span class="kpi-label">Engagement Score</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- KPI Cards — Non-advocate (team/global) -->
+  <div class="ca-kpi-row" *ngIf="kpiSummary && caRole !== 'advocate'">
+    <mat-card class="ca-kpi-card">
+      <mat-icon>people</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.total_advocates }}</span>
+        <span class="kpi-label">Advocates</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>campaign</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.active_campaigns }}</span>
+        <span class="kpi-label">Active Campaigns</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>share</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.total_referrals }}</span>
+        <span class="kpi-label">Referrals</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>home</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.homeowners_reached | number }}</span>
+        <span class="kpi-label">Homeowners Reached</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>event</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.community_events }}</span>
+        <span class="kpi-label">Events</span>
+      </div>
+    </mat-card>
+    <mat-card class="ca-kpi-card">
+      <mat-icon>star</mat-icon>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ kpiSummary.avg_satisfaction | number:'1.1-1' }}</span>
+        <span class="kpi-label">Avg Satisfaction</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Tab Group -->
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" animationDuration="200ms" class="ca-tabs">
+    <!-- Overview (always visible) -->
+    <mat-tab label="Overview">
+      <ng-template matTabContent>
+        <app-ca-overview [caRole]="caRole" [myProfile]="myProfile" (navigateToTab)="onNavigateToTab($event)"></app-ca-overview>
+      </ng-template>
+    </mat-tab>
+
+    <!-- Advocate Profiles (hidden for advocates) -->
+    <mat-tab label="Advocate Profiles" *ngIf="caRole !== 'advocate'">
+      <ng-template matTabContent>
+        <app-ca-advocate-profiles [caRole]="caRole" [myProfile]="myProfile"></app-ca-advocate-profiles>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Territory & Audience">
+      <ng-template matTabContent>
+        <app-ca-territory-audience [caRole]="caRole" [myProfile]="myProfile"></app-ca-territory-audience>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Campaign Builder">
+      <ng-template matTabContent>
+        <app-ca-campaign-builder [caRole]="caRole" [myProfile]="myProfile"></app-ca-campaign-builder>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Outreach Channels">
+      <ng-template matTabContent>
+        <app-ca-outreach-channels [caRole]="caRole" [myProfile]="myProfile"></app-ca-outreach-channels>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Community Pages">
+      <ng-template matTabContent>
+        <app-ca-community-pages [caRole]="caRole" [myProfile]="myProfile"></app-ca-community-pages>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Partner Offers">
+      <ng-template matTabContent>
+        <app-ca-partner-offers [caRole]="caRole" [myProfile]="myProfile"></app-ca-partner-offers>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Education Library">
+      <ng-template matTabContent>
+        <app-ca-education-library [caRole]="caRole" [myProfile]="myProfile"></app-ca-education-library>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Social & Ad Studio">
+      <ng-template matTabContent>
+        <app-ca-social-ad-studio [caRole]="caRole" [myProfile]="myProfile"></app-ca-social-ad-studio>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Automations">
+      <ng-template matTabContent>
+        <app-ca-automations [caRole]="caRole" [myProfile]="myProfile"></app-ca-automations>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Analytics">
+      <ng-template matTabContent>
+        <app-ca-analytics [caRole]="caRole" [myProfile]="myProfile"></app-ca-analytics>
+      </ng-template>
+    </mat-tab>
+
+    <!-- Compliance (regional-vp + admin only) -->
+    <mat-tab label="Compliance" *ngIf="caRole === 'regional-vp' || caRole === 'admin'">
+      <ng-template matTabContent>
+        <app-ca-compliance [caRole]="caRole" [myProfile]="myProfile"></app-ca-compliance>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+</div>

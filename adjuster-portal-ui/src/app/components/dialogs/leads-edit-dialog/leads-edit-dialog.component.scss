@@ -1,0 +1,11 @@
+.lead-form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+  
+    mat-form-field, mat-checkbox {
+        width: 24%;
+    }
+  }

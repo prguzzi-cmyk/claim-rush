@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Build outputs
+dist/
+build/
+.angular/cache/
+.next/
+
+# Environment
+.env
+.env.local
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude local config
+.claude/settings.local.json
+
+# Vercel
+.vercel/
+
+# Screenshots (large/generated)
+screenshots/
+
+# Claim Rush nested git
+claim-rush/.git/

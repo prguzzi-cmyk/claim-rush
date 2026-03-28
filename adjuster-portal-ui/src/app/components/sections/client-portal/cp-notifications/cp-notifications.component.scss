@@ -1,0 +1,54 @@
+.notifications-container { padding: 24px 0; }
+
+.section-card {
+  background: #fff; border-radius: 10px; border: 1px solid #e0e0e0; padding: 24px;
+  h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; color: #1a237e; } }
+
+.notif-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.notif-subtitle { margin: 0; font-size: 13px; color: #666; }
+.mark-all-btn { font-size: 12px; color: #1a237e;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; } }
+
+.filter-chips { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; }
+.filter-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 4px 14px; border-radius: 16px; border: 1px solid #ddd; background: #fafafa;
+  font-size: 12px; font-weight: 500; color: #555; cursor: pointer; transition: all 0.15s;
+  &:hover { border-color: #1a237e; color: #1a237e; }
+  &.active { background: #1a237e; border-color: #1a237e; color: #fff; } }
+.chip-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; }
+
+.notif-list { display: flex; flex-direction: column; gap: 0; }
+.notif-item {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px; border-bottom: 1px solid #f0f0f0;
+  cursor: pointer; transition: background 0.15s; position: relative;
+  &:hover { background: #fafafa; }
+  &.unread { background: #f5f7ff; }
+  &:last-child { border-bottom: none; } }
+
+.notif-icon-wrap {
+  width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  &[data-type='status_change'] { background: #e8eaf6; mat-icon { color: #1a237e; } }
+  &[data-type='payment'] { background: #e8f5e9; mat-icon { color: #2e7d32; } }
+  &[data-type='document'] { background: #f3e5f5; mat-icon { color: #7b1fa2; } }
+  &[data-type='message'] { background: #e3f2fd; mat-icon { color: #1565c0; } }
+  &[data-type='appointment'] { background: #fff3e0; mat-icon { color: #e65100; } } }
+
+.notif-content { flex: 1; min-width: 0; }
+.notif-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.notif-title { font-size: 14px; font-weight: 600; color: #333; }
+.notif-time { font-size: 12px; color: #999; white-space: nowrap; }
+.notif-message { margin: 0; font-size: 13px; color: #555; line-height: 1.5; }
+.notif-meta { margin-top: 6px; }
+.notif-stage-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+  background: #e8eaf6; color: #1a237e; }
+
+.notif-unread-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #1a237e; flex-shrink: 0; margin-top: 6px; }
+
+.empty-state { text-align: center; padding: 40px; color: #999;
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.3; }
+  p { font-size: 14px; margin-top: 8px; } }

@@ -1,0 +1,524 @@
+@use '../../../../../styles/variables' as vars;
+
+.customer-claim-portal {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+}
+
+// ── Header ──
+.portal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  .back-btn {
+    margin-top: 4px;
+  }
+
+  .header-info {
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      margin: 0;
+      color: vars.$primary-color;
+    }
+
+    .header-address {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      color: #666;
+      margin: 4px 0 0;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// ── Progress Tracker ──
+.progress-tracker {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+
+  .phase-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+    min-width: 100px;
+    max-width: 140px;
+
+    .step-connector {
+      position: absolute;
+      top: 18px;
+      right: 50%;
+      width: 100%;
+      height: 3px;
+      background: #e0e0e0;
+      z-index: 0;
+
+      &.completed {
+        background: #4caf50;
+      }
+    }
+
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      background: #e0e0e0;
+      color: #999;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .step-label {
+      margin-top: 8px;
+      font-size: 11px;
+      text-align: center;
+      color: #999;
+      line-height: 1.3;
+    }
+
+    // States
+    &.completed {
+      .step-circle {
+        background: #4caf50;
+        color: white;
+      }
+      .step-label {
+        color: #4caf50;
+        font-weight: 500;
+      }
+    }
+
+    &.active {
+      .step-circle {
+        background: #1976d2;
+        color: white;
+        box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.2);
+        animation: pulse 2s infinite;
+      }
+      .step-label {
+        color: #1976d2;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.3); }
+  70% { box-shadow: 0 0 0 8px rgba(25, 118, 210, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0); }
+}
+
+// ── Summary Card ──
+.summary-card {
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+
+    .summary-item {
+      dt {
+        font-size: 12px;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+      }
+
+      dd {
+        font-size: 15px;
+        color: #333;
+        margin: 0;
+      }
+    }
+  }
+
+  .phase-indicator {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    background: #e8e8e8;
+    color: #555;
+
+    &.active-phase {
+      background: #e3f2fd;
+      color: #1565c0;
+      font-weight: 500;
+    }
+  }
+}
+
+// ── Tab Content ──
+.tab-content {
+  padding: 16px 0;
+}
+
+.tab-actions {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// ── Tables ──
+.portal-table {
+  width: 100%;
+
+  .amount-cell {
+    font-weight: 500;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  .file-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #e8e8e8;
+  text-transform: capitalize;
+
+  &.deposited, &.completed, &.received {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  &.pending {
+    background: #fff3e0;
+    color: #e65100;
+  }
+  &.issued {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+}
+
+.payment-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  font-size: 16px;
+  border-top: 2px solid #e0e0e0;
+  margin-top: 4px;
+
+  strong {
+    font-size: 18px;
+    color: vars.$primary-color;
+  }
+}
+
+// ── Messages ──
+.messages-tab {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
+
+.chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 8px;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  line-height: 1.4;
+
+  .message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 12px;
+
+    .message-sender {
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #999;
+      white-space: nowrap;
+    }
+  }
+
+  .message-text {
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &.own-message {
+    align-self: flex-end;
+    background: #1565c0;
+    color: white;
+
+    .message-sender { color: rgba(255,255,255,0.85); }
+    .message-time { color: rgba(255,255,255,0.6); }
+  }
+
+  &.other-message {
+    align-self: flex-start;
+    background: #f5f5f5;
+    color: #333;
+  }
+}
+
+.compose-area {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 12px;
+
+  .compose-form {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+
+    .message-input {
+      flex: 1;
+    }
+
+    .send-btn {
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+}
+
+// ── Reports ──
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.report-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+
+  .report-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .report-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    .report-details {
+      display: flex;
+      flex-direction: column;
+
+      .report-name {
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      .report-date {
+        font-size: 12px;
+        color: #888;
+      }
+    }
+  }
+
+  .report-actions {
+    display: flex;
+    gap: 4px;
+  }
+}
+
+// ── Timeline ──
+.timeline-container {
+  padding: 16px 0 16px 24px;
+}
+
+.timeline-event {
+  position: relative;
+  padding-left: 52px;
+  padding-bottom: 24px;
+
+  .timeline-icon-circle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+
+    .timeline-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #fff;
+    }
+  }
+
+  .timeline-line {
+    position: absolute;
+    left: 17px;
+    top: 40px;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+  }
+
+  .timeline-content {
+    .timeline-header-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+
+      .timeline-type-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+      }
+    }
+
+    .timeline-date {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .timeline-title {
+      font-weight: 500;
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .timeline-details {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .timeline-author {
+      font-size: 12px;
+      color: #aaa;
+      font-style: italic;
+    }
+  }
+}
+
+// ── Empty States ──
+.empty-tab {
+  text-align: center;
+  padding: 48px 24px;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #ccc;
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: #888;
+    font-size: 15px;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 768px) {
+  .progress-tracker {
+    padding: 16px 0;
+
+    .phase-step {
+      min-width: 70px;
+
+      .step-label {
+        font-size: 9px;
+      }
+
+      .step-circle {
+        width: 28px;
+        height: 28px;
+
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .message-bubble {
+    max-width: 85%;
+  }
+
+  .messages-tab {
+    height: 500px;
+  }
+}

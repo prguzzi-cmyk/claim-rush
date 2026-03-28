@@ -1,0 +1,81 @@
+<h2 mat-dialog-title>Record Lead Outcome</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="outcomeForm">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="outcome-field-header">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Outcome</mat-label>
+            <mat-select formControlName="outcome_status" required>
+              <mat-optgroup *ngFor="let category of categoryKeys" [label]="category">
+                <mat-option *ngFor="let option of outcomeCategories[category]" [value]="option.value">
+                  <span class="option-content">
+                    <span class="option-label">{{ option.label }}</span>
+                    <span class="option-description">{{ option.description }}</span>
+                  </span>
+                </mat-option>
+              </mat-optgroup>
+            </mat-select>
+            <mat-icon matSuffix
+                      class="info-icon"
+                      matTooltip="Lead outcomes record the result of contacting a homeowner and trigger automated follow-up actions."
+                      matTooltipPosition="above">
+              help_outline
+            </mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="automation-hint" *ngIf="selectedOption?.automationHint">
+          <mat-icon class="hint-icon">auto_fix_high</mat-icon>
+          <span>{{ selectedOption.automationHint }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="showAppointmentDate">
+      <div class="col-md-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Appointment Date</mat-label>
+          <input matInput [matDatepicker]="appointmentPicker" formControlName="appointment_date">
+          <mat-datepicker-toggle matSuffix [for]="appointmentPicker"></mat-datepicker-toggle>
+          <mat-datepicker #appointmentPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row" *ngIf="showCallbackDate">
+      <div class="col-md-8">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Callback Date (optional)</mat-label>
+          <input matInput [matDatepicker]="callbackPicker" formControlName="callback_date">
+          <mat-datepicker-toggle matSuffix [for]="callbackPicker"></mat-datepicker-toggle>
+          <mat-datepicker #callbackPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="col-md-4">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Time</mat-label>
+          <input matInput type="time" formControlName="callback_time">
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Notes (optional)</mat-label>
+          <textarea matInput rows="3" formControlName="notes" placeholder="Add notes about this outcome"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()" [disabled]="!outcomeForm.valid || formDisabled">
+    <mat-spinner diameter="20" *ngIf="formDisabled" class="d-inline-block"></mat-spinner>
+    Record Outcome
+  </button>
+</mat-dialog-actions>

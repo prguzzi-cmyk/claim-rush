@@ -1,0 +1,228 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2><mat-icon>{{ editMode ? 'edit' : 'build' }}</mat-icon> {{ editMode ? 'Edit Campaign' : 'Campaign Builder' }}</h2>
+    <p>{{ editMode ? 'Update your voice outreach campaign settings' : 'Configure your AI voice outreach campaign' }}</p>
+  </div>
+  <button mat-stroked-button (click)="cancel()">
+    <mat-icon>arrow_back</mat-icon> Back
+  </button>
+</div>
+
+<!-- Loading state for edit mode -->
+<div class="loading-state" *ngIf="loadingCampaign">
+  <mat-spinner diameter="36"></mat-spinner>
+</div>
+
+<div class="builder-form" *ngIf="!loadingCampaign" (input)="markDirty()" (change)="markDirty()">
+
+  <!-- Draft recovery banner -->
+  <div class="draft-recovery-banner" *ngIf="hasSavedDraft">
+    <mat-icon>restore</mat-icon>
+    <span>You have an unsaved draft from {{ savedDraftTime | date:'short' }}.</span>
+    <button mat-button color="primary" (click)="recoverDraft()">Recover</button>
+    <button mat-button (click)="discardDraft()">Discard</button>
+  </div>
+
+  <!-- Read-only warning for active/paused campaigns -->
+  <div class="readonly-banner" *ngIf="isReadOnly">
+    <mat-icon>info</mat-icon>
+    <span>This campaign is <strong>{{ campaignStatus }}</strong>. Only the name, description, and script can be edited. Pause or complete the campaign to change other settings.</span>
+  </div>
+
+  <!-- Validation error summary -->
+  <div class="error-summary" *ngIf="hasErrors()" role="alert">
+    <mat-icon>error</mat-icon>
+    <div class="error-list">
+      <span *ngIf="nameError">{{ nameError }}</span>
+      <span *ngIf="scriptError">{{ scriptError }}</span>
+      <span *ngIf="windowError">{{ windowError }}</span>
+      <span *ngIf="retryError">{{ retryError }}</span>
+      <span *ngIf="callLimitError">{{ callLimitError }}</span>
+    </div>
+  </div>
+
+  <!-- Campaign Details -->
+  <mat-card appearance="outlined" class="form-section">
+    <h3><mat-icon>info</mat-icon> Campaign Details</h3>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Campaign Name</mat-label>
+      <input matInput [(ngModel)]="campaign.name" placeholder="e.g. Fire Leads Q1 Outreach" required maxlength="200" />
+      <mat-hint align="end">{{ (campaign.name?.length || 0) }} / 200</mat-hint>
+      <mat-error *ngIf="nameError">{{ nameError }}</mat-error>
+    </mat-form-field>
+    <div class="field-error" *ngIf="nameError" aria-live="polite">{{ nameError }}</div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput [(ngModel)]="campaign.description" rows="3" placeholder="Brief description of this campaign"></textarea>
+    </mat-form-field>
+
+    <div class="script-preset-row">
+      <mat-form-field appearance="outline" class="script-preset-select">
+        <mat-label>Script Template</mat-label>
+        <mat-select [(value)]="selectedPreset" (selectionChange)="applyScriptPreset($event.value)">
+          <mat-option value="">Custom</mat-option>
+          <mat-option *ngFor="let preset of scriptPresets" [value]="preset.key">{{ preset.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <span class="preset-hint" *ngIf="!selectedPreset">Or choose a template to get started</span>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>AI Script / Prompt</mat-label>
+      <textarea matInput [(ngModel)]="campaign.script_template" rows="6" maxlength="5000" placeholder="Write the script your AI voice agent will follow..."></textarea>
+      <mat-hint align="start">Customize the script your AI voice agent will follow when calling leads</mat-hint>
+      <mat-hint align="end" [ngClass]="getScriptCounterClass()">{{ (campaign.script_template?.length || 0) }} / 5,000</mat-hint>
+    </mat-form-field>
+    <div class="field-error" *ngIf="scriptError" aria-live="polite">{{ scriptError }}</div>
+  </mat-card>
+
+  <!-- Lead Selection -->
+  <mat-card appearance="outlined" class="form-section">
+    <div class="section-header-row">
+      <h3><mat-icon>people</mat-icon> Lead Selection</h3>
+      <button mat-raised-button color="primary" (click)="openLeadSelector()" [disabled]="isReadOnly">
+        <mat-icon>person_add</mat-icon> Select Leads
+      </button>
+    </div>
+
+    <!-- Lead Filters -->
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Lead Source</mat-label>
+        <mat-select [(value)]="campaign.lead_source_filter" [disabled]="isReadOnly">
+          <mat-option *ngFor="let src of leadSources" [value]="src.value">{{ src.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>State Filter</mat-label>
+        <input matInput [(ngModel)]="campaign.territory_state_filter" placeholder="e.g. CA" maxlength="2" [readonly]="isReadOnly" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Incident Type</mat-label>
+        <input matInput [(ngModel)]="campaign.incident_type_filter" placeholder="e.g. structure_fire" [readonly]="isReadOnly" />
+      </mat-form-field>
+    </div>
+
+    <!-- Selected Leads Display -->
+    <div class="selected-leads-section" *ngIf="selectedLeads.length > 0">
+      <div class="selected-leads-header">
+        <span class="lead-count">
+          <mat-icon>check_circle</mat-icon>
+          {{ selectedLeads.length }} lead{{ selectedLeads.length > 1 ? 's' : '' }} selected
+        </span>
+        <button mat-stroked-button color="warn" (click)="clearLeads()" class="clear-btn">
+          <mat-icon>clear</mat-icon> Clear All
+        </button>
+      </div>
+      <div class="selected-leads-list">
+        <div class="lead-chip" *ngFor="let lead of selectedLeads">
+          <span class="chip-name">{{ getLeadName(lead) }}</span>
+          <span class="chip-phone">{{ getLeadPhone(lead) }}</span>
+          <button mat-icon-button class="chip-remove" (click)="removeLead(lead)" matTooltip="Remove">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="no-leads-hint" *ngIf="selectedLeads.length === 0">
+      <mat-icon>info_outline</mat-icon>
+      <span>Click "Select Leads" to choose leads from the database, or set filters above for automatic matching.</span>
+    </div>
+  </mat-card>
+
+  <!-- Call Window -->
+  <mat-card appearance="outlined" class="form-section">
+    <h3><mat-icon>schedule</mat-icon> Call Window</h3>
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Start Time</mat-label>
+        <input matInput type="time" [(ngModel)]="campaign.call_window_start" [readonly]="isReadOnly" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>End Time</mat-label>
+        <input matInput type="time" [(ngModel)]="campaign.call_window_end" [readonly]="isReadOnly" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Timezone</mat-label>
+        <mat-select [(value)]="campaign.call_window_timezone" [disabled]="isReadOnly">
+          <mat-option *ngFor="let tz of timezones" [value]="tz">{{ tz }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p class="field-hint" *ngIf="getCallWindowDuration() as dur">
+      <mat-icon class="hint-icon">info_outline</mat-icon>
+      {{ dur }} call window in {{ campaign.call_window_timezone }}
+    </p>
+    <div class="field-error" *ngIf="windowError" aria-live="polite">{{ windowError }}</div>
+  </mat-card>
+
+  <!-- Retry Settings -->
+  <mat-card appearance="outlined" class="form-section">
+    <h3><mat-icon>replay</mat-icon> Retry Settings</h3>
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Max Retries</mat-label>
+        <input matInput type="number" [(ngModel)]="campaign.max_retries" min="0" max="10" [readonly]="isReadOnly" />
+        <mat-hint>0 = no retries</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Retry Delay (min)</mat-label>
+        <input matInput type="number" [(ngModel)]="campaign.retry_delay_minutes" min="1" [readonly]="isReadOnly" />
+        <mat-hint>Recommended: 120+</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Max Calls/Day</mat-label>
+        <input matInput type="number" [(ngModel)]="campaign.max_calls_per_day" min="1" [readonly]="isReadOnly" />
+        <mat-hint>Daily call limit</mat-hint>
+      </mat-form-field>
+    </div>
+    <div class="field-error" *ngIf="retryError" aria-live="polite">{{ retryError }}</div>
+    <div class="field-error" *ngIf="callLimitError" aria-live="polite">{{ callLimitError }}</div>
+
+    <div class="retry-presets" *ngIf="!isReadOnly">
+      <span class="presets-label">Quick presets:</span>
+      <button mat-stroked-button class="preset-chip" (click)="applyRetryPreset(3, 120, 100)" matTooltip="3 retries, 2hr delay, 100 calls/day">Standard</button>
+      <button mat-stroked-button class="preset-chip" (click)="applyRetryPreset(5, 60, 200)" matTooltip="5 retries, 1hr delay, 200 calls/day">Aggressive</button>
+      <button mat-stroked-button class="preset-chip" (click)="applyRetryPreset(1, 240, 50)" matTooltip="1 retry, 4hr delay, 50 calls/day">Conservative</button>
+    </div>
+  </mat-card>
+
+  <!-- Config Warnings -->
+  <div class="config-warnings" *ngIf="getConfigWarnings().length > 0">
+    <div class="config-warning-item" *ngFor="let w of getConfigWarnings()">
+      <mat-icon>{{ w.icon }}</mat-icon>
+      <span>{{ w.message }}</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="form-actions">
+    <div aria-live="polite" class="save-status-region">
+      <span class="save-status" *ngIf="formDirty && !saving && !launching">
+        <mat-icon class="status-icon unsaved">circle</mat-icon> Unsaved changes
+      </span>
+      <span class="save-status saving" *ngIf="saving">
+        <mat-spinner diameter="14"></mat-spinner> Saving...
+      </span>
+      <span class="save-status saving" *ngIf="launching">
+        <mat-spinner diameter="14"></mat-spinner> Launching...
+      </span>
+    </div>
+    <span class="actions-spacer"></span>
+    <button mat-stroked-button (click)="cancel()">Cancel</button>
+    <button mat-stroked-button color="primary" (click)="saveDraft()" [disabled]="saving || launching" matTooltip="Ctrl+S">
+      <mat-icon>save</mat-icon> {{ editMode ? 'Save Changes' : 'Save as Draft' }}
+    </button>
+    <button mat-raised-button color="accent" (click)="saveAndLaunch()" [disabled]="saving || launching || selectedLeads.length === 0" *ngIf="!isReadOnly">
+      <mat-icon>rocket_launch</mat-icon> Save & Launch
+    </button>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+.overview {
+    .chart-container {
+        height: 15em;
+    }
+}
+
+.mat-caption {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+}
+
+.split-report-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    .report-container {
+        height: auto;
+        width: 31%;
+        position: relative;
+
+        .chart-container {
+            position: relative;
+            margin-bottom: 1em;
+        }
+
+        button {
+            margin-right: 1em;
+
+            &:last-child {
+                margin-right: 0;
+            }
+        }
+    }
+}
+
+.d-flex-row{
+    display: flex;
+    flex-direction: row;
+}
+.d-flex-col{
+    display: flex;
+    flex-direction: column;
+}
+.d-flex-col-center{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* TODO(mdc-migration): The following rule targets internal classes of card that may no longer apply for the MDC version. */
+:host ::ng-deep .mat-card-header-text{
+    display: flex;
+}
+.pr-25{
+    padding-right: 25rem;
+}
+.m-top-5{
+    margin-top: 5px !important;
+}
+.adjust-days{
+    margin-left: 0px !important; 
+    margin-right: 0px !important;
+    padding: 0px !important;
+}
+.width-60{
+    width: 60%;
+}
+.justify-center{
+    display: flex;
+    justify-content: center;
+}
+.mr-10{
+    margin: 10px;
+}
+.width-31{
+    width: 31%;
+}
+.height-25{
+    height: 25vh;
+}
+
+.tasks-table {
+    width: 100%;
+
+    .last-active-cell {
+        &:first-letter {
+            text-transform: uppercase;
+        }
+    }
+
+}
+table {
+    width: 100%;
+  }

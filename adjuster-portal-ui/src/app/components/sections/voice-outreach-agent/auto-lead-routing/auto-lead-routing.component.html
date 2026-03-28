@@ -1,0 +1,106 @@
+<div class="voa-dark">
+  <div class="voa-header">
+    <div>
+      <h1>Auto Lead Routing</h1>
+      <p class="voa-subtitle">Qualified leads automatically routed to the AI Sales Agent conversation pipeline.</p>
+    </div>
+  </div>
+
+  <div class="voa-body">
+
+    <!-- ══════ ROUTING KPIs ══════ -->
+    <div class="routing-kpis">
+      <div class="routing-kpi">
+        <mat-icon>send</mat-icon>
+        <div class="routing-kpi-value">{{ totalRouted }}</div>
+        <div class="routing-kpi-label">Total Routed</div>
+      </div>
+      <div class="routing-kpi">
+        <mat-icon>star</mat-icon>
+        <div class="routing-kpi-value green">{{ qualifiedCount }}</div>
+        <div class="routing-kpi-label">Qualified Leads</div>
+      </div>
+      <div class="routing-kpi">
+        <mat-icon>help_outline</mat-icon>
+        <div class="routing-kpi-value cyan">{{ possibleCount }}</div>
+        <div class="routing-kpi-label">Possible Claims</div>
+      </div>
+      <div class="routing-kpi">
+        <mat-icon>psychology</mat-icon>
+        <div class="routing-kpi-value">{{ avgScore }}</div>
+        <div class="routing-kpi-label">Avg AI Score</div>
+      </div>
+      <div class="routing-kpi pending-kpi" *ngIf="pendingCalls.length > 0">
+        <mat-icon>pending_actions</mat-icon>
+        <div class="routing-kpi-value orange">{{ pendingCalls.length }}</div>
+        <div class="routing-kpi-label">Pending Routing</div>
+      </div>
+    </div>
+
+    <!-- ══════ PENDING ROUTING ══════ -->
+    <div class="dark-panel panel-section" *ngIf="pendingCalls.length > 0">
+      <div class="dark-panel-header"><mat-icon>pending_actions</mat-icon> Pending — Ready to Route <span class="header-count">{{ pendingCalls.length }}</span></div>
+      <div class="pending-grid">
+        <div *ngFor="let c of pendingCalls" class="pending-card">
+          <div class="pending-top">
+            <span class="status-badge" [ngClass]="getOutcomeBadgeClass(c.outcome!)">{{ formatOutcome(c.outcome!) }}</span>
+            <span class="pending-score" *ngIf="c.aiQualificationScore !== null">Score: {{ c.aiQualificationScore }}</span>
+          </div>
+          <div class="pending-name">{{ c.leadName }}</div>
+          <div class="pending-detail"><mat-icon>location_on</mat-icon> {{ c.propertyAddress }}, {{ c.city }} {{ c.state }}</div>
+          <div class="pending-detail"><mat-icon>{{ getClaimIcon(c.claimType) }}</mat-icon> {{ c.claimType | titlecase }}</div>
+          <button mat-raised-button class="route-btn" (click)="routeNow(c)">
+            <mat-icon>send</mat-icon> Route to Sales Agent
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ ROUTING LOG ══════ -->
+    <div class="dark-panel">
+      <div class="dark-panel-header"><mat-icon>timeline</mat-icon> Routing History <span class="header-count">{{ routingEvents.length }} events</span></div>
+      <div class="table-wrap">
+        <table class="dark-table">
+          <thead>
+            <tr>
+              <th>Lead</th>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Outcome</th>
+              <th>AI Score</th>
+              <th>Routed At</th>
+              <th>Sales Agent</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of routingEvents">
+              <td class="cell-name">{{ e.leadName }}</td>
+              <td>
+                <div class="cell-name">{{ e.propertyAddress }}</div>
+              </td>
+              <td><mat-icon class="type-icon">{{ getClaimIcon(e.claimType) }}</mat-icon></td>
+              <td><span class="status-badge" [ngClass]="getOutcomeBadgeClass(e.outcome)">{{ formatOutcome(e.outcome) }}</span></td>
+              <td>
+                <span class="score" *ngIf="e.aiScore !== null" [class.score-high]="e.aiScore! >= 80">{{ e.aiScore }}</span>
+                <span *ngIf="e.aiScore === null" class="cell-sub">—</span>
+              </td>
+              <td class="cell-sub">{{ formatTime(e.routedAt) }}</td>
+              <td>
+                <button *ngIf="e.salesConversationId" mat-stroked-button class="convo-btn" (click)="openSalesConversation(e.salesConversationId!)">
+                  <mat-icon>open_in_new</mat-icon> {{ e.salesConversationId }}
+                </button>
+              </td>
+              <td>
+                <button mat-icon-button class="view-btn" (click)="openCallTimeline(e.callId)" matTooltip="View Call">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="routingEvents.length === 0"><td colspan="8" class="empty-state">No leads routed yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

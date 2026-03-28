@@ -1,0 +1,144 @@
+<div class="pricing-admin-container">
+  <div class="page-header">
+    <h2>Pricing Version Management</h2>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon> New Version
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Status</mat-label>
+      <mat-select [(ngModel)]="statusFilter" (selectionChange)="applyFilter()">
+        <mat-option value="">All</mat-option>
+        <mat-option value="draft">Draft</mat-option>
+        <mat-option value="active">Active</mat-option>
+        <mat-option value="archived">Archived</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Source</mat-label>
+      <mat-select [(ngModel)]="sourceFilter" (selectionChange)="applyFilter()">
+        <mat-option value="">All</mat-option>
+        <mat-option value="craftsman">Craftsman</mat-option>
+        <mat-option value="xactimate">Xactimate</mat-option>
+        <mat-option value="manual">Manual</mat-option>
+        <mat-option value="legacy">Legacy</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="clearFilters()" *ngIf="statusFilter || sourceFilter">
+      <mat-icon>clear</mat-icon> Clear
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <mat-progress-bar mode="indeterminate" *ngIf="loading"></mat-progress-bar>
+
+  <!-- Table -->
+  <table mat-table [dataSource]="dataSource" class="versions-table">
+    <ng-container matColumnDef="version_label">
+      <th mat-header-cell *matHeaderCellDef>Version</th>
+      <td mat-cell *matCellDef="let v">{{ v.version_label }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef>Source</th>
+      <td mat-cell *matCellDef="let v">
+        <span class="source-badge">{{ v.source }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="effective_date">
+      <th mat-header-cell *matHeaderCellDef>Effective Date</th>
+      <td mat-cell *matCellDef="let v">{{ v.effective_date | date:'mediumDate' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="region">
+      <th mat-header-cell *matHeaderCellDef>Region</th>
+      <td mat-cell *matCellDef="let v">{{ v.region }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let v">
+        <span class="status-badge status-{{ v.status }}">{{ v.status }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="item_count">
+      <th mat-header-cell *matHeaderCellDef>Items</th>
+      <td mat-cell *matCellDef="let v">{{ v.item_count | number }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="created_at">
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let v">{{ v.created_at | date:'short' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let v">
+        <button mat-icon-button matTooltip="Import Items" (click)="openImportDialog(v)"
+                [disabled]="v.status === 'archived'">
+          <mat-icon>upload_file</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Activate" (click)="activateVersion(v)"
+                [disabled]="v.status === 'active' || v.status === 'archived'"
+                color="primary">
+          <mat-icon>check_circle</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="View Items" (click)="viewItems(v)">
+          <mat-icon>list</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div class="no-data" *ngIf="!loading && dataSource.data.length === 0">
+    No pricing versions found.
+  </div>
+
+  <mat-paginator
+    [length]="totalRecords"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageChange($event)">
+  </mat-paginator>
+
+  <!-- Inline items preview -->
+  <ng-container *ngFor="let v of dataSource.data">
+    <div class="items-preview" *ngIf="v._showItems && v._items?.length">
+      <h4>Items in "{{ v.version_label }}" (first 50)</h4>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th>Base Cost</th>
+            <th>Labor</th>
+            <th>Material</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of v._items">
+            <td>{{ item.code }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.unit }}</td>
+            <td>{{ item.base_cost | currency }}</td>
+            <td>{{ item.labor_cost | currency }}</td>
+            <td>{{ item.material_cost | currency }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</div>

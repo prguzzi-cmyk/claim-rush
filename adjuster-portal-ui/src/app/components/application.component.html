@@ -1,0 +1,67 @@
+<mat-sidenav-container autosize>
+  <mat-sidenav #sidenav [opened]="!narrowScreen" [mode]="narrowScreen ? 'over' : 'side'" class="mat-elevation-z2">
+    <app-sidebar></app-sidebar>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div class="sidenav-toggle" [ngClass]="narrowScreen ? 'visible' : 'hidden'">
+        <button mat-mini-fab (click)="sidenav.toggle()" color="primary">
+            <mat-icon>menu</mat-icon>
+        </button>
+    </div>
+    <!-- <div class="sidenav-router-container" [@sectionAnimation]="o.isActivated ? o.activatedRoute : ''"> -->
+    <div class="sidenav-router-container nabTab" >
+      <div class="topbar" *ngIf="role != 'customer' && role !=null">
+        <app-topbar></app-topbar>
+      </div>
+
+      <app-command-bar *ngIf="role != 'customer' && role != null"></app-command-bar>
+
+      <mat-tab-group #tabGroup color="primary" [(selectedIndex)]="selectedIndex" id= "main-tab">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <div>{{side}}</div>
+          </ng-template>
+            <div>
+              <router-outlet #o="outlet"></router-outlet>
+            </div>
+        </mat-tab>
+        
+        <mat-tab *ngFor="let item of (itemList); let i = index; trackBy: trackByIndex">
+          <ng-template mat-tab-label>
+            <div
+              [id]="'list-'+i"
+              cdkDropList
+              cdkDropListOrientation="horizontal"
+              (cdkDropListDropped)="drop($event)"
+              [cdkDropListConnectedTo]="getAllListConnections(i)"
+            >
+              <div cdkDrag>
+                <div style="display: flex; align-items: center;">
+                  <div style="padding-left: 12px;">{{item.name}}</div>
+                  <button mat-icon-button style="padding-left: 8px;" (click)="closeTab(i)"><mat-icon>close</mat-icon></button>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+          <!-- Lazy-render tab content: only instantiate the component when
+               the tab is actually selected. Prevents background claim/lead
+               API calls from firing when the user is on the dashboard. -->
+          <ng-template matTabContent>
+            <app-client *ngIf="item.type == 'client'" [client_id]="item.id"></app-client>
+            <app-claim *ngIf="item.type == 'claim'" [claim_id]="item.id"></app-claim>
+            <app-customer-claim *ngIf="item.type == 'claim2'" [claim_id]="item.id"></app-customer-claim>
+            <app-lead *ngIf="item.type == 'lead'" [lead_id]="item.id"></app-lead>
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>      
+    </div>
+
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<app-live-activity-panel *ngIf="role != 'customer' && role != null"></app-live-activity-panel>
+
+<!-- <button mat-fab *ngIf="isImpersonating" class="impersonation-toggle" (click)="stopImpersonating()" color="warn">
+  <mat-icon matTooltip="Stop impersonating {{user.first_name}}">transfer_within_a_station</mat-icon>
+</button> -->

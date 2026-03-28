@@ -1,0 +1,203 @@
+<div class="escalation-admin-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h2>
+        <mat-icon class="header-icon">escalator_warning</mat-icon>
+        Escalation Command Center
+      </h2>
+      <p class="subtitle">
+        Active lead escalations &middot; agent assignment tracking
+        <span class="data-source-badge live" *ngIf="isLiveData">
+          LIVE
+        </span>
+        <span class="data-source-badge offline" *ngIf="!isLiveData && !loading">
+          OFFLINE
+        </span>
+      </p>
+    </div>
+    <div class="header-actions">
+      <span class="escalation-count" *ngIf="!loading">
+        <strong>{{ escalations.length }}</strong> Active
+      </span>
+      <button mat-icon-button (click)="refresh()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading escalations...</span>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && escalations.length === 0">
+    <mat-icon class="empty-icon">check_circle</mat-icon>
+    <h3>No Active Escalations</h3>
+    <p>All lead escalations have been resolved. Data refreshes every 30 seconds.</p>
+  </div>
+
+  <!-- Escalation List -->
+  <div class="escalation-grid" *ngIf="!loading && escalations.length > 0">
+    <div
+      class="escalation-card"
+      *ngFor="let esc of escalations"
+      (click)="openDetail(esc)"
+      [class.selected]="selectedEscalation?.id === esc.id"
+    >
+      <div class="card-header">
+        <span class="lead-type-badge" [style.background]="getStatusColor(esc.contact_status)">
+          {{ esc.lead_type | uppercase }}
+        </span>
+        <span class="escalation-level" [style.color]="getLevelColor(esc.current_escalation_level)">
+          Level {{ esc.current_escalation_level }} &mdash; {{ getLevelLabel(esc.current_escalation_level) }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="card-field">
+          <span class="field-label">Status</span>
+          <span class="status-chip" [style.background]="getStatusColor(esc.contact_status) + '20'" [style.color]="getStatusColor(esc.contact_status)">
+            {{ getStatusLabel(esc.contact_status) }}
+          </span>
+        </div>
+
+        <div class="card-field">
+          <span class="field-label">Agent</span>
+          <span class="field-value">{{ esc.current_agent_name || 'Unassigned' }}</span>
+        </div>
+
+        <div class="card-field">
+          <span class="field-label">Escalation Duration</span>
+          <span class="field-value duration" [style.color]="getLevelColor(esc.current_escalation_level)">
+            {{ getElapsedTime(esc.escalation_started_at) }}
+          </span>
+        </div>
+
+        <div class="card-field">
+          <span class="field-label">Created</span>
+          <span class="field-value">{{ getTimeAgo(esc.created_at) }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button mat-stroked-button color="primary" (click)="openDetail(esc); $event.stopPropagation()">
+          <mat-icon>visibility</mat-icon> View Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Panel (Side Sheet) -->
+  <div class="detail-backdrop" *ngIf="detailPanelOpen" (click)="closeDetail()"></div>
+  <div class="detail-panel" [class.open]="detailPanelOpen">
+
+    <div class="detail-header">
+      <h3>
+        <mat-icon>timeline</mat-icon>
+        Escalation Details
+      </h3>
+      <button mat-icon-button (click)="closeDetail()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <!-- Detail Loading -->
+    <div class="detail-loading" *ngIf="detailLoading">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>Loading...</span>
+    </div>
+
+    <!-- Detail Content -->
+    <div class="detail-content" *ngIf="!detailLoading && detailData">
+
+      <!-- Tracker Summary -->
+      <div class="detail-section">
+        <h4>Tracker Summary</h4>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Lead Type</span>
+            <span class="summary-value">{{ detailData.tracker.lead_type | uppercase }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Contact Status</span>
+            <span class="status-chip"
+              [style.background]="getStatusColor(detailData.tracker.contact_status) + '20'"
+              [style.color]="getStatusColor(detailData.tracker.contact_status)">
+              {{ getStatusLabel(detailData.tracker.contact_status) }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Current Level</span>
+            <span class="summary-value" [style.color]="getLevelColor(detailData.tracker.current_escalation_level)">
+              {{ getLevelLabel(detailData.tracker.current_escalation_level) }}
+            </span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Current Agent</span>
+            <span class="summary-value">{{ detailData.current_agent_name || 'Unassigned' }}</span>
+          </div>
+          <div class="summary-item" *ngIf="detailData.tracker.ai_call_status !== 'pending'">
+            <span class="summary-label">AI Call Status</span>
+            <span class="summary-value">{{ getStatusLabel(detailData.tracker.ai_call_status) }}</span>
+          </div>
+          <div class="summary-item" *ngIf="detailData.tracker.ai_call_result">
+            <span class="summary-label">AI Call Result</span>
+            <span class="summary-value">{{ getStatusLabel(detailData.tracker.ai_call_result) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Escalation Timeline -->
+      <div class="detail-section">
+        <h4>Escalation Timeline</h4>
+        <div class="timeline">
+          <div
+            class="timeline-item"
+            *ngFor="let attempt of detailData.attempts; let i = index; let last = last"
+          >
+            <div class="timeline-dot" [style.background]="getTransferStatusColor(attempt.transfer_status)"></div>
+            <div class="timeline-connector" *ngIf="!last"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-level" [style.color]="getLevelColor(attempt.escalation_level)">
+                  Level {{ attempt.escalation_level }} &mdash; {{ attempt.escalation_label | titlecase }}
+                </span>
+                <span class="timeline-time">{{ getTimeAgo(attempt.created_at) }}</span>
+              </div>
+              <div class="timeline-details">
+                <span class="transfer-status" [style.color]="getTransferStatusColor(attempt.transfer_status)">
+                  {{ getStatusLabel(attempt.transfer_status) }}
+                </span>
+                <span class="notification-icons">
+                  <mat-icon *ngFor="let icon of getNotificationIcons(attempt)" [matTooltip]="icon">{{ icon }}</mat-icon>
+                </span>
+              </div>
+              <div class="timeline-timestamps" *ngIf="attempt.transfer_attempted_at">
+                <span *ngIf="attempt.transfer_attempted_at">Attempted: {{ getTimeAgo(attempt.transfer_attempted_at) }}</span>
+                <span *ngIf="attempt.transfer_answered_at">Answered: {{ getTimeAgo(attempt.transfer_answered_at) }}</span>
+                <span *ngIf="attempt.timeout_at">Timeout: {{ getTimeAgo(attempt.timeout_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="detail-actions" *ngIf="!detailData.tracker.is_resolved">
+        <button mat-flat-button color="warn" (click)="resolveEscalation(detailData.tracker.id)">
+          <mat-icon>check_circle</mat-icon> Resolve Escalation
+        </button>
+      </div>
+
+      <div class="resolved-banner" *ngIf="detailData.tracker.is_resolved">
+        <mat-icon>check_circle</mat-icon>
+        Resolved &mdash; {{ getStatusLabel(detailData.tracker.resolution_type || 'closed') }}
+        <span *ngIf="detailData.tracker.resolved_at">at {{ getTimeAgo(detailData.tracker.resolved_at) }}</span>
+      </div>
+    </div>
+  </div>
+</div>

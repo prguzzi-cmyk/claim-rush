@@ -1,0 +1,61 @@
+.map-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+}
+
+.map-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  .incident-count {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-base);
+    color: var(--text-secondary);
+
+    .count-icon {
+      font-size: 18px;
+      color: #e53935;
+    }
+  }
+}
+
+.fire-map {
+  height: 65vh;
+  min-height: 400px;
+  max-height: calc(100vh - 200px);
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  z-index: 0;
+
+  google-map,
+  .map-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  @media (max-width: 960px) {
+    height: 50vh;
+  }
+  @media (max-width: 600px) {
+    height: 40vh;
+    min-height: 300px;
+  }
+}
+
+::ng-deep .incident-popup {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+
+  strong {
+    color: #c62828;
+  }
+}

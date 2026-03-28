@@ -1,0 +1,101 @@
+<div class="territory-apply-dialog">
+  <!-- Header -->
+  <div class="dialog-header">
+    <h2>{{ data.dialogTitle }}</h2>
+    <button class="btn-close" (click)="close()">&times;</button>
+  </div>
+
+  <!-- Territory Info Banner -->
+  <div class="territory-banner">
+    <span class="banner-label">Territory:</span>
+    <span class="banner-value">{{ data.name }}</span>
+    <span class="banner-tag" *ngIf="data.state">{{ data.state }}</span>
+    <span class="banner-tag" *ngIf="data.county">{{ data.county }}</span>
+    <span class="banner-tag">{{ data.territory_type | titlecase }}</span>
+  </div>
+
+  <!-- Form (hidden after submit) -->
+  <form *ngIf="!submitted" [formGroup]="applyForm" (ngSubmit)="onSubmit()" class="apply-form">
+    <div class="form-grid">
+      <!-- Row 1 -->
+      <mat-form-field appearance="outline">
+        <mat-label>First Name</mat-label>
+        <input matInput formControlName="firstName" />
+        <mat-error *ngIf="applyForm.controls.firstName.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Last Name</mat-label>
+        <input matInput formControlName="lastName" />
+        <mat-error *ngIf="applyForm.controls.lastName.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <!-- Row 2 -->
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+        <mat-error *ngIf="applyForm.controls.email.hasError('required')">Required</mat-error>
+        <mat-error *ngIf="applyForm.controls.email.hasError('email')">Invalid email</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Phone</mat-label>
+        <input matInput formControlName="phone" type="tel" />
+        <mat-error *ngIf="applyForm.controls.phone.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <!-- Row 3 -->
+      <mat-form-field appearance="outline">
+        <mat-label>Company Name</mat-label>
+        <input matInput formControlName="companyName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>License Status</mat-label>
+        <mat-select formControlName="licenseStatus">
+          <mat-option *ngFor="let opt of licenseOptions" [value]="opt">{{ opt }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="applyForm.controls.licenseStatus.hasError('required')">Required</mat-error>
+      </mat-form-field>
+
+      <!-- Row 4 -->
+      <mat-form-field appearance="outline">
+        <mat-label>State(s) Covered</mat-label>
+        <input matInput formControlName="statesCovered" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>County/Counties Covered</mat-label>
+        <input matInput formControlName="countiesCovered" />
+      </mat-form-field>
+
+      <!-- Row 5 -->
+      <mat-form-field appearance="outline">
+        <mat-label>Years of Experience</mat-label>
+        <input matInput formControlName="yearsExperience" type="number" min="0" />
+      </mat-form-field>
+    </div>
+
+    <!-- Notes (full width) -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Additional Notes</mat-label>
+      <textarea matInput formControlName="notes" rows="3"></textarea>
+    </mat-form-field>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+      <button type="button" mat-stroked-button (click)="close()">Cancel</button>
+      <button type="submit" mat-flat-button class="btn-submit" [disabled]="applyForm.invalid">
+        Submit Application
+      </button>
+    </div>
+  </form>
+
+  <!-- Success State -->
+  <div *ngIf="submitted" class="success-state">
+    <div class="success-icon">&#10003;</div>
+    <h3>Application Submitted!</h3>
+    <p>Thank you for your interest in <strong>{{ data.name }}</strong>. We'll review your application and get back to you soon.</p>
+    <button mat-flat-button class="btn-submit" (click)="close()">Close</button>
+  </div>
+</div>

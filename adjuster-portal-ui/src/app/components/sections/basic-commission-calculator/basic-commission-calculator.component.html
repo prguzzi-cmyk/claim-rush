@@ -1,0 +1,180 @@
+<p class="mat-headline-4 section-title">Simulator</p>
+<ul class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"><mat-icon>home</mat-icon></a>
+    </li>
+    <li class="breadcrumb-item"><a
+            href="javascript:">Administration</a>
+    </li>
+    <li class="breadcrumb-item"><a
+            href="javascript:">Simulator</a>
+    </li>
+</ul>
+
+<mat-card appearance="outlined" >
+    <mat-card-header>
+        <mat-card-title>Commission Simulation</mat-card-title>
+        <mat-card-actions></mat-card-actions>
+    </mat-card-header>
+    <mat-card-content class="card-content">
+        <div class="mlm-simulator" class="row">
+            <mat-card appearance="outlined" class="col-lg-12 full-width">
+                <div class="header">
+                    <h2>Simulator</h2>
+                    <button mat-icon-button class="commission-breakdown" (click)="openCommissionBreakdown()" matTooltip="View Commission Breakdown">
+                        <mat-icon>info</mat-icon>
+                    </button>
+                </div>
+                <form (ngSubmit)="calculateCommission()">
+                    <mat-form-field appearance="fill" class="full-width custom-border">
+                        <mat-label>Title</mat-label>
+                        <mat-select [(ngModel)]="commissionInput.title" [compareWith]="compareTitles" name="title" (selectionChange)="onTitleChange($event)" required>
+                            <mat-option *ngFor="let title of titleData" [value]="title.code">{{ title.name }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill" class="full-width custom-border" >
+                        <mat-label>What's the average deal value do you expect the total amount of each claim case?</mat-label>
+                        <input matInput type="number" [min]="0" [(ngModel)]="commissionInput.averageDealValue" name="teamAverageDealValue" required>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill" class="full-width custom-border">
+                        <mat-label>How many deals do you expect to source per week by yourself?</mat-label>
+                        <input matInput type="number" [min]="0" [(ngModel)]="commissionInput.dealsSourcedPerWeek" name="selfDealsPerWeek" required>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill" class="full-width custom-border">
+                        <mat-label>How many deals do you expect to sign per week by yourself?</mat-label>
+                        <input matInput type="number" [min]="0" [(ngModel)]="commissionInput.dealsSignedPerWeek" name="selfDealsPerWeek" required>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill" class="full-width custom-border">
+                        <mat-label>How many deals do you expect to adjust per week by yourself?</mat-label>
+                        <input matInput type="number" [min]="0" [(ngModel)]="commissionInput.dealsAdjustedPerWeek" name="selfDealsPerWeek" required>
+                    </mat-form-field>
+                    <mat-accordion>
+                        <mat-expansion-panel expanded *ngIf="downLineUsersExist()">
+                            <mat-expansion-panel-header class="custom-header">
+                                <mat-panel-title>
+                                    Organization Chart
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <button mat-icon-button class="org-chart-info" *ngIf="teamStructureImgUrl!==''" (click)="openOrgChart($event)" matTooltip="View Example Org chart">
+                                <mat-icon>info</mat-icon>
+                            </button>
+                            <mat-form-field appearance="fill" class="full-width custom-border">
+                                <mat-label>How many deals do you expect each of your down line agents to complete per week?</mat-label>
+                                <input matInput type="number" [min]="0" [(ngModel)]="commissionInput.dealsPerPersonOfDummyTeam" name="teamDealsPerWeek" required>
+                            </mat-form-field>
+                            <mat-card appearance="outlined" class="interpretation-table">
+                                <table mat-table [dataSource]="dataSource">
+                                    <!-- Interpretation Column -->
+                                    <ng-container matColumnDef="Title Requirements:">
+                                        <th mat-header-cell *matHeaderCellDef>
+                                            Title Requirements:
+                                        </th>
+                                        <td mat-cell *matCellDef="let element"> {{element}} </td>
+                                    </ng-container>
+
+                                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                </table>
+                            </mat-card>
+
+                            <mat-card appearance="outlined">
+                                <mat-card-header>
+                                    <mat-card-subtitle>
+                                        Example Team
+                                    </mat-card-subtitle>
+                                </mat-card-header>
+                                <mat-card-content>
+                                    <img mat-card-image src="{{this.dummyTeamImgUrl}}" alt="MLM Simulator Image">
+                                </mat-card-content>
+                            </mat-card>
+                        </mat-expansion-panel>
+                    </mat-accordion>
+                    <button mat-raised-button color="primary" type="submit">Calculate Commission</button>
+                    <button mat-button color="accent" class="full-width-button" (click)="this.resetForm($event)">
+                        Reset
+                    </button>
+                </form>
+            </mat-card>
+        </div>
+
+        <mat-accordion>
+            <mat-expansion-panel *ngIf="commission">
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="disclaimer-title">
+                        System Default Input
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <mat-card appearance="outlined" class="system-default-input-card" *ngIf="commission">
+                    <mat-card-content>
+                        <table mat-table [dataSource]="systemDefaultInputs" class="mat-elevation-z8">
+                            <!-- Key Column -->
+                            <ng-container matColumnDef="key">
+                                <th mat-header-cell *matHeaderCellDef> Parameter </th>
+                                <td mat-cell *matCellDef="let element"> {{element.key}} </td>
+                            </ng-container>
+
+                            <!-- Value Column -->
+                            <ng-container matColumnDef="value">
+                                <th mat-header-cell *matHeaderCellDef> Value </th>
+                                <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+                            </ng-container>
+
+                            <!-- Header Row -->
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns2"></tr>
+                            <!-- Data Rows -->
+                            <tr mat-row *matRowDef="let row; columns: displayedColumns2;"></tr>
+                        </table>
+                    </mat-card-content>
+                </mat-card>
+            </mat-expansion-panel>
+        </mat-accordion>
+
+
+        <mat-accordion>
+            <mat-expansion-panel *ngIf="commission">
+                <mat-expansion-panel-header>
+                    <mat-panel-title class="disclaimer-title">
+                        Legal Disclaimer
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <mat-card appearance="outlined" class="disclaimer-card" >
+                    <mat-card-content>
+                        <p>
+                            The commission results generated by this simulation tool are provided for informational purposes only and are not guaranteed. These results are derived from a combination of the variables you have entered along with system-generated variables. They are intended solely as an estimation based on the data provided and should not be construed as an accurate or definitive calculation of any actual commission, earnings, or salary.
+                        </p>
+                        <p>
+                            <strong>No Reliance:</strong> The results produced by this tool are not intended to be used, nor should they be relied upon, as a precise calculation of compensation or income. They are not a promise or guarantee of any specific amount, and under no circumstances should they be interpreted as a commitment of earnings.
+                        </p>
+                        <p>
+                            <strong>Limitation of Liability:</strong> Our company expressly disclaims any and all liability for any actions taken based on the results provided by this tool. By using this simulation, you acknowledge and agree that the results are speculative, and any reliance you place on them is strictly at your own risk.
+                        </p>
+                        <p>
+                            <strong>No Legal or Financial Advice:</strong> The information provided by this tool does not constitute legal, financial, or other professional advice. We recommend that you consult with appropriate professionals before making any decisions based on the output of this simulation.
+                        </p>
+                        <p>
+                            By using this tool, you agree to indemnify, defend, and hold harmless our company and its affiliates from any claims, damages, losses, liabilities, or expenses (including reasonable attorneys' fees) arising out of or related to your use of the simulation results.
+                        </p>
+                    </mat-card-content>
+                </mat-card>
+
+            </mat-expansion-panel>
+        </mat-accordion>
+
+        <mat-card appearance="outlined" class="full-width" *ngIf="commission">
+            <h3>Mock Commission Result per WEEK</h3>
+            <!-- Commission Details -->
+            <div class="commission-details" *ngIf="commission">
+                <mat-divider *ngIf="commission.teamMgrOverrides"></mat-divider>
+                <p *ngIf="commission.personalBonus">Personal Bonus: {{ commission?.personalBonus | currency }}</p>
+                <mat-divider></mat-divider>
+                <p>Self Commission: {{ commission.selfCommission | currency }}</p>
+                <mat-divider *ngIf="commission.teamMgrOverrides"></mat-divider>
+                <p>Total Amount of down line agents: {{ commission.totalAmountOfTeamMember}}</p>
+                <mat-divider *ngIf="commission.teamMgrOverrides"></mat-divider>
+                <p *ngIf="commission.teamMgrOverrides">Manager Overrides: {{ commission?.teamMgrOverrides | currency }}</p>
+                <mat-divider></mat-divider>
+                <p>Total Commission: {{ commission.totalCommission | currency }}</p>
+            </div>
+        </mat-card>
+    </mat-card-content>
+</mat-card>

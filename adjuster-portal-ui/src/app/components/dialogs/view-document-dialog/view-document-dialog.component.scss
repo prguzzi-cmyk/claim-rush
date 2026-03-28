@@ -1,0 +1,11 @@
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  button[mat-icon-button] {
+    /* Customize your button style here */
+    color: #bcbcbc; /* Example: red color */
+    margin: -12px -12px 0 0; /* Adjust position if necessary */
+  }

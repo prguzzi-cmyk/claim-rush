@@ -1,0 +1,116 @@
+<h2 mat-dialog-title>
+  <mat-icon>people</mat-icon> Select Leads for Campaign
+</h2>
+
+<mat-dialog-content>
+  <!-- Search -->
+  <div class="search-row">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search leads</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" placeholder="Name, phone, or address..." />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+    <button mat-stroked-button (click)="onSearch()">Search</button>
+  </div>
+
+  <!-- Selected count -->
+  <div class="selection-info" *ngIf="totalSelected > 0" aria-live="polite">
+    <mat-icon>check_circle</mat-icon>
+    <span>{{ totalSelected }} lead{{ totalSelected > 1 ? 's' : '' }} selected</span>
+  </div>
+
+  <!-- Phoneless leads info -->
+  <div class="phoneless-info" *ngIf="!loading && phonelessCount > 0">
+    <mat-icon>info_outline</mat-icon>
+    <span>{{ phonelessCount }} lead{{ phonelessCount > 1 ? 's' : '' }} without phone numbers cannot be selected</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <mat-spinner diameter="32"></mat-spinner>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!loading && leads.length > 0">
+    <table mat-table [dataSource]="dataSource" class="lead-table">
+      <!-- Checkbox Column -->
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            (change)="$event ? toggleAllRows() : null"
+            [checked]="isAllSelected()"
+            [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox
+            (click)="$event.stopPropagation()"
+            (change)="$event ? selection.toggle(row) : null"
+            [checked]="selection.isSelected(row)"
+            [disabled]="!hasPhone(row)">
+          </mat-checkbox>
+        </td>
+      </ng-container>
+
+      <!-- Name -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ getLeadName(row) }}</td>
+      </ng-container>
+
+      <!-- Phone -->
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let row">
+          <span *ngIf="hasPhone(row)">{{ getLeadPhone(row) | phoneFormat }}</span>
+          <span *ngIf="!hasPhone(row)" class="no-phone">
+            <mat-icon class="no-phone-icon" matTooltip="No phone number — will be excluded">warning</mat-icon>
+            No phone
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- State -->
+      <ng-container matColumnDef="state">
+        <th mat-header-cell *matHeaderCellDef>State</th>
+        <td mat-cell *matCellDef="let row">{{ getLeadState(row) }}</td>
+      </ng-container>
+
+      <!-- Source -->
+      <ng-container matColumnDef="source">
+        <th mat-header-cell *matHeaderCellDef>Source</th>
+        <td mat-cell *matCellDef="let row">{{ row.source || '—' }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          (click)="hasPhone(row) && selection.toggle(row)"
+          class="lead-row"
+          [class.selected]="selection.isSelected(row)"
+          [class.disabled-row]="!hasPhone(row)">
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalLeads"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && leads.length === 0">
+    <mat-icon>person_search</mat-icon>
+    <p>No leads found</p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="confirm()" [disabled]="totalSelected === 0">
+    <mat-icon>check</mat-icon>
+    Select {{ totalSelected }} Lead{{ totalSelected !== 1 ? 's' : '' }}
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,922 @@
+<mat-card appearance="outlined" [hidden]="this.userService.getUserPermissions('lead', 'read') || initialized">
+    You don't have permissions to view clients.
+</mat-card>
+
+<mat-card appearance="outlined" [hidden]="!this.userService.getUserPermissions('lead', 'read') && !initialized">
+    <div class="row">
+        <div class="col-10">
+            <p class="mat-headline-4 section-title">Leads overview dashboard</p>
+
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+                </li>
+                <li class="breadcrumb-item"><a href="javascript:">Leads</a></li>
+            </ul>
+        </div>
+        <div class="col-2 text-end">
+            <button mat-mini-fab class="custom-mini-fab" color="primary" aria-label="Add lead" matTooltip="Add a new lead"
+                matTooltipPosition="left" [disabled]="!userService.getUserPermissions('lead', 'create')"
+                (click)="openLeadAddDialog()">
+                <mat-icon>add</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- CRM Dashboard KPIs -->
+    <div class="crm-kpi-row">
+      <div class="crm-kpi">
+        <div class="crm-kpi-val">{{ kpiNew }}</div>
+        <div class="crm-kpi-label">New Leads</div>
+        <mat-icon class="crm-kpi-icon" style="color:#3b82f6;">fiber_new</mat-icon>
+      </div>
+      <div class="crm-kpi">
+        <div class="crm-kpi-val">{{ kpiContacted }}</div>
+        <div class="crm-kpi-label">Contacted</div>
+        <mat-icon class="crm-kpi-icon" style="color:#8b5cf6;">phone_callback</mat-icon>
+      </div>
+      <div class="crm-kpi">
+        <div class="crm-kpi-val">{{ kpiAppointments }}</div>
+        <div class="crm-kpi-label">Appointments</div>
+        <mat-icon class="crm-kpi-icon" style="color:#f59e0b;">event</mat-icon>
+      </div>
+      <div class="crm-kpi">
+        <div class="crm-kpi-val" style="color:#10b981;">{{ kpiSigned }}</div>
+        <div class="crm-kpi-label">Signed Deals</div>
+        <mat-icon class="crm-kpi-icon" style="color:#10b981;">handshake</mat-icon>
+      </div>
+    </div>
+
+    <!-- Pipeline View -->
+    <div class="crm-pipeline">
+      <div
+        *ngFor="let stage of pipelineStages"
+        class="pipeline-stage"
+        [class.pipeline-active]="activePipelineFilter === stage.key"
+        [style.borderTopColor]="stage.color"
+        (click)="filterByPipeline(stage.key)"
+        matTooltip="Click to filter by {{ stage.label }}"
+      >
+        <span class="pipeline-count" [style.color]="stage.color">{{ stage.count }}</span>
+        <span class="pipeline-label">{{ stage.label }}</span>
+      </div>
+    </div>
+
+    <mat-card-content>
+        <mat-tab-group (selectedIndexChange)="tabChange($event)" #tabGroup>
+            <mat-tab>
+                <ng-template mat-tab-label>Leads ({{totalRecords}})</ng-template>
+                <form [formGroup]="searchFormGroup">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <mat-form-field>
+                                <mat-label>Search claims</mat-label>
+                                <input matInput formControlName="search_string" placeholder="Enter search keyword" />
+                            </mat-form-field>
+    
+                            <button style="margin-right: 5px;" mat-raised-button color="primary"
+                                (click)="searchLeads()" [disabled]=" 
+                                    !this.searchFormGroup.get('search_string').value
+                                ">
+                                <mat-icon color="white">search</mat-icon>
+                            </button>
+                            <button mat-raised-button color="accent" (click)="clearSearch()" [hidden]="
+                                    !this.searchFormGroup.get('search_string').value
+                                ">
+                                <mat-icon color="white">close</mat-icon>
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <mat-form-field class="w-100">
+                                <mat-label>Filter table</mat-label>
+                                <input matInput (keyup)="applyFilter($event.target.value)" placeholder="keyword" />
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </form>
+
+                <p *ngIf="leadsLoaded && dataSource?.data?.length === 0">
+                    No leads found
+                </p>
+                <div class="mat-table-scroll-container">
+                    <table mat-table [dataSource]="dataSource" class="leads-table" matSort matSortActive="created_at"
+                    matSortDirection="desc" matSortDisableClear #sort1="matSort">
+                        <!-- Checkbox Column -->
+                        <ng-container matColumnDef="select">
+                            <th mat-header-cell *matHeaderCellDef>
+                                <mat-checkbox (change)="
+                                        $event ? masterToggle() : null
+                                    " [checked]="
+                                        selection.hasValue() &&
+                                        isAllSelected()
+                                    " [indeterminate]="
+                                        selection.hasValue() &&
+                                        !isAllSelected()
+                                    ">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row">
+                                <mat-checkbox  (click)="$event.stopPropagation()" (change)="
+                                        $event ? selection.toggle(row) : null
+                                    " [checked]="selection.isSelected(row)">
+                                </mat-checkbox>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{
+                                paginator.pageIndex * paginator.pageSize +
+                                (i + 1)
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="full_name">
+                            <th mat-header-cell *matHeaderCellDef>Name</th>
+                            <td mat-cell class="text-nowrap" *matCellDef="let lead">
+                                {{ lead.contact?.full_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ref_string">
+                            <th mat-header-cell mat-sort-header="ref_number" *matHeaderCellDef>Ref.</th>
+                            <td mat-cell *matCellDef="let lead" class="text-nowrap">
+                                <!-- <a [routerLink]="['/leads/', lead?.id]" routerLinkActive="router-link-active">{{
+                                lead?.ref_string }}</a> -->
+                                <a type="button" class="link-ref" (click)="
+                                        onLeadDetail(
+                                            lead?.id,
+                                            lead?.contact?.full_name +
+                                                '-' +
+                                                lead?.ref_string.slice(-3)
+                                        )
+                                    ">{{ lead?.ref_string }}</a>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="phone_number">
+                            <th mat-header-cell *matHeaderCellDef>Phone</th>
+                            <td mat-cell class="truncate-cell" *matCellDef="let lead">
+                                {{
+                                lead.contact?.phone_number
+                                | mask : '000-000-0000'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="email">
+                            <th mat-header-cell *matHeaderCellDef>Email</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead.contact?.email ?? '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="loss_date">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Loss date</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.loss_date
+                                ? (lead.loss_date
+                                | date : 'MMMM dd, yyyy')
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="address_loss">
+                            <th mat-header-cell *matHeaderCellDef>Loss address</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.address_loss ? lead?.contact?.address_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="city_loss">
+                            <th mat-header-cell *matHeaderCellDef>City</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.city_loss ? lead?.contact?.city_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="state_loss">
+                            <th mat-header-cell *matHeaderCellDef>State</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.state_loss ? lead?.contact?.state_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="zip_code_loss">
+                            <th mat-header-cell *matHeaderCellDef>Zip code</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.zip_code_loss ? lead?.contact?.zip_code_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="peril">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Peril</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.peril ? lead.peril : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="insurance_company">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Insurance company
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.insurance_company
+                                ? lead.insurance_company
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="policy_number">
+                            <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.policy_number
+                                ? lead.policy_number
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="claim_number">
+                            <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.claim_number ? lead.claim_number : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="source">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Source</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.source_user?.first_name ? lead?.source_user?.first_name + ' ' +
+                                lead?.source_user?.last_name : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Status</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ getStatusLabel(lead?.status) }}
+                                <span *ngIf="lead?.is_rescued"
+                                      class="rescue-badge"
+                                      matTooltip="This lead was rescued and reassigned">
+                                    <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">health_and_safety</mat-icon>
+                                    Rescued
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="assigned_agent">
+                            <th mat-header-cell *matHeaderCellDef>Assigned Agent</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.assigned_user">
+                                    {{ lead.assigned_user.first_name }} {{ lead.assigned_user.last_name }}
+                                    <br><small style="color:#888;">{{ lead.assigned_user.email }}</small>
+                                </span>
+                                <span *ngIf="!lead?.assigned_user">-</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="distributed">
+                            <th mat-header-cell *matHeaderCellDef>Distributed</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.assigned_to" style="color:#10b981; font-weight:500;">Yes</span>
+                                <span *ngIf="!lead?.assigned_to" style="color:#ef4444; font-weight:500;">No</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="last_outcome">
+                            <th mat-header-cell *matHeaderCellDef>Last Outcome</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.last_outcome_status"
+                                      [style.background]="getOutcomeColor(lead.last_outcome_status) + '20'"
+                                      [style.color]="getOutcomeColor(lead.last_outcome_status)"
+                                      [style.border]="'1px solid ' + getOutcomeColor(lead.last_outcome_status)"
+                                      style="padding: 2px 8px; border-radius: 12px; font-size: 11px; white-space: nowrap; font-weight: 500;">
+                                    {{ formatOutcomeLabel(lead.last_outcome_status) }}
+                                </span>
+                                <span *ngIf="!lead?.last_outcome_status">-</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="record_outcome">
+                            <th mat-header-cell *matHeaderCellDef>Record</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button mat-icon-button color="primary"
+                                        matTooltip="Record outcome"
+                                        (click)="$event.stopPropagation(); openRecordOutcome(lead)">
+                                    <mat-icon>assignment_turned_in</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="assigned_to">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Assigned to
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead.assigned_user?.first_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created by
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead.created_by?.first_name +
+                                ' ' +
+                                lead.created_by?.last_name
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_at">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>
+                                Created at
+                            </th>
+                            <td mat-cell *matCellDef="let lead" class="expiry-date-cell">
+                                {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="updated_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Updated by
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead.updated_by
+                                ? lead.updated_by?.first_name +
+                                ' ' +
+                                lead.updated_by?.last_name
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="updated_at">
+                            <th mat-header-cell mat-sort-header="updated_at" *matHeaderCellDef>
+                                Updated at
+                            </th>
+                            <td mat-cell *matCellDef="let lead" class="last-active-cell">
+                                <span *ngIf="!lead.updated_at">-</span>{{
+                                lead.updated_at
+                                | date : 'MMMM dd, yyyy HH:mm:ss'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="consent">
+                            <th mat-header-cell *matHeaderCellDef>Consent</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <select class="compact-select" [value]="getConsent(lead)" (change)="setConsent(lead, $any($event.target).value)">
+                                    <option value="unknown">—</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="dnc">
+                            <th mat-header-cell *matHeaderCellDef>DNC</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button *ngIf="!isDncChecked(lead)" class="dnc-btn" (click)="markDncChecked(lead)">Check</button>
+                                <span *ngIf="isDncChecked(lead)" class="dnc-ok-chip"><mat-icon>check</mat-icon> Clear</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="compliance">
+                            <th mat-header-cell *matHeaderCellDef>Status</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="isCompliant(lead)" class="compliance-ready">Ready</span>
+                                <span *ngIf="!isCompliant(lead)" class="compliance-blocked">Blocked</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ai_outreach">
+                            <th mat-header-cell *matHeaderCellDef>AI Outreach</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button
+                                    *ngIf="getOutreachStatus(lead) === 'none' || getOutreachStatus(lead) === 'pending'"
+                                    mat-stroked-button
+                                    class="ai-outreach-btn"
+                                    (click)="runAiOutreach(lead)"
+                                    matTooltip="Compliance check required">
+                                    <mat-icon>smart_toy</mat-icon> Run AI
+                                </button>
+                                <span *ngIf="getOutreachStatus(lead) === 'in-progress'" class="outreach-chip outreach-active">
+                                    <mat-icon>phone_in_talk</mat-icon> Active
+                                </span>
+                                <span *ngIf="getOutreachStatus(lead) === 'completed'" class="outreach-chip outreach-done">
+                                    <mat-icon>check_circle</mat-icon> Done
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ai_result">
+                            <th mat-header-cell *matHeaderCellDef>AI Result</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <ng-container *ngIf="getAiResult(lead) as r">
+                                    <span class="ai-outcome-chip" [style.background]="getAiOutcomeColor(r.outcome) + '18'" [style.color]="getAiOutcomeColor(r.outcome)">
+                                        {{ getAiOutcomeLabel(r.outcome) }}
+                                    </span>
+                                    <div class="ai-summary">{{ r.summary }}</div>
+                                    <span class="ai-next-action" [style.border-color]="getAiOutcomeColor(r.outcome)">{{ r.nextAction }}</span>
+                                </ng-container>
+                                <span *ngIf="!getAiResult(lead)" class="ai-result-empty">—</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="edit">
+                            <th mat-header-cell *matHeaderCellDef>Edit</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button mat-icon-button [disabled]="
+                                        !userService.getUserPermissions(
+                                            'lead',
+                                            'update'
+                                        )
+                                    " (click)="openLeadEditDialog(lead)" matTooltip="Edit {{ lead.first_name }} {{
+                                        lead.last_name
+                                    }}">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="delete">
+                            <th mat-header-cell *matHeaderCellDef>Delete</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <div>
+                                    <button color="warn" mat-icon-button [disabled]="
+                                            !lead.can_be_removed ||
+                                            !this.userService.getUserPermissions('lead','remove') ||
+                                            !!+lead.is_removed
+                                        " (click)="openLeadDeleteDialog(lead)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let lead; columns: displayedColumns" [ngClass]="{
+                                green: lead.status == 'signed-approved',
+                                red: lead.status == 'signed'
+                            }"></tr>
+                    </table>
+                </div>
+                <mat-paginator [style.visibility]="
+                        dataSource?.data?.length <= 0 ? 'hidden' : 'visible'
+                    " [length]="totalRecords" #paginator showFirstLastButtons [pageSize]="pageSize"
+                    [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)">
+                </mat-paginator>
+
+                <div class="row" [style.visibility]="
+                        dataSource?.data?.length <= 0 ? 'hidden' : 'visible'
+                    ">
+                    <div class="col-md-12">
+                        <button mat-raised-button csvLink color="primary" (click)="downloadExcel()">
+                            <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                        <button mat-raised-button csvLink color="primary" (click)="downloadCsv()">
+                            <mat-icon>download</mat-icon>Csv</button>&nbsp;
+                        <button [hidden]="
+                                !userService.getUserPermissions(
+                                    'lead',
+                                    'bulk-update'
+                                )
+                            " mat-raised-button [disabled]="selectionLength == 0" color="primary"
+                            (click)="openMultipleEditDialog()">
+                            <mat-icon>edit</mat-icon>Edit
+                        </button>
+                        &nbsp;
+                        <button mat-raised-button color="primary" (click)="import()">
+                            <mat-icon>add_to_photos</mat-icon>
+                            <span>Import</span>
+                        </button>
+                    </div>
+                </div>
+            </mat-tab>
+            <mat-tab>
+                <ng-template mat-tab-label>Pending approval
+                    {{
+                    totalRecordsPendingLeads
+                    ? '(' + totalRecordsPendingLeads + ')'
+                    : ''
+                    }}</ng-template>
+
+                <mat-form-field class="w-100">
+                    <mat-label>Filter table</mat-label>
+                    <input matInput (keyup)="applyFilter($event.target.value)"
+                        placeholder="Search name, phone, email, source or status..." />
+                </mat-form-field>
+                <div class="mat-table-scroll-container">
+                    <table mat-table [dataSource]="dataSourcePending" class="leads-table" matSort matSortActive="created_at"
+                    matSortDirection="desc" matSortDisableClear #sort2="matSort">
+                        <!-- Checkbox Column -->
+                        <ng-container matColumnDef="select">
+                            <th mat-header-cell *matHeaderCellDef>
+                                <mat-checkbox (change)="
+                                        $event ? masterTogglePending() : null
+                                    " [checked]="
+                                        selectionPending.hasValue() &&
+                                        isAllSelectedPending()
+                                    " [indeterminate]="
+                                        selectionPending.hasValue() &&
+                                        !isAllSelectedPending()
+                                    ">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row">
+                                <mat-checkbox (click)="$event.stopPropagation()" (change)="
+                                        $event ? selectionPending.toggle(row) : null
+                                    " [checked]="selectionPending.isSelected(row)">
+                                </mat-checkbox>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="sn">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let element; let i = index">
+                                {{
+                                paginator.pageIndex * paginator.pageSize +
+                                (i + 1)
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="full_name">
+                            <th mat-header-cell *matHeaderCellDef>Name</th>
+                            <td mat-cell class="text-nowrap" *matCellDef="let lead">
+                                {{ lead.contact?.full_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ref_string">
+                            <th mat-header-cell mat-sort-header="ref_number" *matHeaderCellDef>Ref.</th>
+                            <td mat-cell *matCellDef="let lead" class="text-nowrap">
+                                <a type="button" class="link-ref" (click)="
+                                        onLeadDetail(
+                                            lead?.id,
+                                            lead?.contact?.full_name +
+                                                '-' +
+                                                lead?.ref_string.slice(-3)
+                                        )
+                                    ">{{ lead?.ref_string }}</a>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="phone_number">
+                            <th mat-header-cell *matHeaderCellDef>Phone</th>
+                            <td mat-cell class="truncate-cell" *matCellDef="let lead">
+                                {{
+                                lead.contact?.phone_number
+                                | mask : '000-000-0000'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="email">
+                            <th mat-header-cell *matHeaderCellDef>Email</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead.contact?.email ?? '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="loss_date">
+                            <th mat-header-cell mat-sort-header="loss_date" *matHeaderCellDef>Loss date</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.loss_date
+                                ? (lead.loss_date
+                                | date : 'MMMM dd, yyyy')
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="address_loss">
+                            <th mat-header-cell *matHeaderCellDef>Loss address</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.address_loss ? lead?.contact?.address_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="city_loss">
+                            <th mat-header-cell *matHeaderCellDef>Loss city</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.city_loss ? lead?.contact?.city_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="state_loss">
+                            <th mat-header-cell *matHeaderCellDef>Loss state</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.state_loss ? lead?.contact?.state_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="zip_code_loss">
+                            <th mat-header-cell *matHeaderCellDef>Loss zip code</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.contact?.zip_code_loss ? lead?.contact?.zip_code_loss : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="peril">
+                            <th mat-header-cell mat-sort-header="peril" *matHeaderCellDef>Peril</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.peril ? lead.peril : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="insurance_company">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Insurance company
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.insurance_company
+                                ? lead.insurance_company
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="policy_number">
+                            <th mat-header-cell *matHeaderCellDef>Policy #</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.policy_number
+                                ? lead.policy_number
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="claim_number">
+                            <th mat-header-cell *matHeaderCellDef>Claim #</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead?.claim_number ? lead.claim_number : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="source">
+                            <th mat-header-cell mat-sort-header="source" *matHeaderCellDef>Source</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead?.source_user?.first_name ? lead?.source_user?.first_name + ' ' +
+                                lead?.source_user?.last_name : '-' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>Status</th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ getStatusLabel(lead?.status) }}
+                                <span *ngIf="lead?.is_rescued"
+                                      class="rescue-badge"
+                                      matTooltip="This lead was rescued and reassigned">
+                                    <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;">health_and_safety</mat-icon>
+                                    Rescued
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="assigned_agent">
+                            <th mat-header-cell *matHeaderCellDef>Assigned Agent</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.assigned_user">
+                                    {{ lead.assigned_user.first_name }} {{ lead.assigned_user.last_name }}
+                                    <br><small style="color:#888;">{{ lead.assigned_user.email }}</small>
+                                </span>
+                                <span *ngIf="!lead?.assigned_user">-</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="distributed">
+                            <th mat-header-cell *matHeaderCellDef>Distributed</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.assigned_to" style="color:#10b981; font-weight:500;">Yes</span>
+                                <span *ngIf="!lead?.assigned_to" style="color:#ef4444; font-weight:500;">No</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="last_outcome">
+                            <th mat-header-cell *matHeaderCellDef>Last Outcome</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="lead?.last_outcome_status"
+                                      [style.background]="getOutcomeColor(lead.last_outcome_status) + '20'"
+                                      [style.color]="getOutcomeColor(lead.last_outcome_status)"
+                                      [style.border]="'1px solid ' + getOutcomeColor(lead.last_outcome_status)"
+                                      style="padding: 2px 8px; border-radius: 12px; font-size: 11px; white-space: nowrap; font-weight: 500;">
+                                    {{ formatOutcomeLabel(lead.last_outcome_status) }}
+                                </span>
+                                <span *ngIf="!lead?.last_outcome_status">-</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="record_outcome">
+                            <th mat-header-cell *matHeaderCellDef>Record</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button mat-icon-button color="primary"
+                                        matTooltip="Record outcome"
+                                        (click)="$event.stopPropagation(); openRecordOutcome(lead)">
+                                    <mat-icon>assignment_turned_in</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="assigned_to">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Assigned to
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{ lead.assigned_user?.first_name }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Created by
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead.created_by?.first_name +
+                                ' ' +
+                                lead.created_by?.last_name
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="created_at">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>
+                                Created at
+                            </th>
+                            <td mat-cell *matCellDef="let lead" class="expiry-date-cell">
+                                {{ lead.created_at | date : 'MMMM dd, yyyy' }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="updated_by">
+                            <th mat-header-cell *matHeaderCellDef>
+                                Updated by
+                            </th>
+                            <td mat-cell *matCellDef="let lead">
+                                {{
+                                lead.updated_by
+                                ? lead.updated_by?.first_name +
+                                ' ' +
+                                lead.updated_by?.last_name
+                                : '-'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="updated_at">
+                            <th mat-header-cell mat-sort-header *matHeaderCellDef>
+                                Updated at
+                            </th>
+                            <td mat-cell *matCellDef="let lead" class="last-active-cell">
+                                <span *ngIf="!lead.updated_at">-</span>{{
+                                lead.updated_at
+                                | date : 'MMMM dd, yyyy HH:mm:ss'
+                                }}
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="consent">
+                            <th mat-header-cell *matHeaderCellDef>Consent</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <select class="compact-select" [value]="getConsent(lead)" (change)="setConsent(lead, $any($event.target).value)">
+                                    <option value="unknown">—</option>
+                                    <option value="yes">Yes</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="dnc">
+                            <th mat-header-cell *matHeaderCellDef>DNC</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button *ngIf="!isDncChecked(lead)" class="dnc-btn" (click)="markDncChecked(lead)">Check</button>
+                                <span *ngIf="isDncChecked(lead)" class="dnc-ok-chip"><mat-icon>check</mat-icon> Clear</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="compliance">
+                            <th mat-header-cell *matHeaderCellDef>Status</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <span *ngIf="isCompliant(lead)" class="compliance-ready">Ready</span>
+                                <span *ngIf="!isCompliant(lead)" class="compliance-blocked">Blocked</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ai_outreach">
+                            <th mat-header-cell *matHeaderCellDef>AI Outreach</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button
+                                    *ngIf="getOutreachStatus(lead) === 'none' || getOutreachStatus(lead) === 'pending'"
+                                    mat-stroked-button
+                                    class="ai-outreach-btn"
+                                    (click)="runAiOutreach(lead)"
+                                    matTooltip="Compliance check required">
+                                    <mat-icon>smart_toy</mat-icon> Run AI
+                                </button>
+                                <span *ngIf="getOutreachStatus(lead) === 'in-progress'" class="outreach-chip outreach-active">
+                                    <mat-icon>phone_in_talk</mat-icon> Active
+                                </span>
+                                <span *ngIf="getOutreachStatus(lead) === 'completed'" class="outreach-chip outreach-done">
+                                    <mat-icon>check_circle</mat-icon> Done
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="ai_result">
+                            <th mat-header-cell *matHeaderCellDef>AI Result</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <ng-container *ngIf="getAiResult(lead) as r">
+                                    <span class="ai-outcome-chip" [style.background]="getAiOutcomeColor(r.outcome) + '18'" [style.color]="getAiOutcomeColor(r.outcome)">
+                                        {{ getAiOutcomeLabel(r.outcome) }}
+                                    </span>
+                                    <div class="ai-summary">{{ r.summary }}</div>
+                                    <span class="ai-next-action" [style.border-color]="getAiOutcomeColor(r.outcome)">{{ r.nextAction }}</span>
+                                </ng-container>
+                                <span *ngIf="!getAiResult(lead)" class="ai-result-empty">—</span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="edit">
+                            <th mat-header-cell *matHeaderCellDef>Edit</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <button mat-icon-button [disabled]="
+                                        !userService.getUserPermissions(
+                                            'lead',
+                                            'update'
+                                        )
+                                    " (click)="openLeadEditDialog(lead)" matTooltip="Edit {{ lead.first_name }} {{
+                                        lead.last_name
+                                    }}">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="delete">
+                            <th mat-header-cell *matHeaderCellDef>Delete</th>
+                            <td mat-cell *matCellDef="let lead">
+                                <div>
+                                    <button color="warn" mat-icon-button [disabled]="
+                                            !lead.can_be_removed ||
+                                            !!+lead.is_removed
+                                        " (click)="openLeadDeleteDialog(lead.id)">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let lead; columns: displayedColumns" [ngClass]="{
+                                green: lead.status == 'signed-approved'
+                            }"></tr>
+                    </table>
+                </div>
+
+                <mat-paginator [style.visibility]="
+                        dataSourcePending?.data?.length <= 0
+                            ? 'hidden'
+                            : 'visible'
+                    " [length]="totalRecordsPendingLeads" #paginatorPendingLeads showFirstLastButtons
+                    [pageSize]="pageSizePendingLeads" [pageSizeOptions]="pageSizeOptions"
+                    (page)="changePagePendingLeads($event)">
+                </mat-paginator>
+
+                <div class="row" [style.visibility]="
+                        dataSourcePending?.data?.length <= 0 ? 'hidden' : 'visible'
+                    ">
+                    <div class="col-md-12" *ngxPermissionsOnly="['super-admin', 'admin']">
+                        <button matTooltip="This will change selected leads status from signed to signed-approved."  mat-raised-button [disabled]="selectionLengthPending == 0" color="primary"
+                            (click)="approvePendingLeads();">
+                            <mat-icon>edit</mat-icon>Approve
+                        </button>
+                    </div>
+                </div>
+
+                
+            </mat-tab>
+        </mat-tab-group>
+    </mat-card-content>
+
+    <ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+</mat-card>

@@ -1,0 +1,115 @@
+<mjml>
+  <!-- Include HTML Head section -->
+  <mj-include path="./partials/head.mjml"/>
+
+  <mj-body mj-class="body-background">
+    <!-- Include Header section -->
+    <mj-include path="./partials/header.mjml"/>
+
+    <mj-section mj-class="message-background">
+      <mj-column width="100%">
+        <mj-image css-class="line-shadow" alt="" align="center" border="none"
+                  padding="0px"></mj-image>
+
+        <mj-text padding="50px 40px 0 40px">
+          Dear {{ full_name }},
+        </mj-text>
+
+        <mj-text padding="30px 40px 0 40px">
+          Welcome to the <b>{{ project_name }}</b>! We’re excited to inform you that your account has been successfully
+          created, and you now have access to manage your information related to your lead.
+        </mj-text>
+
+        <mj-text padding="30px 40px 0 40px">
+          <b>Your Account Details:</b>
+          <br/>
+          <b>Username:</b>
+          {{ username }}
+          <br/>
+          <b>Password:</b>
+          {{ password }}
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          Please note, for security purposes, we recommend changing your password after logging in for the first time.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          <b>What you can do:</b>
+        </mj-text>
+
+        <mj-text padding="0px 40px 10px 40px">
+          <ul>
+            <li>
+              <b>View your lead details:</b>
+              Access all information about your lead, including updates and status changes.
+            </li>
+            <li>
+              <b>Edit your personal information:</b>
+              Update your profile details and keep your contact information up to date.
+            </li>
+            <li>
+              <b>Track progress:</b>
+              Stay informed about the current status and next steps related to your lead.
+            </li>
+          </ul>
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          <b>How to Get Started:</b>
+        </mj-text>
+
+        <mj-text padding="0px 40px 10px 40px">
+          <ol>
+            <li>
+              <b>Login:</b>
+              Visit <a href="{{ project_url }}" style="color:#172b4d;text-decoration:none;">{{
+              project_url }}
+            </a> and log in using the username and password provided above.
+            </li>
+            <li>
+              <b>Change Your Password:</b>
+              For your security, please update your password after your first login.
+            </li>
+            <li>
+              <b>Explore Your Lead Information:</b>
+              After logging in, you will be able to see all details related to your lead.
+            </li>
+            <li>
+              <b>Manage Your Profile:</b>
+              You can update your contact information and manage your account settings anytime.
+            </li>
+          </ol>
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          <b>Need Assistance?</b>
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          If you have any questions or require any help, feel free to contact us at
+          <a href="mailto:{{ project_contact_email }}" style="color:#172b4d;text-decoration:none;">{{
+            project_contact_email }}
+          </a>
+          or
+          <a href="tel:{{ project_contact_phone }}" style="color:#172b4d;text-decoration: none;">{{
+            project_contact_phone }}
+          </a>. We’re here to assist you with anything you need.
+        </mj-text>
+
+        <mj-text padding="30px 40px 10px 40px">
+          Thank you for being part of {{ project_name }}. We’re committed to providing you with the best service as you
+          move forward with your lead.
+        </mj-text>
+
+        <!-- Include Signature section -->
+        <mj-include path="./partials/signature.mjml"/>
+
+        <mj-spacer height="20px"></mj-spacer>
+      </mj-column>
+    </mj-section>
+
+    <!-- Include Footer section -->
+    <mj-include path="./partials/footer.mjml"/>
+  </mj-body>
+</mjml>

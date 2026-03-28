@@ -1,0 +1,203 @@
+
+
+<mat-card appearance="outlined" [hidden]="this.userService.getUserPermissions('client','read')">
+    You don't have permissions to view clients.
+</mat-card>
+
+<mat-card appearance="outlined" [hidden]="!this.userService.getUserPermissions('client','read')">
+    <p class="mat-headline-4 section-title">Search clients</p>
+
+    <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Search clients</a></li>
+    </ul>
+    <mat-card-content>
+        <form [formGroup]="searchFormGroup">
+            <div class="row">
+                <div class="col-md-12">
+                    <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Search</mat-label>
+                        <input matInput formControlName="search" placeholder="Enter search keyword" />
+                    </mat-form-field>
+                </div>
+
+                <div class="col-md-12 align-self-center text-center">
+                    <button class="btn btn-primary"  color="primary"
+                        (click)="search()"
+                        [disabled]="!this.searchFormGroup.get('search').value || this.searchFormGroup.get('search').value.length < 2">
+                        Search 
+                    </button>
+                    &nbsp;
+                    <a routerLink="/app/clients" [queryParams]="{ period_type:'all-time'}">
+                        <button type="button" class="btn btn-primary">
+                            Show All Clients
+                        </button>
+                    </a>
+                </div>
+            </div>
+
+        </form>
+
+        <div class="mat-table-scroll-container pt-4" *ngIf="dataSource?.data?.length > 0">
+
+            <table mat-table [dataSource]="dataSource" class="clients-table">
+                <!-- Checkbox Column -->
+                <ng-container matColumnDef="select">
+                    <th mat-header-cell *matHeaderCellDef>
+                        <mat-checkbox (change)="$event ? masterToggle() : null"
+                            [checked]="selection.hasValue() && isAllSelected()" [indeterminate]="
+                                selection.hasValue() && !isAllSelected()
+                            ">
+                        </mat-checkbox>
+                    </th>
+                    <td mat-cell *matCellDef="let row">
+                        <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+                        </mat-checkbox>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="sn">
+                    <th mat-header-cell *matHeaderCellDef></th>
+                    <td mat-cell *matCellDef="let element; let i = index">
+                        {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="ref_string">
+                    <th mat-header-cell *matHeaderCellDef>Ref. #</th>
+                    <td mat-cell *matCellDef="let client">
+                        <!-- <a [routerLink]="['/client/', client?.id]" routerLinkActive="router-link-active">{{
+                            client?.ref_string }}</a> -->
+                        <a type="button" class="link-ref" (click)="onClientDetail(client?.id, client?.full_name + '-' + client?.ref_string.slice(-3))" >{{client?.ref_string}}</a>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="full_name">
+                    <th mat-header-cell *matHeaderCellDef>Name</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.full_name }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="full_name_alt">
+                    <th mat-header-cell *matHeaderCellDef>Alternate name</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.full_name_alt }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="email">
+                    <th mat-header-cell *matHeaderCellDef>Email</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.email }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                    <th mat-header-cell *matHeaderCellDef>Phone</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client.phone_number | phoneNumberFormat }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="address">
+                    <th mat-header-cell *matHeaderCellDef>Address</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.address }}, {{ client?.city }}, {{ client?.state }}, {{ client?.zip_code }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="organization">
+                    <th mat-header-cell *matHeaderCellDef>Organization</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.organization }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="belonged_user">
+                    <th mat-header-cell *matHeaderCellDef>Assigned to</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{ client?.belonged_user?.first_name }} {{ client?.belonged_user?.last_name }}
+                    </td>
+                </ng-container>
+
+
+                <ng-container matColumnDef="created_by">
+                    <th mat-header-cell *matHeaderCellDef>Created by</th>
+                    <td mat-cell *matCellDef="let client">
+                        {{
+                        client.created_by?.first_name +
+                        ' ' +
+                        client.created_by?.last_name
+                        }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="created_at">
+                    <th mat-header-cell *matHeaderCellDef>Created at</th>
+                    <td mat-cell *matCellDef="let client" class="expiry-date-cell">
+                        {{ client.created_at | date : 'MMMM dd, yyyy' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="updated_at">
+                    <th mat-header-cell *matHeaderCellDef>Last updated</th>
+                    <td mat-cell *matCellDef="let client" class="last-active-cell">
+                        <span *ngIf="!client.updated_at">-</span>{{ client.updated_at | date : 'MMMM dd, yyyy' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="edit">
+                    <th mat-header-cell *matHeaderCellDef>Edit</th>
+                    <td mat-cell *matCellDef="let client">
+                        <button mat-icon-button (click)="openClientEditDialog(client)" matTooltip="Edit {{ client.first_name }} {{
+                                client.last_name
+                            }}">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="delete">
+                    <th mat-header-cell *matHeaderCellDef>Delete</th>
+                    <td mat-cell *matCellDef="let client">
+                        <div>
+                            <button mat-icon-button color="warn" [disabled]="
+                                    !client.can_be_removed ||
+                                    !!+client.is_removed
+                                " (click)="openClientDeleteDialog(client)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let client; columns: displayedColumns"></tr>
+            </table>
+
+        </div>
+
+        <mat-paginator [style.visibility]="
+                    dataSource?.data?.length <= 0 ? 'hidden' : 'visible'" showFirstLastButtons #paginator
+            [length]="totalRecords" [pageSize]="pageSize" (page)="changePage($event)"
+            [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+
+        <div class="row" [style.visibility]="
+                dataSource?.data?.length <= 0 ? 'hidden' : 'visible'
+            ">
+            <div class="col-md-12">
+                <button mat-raised-button csvLink color="primary" (click)="downloadExcel(this.clients, 'clients')">
+                    <mat-icon>download</mat-icon>Excel</button>&nbsp;
+                <button mat-raised-button csvLink color="primary" (click)="downloadCsv(this.clients, 'clients')">
+                    <mat-icon>download</mat-icon>Csv</button>&nbsp;
+
+            </div>
+        </div>
+    </mat-card-content>
+    <mat-card-actions> </mat-card-actions>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

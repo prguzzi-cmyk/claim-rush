@@ -1,0 +1,184 @@
+<div class="revenue-container">
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon class="header-icon">monetization_on</mat-icon> Revenue Intelligence</h2>
+      <p class="subtitle">Financial performance of claims and adjusters</p>
+    </div>
+    <button mat-stroked-button (click)="loadData()"><mat-icon>refresh</mat-icon> Refresh</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>State / Carrier</mat-label>
+      <input matInput [(ngModel)]="stateFilter" (ngModelChange)="onFilterChange()" placeholder="TX or State Farm">
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Client</mat-label>
+      <input matInput [(ngModel)]="cityFilter" (ngModelChange)="onFilterChange()" placeholder="Name search">
+    </mat-form-field>
+  </div>
+
+  <div class="loading-container" *ngIf="loading"><mat-spinner diameter="40"></mat-spinner></div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-blue"><mat-icon>draw</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ totalSigned }}</span>
+          <span class="kpi-label">Claims Signed</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-green"><mat-icon>request_quote</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(estimatedClaimValue) }}</span>
+          <span class="kpi-label">Estimated Claim Value</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-purple"><mat-icon>payments</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(totalFees) }}</span>
+          <span class="kpi-label">Adjuster Fees Earned</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-orange"><mat-icon>equalizer</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ fmtCurrency(avgClaimSize) }}</span>
+          <span class="kpi-label">Avg Claim Size</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-green"><mat-icon>today</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ signedToday }}</span>
+          <span class="kpi-label">Clients Signed Today</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-blue"><mat-icon>date_range</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ signedThisMonth }}</span>
+          <span class="kpi-label">Signed This Month</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-purple"><mat-icon>cases</mat-icon></div>
+        <div class="kpi-content">
+          <span class="kpi-value">{{ totalActiveClaims }}</span>
+          <span class="kpi-label">Active Claims</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline + Trend -->
+    <div class="charts-row">
+      <!-- Pipeline -->
+      <div class="chart-panel panel-card">
+        <div class="panel-header"><mat-icon>filter_alt</mat-icon> Claim Pipeline Value</div>
+        <div class="pipeline-grid">
+          <div class="pipeline-card" *ngFor="let p of pipeline" [style.borderTopColor]="p.color">
+            <mat-icon [style.color]="p.color">{{ p.icon }}</mat-icon>
+            <div class="pipeline-value">{{ fmtCurrency(p.value) }}</div>
+            <div class="pipeline-count">{{ p.count }} claims</div>
+            <div class="pipeline-label">{{ p.label }}</div>
+          </div>
+        </div>
+        <div class="chart-container" *ngIf="pipelineChartData.length > 0">
+          <ngx-charts-bar-vertical [results]="pipelineChartData" [scheme]="pipelineColorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+      </div>
+
+      <!-- Revenue Trend -->
+      <div class="chart-panel panel-card">
+        <div class="panel-header">
+          <mat-icon>show_chart</mat-icon> Revenue Over Time
+          <mat-button-toggle-group [value]="trendView" (change)="trendView = $event.value; onFilterChange()" class="trend-toggle">
+            <mat-button-toggle value="daily">Day</mat-button-toggle>
+            <mat-button-toggle value="weekly">Week</mat-button-toggle>
+            <mat-button-toggle value="monthly">Month</mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+        <div class="chart-container" *ngIf="trendData.length > 0">
+          <ngx-charts-bar-vertical [results]="trendData" [scheme]="colorScheme"
+            [xAxis]="true" [yAxis]="true" [showXAxisLabel]="false" [showYAxisLabel]="false"
+            [gradient]="true" [roundDomains]="true">
+          </ngx-charts-bar-vertical>
+        </div>
+        <div class="chart-empty" *ngIf="trendData.length === 0">No revenue data for selected period</div>
+      </div>
+    </div>
+
+    <!-- Revenue by Adjuster -->
+    <div class="table-panel panel-card">
+      <div class="panel-header">
+        <mat-icon>leaderboard</mat-icon> Revenue by Adjuster
+        <span class="header-badge">{{ adjusterRevenue.length }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="adjusterRevenue" class="rev-table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Adjuster</th>
+            <td mat-cell *matCellDef="let r"><strong>{{ r.name }}</strong></td>
+          </ng-container>
+          <ng-container matColumnDef="clients">
+            <th mat-header-cell *matHeaderCellDef>Clients Signed</th>
+            <td mat-cell *matCellDef="let r">{{ r.clientsSigned }}</td>
+          </ng-container>
+          <ng-container matColumnDef="claim_value">
+            <th mat-header-cell *matHeaderCellDef>Estimated Claim Value</th>
+            <td mat-cell *matCellDef="let r">{{ fmtCurrency(r.estimatedClaimValue) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fee">
+            <th mat-header-cell *matHeaderCellDef>Fee Revenue</th>
+            <td mat-cell *matCellDef="let r" class="amount-positive">{{ fmtCurrency(r.feeRevenue) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="avg">
+            <th mat-header-cell *matHeaderCellDef>Avg Claim Size</th>
+            <td mat-cell *matCellDef="let r">{{ fmtCurrency(r.avgClaimSize) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['name','clients','claim_value','fee','avg']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['name','clients','claim_value','fee','avg'];"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Territory Revenue -->
+    <div class="table-panel panel-card" *ngIf="territoryRevenue.length > 0">
+      <div class="panel-header">
+        <mat-icon>map</mat-icon> Revenue by Territory / Carrier
+        <span class="header-badge">{{ territoryRevenue.length }}</span>
+      </div>
+      <div class="table-container">
+        <table mat-table [dataSource]="territoryRevenue" class="rev-table">
+          <ng-container matColumnDef="territory">
+            <th mat-header-cell *matHeaderCellDef>Territory / Carrier</th>
+            <td mat-cell *matCellDef="let r"><strong>{{ r.territory }}</strong></td>
+          </ng-container>
+          <ng-container matColumnDef="claims">
+            <th mat-header-cell *matHeaderCellDef>Claims</th>
+            <td mat-cell *matCellDef="let r">{{ r.claims }}</td>
+          </ng-container>
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef>Estimated Value</th>
+            <td mat-cell *matCellDef="let r">{{ fmtCurrency(r.estimatedValue) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="fee">
+            <th mat-header-cell *matHeaderCellDef>Fee Revenue</th>
+            <td mat-cell *matCellDef="let r" class="amount-positive">{{ fmtCurrency(r.feeRevenue) }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="['territory','claims','value','fee']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['territory','claims','value','fee'];"></tr>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

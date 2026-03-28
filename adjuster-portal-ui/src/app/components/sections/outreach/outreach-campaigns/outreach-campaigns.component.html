@@ -1,0 +1,138 @@
+<mat-card appearance="outlined">
+  <div class="row">
+    <div class="col-10">
+      <p class="mat-headline-4 section-title">Campaign Manager</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']">Home</a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Outreach</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Campaign Manager</a></li>
+      </ul>
+    </div>
+    <div class="col-2 text-end">
+      <button mat-raised-button color="primary" (click)="openBuilder()">
+        <mat-icon>add</mat-icon> New Campaign
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="metrics-grid" *ngIf="metrics">
+    <div class="metric-card">
+      <div class="metric-value">{{ metrics.active_campaigns }}</div>
+      <div class="metric-label">Active Campaigns</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ metrics.total_leads_targeted | number }}</div>
+      <div class="metric-label">Leads Targeted</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ metrics.total_contact_attempts | number }}</div>
+      <div class="metric-label">Contact Attempts</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ metrics.overall_contact_rate }}%</div>
+      <div class="metric-label">Contact Rate</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{{ metrics.overall_response_rate }}%</div>
+      <div class="metric-label">Response Rate</div>
+    </div>
+  </div>
+
+  <!-- Campaign Table -->
+  <mat-card-content>
+    <div class="mat-table-scroll-container">
+      <table mat-table [dataSource]="dataSource" class="campaigns-table">
+        <ng-container matColumnDef="sn">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let element; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let row">
+            <strong>{{ row.name }}</strong>
+            <div class="sub-text" *ngIf="row.description">{{ row.description }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="campaign_type">
+          <th mat-header-cell *matHeaderCellDef>Type</th>
+          <td mat-cell *matCellDef="let row">{{ getCampaignTypeLabel(row.campaign_type) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="status-badge" [style.background-color]="getStatusColor(row.status)">
+              {{ getStatusLabel(row.status) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="incident_type">
+          <th mat-header-cell *matHeaderCellDef>Incident</th>
+          <td mat-cell *matCellDef="let row">{{ row.incident_type || 'All' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="target_zip_code">
+          <th mat-header-cell *matHeaderCellDef>Target Area</th>
+          <td mat-cell *matCellDef="let row">
+            <span *ngIf="row.target_zip_code">{{ row.target_zip_code }} ({{ row.target_radius_miles || 0 }}mi)</span>
+            <span *ngIf="!row.target_zip_code">-</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="total_targeted">
+          <th mat-header-cell *matHeaderCellDef>Targeted</th>
+          <td mat-cell *matCellDef="let row">{{ row.total_targeted | number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="total_sent">
+          <th mat-header-cell *matHeaderCellDef>Sent</th>
+          <td mat-cell *matCellDef="let row">{{ row.total_sent | number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="total_responded">
+          <th mat-header-cell *matHeaderCellDef>Responded</th>
+          <td mat-cell *matCellDef="let row">{{ row.total_responded | number }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button matTooltip="Launch" color="primary"
+              *ngIf="row.status === 'draft' || row.status === 'paused'"
+              (click)="launchCampaign(row)">
+              <mat-icon>rocket_launch</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Pause" color="accent"
+              *ngIf="row.status === 'active'"
+              (click)="pauseCampaign(row)">
+              <mat-icon>pause</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Edit" (click)="editCampaign(row)"
+              *ngIf="row.status === 'draft'">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteCampaign(row.id)"
+              *ngIf="row.status === 'draft' || row.status === 'archived'">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      <div *ngIf="campaigns.length === 0" class="empty-state">
+        <mat-icon>campaign</mat-icon>
+        <p>No campaigns yet. Click "New Campaign" to create your first outreach campaign.</p>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

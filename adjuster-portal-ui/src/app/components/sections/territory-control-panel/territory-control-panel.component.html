@@ -1,0 +1,65 @@
+<div *ngxPermissionsOnly="['super-admin']">
+  <div class="page-header">
+    <div>
+      <p class="mat-headline-4 section-title">Territory Map Control</p>
+      <ul class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"><mat-icon>home</mat-icon></a>
+        </li>
+        <li class="breadcrumb-item"><a href="javascript:">Administration</a></li>
+        <li class="breadcrumb-item"><a href="javascript:">Territory Map Control</a></li>
+      </ul>
+    </div>
+    <a mat-stroked-button color="primary" [routerLink]="['/app/administration/territories']">
+      <mat-icon>list_alt</mat-icon> Open Territory Records
+    </a>
+  </div>
+
+  <!-- Territory Summary — computed from shared backend data -->
+  <div class="stats-row">
+    <mat-card appearance="outlined" class="stat-card stat-card--highlight">
+      <mat-card-content>
+        <div class="stat-value">{{ totalTerritories }}</div>
+        <div class="stat-label">Total Territories</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card stat-card--green">
+      <mat-card-content>
+        <div class="stat-value">{{ availableTerritories }}</div>
+        <div class="stat-label">Available</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card stat-card--red">
+      <mat-card-content>
+        <div class="stat-value">{{ takenTerritories }}</div>
+        <div class="stat-label">Taken / Assigned</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
+      <mat-card-content>
+        <div class="stat-value">{{ assignedStates }}</div>
+        <div class="stat-label">CP Assigned</div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card appearance="outlined" class="stat-card">
+      <mat-card-content>
+        <div class="stat-value">{{ lockedStates + lockedCounties }}</div>
+        <div class="stat-label">Locked</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Map -->
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <app-territory-map
+        [territories]="territoriesWithAssignments"
+        [adminMode]="true"
+        (territoryClicked)="onTerritoryClicked($event)"
+        (createTerritory)="onCreateTerritory($event)"
+      ></app-territory-map>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<ngx-spinner type="ball-scale-multiple"></ngx-spinner>

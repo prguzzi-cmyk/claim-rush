@@ -1,0 +1,128 @@
+/**
+ * Design tokens (must be first)
+ **/
+@use "styles/tokens" as *;
+
+/**
+ * Third party stylesheets
+ **/
+@use "../node_modules/leaflet/dist/leaflet.css" as *;
+@use "../node_modules/leaflet.markercluster/dist/MarkerCluster.css" as *;
+@use "../node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css" as *;
+@use "../node_modules/@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css" as *;
+
+/**
+ * Theme configuration
+ **/
+@use "styles/fonts" as *;
+@use "styles/variables" as *;
+@use "styles/theme" as *;
+@use "styles/base" as *;
+
+/**
+ * Theme elements
+ **/
+@use "styles/elements/buttons";
+@use "styles/elements/charts";
+@use "styles/elements/reports";
+
+/*TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version.*/
+.mat-tab-body-content {
+  overflow: hidden !important;
+}
+
+.mat-table-scroll-container {
+  overflow: auto !important;
+}
+
+// Command palette dialog overrides
+.command-palette-dialog {
+  .mat-mdc-dialog-container {
+    padding: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+
+    .mdc-dialog__surface {
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+  }
+}
+
+.command-palette-backdrop {
+  background-color: rgba(0, 0, 0, 0.32);
+}
+
+// ── Territory Apply Dialog — viewport-centered modal ──
+// CDK already centers dialogs via flexbox on .cdk-global-overlay-wrapper.
+// We just need to: (1) kill the global min-width:50vw, (2) raise z-index, (3) dark backdrop.
+
+// Overlay container must sit above map (z-index 1000) and side panel
+.cdk-overlay-container {
+  z-index: 99999 !important;
+}
+
+// Dark full-screen backdrop
+.territory-apply-backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+// Panel: let CDK center it — just constrain size
+.territory-apply-dialog-panel {
+  max-width: 95vw !important;
+  max-height: 90vh !important;
+}
+
+// CRITICAL: Override the global ".mat-mdc-dialog-container { min-width: 50vw !important }"
+// from _theme.scss. That rule forces ALL dialogs to 50vw+, making this dialog overflow
+// its pane and appear off-center. This higher-specificity selector wins.
+.territory-apply-dialog-panel .mat-mdc-dialog-container,
+.cdk-overlay-pane.territory-apply-dialog-panel .mat-mdc-dialog-container {
+  min-width: unset !important;
+  max-width: 960px !important;
+  max-height: 90vh !important;
+  overflow-y: auto;
+  border-radius: 12px !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35) !important;
+  padding: 0 !important;
+}
+
+// The VISIBLE white box is .mdc-dialog__surface — padding must live HERE,
+// not on the parent .mat-mdc-dialog-container which is a structural wrapper.
+.territory-apply-dialog-panel .mdc-dialog__surface,
+.territory-apply-dialog-panel .mat-mdc-dialog-surface {
+  padding: 32px !important;
+}
+
+// ── Territory dialog form field overrides (global so they pierce encapsulation) ──
+.territory-apply-dialog-panel {
+  .mat-mdc-form-field {
+    margin-bottom: 6px;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    padding: 10px 16px !important;
+  }
+
+  .mat-mdc-form-field-infix {
+    min-height: 58px !important;
+    padding-top: 20px !important;
+    padding-bottom: 12px !important;
+  }
+
+  input.mat-mdc-input-element,
+  .mat-mdc-select-value-text,
+  .mat-mdc-select-trigger {
+    font-size: 16px !important;
+  }
+
+  textarea.mat-mdc-input-element {
+    font-size: 16px !important;
+    line-height: 1.6;
+    min-height: 140px !important;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    margin-bottom: 4px;
+  }
+}

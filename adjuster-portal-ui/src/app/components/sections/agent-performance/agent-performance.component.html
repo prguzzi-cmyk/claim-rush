@@ -1,0 +1,149 @@
+<div class="perf-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-text">
+      <h2><mat-icon class="header-icon">leaderboard</mat-icon> Sales &amp; Performance</h2>
+      <p class="subtitle">Track your team's sales funnel from leads through claims</p>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar-card">
+    <div class="filter-bar">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Date Range</mat-label>
+        <mat-select [(ngModel)]="dateRange" (selectionChange)="onFilterChange()">
+          <mat-option *ngFor="let r of dateRangeOptions" [value]="r.value">{{ r.label }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Agent</mat-label>
+        <mat-select [(ngModel)]="agentFilter" (selectionChange)="applyFilters()">
+          <mat-option value="">All Agents</mat-option>
+          <mat-option *ngFor="let name of agentNames" [value]="name">{{ name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Territory</mat-label>
+        <mat-select [(ngModel)]="territoryFilter" (selectionChange)="applyFilters()">
+          <mat-option value="">All Territories</mat-option>
+          <mat-option *ngFor="let t of territories" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-maroon"><mat-icon>people</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ totalLeadsAssigned | number }}</span>
+        <span class="kpi-label">TOTAL LEADS ASSIGNED</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-blue"><mat-icon>phone_in_talk</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ totalCallsMade | number }}</span>
+        <span class="kpi-label">CALLS MADE</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-orange"><mat-icon>event</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ totalAppointments | number }}</span>
+        <span class="kpi-label">APPOINTMENTS SCHEDULED</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-green"><mat-icon>how_to_reg</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ totalClientsSigned | number }}</span>
+        <span class="kpi-label">CLIENTS SIGNED</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-purple"><mat-icon>assignment</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ totalClaimsOpened | number }}</span>
+        <span class="kpi-label">CLAIMS OPENED</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon kpi-teal"><mat-icon>trending_up</mat-icon></div>
+      <div class="kpi-content">
+        <span class="kpi-value">{{ conversionRate }}%</span>
+        <span class="kpi-label">CONVERSION RATE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Leaderboard -->
+  <div class="table-panel panel-card">
+    <div class="panel-header">
+      <mat-icon>leaderboard</mat-icon> Agent Leaderboard
+      <span class="header-badge">{{ agents.length }}</span>
+    </div>
+    <div class="table-container">
+      <table mat-table [dataSource]="agents" class="lb-table">
+        <!-- Rank -->
+        <ng-container matColumnDef="rank">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            <span class="rank-medal" *ngIf="i === 0">🥇</span>
+            <span class="rank-medal" *ngIf="i === 1">🥈</span>
+            <span class="rank-medal" *ngIf="i === 2">🥉</span>
+            <span *ngIf="i > 2">{{ i + 1 }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Agent Name -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Agent Name</th>
+          <td mat-cell *matCellDef="let row"><strong>{{ row.name }}</strong><span class="territory-tag">{{ row.territory }}</span></td>
+        </ng-container>
+
+        <!-- Leads Assigned -->
+        <ng-container matColumnDef="leadsAssigned">
+          <th mat-header-cell *matHeaderCellDef>Leads Assigned</th>
+          <td mat-cell *matCellDef="let row">{{ row.leadsAssigned }}</td>
+        </ng-container>
+
+        <!-- Calls Completed -->
+        <ng-container matColumnDef="callsCompleted">
+          <th mat-header-cell *matHeaderCellDef>Calls Completed</th>
+          <td mat-cell *matCellDef="let row">{{ row.callsCompleted }}</td>
+        </ng-container>
+
+        <!-- Appointments Booked -->
+        <ng-container matColumnDef="appointmentsBooked">
+          <th mat-header-cell *matHeaderCellDef>Appointments Booked</th>
+          <td mat-cell *matCellDef="let row">{{ row.appointmentsBooked }}</td>
+        </ng-container>
+
+        <!-- Clients Signed -->
+        <ng-container matColumnDef="clientsSigned">
+          <th mat-header-cell *matHeaderCellDef>Clients Signed</th>
+          <td mat-cell *matCellDef="let row" class="amount-positive">{{ row.clientsSigned }}</td>
+        </ng-container>
+
+        <!-- Conversion % -->
+        <ng-container matColumnDef="conversionPct">
+          <th mat-header-cell *matHeaderCellDef>Conversion %</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="conv-bar">
+              <mat-progress-bar mode="determinate" [value]="row.conversionPct" [color]="row.conversionPct >= 25 ? 'primary' : 'accent'"></mat-progress-bar>
+              <span class="conv-label">{{ row.conversionPct }}%</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns; let i = index" [ngClass]="getRankClass(i)"></tr>
+      </table>
+    </div>
+  </div>
+</div>

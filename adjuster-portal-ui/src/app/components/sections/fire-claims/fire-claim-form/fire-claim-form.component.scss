@@ -1,0 +1,150 @@
+mat-card {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header-row {
+  padding: var(--space-3) var(--space-4);
+
+  h2 {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: var(--text-xl);
+    color: var(--text-primary);
+  }
+}
+
+mat-card-content {
+  padding: var(--space-4);
+}
+
+.form-section {
+  margin-bottom: var(--space-6);
+
+  h3 {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-primary-700);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--border-muted);
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  &.three-col mat-form-field {
+    flex: 1;
+  }
+}
+
+.full-width {
+  width: 100%;
+}
+
+.toggle-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+
+  span {
+    font-size: var(--text-sm);
+    color: var(--text-primary);
+  }
+}
+
+.upload-zone {
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary-500);
+  }
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--text-tertiary);
+  }
+
+  p {
+    color: var(--text-secondary);
+    margin: var(--space-2) 0;
+  }
+}
+
+.pending-files {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.pending-file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+}
+
+.file-thumbnail {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.file-icon {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  color: var(--text-tertiary);
+}
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .file-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .file-type {
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-muted);
+}

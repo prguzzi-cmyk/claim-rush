@@ -1,0 +1,160 @@
+<div class="page-header">
+  <div class="header-text">
+    <h2><mat-icon>call</mat-icon> Call Logs</h2>
+    <p>View all voice outreach calls across campaigns</p>
+  </div>
+  <button mat-stroked-button (click)="exportCSV()" [disabled]="callLogs.length === 0" matTooltip="Export visible rows as CSV">
+    <mat-icon>download</mat-icon> Export CSV ({{ getExportCount() }})
+  </button>
+</div>
+
+<!-- Summary Stats -->
+<div class="stats-row">
+  <mat-card appearance="outlined" class="stat-card">
+    <div class="stat-icon-wrap" style="background: #e3f2fd"><mat-icon aria-hidden="true" style="color: #1565c0">phone</mat-icon></div>
+    <div class="stat-data"><span class="stat-value">{{ totalCalls }}</span><span class="stat-label">Total Calls</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="stat-card">
+    <div class="stat-icon-wrap" style="background: #e8f5e9"><mat-icon aria-hidden="true" style="color: #2e7d32">check_circle</mat-icon></div>
+    <div class="stat-data"><span class="stat-value">{{ completedCalls }}</span><span class="stat-label">Completed</span></div>
+  </mat-card>
+  <mat-card appearance="outlined" class="stat-card">
+    <div class="stat-icon-wrap" style="background: #fff3e0"><mat-icon aria-hidden="true" style="color: #e65100">timer</mat-icon></div>
+    <div class="stat-data"><span class="stat-value">{{ avgDuration | durationFormat }}</span><span class="stat-label">Avg Duration</span></div>
+  </mat-card>
+</div>
+
+<!-- Filters -->
+<div class="filter-row">
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Campaign</mat-label>
+    <mat-select [(value)]="campaignFilter" (selectionChange)="onFilterChange()">
+      <mat-option value="">All Campaigns</mat-option>
+      <mat-option *ngFor="let c of campaigns" [value]="c.id">{{ c.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="filter-field">
+    <mat-label>Outcome</mat-label>
+    <mat-select [(value)]="outcomeFilter" (selectionChange)="onFilterChange()">
+      <mat-option value="">All Outcomes</mat-option>
+      <mat-option *ngFor="let opt of outcomeOptions" [value]="opt.value">{{ opt.label }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Search</mat-label>
+    <input matInput [(ngModel)]="searchTerm" (keyup.enter)="applySearch()" placeholder="Lead name or phone..." />
+    <button mat-icon-button matSuffix *ngIf="searchTerm" (click)="clearSearch()" aria-label="Clear search">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-icon matSuffix *ngIf="!searchTerm">search</mat-icon>
+  </mat-form-field>
+
+  <button mat-stroked-button class="clear-filters-btn" *ngIf="campaignFilter || outcomeFilter || searchTerm" (click)="clearAllFilters()" aria-label="Clear all filters">
+    <mat-icon>filter_list_off</mat-icon> Clear Filters
+  </button>
+</div>
+
+<!-- Loading -->
+<div class="loading-state" *ngIf="loading">
+  <mat-spinner diameter="36"></mat-spinner>
+</div>
+
+<!-- Error State -->
+<div class="error-state" *ngIf="!loading && loadError">
+  <mat-icon>error_outline</mat-icon>
+  <p>Failed to load call logs</p>
+  <button mat-stroked-button color="primary" (click)="loadCallLogs()">
+    <mat-icon>refresh</mat-icon> Retry
+  </button>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!loading && !loadError && callLogs.length === 0">
+  <mat-icon>phone_disabled</mat-icon>
+  <p *ngIf="campaignFilter || outcomeFilter || searchTerm">No calls match your filters. Try adjusting your search criteria.</p>
+  <p *ngIf="!campaignFilter && !outcomeFilter && !searchTerm">No call logs yet. Launch a voice campaign to start AI outreach.</p>
+  <button mat-stroked-button color="primary" *ngIf="!campaignFilter && !outcomeFilter && !searchTerm" routerLink="/app/outreach/voice">
+    <mat-icon>campaign</mat-icon> Go to Campaigns
+  </button>
+  <button mat-stroked-button *ngIf="campaignFilter || outcomeFilter || searchTerm" (click)="clearAllFilters()">
+    <mat-icon>filter_list_off</mat-icon> Clear Filters
+  </button>
+</div>
+
+<!-- Table -->
+<div class="table-container" *ngIf="!loading && callLogs.length > 0">
+  <table mat-table [dataSource]="dataSource" matSort class="call-logs-table">
+    <ng-container matColumnDef="lead_name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Lead</th>
+      <td mat-cell *matCellDef="let row">{{ row.lead_name || 'Unknown' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone_number">
+      <th mat-header-cell *matHeaderCellDef>Phone</th>
+      <td mat-cell *matCellDef="let row">{{ row.phone_number | phoneFormat }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="campaign">
+      <th mat-header-cell *matHeaderCellDef>Campaign</th>
+      <td mat-cell *matCellDef="let row">
+        <span class="campaign-label">{{ getCampaignName(row) }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="duration">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="duration_seconds">Duration</th>
+      <td mat-cell *matCellDef="let row">{{ row.duration_seconds | durationFormat }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+      <td mat-cell *matCellDef="let row">
+        <div class="call-status-cell">
+          <mat-icon [style.color]="getCallStatusColor(row.status)" class="status-icon">{{ getCallStatusIcon(row.status) }}</mat-icon>
+          <span class="status-text" [style.color]="getCallStatusColor(row.status)">{{ row.status }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="outcome">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Outcome</th>
+      <td mat-cell *matCellDef="let row">
+        <span class="outcome-badge" *ngIf="row.outcome" [style.background]="getOutcomeColor(row.outcome)">{{ getOutcomeLabel(row.outcome) }}</span>
+        <span *ngIf="!row.outcome" class="no-outcome">—</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="retries">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="retry_count">Retries</th>
+      <td mat-cell *matCellDef="let row">
+        <span class="retry-count" *ngIf="row.retry_count > 0">{{ row.retry_count }}</span>
+        <span *ngIf="!row.retry_count" class="no-outcome">—</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="cost">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="cost_cents">Cost</th>
+      <td mat-cell *matCellDef="let row">{{ formatCost(row.cost_cents) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="created_at">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Date</th>
+      <td mat-cell *matCellDef="let row">{{ row.created_at | date:'short' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
+        <button mat-icon-button (click)="viewTranscript(row); $event.stopPropagation()" matTooltip="View Transcript" aria-label="View transcript">
+          <mat-icon>article</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="clickable-row" (click)="viewTranscript(row)"></tr>
+  </table>
+  <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
+</div>

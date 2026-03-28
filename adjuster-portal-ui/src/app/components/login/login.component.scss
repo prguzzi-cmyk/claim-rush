@@ -1,0 +1,281 @@
+@use '../../../styles/variables' as *;
+
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #070A0F 0%, #0B0F14 100%);
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 2rem 1rem;
+  user-select: none;
+
+  img {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+  }
+
+  .brand-title {
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 0.5rem 0 0;
+    letter-spacing: 6px;
+
+    sup {
+      font-size: 0.8rem;
+      color: #00C2FF;
+      font-weight: 600;
+    }
+  }
+}
+
+.login-body {
+  padding: 1rem 2rem 2rem;
+  position: relative;
+}
+
+// ─── Auth method buttons ───
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.passkey-btn {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0B0F14 !important;
+
+  mat-icon {
+    color: #00C2FF;
+    font-size: 22px;
+  }
+}
+
+.google-btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+
+  &[disabled] {
+    opacity: 0.4 !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+}
+
+.magic-btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+// ─── Divider ───
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  span {
+    padding: 0 1rem;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+.password-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 0.9rem;
+}
+
+// ─── Back button ───
+.back-btn {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+// ─── Forms ───
+.password-form,
+.magic-form {
+  padding-top: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// Override mat-form-field for dark theme
+:host ::ng-deep {
+  .mat-mdc-form-field {
+    .mdc-text-field--outlined {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.25) !important;
+      }
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.5) !important;
+      }
+    }
+
+    .mdc-text-field--outlined.mdc-text-field--focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: $accent-color !important;
+      }
+    }
+
+    .mat-mdc-floating-label {
+      color: rgba(255, 255, 255, 0.55) !important;
+    }
+
+    .mat-mdc-floating-label.mdc-floating-label--float-above {
+      color: rgba(255, 255, 255, 0.75) !important;
+    }
+
+    input.mat-mdc-input-element {
+      color: rgba(255, 255, 255, 0.95) !important;
+      caret-color: $accent-color;
+    }
+
+    .mat-mdc-form-field-icon-prefix mat-icon {
+      color: rgba(255, 255, 255, 0.5);
+      padding: 0 4px 0 0;
+    }
+  }
+}
+
+.submit-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.forgot-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.85rem;
+}
+
+// ─── Mode subtitle ───
+.mode-subtitle {
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 1.25rem;
+  padding-top: 0.5rem;
+}
+
+// ─── Error message ───
+.error-message {
+  color: #ef4444;
+  text-align: center;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+}
+
+// ─── Magic link sent ───
+.sent-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 1.5rem;
+}
+
+.success-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #22c55e;
+  margin-bottom: 1rem;
+}
+
+.sent-body h3 {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
+}
+
+.sent-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+
+  strong {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+// ─── Responsive ───
+@media (max-width: 480px) {
+  .login-card {
+    border-radius: 0;
+    max-width: 100%;
+    min-height: 100vh;
+  }
+
+  .login-page {
+    padding: 0;
+  }
+
+  .login-header {
+    padding-top: 3rem;
+  }
+}
