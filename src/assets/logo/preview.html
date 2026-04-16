@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLAIM RUSH — Logo Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; }
+  .section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .section img, .section object { max-width: 700px; width: 100%; }
+  .label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 300;
+    margin-bottom: 20px;
+  }
+  .dark { background: #060810; }
+  .dark .label { color: #5A6880; }
+  .light { background: #F8FAFC; }
+  .light .label { color: #94A3B8; }
+  .icon-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    padding: 80px 40px;
+    background: #060810;
+  }
+  .icon-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .icon-box img { width: 120px; height: 120px; }
+  .icon-box .lbl { font-size: 10px; letter-spacing: 3px; color: #5A6880; text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <!-- Dark version (primary) -->
+  <div class="section dark">
+    <div class="label">Primary — Dark Background</div>
+    <img src="claimrush-logo-dark.svg" alt="Claim Rush Logo Dark">
+  </div>
+
+  <!-- Light version -->
+  <div class="section light">
+    <div class="label">Secondary — Light Background</div>
+    <img src="claimrush-logo-light.svg" alt="Claim Rush Logo Light">
+  </div>
+
+  <!-- Icon versions -->
+  <div class="icon-section">
+    <div class="icon-box">
+      <div class="lbl">Icon Mark</div>
+      <img src="claimrush-icon.svg" alt="Claim Rush Icon">
+    </div>
+    <div class="icon-box" style="background: #F8FAFC; padding: 30px; border-radius: 12px;">
+      <div class="lbl" style="color: #94A3B8;">Icon — Light</div>
+      <img src="claimrush-icon.svg" alt="Claim Rush Icon Light">
+    </div>
+  </div>
+</body>
+</html>

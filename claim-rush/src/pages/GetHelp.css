@@ -1,0 +1,282 @@
+/* ── GetHelp page — UPA inbound trust funnel ─────────────── */
+
+.gh {
+  --upa-navy: #0f2b4c;
+  --upa-blue: #1a5276;
+  --upa-light: #f0f5fa;
+  --upa-accent: #2980b9;
+  --upa-text: #2c3e50;
+  --upa-muted: #5d6d7e;
+  --upa-white: #ffffff;
+  --upa-border: #dce6f0;
+  --upa-radius: 8px;
+
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  color: var(--upa-text);
+  background: var(--upa-white);
+  line-height: 1.65;
+}
+
+.gh-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.gh-hero {
+  background: linear-gradient(170deg, var(--upa-navy) 0%, var(--upa-blue) 100%);
+  color: var(--upa-white);
+  padding: 80px 24px 72px;
+  text-align: center;
+}
+
+.gh-hero-headline {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 16px;
+}
+
+.gh-hero-sub {
+  font-size: clamp(16px, 2.5vw, 20px);
+  opacity: 0.9;
+  margin: 0 auto 28px;
+  max-width: 640px;
+}
+
+.gh-hero-body {
+  font-size: 16px;
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 0 auto 12px;
+  line-height: 1.7;
+}
+
+.gh-hero-cta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 36px;
+}
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.gh-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  border-radius: var(--upa-radius);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.gh-btn-primary {
+  background: var(--upa-accent);
+  color: var(--upa-white);
+  box-shadow: 0 4px 16px rgba(41, 128, 185, 0.35);
+}
+.gh-btn-primary:hover {
+  background: #2471a3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(41, 128, 185, 0.45);
+}
+
+.gh-btn-secondary {
+  background: transparent;
+  color: var(--upa-white);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.gh-btn-secondary:hover {
+  border-color: var(--upa-white);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── SECTIONS ─────────────────────────────────────────────── */
+.gh-section-title {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 40px;
+  color: var(--upa-navy);
+}
+
+/* ── TRUST ────────────────────────────────────────────────── */
+.gh-trust {
+  padding: 72px 24px;
+  background: var(--upa-white);
+}
+
+.gh-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.gh-trust-card {
+  background: var(--upa-light);
+  border: 1px solid var(--upa-border);
+  border-radius: var(--upa-radius);
+  padding: 28px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+}
+.gh-trust-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 43, 76, 0.08);
+}
+
+.gh-trust-icon {
+  font-size: 28px;
+}
+
+.gh-trust-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--upa-text);
+  line-height: 1.5;
+}
+
+/* ── PROBLEM ──────────────────────────────────────────────── */
+.gh-problem {
+  padding: 72px 24px;
+  background: var(--upa-light);
+}
+
+.gh-problem-body {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.gh-problem-body p {
+  font-size: 17px;
+  margin: 0 0 16px;
+  color: var(--upa-muted);
+  line-height: 1.75;
+}
+
+/* ── HOW UPA HELPS ────────────────────────────────────────── */
+.gh-how {
+  padding: 72px 24px;
+  background: var(--upa-white);
+}
+
+.gh-how-body {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.gh-how-body p {
+  font-size: 17px;
+  margin: 0 0 16px;
+  color: var(--upa-muted);
+  line-height: 1.75;
+}
+
+/* ── WHEN TO SEEK HELP ────────────────────────────────────── */
+.gh-when {
+  padding: 72px 24px;
+  background: var(--upa-light);
+}
+
+.gh-when-list {
+  list-style: none;
+  padding: 0;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.gh-when-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--upa-border);
+  font-size: 16px;
+  color: var(--upa-text);
+}
+
+.gh-when-item:last-child {
+  border-bottom: none;
+}
+
+.gh-when-check {
+  color: var(--upa-accent);
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── FINAL CTA ────────────────────────────────────────────── */
+.gh-final {
+  padding: 80px 24px;
+  background: linear-gradient(170deg, var(--upa-navy) 0%, var(--upa-blue) 100%);
+  color: var(--upa-white);
+  text-align: center;
+}
+
+.gh-final-title {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.gh-final-body {
+  font-size: 17px;
+  opacity: 0.88;
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
+
+.gh-final-cta {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+.gh-footer {
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--upa-muted);
+  border-top: 1px solid var(--upa-border);
+}
+
+.gh-footer a {
+  color: var(--upa-accent);
+  text-decoration: none;
+}
+.gh-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ── MOBILE ───────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .gh-hero {
+    padding: 56px 16px 48px;
+  }
+
+  .gh-trust-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .gh-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .gh-hero-cta,
+  .gh-final-cta {
+    flex-direction: column;
+    align-items: center;
+  }
+}

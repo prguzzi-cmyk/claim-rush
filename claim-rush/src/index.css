@@ -52,6 +52,24 @@
 
 body {
   margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+/* Portal global overrides */
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+/* Smooth transitions on all interactive elements */
+button, a {
+  transition: all 0.2s ease;
+}
+
+/* Portal scale boost — elite density */
+.portal-root {
+  font-size: 107%;
 }
 
 #root {

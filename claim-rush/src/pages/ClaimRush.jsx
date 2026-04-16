@@ -277,7 +277,7 @@ export default function ClaimRush({ lang, onSetLang }) {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("description", "Claim Rush — Secure exclusive territory, capture real property-loss leads, and build your empire. Limited territories available.");
+    setMeta("description", "Claim Rush — Secure your position, capture real property-loss leads, and build your empire. Limited positions available.");
     setMeta("og:title", "Secure Territory. Capture Leads. Build Your Empire | ACI United", "property");
     setMeta("og:description", "Claim Rush — Limited-time territory opportunity. $339K conservative Year 1 projections.", "property");
     const addLink = (rel, attrs) => {
@@ -486,11 +486,11 @@ export default function ClaimRush({ lang, onSetLang }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
             {[
-              { icon: "📍", label: "Territory Position", desc: "Geographic exclusivity — only one CP per territory" },
+              { icon: "📍", label: "Chapter Position", desc: "Build and lead your own chapter within the network" },
               { icon: "⚡", label: "Lead Access", desc: "Live fire, storm, roof and crime opportunities flow to you" },
               { icon: "🔄", label: "System Leverage", desc: "AI does the outreach while you focus on closings" },
               { icon: "👥", label: "Team Infrastructure", desc: "Recruit agents beneath you — override on every claim" },
-              { icon: "📈", label: "Income Scalability", desc: "Your territory income scales with your team's production" },
+              { icon: "📈", label: "Income Scalability", desc: "Your income scales with your team's production" },
               { icon: "🏆", label: "Early-Mover Advantage", desc: "First in builds the team. Late arrivals compete against it" },
             ].map(item => (
               <div key={item.label} style={{ background: C.panel, border: `1px solid ${C.border}`, padding: "28px 24px" }}>
@@ -512,7 +512,7 @@ export default function ClaimRush({ lang, onSetLang }) {
                 <div style={{ color: "#FFFFFF", fontSize: 13, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 14 }}>● TERRITORY STATUS — LIVE</div>
                 <div style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 20, lineHeight: 1.1 }}>Once a Territory<br />Is Assigned —<br /><span style={{ color: "#E03030" }}>It Is Gone.</span></div>
                 <div style={{ color: "#FFFFFF", fontSize: 15, lineHeight: 1.85, marginBottom: 28 }}>
-                  This isn't a platform you join later. Leads inside a secured territory flow exclusively to the Chapter President who controls it. If your state is taken before you apply, you are competing against the system instead of being inside it.
+                  This isn't a platform you join later. Leads flow to Chapter Presidents operating inside the system. The earlier you secure your position, the faster you build your team and capture your market.
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
@@ -564,7 +564,7 @@ export default function ClaimRush({ lang, onSetLang }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <div style={{ background: C.panel, border: `1px solid ${C.border}`, padding: "36px 32px" }}>
               <div style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 15, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 22 }}>SOFTWARE REVENUE STREAM</div>
-              {["SaaS subscription per seat", "Territory licensing fees", "Seat expansion as team grows", "Enterprise deployment contracts"].map(i => (
+              {["SaaS subscription per seat", "Platform licensing fees", "Seat expansion as team grows", "Enterprise deployment contracts"].map(i => (
                 <div key={i} style={{ color: "#FFFFFF", fontSize: 15, padding: "13px 0", fontWeight: 500, borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10 }}>
                   <span style={{ color: "#2A70D0" }}>·</span> {i}
                 </div>
@@ -572,7 +572,7 @@ export default function ClaimRush({ lang, onSetLang }) {
             </div>
             <div style={{ background: C.panel, border: `1px solid ${C.gold}44`, padding: "36px 32px" }}>
               <div style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 15, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 22 }}>CLAIM REVENUE STREAM</div>
-              {["Territory override on every claim", "Adjusting fee participation", "Restoration margin participation", "Team production scaling"].map(i => (
+              {["Override on every claim", "Adjusting fee participation", "Restoration margin participation", "Team production scaling"].map(i => (
                 <div key={i} style={{ color: "#FFFFFF", fontSize: 15, padding: "13px 0", fontWeight: 500, borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10 }}>
                   <span style={{ color: "#C9A84C" }}>·</span> {i}
                 </div>
@@ -593,21 +593,24 @@ export default function ClaimRush({ lang, onSetLang }) {
               This Is a Business.<br /><span style={{ color: "#C9A84C" }}>Not a Subscription.</span>
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 16, textAlign: "center", maxWidth: 560, margin: "0 auto 48px", lineHeight: 1.7 }}>
-              Claim Rush territory positions are reserved for serious operators. The investment structure is designed to filter for commitment — and to deliver outsized returns to those who execute.
+              Claim Rush Chapter President positions are reserved for serious operators. The investment structure is designed to filter for commitment — and to deliver outsized returns to those who execute.
             </div>
 
             <div style={{ border: `1px solid ${C.gold}`, borderRadius: 4, padding: "36px 32px", marginBottom: 24 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
-                <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px" }}>
-                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>TERRITORY INVESTMENT</div>
-                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$50,000</div>
-                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>One-time. Exclusive territory.*</div>
-                  <div style={{ color: "#3D4F6A", fontSize: 9, fontFamily: "'Courier New',monospace", marginTop: 6 }}>*Subject to minimum production standards</div>
+                <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px", border: `1px solid ${C.gold}55` }}>
+                  <div style={{ color: C.gold, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>FOUNDING CHAPTER PRESIDENT</div>
+                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$0</div>
+                  <div style={{ color: C.gold, fontSize: 12, fontFamily: "'Courier New',monospace", fontWeight: 700 }}>Entry fee waived during launch window</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace", marginTop: 10 }}>$2,000/mo operating fee</div>
+                  <div style={{ color: C.muted, fontSize: 11, fontFamily: "'Courier New',monospace", marginTop: 6 }}>20% commission override on SaaS fees from personally recruited network members</div>
                 </div>
                 <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px" }}>
-                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>MONTHLY OPERATING FEE</div>
-                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$2,000</div>
-                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>Platform + Maximus marketing + support</div>
+                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>STANDARD CHAPTER PRESIDENT</div>
+                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$100,000</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>One-time entry fee</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace", marginTop: 10 }}>$2,000/mo operating fee</div>
+                  <div style={{ color: C.muted, fontSize: 11, fontFamily: "'Courier New',monospace", marginTop: 6 }}>20% commission override on SaaS fees from personally recruited network members</div>
                 </div>
               </div>
 
@@ -642,9 +645,8 @@ export default function ClaimRush({ lang, onSetLang }) {
             </div>
 
             <div style={{ color: "#3D4F6A", fontSize: 10, textAlign: "center", lineHeight: 1.8, fontFamily: "'Courier New',monospace" }}>
-              Income projections are estimates based on territory activity and are not guarantees of earnings.<br />
-              Individual results depend on agent roster, territory volume, and CP operational execution.<br />
-              *Territory exclusivity subject to minimum production standards as defined in your Chapter President agreement.
+              Income projections are estimates based on market activity and are not guarantees of earnings.<br />
+              Individual results depend on agent roster, market volume, and CP operational execution.
             </div>
           </div>
         </div>
@@ -658,12 +660,12 @@ export default function ClaimRush({ lang, onSetLang }) {
               <div style={{ background: C.black, border: `1px solid ${C.gold}`, borderRadius: 6, padding: "10px 18px", color: C.gold, fontSize: 14, fontWeight: 700, fontFamily: "'Courier New',monospace", flexShrink: 0 }}>maximus.software</div>
               <div>
                 <div style={{ color: "#F4F0E8", fontSize: 18, fontWeight: 700, fontFamily: "'Courier New',monospace" }}>100-person dedicated marketing team <span style={{ background: `${C.green}18`, color: C.green, border: `1px solid ${C.green}44`, borderRadius: 3, fontSize: 9, fontWeight: 700, padding: "2px 8px", letterSpacing: 0.5, marginLeft: 8 }}>INCLUDED</span></div>
-                <div style={{ color: C.muted, fontSize: 13 }}>Every Chapter President gets a full marketing operation promoting their territory — at no extra cost.</div>
+                <div style={{ color: C.muted, fontSize: 13 }}>Every Chapter President gets a full marketing operation promoting their market — at no extra cost.</div>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 3 }}>
               {[
-                { title: "Territory promotion", desc: "Dedicated campaigns driving awareness and leads in your specific geography." },
+                { title: "Market promotion", desc: "Dedicated campaigns driving awareness and leads in your specific geography." },
                 { title: "Digital marketing", desc: "Social, search, and content marketing handled by a professional team." },
                 { title: "Brand support", desc: "UPA and RIN brand assets, campaigns, and messaging — ready to deploy." },
               ].map(item => (
@@ -686,13 +688,13 @@ export default function ClaimRush({ lang, onSetLang }) {
                 <div style={{ color: "#FFFFFF", fontSize: 13, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 14 }}>WHO THIS IS FOR</div>
                 <div style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 20, lineHeight: 1.1 }}>We Are Selecting<br /><span style={{ color: "#C9A84C" }}>Operators.</span><br />Not Users.</div>
                 <div style={{ color: "#FFFFFF", fontSize: 15, lineHeight: 1.85, marginBottom: 28 }}>
-                  This platform is not for casual participants. We are building territory operations with serious principals who intend to grow a team and capture a market. Applications are reviewed before access is granted.
+                  This platform is not for casual participants. We are building chapter operations with serious principals who intend to grow a team and capture a market. Applications are reviewed before access is granted.
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 {[
                   { role: "Public Adjusters", desc: "Licensed operators who want a live pipeline instead of waiting for referrals", icon: "📋", fit: true },
-                  { role: "Agency Owners", desc: "Multi-agent organizations who want enterprise-grade routing and territory control", icon: "🏢", fit: true },
+                  { role: "Agency Owners", desc: "Multi-agent organizations who want enterprise-grade routing and network control", icon: "🏢", fit: true },
                   { role: "Team Builders", desc: "Leaders who want to recruit agents beneath them and earn on production", icon: "👥", fit: true },
                   { role: "Passive Participants", desc: "We are not the right fit for those not ready to build and operate", icon: "✗", fit: false },
                 ].map(item => (
@@ -800,10 +802,10 @@ export default function ClaimRush({ lang, onSetLang }) {
             <div style={{ color: "#FFFFFF", fontSize: 13, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 14, textAlign: "center" }}>OBJECTION CRUSHERS</div>
             <div style={{ fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 900, fontFamily: "'Courier New',monospace", textAlign: "center", marginBottom: 40, lineHeight: 1.2 }}>Every Reason to Wait<br /><span style={{ color: "#C9A84C" }}>Is a Reason Someone Else Won't.</span></div>
             {[
-              { q: "Is this just another lead tool?", a: "No. It's territory ownership with built-in lead flow. Tools are everywhere. Positions aren't. Once your county is assigned to another operator, they receive the leads — not you." },
-              { q: "What if I miss it?", a: "Then someone else locks your county and gets the leads first. They build the team first. They establish dominance first. You are then competing against a system instead of operating inside one." },
-              { q: "Can I do it later?", a: "Entry closes per territory. Once a state or county is assigned, it's gone. The platform is designed with territory exclusivity — not unlimited open access." },
-              { q: "How much does it cost?", a: "Territory investment is $50,000 one-time with a $2,000/mo operating fee covering the platform, Maximus marketing, and support. Conservative Year 1 projections show $339K revenue against $24K in fees — a 6x+ return. We publish the numbers because we select operators who evaluate opportunity, not price shoppers who stop at the first figure." },
+              { q: "Is this just another lead tool?", a: "No. It's a Chapter President position with built-in lead flow. Tools are everywhere. Positions aren't. Early movers build teams and capture markets before others even enter." },
+              { q: "What if I miss it?", a: "Then someone else builds the team first. They establish dominance first. The earlier you enter, the larger your network and the greater your override income." },
+              { q: "Can I do it later?", a: "Founding Chapter President positions are limited to the launch window. Once the window closes, entry requires the Standard $100,000 fee. The economics favor those who move first." },
+              { q: "How much does it cost?", a: "Founding Chapter Presidents enter for $0 during the launch window with a $2,000/mo operating fee. Standard entry is $100,000 plus the same monthly fee. Both tiers earn a 20% commission override on SaaS fees from personally recruited network members. Conservative Year 1 projections show $339K revenue against $24K in fees — a 6x+ return." },
               { q: "How do I know leads are real?", a: "The system detects incidents from live emergency feeds including PulsePoint — the same source fire departments use. These are real dispatched events at real addresses, scored by AI, in near real time." },
             ].map(obj => <Objection key={obj.q} q={obj.q} a={obj.a} />)}
           </div>

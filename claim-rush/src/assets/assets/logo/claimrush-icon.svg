@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <radialGradient id="coreGlowI" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#C084FC" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#A855F7" stop-opacity="0.85"/>
+      <stop offset="70%" stop-color="#7C3AED" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#4C1D95" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGradI" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#2A70D0"/>
+    </linearGradient>
+    <linearGradient id="sigLI" x1="100%" y1="50%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#A855F7" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="sigRI" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#2A70D0" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#2A70D0" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glwI" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="cBlmI" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Scaled up ~12% -->
+  <g transform="translate(100, 100) scale(1.12)">
+    <!-- Ambient glow -->
+    <circle cx="0" cy="0" r="64" fill="url(#coreGlowI)" opacity="0.35"/>
+
+    <!-- Outer orbit -->
+    <circle cx="0" cy="0" r="62" stroke="url(#ringGradI)" stroke-width="1.2" fill="none" opacity="0.3"/>
+
+    <!-- Outer hexagon -->
+    <polygon
+      points="0,-54 46.8,-27 46.8,27 0,54 -46.8,27 -46.8,-27"
+      stroke="url(#ringGradI)" stroke-width="1.6" fill="none" opacity="0.55"
+      filter="url(#glwI)"
+    />
+
+    <!-- Inner hexagon (rotated) -->
+    <polygon
+      points="0,-36 31.2,-18 31.2,18 0,36 -31.2,18 -31.2,-18"
+      stroke="#A855F7" stroke-width="1" fill="none" opacity="0.35"
+      transform="rotate(30)"
+    />
+
+    <!-- Signal lines — left -->
+    <line x1="-46.8" y1="-27" x2="-74" y2="-43" stroke="url(#sigLI)" stroke-width="1.2" opacity="0.55"/>
+    <line x1="-46.8" y1="0" x2="-80" y2="0" stroke="url(#sigLI)" stroke-width="1.2" opacity="0.45"/>
+    <line x1="-46.8" y1="27" x2="-74" y2="43" stroke="url(#sigLI)" stroke-width="1.2" opacity="0.55"/>
+
+    <!-- Signal lines — right -->
+    <line x1="46.8" y1="-27" x2="74" y2="-43" stroke="url(#sigRI)" stroke-width="1.2" opacity="0.55"/>
+    <line x1="46.8" y1="0" x2="80" y2="0" stroke="url(#sigRI)" stroke-width="1.2" opacity="0.45"/>
+    <line x1="46.8" y1="27" x2="74" y2="43" stroke="url(#sigRI)" stroke-width="1.2" opacity="0.55"/>
+
+    <!-- Signal lines — top/bottom -->
+    <line x1="0" y1="-54" x2="0" y2="-72" stroke="#A855F7" stroke-width="1" opacity="0.4"/>
+    <line x1="0" y1="54" x2="0" y2="72" stroke="#6366F1" stroke-width="1" opacity="0.4"/>
+
+    <!-- Endpoint nodes -->
+    <circle cx="-74" cy="-43" r="2.5" fill="#A855F7" opacity="0.7"/>
+    <circle cx="-80" cy="0" r="2.5" fill="#A855F7" opacity="0.6"/>
+    <circle cx="-74" cy="43" r="2.5" fill="#A855F7" opacity="0.7"/>
+    <circle cx="74" cy="-43" r="2.5" fill="#2A70D0" opacity="0.7"/>
+    <circle cx="80" cy="0" r="2.5" fill="#2A70D0" opacity="0.6"/>
+    <circle cx="74" cy="43" r="2.5" fill="#2A70D0" opacity="0.7"/>
+    <circle cx="0" cy="-72" r="2.5" fill="#A855F7" opacity="0.5"/>
+    <circle cx="0" cy="72" r="2.5" fill="#6366F1" opacity="0.5"/>
+
+    <!-- Vertex nodes -->
+    <circle cx="0" cy="-54" r="3.2" fill="#A855F7" filter="url(#glwI)"/>
+    <circle cx="46.8" cy="-27" r="3.2" fill="#8B5CF6" filter="url(#glwI)"/>
+    <circle cx="46.8" cy="27" r="3.2" fill="#6366F1" filter="url(#glwI)"/>
+    <circle cx="0" cy="54" r="3.2" fill="#6366F1" filter="url(#glwI)"/>
+    <circle cx="-46.8" cy="27" r="3.2" fill="#8B5CF6" filter="url(#glwI)"/>
+    <circle cx="-46.8" cy="-27" r="3.2" fill="#A855F7" filter="url(#glwI)"/>
+
+    <!-- Core — intensified -->
+    <circle cx="0" cy="0" r="18" stroke="#B87CFF" stroke-width="2" fill="none" filter="url(#glwI)" opacity="0.9"/>
+    <circle cx="0" cy="0" r="11" fill="#A855F7" opacity="0.2"/>
+    <circle cx="0" cy="0" r="7" fill="#B87CFF" opacity="0.55" filter="url(#cBlmI)"/>
+    <circle cx="0" cy="0" r="3.5" fill="#F3E8FF"/>
+    <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- Cross-hair -->
+    <line x1="-18" y1="0" x2="-11" y2="0" stroke="#B87CFF" stroke-width="1" opacity="0.7"/>
+    <line x1="11" y1="0" x2="18" y2="0" stroke="#B87CFF" stroke-width="1" opacity="0.7"/>
+    <line x1="0" y1="-18" x2="0" y2="-11" stroke="#B87CFF" stroke-width="1" opacity="0.7"/>
+    <line x1="0" y1="11" x2="0" y2="18" stroke="#B87CFF" stroke-width="1" opacity="0.7"/>
+  </g>
+</svg>

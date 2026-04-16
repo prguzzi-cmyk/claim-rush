@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 260" fill="none">
+  <defs>
+    <radialGradient id="coreGlowL" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9333EA" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#7C3AED" stop-opacity="0.7"/>
+      <stop offset="70%" stop-color="#6D28D9" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#4C1D95" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ringGradL" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="50%" stop-color="#4F46E5"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="signalLL" x1="100%" y1="50%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="signalRL" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glowL" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="coreBloomL" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- === ICON — scaled up ~12% === -->
+  <g transform="translate(130, 130) scale(1.12)">
+
+    <circle cx="0" cy="0" r="50" fill="url(#coreGlowL)" opacity="0.25"/>
+
+    <circle cx="0" cy="0" r="48" stroke="url(#ringGradL)" stroke-width="1.2" fill="none" opacity="0.25"/>
+
+    <polygon
+      points="0,-42 36.4,-21 36.4,21 0,42 -36.4,21 -36.4,-21"
+      stroke="url(#ringGradL)" stroke-width="1.4" fill="none" opacity="0.45"
+      filter="url(#glowL)"
+    />
+
+    <polygon
+      points="0,-28 24.2,-14 24.2,14 0,28 -24.2,14 -24.2,-14"
+      stroke="#7C3AED" stroke-width="1" fill="none" opacity="0.3"
+      transform="rotate(30)"
+    />
+
+    <!-- Signal lines — left -->
+    <line x1="-36" y1="-21" x2="-62" y2="-36" stroke="url(#signalLL)" stroke-width="1.1" opacity="0.55"/>
+    <line x1="-36" y1="0" x2="-68" y2="0" stroke="url(#signalLL)" stroke-width="1.1" opacity="0.45"/>
+    <line x1="-36" y1="21" x2="-62" y2="36" stroke="url(#signalLL)" stroke-width="1.1" opacity="0.55"/>
+
+    <!-- Signal lines — right -->
+    <line x1="36" y1="-21" x2="62" y2="-36" stroke="url(#signalRL)" stroke-width="1.1" opacity="0.55"/>
+    <line x1="36" y1="0" x2="68" y2="0" stroke="url(#signalRL)" stroke-width="1.1" opacity="0.45"/>
+    <line x1="36" y1="21" x2="62" y2="36" stroke="url(#signalRL)" stroke-width="1.1" opacity="0.55"/>
+
+    <!-- Signal lines — top/bottom -->
+    <line x1="0" y1="-42" x2="0" y2="-60" stroke="#7C3AED" stroke-width="1" opacity="0.35"/>
+    <line x1="0" y1="42" x2="0" y2="60" stroke="#4F46E5" stroke-width="1" opacity="0.35"/>
+
+    <!-- Endpoint nodes -->
+    <circle cx="-62" cy="-36" r="2.2" fill="#7C3AED" opacity="0.65"/>
+    <circle cx="-68" cy="0" r="2.2" fill="#7C3AED" opacity="0.55"/>
+    <circle cx="-62" cy="36" r="2.2" fill="#7C3AED" opacity="0.65"/>
+    <circle cx="62" cy="-36" r="2.2" fill="#1D4ED8" opacity="0.65"/>
+    <circle cx="68" cy="0" r="2.2" fill="#1D4ED8" opacity="0.55"/>
+    <circle cx="62" cy="36" r="2.2" fill="#1D4ED8" opacity="0.65"/>
+    <circle cx="0" cy="-60" r="2" fill="#7C3AED" opacity="0.45"/>
+    <circle cx="0" cy="60" r="2" fill="#4F46E5" opacity="0.45"/>
+
+    <!-- Vertex nodes -->
+    <circle cx="0" cy="-42" r="2.8" fill="#7C3AED" filter="url(#glowL)"/>
+    <circle cx="36.4" cy="-21" r="2.8" fill="#6D28D9" filter="url(#glowL)"/>
+    <circle cx="36.4" cy="21" r="2.8" fill="#4F46E5" filter="url(#glowL)"/>
+    <circle cx="0" cy="42" r="2.8" fill="#4F46E5" filter="url(#glowL)"/>
+    <circle cx="-36.4" cy="21" r="2.8" fill="#6D28D9" filter="url(#glowL)"/>
+    <circle cx="-36.4" cy="-21" r="2.8" fill="#7C3AED" filter="url(#glowL)"/>
+
+    <!-- Core -->
+    <circle cx="0" cy="0" r="14" stroke="#7C3AED" stroke-width="1.8" fill="none" filter="url(#glowL)" opacity="0.8"/>
+    <circle cx="0" cy="0" r="9" fill="#7C3AED" opacity="0.12"/>
+    <circle cx="0" cy="0" r="6" fill="#7C3AED" opacity="0.4" filter="url(#coreBloomL)"/>
+    <circle cx="0" cy="0" r="3" fill="#6D28D9"/>
+    <circle cx="0" cy="0" r="1.5" fill="#4C1D95" opacity="0.9"/>
+
+    <!-- Cross-hair -->
+    <line x1="-14" y1="0" x2="-8" y2="0" stroke="#7C3AED" stroke-width="0.9" opacity="0.6"/>
+    <line x1="8" y1="0" x2="14" y2="0" stroke="#7C3AED" stroke-width="0.9" opacity="0.6"/>
+    <line x1="0" y1="-14" x2="0" y2="-8" stroke="#7C3AED" stroke-width="0.9" opacity="0.6"/>
+    <line x1="0" y1="8" x2="0" y2="14" stroke="#7C3AED" stroke-width="0.9" opacity="0.6"/>
+  </g>
+
+  <!-- === WORDMARK === -->
+  <g transform="translate(232, 110)">
+    <text
+      x="0" y="30"
+      font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="200"
+      font-size="52"
+      letter-spacing="1.2"
+      fill="#0F172A"
+    >CLAIM</text>
+    <text
+      x="150" y="30"
+      font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="600"
+      font-size="52"
+      letter-spacing="1.2"
+      fill="#0F172A"
+    >RUSH</text>
+    <text
+      x="296" y="-2"
+      font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="300"
+      font-size="11"
+      fill="#94A3B8"
+      letter-spacing="1"
+    >TM</text>
+    <text
+      x="1" y="54"
+      font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="300"
+      font-size="10.5"
+      letter-spacing="2.8"
+      fill="#94A3B8"
+    >CLAIM INTELLIGENCE ENGINE</text>
+    <text
+      x="260" y="54"
+      font-family="'SF Pro Display', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      font-weight="300"
+      font-size="7"
+      fill="#94A3B8"
+      letter-spacing="0.5"
+    >TM</text>
+  </g>
+
+  <line x1="234" y1="172" x2="330" y2="172" stroke="url(#ringGradL)" stroke-width="1" opacity="0.2"/>
+</svg>

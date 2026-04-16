@@ -277,7 +277,7 @@ export default function ClaimRushES({ lang, onSetLang }) {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("description", "Claim Rush — Asegura territorio exclusivo, captura oportunidades reales de propiedad y construye tu imperio. Territorios limitados disponibles.");
+    setMeta("description", "Claim Rush — Asegura tu posición, captura oportunidades reales de propiedad y construye tu imperio. Posiciones limitadas disponibles.");
     setMeta("og:title", "Asegura Territorio. Captura Oportunidades. Construye Tu Imperio | ACI United", "property");
     setMeta("og:description", "Claim Rush — Oportunidad territorial por tiempo limitado. Proyecciones conservadoras de $339K en el Año 1.", "property");
     const addLink = (rel, attrs) => {
@@ -486,11 +486,11 @@ export default function ClaimRushES({ lang, onSetLang }) {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 2 }}>
             {[
-              { icon: "📍", label: "Posición Territorial", desc: "Exclusividad geográfica — solo un CP por territorio" },
+              { icon: "📍", label: "Posición de Capítulo", desc: "Construye y lidera tu propio capítulo dentro de la red" },
               { icon: "⚡", label: "Acceso a Oportunidades", desc: "Oportunidades en vivo de incendio, tormenta, techo y crimen fluyen hacia ti" },
               { icon: "🔄", label: "Apalancamiento del Sistema", desc: "La IA hace el contacto inicial mientras tú te enfocas en cerrar" },
               { icon: "👥", label: "Infraestructura de Equipo", desc: "Recluta agentes bajo tu mando — comisión en cada reclamación" },
-              { icon: "📈", label: "Escalabilidad de Ingresos", desc: "Tus ingresos escalan con la producción de tu equipo" },
+              { icon: "📈", label: "Escalabilidad de Ingresos", desc: "Tus ingresos escalan con la producción de tu equipo y red" },
               { icon: "🏆", label: "Ventaja del Primer Movimiento", desc: "El primero en llegar construye el equipo. Los tardíos compiten contra él" },
             ].map(item => (
               <div key={item.label} style={{ background: C.panel, border: `1px solid ${C.border}`, padding: "28px 24px" }}>
@@ -512,7 +512,7 @@ export default function ClaimRushES({ lang, onSetLang }) {
                 <div style={{ color: "#E03030", fontSize: 10, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 14 }}>● ESTADO DE TERRITORIOS — EN VIVO</div>
                 <div style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 20, lineHeight: 1.1 }}>Once a Territory<br />Is Assigned —<br /><span style={{ color: "#E03030" }}>Desaparece.</span></div>
                 <div style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.75, marginBottom: 28 }}>
-                  Esta no es una plataforma a la que te unes después. Las oportunidades dentro de un territorio asegurado fluyen exclusivamente al Presidente de Capítulo que lo controla. Si tu estado es tomado antes de que solicites, estarás compitiendo contra el sistema en lugar de estar dentro de él.
+                  Esta no es una plataforma a la que te unes después. Las oportunidades fluyen a los Presidentes de Capítulo que operan dentro del sistema. Cuanto antes asegures tu posición, más rápido construyes tu equipo y capturas tu mercado.
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {[
@@ -564,7 +564,7 @@ export default function ClaimRushES({ lang, onSetLang }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
             <div style={{ background: C.panel, border: `1px solid ${C.border}`, padding: "32px 28px" }}>
               <div style={{ color: "#2A70D0", fontWeight: 900, fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 20 }}>FLUJO DE INGRESOS — SOFTWARE</div>
-              {["Suscripción SaaS por usuario", "Tarifas de licencia territorial", "Expansión de asientos al crecer el equipo", "Contratos de despliegue empresarial"].map(i => (
+              {["Suscripción SaaS por usuario", "Tarifas de licencia de plataforma", "Expansión de asientos al crecer el equipo", "Contratos de despliegue empresarial"].map(i => (
                 <div key={i} style={{ color: "#F4F0E8", fontSize: 15, padding: "13px 0", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10 }}>
                   <span style={{ color: "#2A70D0" }}>·</span> {i}
                 </div>
@@ -572,7 +572,7 @@ export default function ClaimRushES({ lang, onSetLang }) {
             </div>
             <div style={{ background: C.panel, border: `1px solid ${C.gold}44`, padding: "32px 28px" }}>
               <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 20 }}>FLUJO DE INGRESOS — RECLAMACIONES</div>
-              {["Comisión territorial en cada reclamación", "Participación en tarifas de ajuste", "Participación en márgenes de restauración", "Escala con la producción del equipo"].map(i => (
+              {["Comisión en cada reclamación", "Participación en tarifas de ajuste", "Participación en márgenes de restauración", "Escala con la producción del equipo"].map(i => (
                 <div key={i} style={{ color: "#F4F0E8", fontSize: 15, padding: "13px 0", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10 }}>
                   <span style={{ color: "#C9A84C" }}>·</span> {i}
                 </div>
@@ -593,21 +593,24 @@ export default function ClaimRushES({ lang, onSetLang }) {
               Esto Es un Negocio.<br /><span style={{ color: "#C9A84C" }}>No una Suscripción.</span>
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 15, textAlign: "center", maxWidth: 560, margin: "0 auto 48px", lineHeight: 1.7 }}>
-              Las posiciones territoriales de Claim Rush están reservadas para operadores serios. La estructura de inversión está diseñada para filtrar por compromiso — y para entregar retornos superiores a quienes ejecutan.
+              Las posiciones de Presidente de Capítulo de Claim Rush están reservadas para operadores serios. La estructura de inversión está diseñada para filtrar por compromiso — y para entregar retornos superiores a quienes ejecutan.
             </div>
 
             <div style={{ border: `1px solid ${C.gold}`, borderRadius: 4, padding: "36px 32px", marginBottom: 24 }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
-                <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px" }}>
-                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>INVERSIÓN TERRITORIAL</div>
-                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$50,000</div>
-                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>Pago único. Territorio exclusivo.*</div>
-                  <div style={{ color: "#3D4F6A", fontSize: 9, fontFamily: "'Courier New',monospace", marginTop: 6 }}>*Sujeto a estándares mínimos de producción</div>
+                <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px", border: `1px solid ${C.gold}55` }}>
+                  <div style={{ color: C.gold, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>PRESIDENTE DE CAPÍTULO FUNDADOR</div>
+                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$0</div>
+                  <div style={{ color: C.gold, fontSize: 12, fontFamily: "'Courier New',monospace", fontWeight: 700 }}>Cuota de entrada exonerada durante ventana de lanzamiento</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace", marginTop: 10 }}>Tarifa operativa de $2,000/mes</div>
+                  <div style={{ color: C.muted, fontSize: 11, fontFamily: "'Courier New',monospace", marginTop: 6 }}>20% de comisión sobre tarifas SaaS de miembros reclutados personalmente</div>
                 </div>
                 <div style={{ background: C.panel, borderRadius: 6, padding: "24px 20px" }}>
-                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>TARIFA OPERATIVA MENSUAL</div>
-                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$2,000</div>
-                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>Plataforma + marketing Maximus + soporte</div>
+                  <div style={{ color: C.muted, fontSize: 10, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 8 }}>PRESIDENTE DE CAPÍTULO ESTÁNDAR</div>
+                  <div style={{ color: "#F4F0E8", fontSize: 32, fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 4 }}>$100,000</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace" }}>Cuota de entrada única</div>
+                  <div style={{ color: C.muted, fontSize: 12, fontFamily: "'Courier New',monospace", marginTop: 10 }}>Tarifa operativa de $2,000/mes</div>
+                  <div style={{ color: C.muted, fontSize: 11, fontFamily: "'Courier New',monospace", marginTop: 6 }}>20% de comisión sobre tarifas SaaS de miembros reclutados personalmente</div>
                 </div>
               </div>
 
@@ -642,9 +645,8 @@ export default function ClaimRushES({ lang, onSetLang }) {
             </div>
 
             <div style={{ color: "#3D4F6A", fontSize: 10, textAlign: "center", lineHeight: 1.8, fontFamily: "'Courier New',monospace" }}>
-              Las proyecciones de ingresos son estimaciones basadas en actividad territorial y no son garantías de ganancias.<br />
-              Los resultados individuales dependen del equipo de agentes, volumen territorial y ejecución operativa del CP.<br />
-              *Exclusividad territorial sujeta a estándares mínimos de producción según tu acuerdo de Presidente de Capítulo.
+              Las proyecciones de ingresos son estimaciones basadas en actividad del mercado y no son garantías de ganancias.<br />
+              Los resultados individuales dependen del equipo de agentes, volumen del mercado y ejecución operativa del CP.
             </div>
           </div>
         </div>
@@ -658,12 +660,12 @@ export default function ClaimRushES({ lang, onSetLang }) {
               <div style={{ background: C.black, border: `1px solid ${C.gold}`, borderRadius: 6, padding: "10px 18px", color: C.gold, fontSize: 14, fontWeight: 700, fontFamily: "'Courier New',monospace", flexShrink: 0 }}>maximus.software</div>
               <div>
                 <div style={{ color: "#F4F0E8", fontSize: 18, fontWeight: 700, fontFamily: "'Courier New',monospace" }}>Equipo de marketing dedicado de 100 personas <span style={{ background: `${C.green}18`, color: C.green, border: `1px solid ${C.green}44`, borderRadius: 3, fontSize: 9, fontWeight: 700, padding: "2px 8px", letterSpacing: 0.5, marginLeft: 8 }}>INCLUIDO</span></div>
-                <div style={{ color: C.muted, fontSize: 13 }}>Cada Presidente de Capítulo recibe una operación de marketing completa promoviendo su territorio — sin costo adicional.</div>
+                <div style={{ color: C.muted, fontSize: 13 }}>Cada Presidente de Capítulo recibe una operación de marketing completa promoviendo su mercado — sin costo adicional.</div>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 3 }}>
               {[
-                { title: "Promoción territorial", desc: "Campañas dedicadas generando conocimiento y oportunidades en tu geografía específica." },
+                { title: "Promoción de mercado", desc: "Campañas dedicadas generando conocimiento y oportunidades en tu geografía específica." },
                 { title: "Marketing digital", desc: "Redes sociales, búsqueda y marketing de contenido manejado por un equipo profesional." },
                 { title: "Soporte de marca", desc: "Activos de marca UPA y RIN, campañas y mensajería — listos para desplegar." },
               ].map(item => (
@@ -686,13 +688,13 @@ export default function ClaimRushES({ lang, onSetLang }) {
                 <div style={{ color: "#C9A84C", fontSize: 10, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 14 }}>PARA QUIÉN ES ESTO</div>
                 <div style={{ fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 900, fontFamily: "'Courier New',monospace", marginBottom: 20, lineHeight: 1.1 }}>Estamos Seleccionando<br /><span style={{ color: "#C9A84C" }}>Operadores.</span><br />No Usuarios.</div>
                 <div style={{ color: "#FFFFFF", fontSize: 14, lineHeight: 1.75, marginBottom: 28 }}>
-                  Esta plataforma no es para participantes casuales. Estamos construyendo operaciones territoriales con líderes serios que tienen la intención de hacer crecer un equipo y capturar un mercado. Las solicitudes son revisadas antes de otorgar acceso.
+                  Esta plataforma no es para participantes casuales. Estamos construyendo operaciones de capítulo con líderes serios que tienen la intención de hacer crecer un equipo y capturar un mercado. Las solicitudes son revisadas antes de otorgar acceso.
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                 {[
                   { role: "Ajustadores Públicos", desc: "Operadores licenciados que quieren un flujo activo en lugar de esperar referencias", icon: "📋", fit: true },
-                  { role: "Dueños de Agencias", desc: "Organizaciones con múltiples agentes que quieren control territorial de nivel empresarial", icon: "🏢", fit: true },
+                  { role: "Dueños de Agencias", desc: "Organizaciones con múltiples agentes que quieren control de red de nivel empresarial", icon: "🏢", fit: true },
                   { role: "Constructores de Equipos", desc: "Líderes que quieren reclutar agentes bajo su mando y ganar sobre su producción", icon: "👥", fit: true },
                   { role: "Participantes Pasivos", desc: "No somos la opción correcta para quienes no están listos para construir y operar", icon: "✗", fit: false },
                 ].map(item => (
@@ -800,10 +802,10 @@ export default function ClaimRushES({ lang, onSetLang }) {
             <div style={{ color: "#C9A84C", fontSize: 10, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 16, textAlign: "center" }}>RESPUESTAS A TUS DUDAS</div>
             <div style={{ fontSize: "clamp(24px, 3vw, 38px)", fontWeight: 900, fontFamily: "'Courier New',monospace", textAlign: "center", marginBottom: 40, lineHeight: 1.2 }}>Cada Razón para Esperar<br /><span style={{ color: "#C9A84C" }}>Es una Razón por la que Otro No Esperará.</span></div>
             {[
-              { q: "¿Es esto solo otra herramienta de oportunidades?", a: "No. Es propiedad territorial con flujo de oportunidades integrado. Las herramientas están en todos lados. Las posiciones no. Una vez que tu condado es asignado a otro operador, ellos reciben las oportunidades — no tú." },
-              { q: "¿Qué pasa si me lo pierdo?", a: "Entonces alguien más bloquea tu condado y obtiene las oportunidades primero. Ellos construyen el equipo primero. Ellos establecen el dominio primero. Entonces estarás compitiendo contra un sistema en lugar de operar dentro de él." },
-              { q: "¿Puedo hacerlo después?", a: "El acceso se cierra por territorio. Una vez que un estado o condado es asignado, se va. La plataforma está diseñada con exclusividad territorial — no acceso abierto ilimitado." },
-              { q: "¿Cuánto cuesta?", a: "La inversión territorial es de $50,000 único con una tarifa operativa de $2,000/mes que cubre la plataforma, marketing Maximus y soporte. Las proyecciones conservadoras del Año 1 muestran $339K de ingresos contra $24K en tarifas — un retorno de 6x+. Publicamos los números porque seleccionamos operadores que evalúan la oportunidad, no compradores de precios que se detienen en la primera cifra." },
+              { q: "¿Es esto solo otra herramienta de oportunidades?", a: "No. Es una posición de Presidente de Capítulo con flujo de oportunidades integrado. Las herramientas están en todos lados. Las posiciones no. Los que entran primero construyen equipos y capturan mercados antes de que otros entren." },
+              { q: "¿Qué pasa si me lo pierdo?", a: "Entonces alguien más construye el equipo primero. Ellos establecen el dominio primero. Cuanto antes entres, más grande tu red y mayores tus ingresos por comisión." },
+              { q: "¿Puedo hacerlo después?", a: "Las posiciones de Presidente de Capítulo Fundador están limitadas a la ventana de lanzamiento. Una vez cerrada, la entrada requiere la cuota Estándar de $100,000. La economía favorece a quienes actúan primero." },
+              { q: "¿Cuánto cuesta?", a: "Los Presidentes de Capítulo Fundadores entran por $0 durante la ventana de lanzamiento con una tarifa operativa de $2,000/mes. La entrada Estándar es de $100,000 más la misma tarifa mensual. Ambos niveles ganan 20% de comisión sobre tarifas SaaS de miembros reclutados personalmente. Las proyecciones conservadoras del Año 1 muestran $339K de ingresos contra $24K en tarifas — un retorno de 6x+." },
               { q: "¿Cómo sé que las oportunidades son reales?", a: "El sistema detecta incidentes de feeds de emergencia en vivo incluyendo PulsePoint — la misma fuente que usan los departamentos de bomberos. Estos son eventos reales despachados en direcciones reales, puntuados por IA, en tiempo casi real." },
             ].map(obj => <Objection key={obj.q} q={obj.q} a={obj.a} />)}
           </div>
