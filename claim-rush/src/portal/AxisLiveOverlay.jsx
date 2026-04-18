@@ -582,9 +582,9 @@ export default function AxisLiveOverlay({ context = {}, onSessionEnd }) {
             background: `linear-gradient(135deg, ${PURPLE}, ${PURPLE}88)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 11, fontWeight: 900, color: "#fff", ...mono,
-          }}>AX</div>
+          }}>C</div>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#FFFFFF", ...mono, letterSpacing: 1.5 }}>
-            AXIS LIVE
+            Coach
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

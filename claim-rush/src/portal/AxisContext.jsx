@@ -157,21 +157,38 @@ const ROLE_PERMISSIONS = {
   },
 };
 
+/** Read stored auth from localStorage (set by Login page or RIN iframe). */
+function _getStoredAuth() {
+  const crRole = localStorage.getItem("cr_role");
+  const crUserRaw = localStorage.getItem("cr_user");
+  const token = localStorage.getItem("access_token");
+  if (!crRole || !token) return null;
+  let crUser = {};
+  try { crUser = JSON.parse(crUserRaw || "{}"); } catch {}
+  return {
+    role: crRole,
+    user_id: crUser.user_id || null,
+    display_name: crUser.display_name || "",
+    jwt: typeof token === "string" ? (token.startsWith('"') ? JSON.parse(token) : token) : null,
+  };
+}
+
 export function AxisProvider({ children }) {
-  // Phase 3: if embedded by the RIN portal, consume the handoff params on
-  // first render. Otherwise fall back to the local mock for standalone dev.
+  // Priority: 1) RIN iframe handoff (URL params), 2) localStorage (standalone login), 3) dev mock
   const _rinHandoff = useMemo(() => _consumeRinPortalUrlParams(), []);
+  const _storedAuth = useMemo(() => _getStoredAuth(), []);
+  const _bootstrap = _rinHandoff || _storedAuth;
 
   const [userRole, setUserRole] = useState(
-    _rinHandoff?.role ?? "home_office"
+    _bootstrap?.role ?? "home_office"
   ); // home_office | CP | RVP | agent
   // RIN-portal-supplied identity (used for display + future API calls).
   const [rinIdentity, setRinIdentity] = useState(
-    _rinHandoff
+    _bootstrap
       ? {
-          user_id: _rinHandoff.user_id,
-          display_name: _rinHandoff.display_name,
-          jwt: _rinHandoff.jwt,
+          user_id: _bootstrap.user_id,
+          display_name: _bootstrap.display_name,
+          jwt: _bootstrap.jwt,
         }
       : null
   );

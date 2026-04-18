@@ -1113,4 +1113,14 @@ function mockApi() {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), mockApi()],
+  server: {
+    port: 5175,
+    proxy: {
+      // Forward /v1/* to the RIN FastAPI backend at :8888
+      '/v1': {
+        target: 'http://127.0.0.1:8888',
+        changeOrigin: true,
+      },
+    },
+  },
 })

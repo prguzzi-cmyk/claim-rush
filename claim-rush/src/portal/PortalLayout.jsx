@@ -1,66 +1,108 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { C } from "./theme";
 import AxisCoach from "./AxisCoach";
 import AxisLiveOverlay from "./AxisLiveOverlay";
 import { AxisProvider, useAxisContext } from "./AxisContext";
-import logoDark from "../assets/logo/claimrush-logo-dark.svg";
 import logoIcon from "../assets/logo/claimrush-icon.svg";
+import { getNavForRole } from "./roleNav";
 
 const PURPLE = "#A855F7";
 
-// Sidebar items — role-aware labels via permissions filtering
-// Agent sees:    Dashboard, Leads, Earnings
-// RVP sees:      Dashboard, Team, Earnings
-// CP sees:       Dashboard, Territory, Earnings
-// Home Office:   Dashboard, Payouts, Subscriptions, Territory Performance
-// ── NAV ITEMS grouped by module ─────────────────────────────────────
-// `module` maps to the new permission system; `page` maps to the old one.
-// An item shows if EITHER its module OR its page is in the user's permissions.
-const ALL_NAV_ITEMS = [
-  // Command Center
-  { to: "/portal", label: "Dashboard", icon: "\u{1F4CA}", end: true, page: "dashboard", module: "command_center", group: "core" },
+// ── Live Ticker ─────────────────────────────────────────────────────────────
 
-  // Leads
-  { to: "/portal/fire-leads", label: "Leads", icon: "\u{1F525}", page: "fire-leads", module: "leads", group: "operations", altLabels: { RVP: "Team" } },
-  { to: "/portal/storm-intel", label: "Storm Intel", icon: "\u26C8\uFE0F", page: "storm-intel", module: "leads", group: "operations" },
-
-  // Claims
-  { to: "/portal/protection-plans", label: "Claims", icon: "\u{1F6E1}\uFE0F", page: "protection-plans", module: "claims", group: "operations" },
-
-  // Communications
-  { to: "/portal/pitch", label: "Pitch Mode", icon: "\u{1F3AF}", page: "pitch", module: "communications", group: "operations" },
-
-  // Reports
-  { to: "/portal/earnings", label: "Earnings", icon: "\u{1F4B0}", page: "earnings", module: "reports", group: "reports" },
-  { to: "/portal/my-payouts", label: "My Payouts", icon: "\u{1F4B8}", page: "my-payouts", module: "reports", group: "reports" },
-  { to: "/portal/territory-revenue", label: "Territory", icon: "\u{1F5FA}\uFE0F", page: "territory-revenue", module: "reports", group: "reports" },
-  { to: "/portal/forecast", label: "Forecast", icon: "\u{1F4C8}", page: "forecast", module: "reports", group: "reports" },
-  { to: "/portal/simulator", label: "Simulator", icon: "\u{1F9EA}", page: "simulator", module: "reports", group: "reports" },
-
-  // Admin
-  { to: "/portal/payout-runs", label: "Payouts", icon: "\u{1F4B3}", page: "payout-runs", module: "admin_panel", group: "admin" },
-  { to: "/portal/payout-rules", label: "Payout Rules", icon: "\u2699\uFE0F", page: "payout-rules", module: "admin_panel", group: "admin" },
-  { to: "/portal/billing", label: "Subscriptions", icon: "\u{1F4B5}", page: "billing", module: "admin_panel", group: "admin" },
-  { to: "/portal/comp-plan", label: "Comp Plan", icon: "\u{1F4CB}", page: "comp-plan", module: "admin_panel", group: "admin" },
-  { to: "/portal/audit", label: "Audit Log", icon: "\u{1F50D}", page: "audit", module: "admin_panel", group: "admin" },
-  { to: "/portal/ops", label: "Operations", icon: "\u{1F3E2}", page: "ops", module: "admin_panel", group: "admin" },
+const TICKER_ITEMS = [
+  { icon: "🔥", text: "Structure Fire — Dallas TX", time: "2m ago", color: "#E05050" },
+  { icon: "⛈️", text: "Severe Storm Warning — Tarrant County", time: "5m ago", color: "#C9A84C" },
+  { icon: "📋", text: "New Lead Assigned — Maria Gonzalez → Agent Torres", time: "8m ago", color: "#00E6A8" },
+  { icon: "✅", text: "Client Signed — Park Residence WTP Platinum", time: "12m ago", color: "#00E6A8" },
+  { icon: "📞", text: "Marcus completed 3 outbound calls — FL region", time: "15m ago", color: "#3B82F6" },
+  { icon: "💧", text: "Flood Advisory — Harris County TX", time: "18m ago", color: "#3B82F6" },
+  { icon: "🏠", text: "Roof Damage Detected — Satellite Analysis — Bucks County PA", time: "22m ago", color: "#C9A84C" },
+  { icon: "📄", text: "Claim Filed — Johnson Residence — Fire Damage", time: "25m ago", color: "#00E6A8" },
 ];
+
+function LiveTicker() {
+  return (
+    <div style={{
+      background: "linear-gradient(90deg, #0D1526 0%, #111B30 50%, #0D1526 100%)",
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+      padding: "12px 0",
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+      position: "relative",
+    }}>
+      {/* Left fade */}
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(90deg, #0D1526 0%, transparent 100%)", zIndex: 2 }} />
+      {/* Right fade */}
+      <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(270deg, #0D1526 0%, transparent 100%)", zIndex: 2 }} />
+
+      <div style={{
+        display: "inline-flex",
+        gap: 12,
+        animation: "ticker-scroll 50s linear infinite",
+        paddingLeft: "100%",
+      }}>
+        {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+          <span key={i} style={{
+            fontSize: 13,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            fontWeight: 500,
+            color: "rgba(255,255,255,0.7)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            flexShrink: 0,
+            cursor: "pointer",
+            padding: "4px 8px",
+            borderRadius: 4,
+            transition: "background 0.15s",
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <span style={{ fontSize: 15 }}>{item.icon}</span>
+            <span style={{ color: item.color, fontWeight: 600 }}>{item.text}</span>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>{item.time}</span>
+            <span style={{ color: "rgba(255,255,255,0.08)", fontSize: 16, margin: "0 4px", fontWeight: 300 }}>|</span>
+          </span>
+        ))}
+      </div>
+      <style>{`
+        @keyframes ticker-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 const ROLE_COLORS = { super_admin: "#FF6B6B", home_office: "#E05050", CP: "#00E6A8", RVP: C.gold, agent: C.blue, agency: "#A78BFA" };
 const GROUP_LABELS = { core: null, operations: "OPERATIONS", reports: "REPORTS", admin: "ADMIN" };
 
 function PortalInner() {
   const [axisOpen, setAxisOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isIframePage = location.pathname.includes('/portal/rin/');
   const { liveContext, addSession, userRole, setUserRole, permissions, rinIdentity } = useAxisContext();
-  // Filter: show item if role has the module OR the legacy page
-  const navItems = ALL_NAV_ITEMS.filter(item =>
-    (item.module && permissions.modules?.includes(item.module)) ||
-    permissions.pages?.includes(item.page)
-  ).map(item => ({
-    ...item,
-    label: item.altLabels?.[userRole] || item.label,
-  }));
+
+  // User display info from localStorage
+  const crUserRaw = localStorage.getItem("cr_user");
+  let displayName = "";
+  try { const u = JSON.parse(crUserRaw || "{}"); displayName = u.display_name || u.email || ""; } catch {}
+
+  function handleLogout() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("cr_role");
+    localStorage.removeItem("cr_user");
+    localStorage.removeItem("rin-readonly-mode");
+    navigate("/login", { replace: true });
+  }
+
+  // Phase 5: role-based nav from roleNav.js
+  const navGroups = getNavForRole(userRole);
 
   return (
     <div className="portal-root" style={{ display: "flex", minHeight: "100vh", background: "#070D18", fontFamily: "'Courier New', monospace" }}>
@@ -103,46 +145,51 @@ function PortalInner() {
           </div>
         </div>
 
-        {/* Nav Items */}
-        <div style={{ padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto", flex: 1 }}>
-          {navItems.map((item, i) => {
-            const prevGroup = i > 0 ? navItems[i - 1].group : null;
-            const showDivider = item.group !== prevGroup && GROUP_LABELS[item.group];
-            return (<div key={item.to}>
-              {showDivider && (
+        {/* Nav Items — Phase 5 role-based */}
+        <div style={{ padding: "16px 12px", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", flex: 1 }}>
+          {navGroups.map((group, gi) => (
+            <div key={gi}>
+              {group.group && (
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 2, fontWeight: 700, padding: "12px 16px 4px", fontFamily: "'Courier New', monospace" }}>
-                  {GROUP_LABELS[item.group]}
+                  {group.group}
                 </div>
               )}
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              style={({ isActive }) => ({
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "13px 16px",
-                borderRadius: "0 8px 8px 0",
-                textDecoration: "none",
-                fontSize: isActive ? 16 : 15,
-                fontWeight: isActive ? 700 : 600,
-                letterSpacing: 0.5,
-                color: isActive ? "#FFFFFF" : C.muted,
-                background: isActive ? "rgba(0,230,168,0.08)" : "transparent",
-                borderLeft: isActive ? "3px solid #00E6A8" : "3px solid transparent",
-                borderTop: "0px solid transparent", borderBottom: "0px solid transparent", borderRight: "0px solid transparent",
-                boxShadow: isActive ? "0 0 20px rgba(0,230,168,0.12), inset 0 0 20px rgba(0,230,168,0.04)" : "none",
-                transition: "all 0.2s ease",
-                cursor: "pointer",
-                fontFamily: "'Courier New', monospace",
-              })}
-            >
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
-              {item.label}
-            </NavLink>
-            </div>);
-          })}
+              {group.items.map(item => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  style={({ isActive }) => ({
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 16px",
+                    borderRadius: "0 8px 8px 0",
+                    textDecoration: "none",
+                    fontSize: isActive ? 15 : 14,
+                    fontWeight: isActive ? 700 : 500,
+                    letterSpacing: 0.5,
+                    color: isActive ? "#FFFFFF" : C.muted,
+                    background: isActive ? "rgba(0,230,168,0.08)" : "transparent",
+                    borderLeft: isActive ? "3px solid #00E6A8" : "3px solid transparent",
+                    borderTop: "0px solid transparent", borderBottom: "0px solid transparent", borderRight: "0px solid transparent",
+                    boxShadow: isActive ? "0 0 20px rgba(0,230,168,0.12), inset 0 0 20px rgba(0,230,168,0.04)" : "none",
+                    transition: "all 0.2s ease",
+                    cursor: "pointer",
+                    fontFamily: "'Courier New', monospace",
+                  })}
+                >
+                  <span style={{ fontSize: 16 }}>{item.icon}</span>
+                  <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+                    <span>{item.label}</span>
+                    {item.sub && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 0.5, fontWeight: 500 }}>{item.sub}</span>}
+                  </span>
+                  {item.readonly && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", marginLeft: "auto", letterSpacing: 1, fontWeight: 700 }}>VIEW</span>}
+                  {item.comingSoon && <span style={{ fontSize: 8, color: "#A855F7", marginLeft: "auto", letterSpacing: 1, fontWeight: 700 }}>SOON</span>}
+                </NavLink>
+              ))}
+            </div>
+          ))}
 
           {/* Divider */}
           <div style={{ height: 1, background: C.border, margin: "8px 4px" }} />
@@ -177,9 +224,9 @@ function PortalInner() {
               fontFamily: "'Courier New', monospace",
               letterSpacing: 0.5, flexShrink: 0,
             }}>
-              AX
+              C
             </span>
-            AXIS Coach
+            Coach
           </button>
         </div>
 
@@ -216,11 +263,34 @@ function PortalInner() {
               </div>
             </div>
           )}
-          <div style={{ padding: "10px 20px" }}>
-            <div style={{ fontSize: 12, color: C.muted, letterSpacing: 0.5, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500 }}>
-              v1.0 — CLAIMRUSH
+          {/* User badge + logout */}
+          {displayName && (
+            <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'Courier New', monospace", fontWeight: 500, marginBottom: 2 }}>
+                {displayName}
+              </div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'Courier New', monospace", letterSpacing: 1, textTransform: "uppercase" }}>
+                {userRole}
+              </div>
             </div>
-          </div>
+          )}
+          <button
+            onClick={handleLogout}
+            style={{
+              display: "flex", alignItems: "center", gap: 10,
+              width: "100%", padding: "10px 16px",
+              background: "transparent", border: "none", borderTop: `1px solid ${C.border}`,
+              color: "rgba(255,255,255,0.4)", fontSize: 13, fontWeight: 500,
+              cursor: "pointer", fontFamily: "'Courier New', monospace",
+              transition: "color 0.15s",
+              textAlign: "left",
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "rgba(255,255,255,0.7)"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.4)"}
+          >
+            <span style={{ fontSize: 15 }}>{"\u{1F6AA}"}</span>
+            Log out
+          </button>
         </div>
       </nav>
 
@@ -228,18 +298,23 @@ function PortalInner() {
       <main style={{
         flex: 1,
         marginLeft: 240,
-        padding: "36px 48px",
         minHeight: "100vh",
         overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
       }}>
-        <Outlet />
+        {/* Live ticker bar */}
+        <LiveTicker />
+        <div style={{ padding: "36px 48px", flex: 1 }}>
+          <Outlet />
+        </div>
       </main>
 
-      {/* AXIS Live Overlay — above floating button */}
-      {!axisOpen && <AxisLiveOverlay context={liveContext} onSessionEnd={addSession} />}
+      {/* Coach Live Overlay — hidden on iframe pages to avoid duplication */}
+      {!axisOpen && !isIframePage && <AxisLiveOverlay context={liveContext} onSessionEnd={addSession} />}
 
-      {/* Floating AXIS Button */}
-      {!axisOpen && (
+      {/* Floating Coach Button — hidden on iframe pages */}
+      {!axisOpen && !isIframePage && (
         <button
           onClick={() => setAxisOpen(true)}
           style={{

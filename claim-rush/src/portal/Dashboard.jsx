@@ -124,56 +124,125 @@ function EarningsPanel({ role }) {
   );
 }
 
-// ── AGENT DASHBOARD ─────────────────────────────────────────────────────────
+// ── AGENT DASHBOARD (Phase 4: wired to real backend data) ──────────────────
 
 function AgentDash({ navigate }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
+    fetch("/v1/dashboard/agent-summary", {
+      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
+    })
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setError(e.message); setLoading(false); });
+  }, []);
+
+  if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
+  if (error) return <div style={{ color: "#E05050", ...mono, padding: 40 }}>Failed to load dashboard: {error}</div>;
+
+  const d = data;
+  const fmtCurrency = (v) => v > 0 ? `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "$0";
+
+  // Build reporting chain string
+  const chain = [
+    d.reporting_rvp ? `RVP ${d.reporting_rvp.name}` : null,
+    d.reporting_cp ? `CP ${d.reporting_cp.name}` : null,
+  ].filter(Boolean).join(" → ");
+
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <KPI label="New Leads" value="5" color={C.blue} />
-        <KPI label="Follow-Ups Due" value="3" color={C.gold} alert />
-        <KPI label="Earnings This Week" value="$1,420" color="#00E6A8" />
-        <KPI label="Pending Payouts" value="$948" color={C.gold} />
+      {/* Identity header */}
+      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(42,112,208,0.08) 0%, rgba(42,112,208,0.02) 100%)", border: "1px solid rgba(42,112,208,0.18)", borderRadius: 12 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.blue, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", textShadow: "0 0 20px rgba(42,112,208,0.3)" }}>
+          LICENSED AGENT
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6, fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: 0.5, lineHeight: 1.2, marginTop: 10 }}>
+          {d.user.name || d.user.email}
+        </div>
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
+          {d.primary_territory.name ? `${d.primary_territory.name} Territory` : "No territory assigned"}
+          {chain && <span style={{ color: "rgba(255,255,255,0.35)", marginLeft: 10 }}>— {chain}</span>}
+        </div>
       </div>
+
+      {/* Page subtitle */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+          My Dashboard
+        </h2>
+      </div>
+
+      {/* KPI row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        <KPI label="My Leads" value={String(d.leads.total)} color={C.blue} />
+        <KPI label="Claims In Flight" value={String(d.claims.total)} color={C.gold} />
+        <KPI label="Revenue (MTD)" value={fmtCurrency(d.claims.mtd_revenue)} color="#00E6A8" />
+        <KPI label="MTD Claims" value={String(d.claims.mtd_count)} color="#FFFFFF" />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Attention items */}
           <Panel title="WHAT NEEDS ATTENTION TODAY" color="#E05050">
-            <AttentionItem severity="high" text="3 leads need follow-up" sub="Outreach sent 24+ hrs ago, no response" />
-            <AttentionItem severity="high" text="1 agreement awaiting signature" sub="Park WTP Platinum — sent yesterday" />
-            <AttentionItem severity="medium" text="2 new leads assigned" sub="Wildfire Alert — FL" />
-            <AttentionItem severity="info" text="$948 payout available April 1" />
-          </Panel>
-          <Panel title="MY LEAD QUEUE" color="#00E6A8" action="VIEW ALL →" onAction={() => navigate("/portal/fire-leads")}>
-            {[
-              { name: "James Whitfield", detail: "Roof & Exterior · FL", action: "START OUTREACH", color: "#00E6A8" },
-              { name: "Lisa Tran", detail: "Smoke & Ash · AZ · 96%", action: "SEND AGREEMENT", color: "#00E6A8" },
-              { name: "Kevin Park", detail: "Roof & Windows · CO", action: "FOLLOW UP", color: C.gold },
-              { name: "Natasha Williams", detail: "Flooding · LA", action: "IN FOLLOW-UP", color: PURPLE },
-            ].map(l => (
-              <div key={l.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: "pointer" }} onClick={() => navigate("/portal/fire-leads")}>
-                <div>
-                  <div style={{ fontSize: 13, color: "#FFFFFF", ...mono, fontWeight: 600 }}>{l.name}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", ...mono }}>{l.detail}</div>
-                </div>
-                <span style={{ padding: "3px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, ...mono, background: `${l.color}12`, border: `1px solid ${l.color}30`, color: l.color }}>{l.action}</span>
-              </div>
+            {d.attention.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>Nothing needs attention right now.</div>
+            )}
+            {d.attention.map((a, i) => (
+              <AttentionItem key={i} severity={a.severity} text={a.text} sub={a.sub} />
             ))}
+          </Panel>
+
+          {/* Lead pipeline */}
+          <Panel title="MY LEAD PIPELINE" color="#00E6A8" action={d.leads.total > 0 ? "VIEW ALL →" : undefined} onAction={() => navigate("/portal/fire-leads")}>
+            {d.leads.pipeline.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in pipeline yet.</div>
+            )}
+            {d.leads.pipeline
+              .sort((a, b) => b.count - a.count)
+              .map((p, i) => (
+                <EarningsRow key={i} label={p.status} value={String(p.count)} />
+              ))}
           </Panel>
         </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <EarningsPanel role="agent" />
-          <Panel title="RECENT ACTIVITY" color="rgba(255,255,255,0.45)">
-            {[
-              { time: "2 hrs ago", text: "Whitfield Roof Claim closed — $710" },
-              { time: "5 hrs ago", text: "Outreach sent to Derek Okafor" },
-              { time: "Yesterday", text: "Park WTP Platinum agreement sent" },
-              { time: "Yesterday", text: "Santos Multi-Unit claim filed" },
-            ].map((a, i) => (
-              <div key={i} style={{ padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", ...mono }}>{a.time}</div>
-                <div style={{ fontSize: 13, color: "#FFFFFF", ...mono, fontWeight: 500, marginTop: 1 }}>{a.text}</div>
-              </div>
+          {/* Claims by phase */}
+          <Panel title="MY CLAIMS" color={C.gold}>
+            {d.claims.by_phase.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No claims filed yet.</div>
+            )}
+            {d.claims.by_phase
+              .sort((a, b) => b.count - a.count)
+              .map((p, i) => (
+                <EarningsRow key={i} label={p.phase} value={String(p.count)} />
+              ))}
+            {d.claims.total > 0 && (
+              <EarningsRow label="MTD Revenue" value={fmtCurrency(d.claims.mtd_revenue)} color="#00E6A8" />
+            )}
+          </Panel>
+
+          {/* Territory info */}
+          <Panel title="MY TERRITORY" color="#00E6A8">
+            {d.territories.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No territory assigned.</div>
+            )}
+            {d.territories.map(t => (
+              <EarningsRow key={t.id} label={t.name} value={t.state} />
             ))}
+            {d.reporting_rvp && (
+              <div style={{ marginTop: 10, padding: "8px 0", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", ...mono, letterSpacing: 0.5 }}>REPORTING TO</div>
+                <div style={{ fontSize: 13, color: "#FFFFFF", ...mono, fontWeight: 500, marginTop: 4 }}>
+                  RVP {d.reporting_rvp.name}
+                  {d.reporting_cp && <span style={{ color: "rgba(255,255,255,0.45)" }}> → CP {d.reporting_cp.name}</span>}
+                </div>
+              </div>
+            )}
           </Panel>
         </div>
       </div>
@@ -181,100 +250,287 @@ function AgentDash({ navigate }) {
   );
 }
 
-// ── RVP DASHBOARD ───────────────────────────────────────────────────────────
+// ── RVP DASHBOARD (Phase 3: wired to real backend data) ────────────────────
 
 function RVPDash({ navigate }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
+    fetch("/v1/dashboard/rvp-summary", {
+      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
+    })
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setError(e.message); setLoading(false); });
+  }, []);
+
+  if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
+  if (error) return <div style={{ color: "#E05050", ...mono, padding: 40 }}>Failed to load dashboard: {error}</div>;
+
+  const d = data;
+  const fmtCurrency = (v) => v > 0 ? `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "$0";
+
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <KPI label="Active Agents" value="6" color="#00E6A8" />
-        <KPI label="Team Leads" value="24" color={C.blue} />
-        <KPI label="Override Earnings" value="$920" color={PURPLE} />
-        <KPI label="Pending Payouts" value="$760" color={C.gold} />
+      {/* Identity header */}
+      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 12 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.gold, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", textShadow: "0 0 20px rgba(201,168,76,0.25)" }}>
+          REGIONAL VICE PRESIDENT
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6, fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: 0.5, lineHeight: 1.2, marginTop: 10 }}>
+          {d.user.name || d.user.email}
+        </div>
+        {d.reporting_cp ? (
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
+            {d.primary_territory.name} Territory — reporting to CP {d.reporting_cp.name}
+          </div>
+        ) : d.primary_territory.name ? (
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
+            {d.primary_territory.name} Territory
+          </div>
+        ) : (
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
+            No territory assigned
+          </div>
+        )}
       </div>
+
+      {/* Page subtitle */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+          Team Command Center
+        </h2>
+      </div>
+
+      {/* KPI row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        <KPI label="Active Agents" value={String(d.agent_count)} color="#00E6A8" />
+        <KPI label="Team Leads" value={String(d.team_lead_total)} color={C.blue} />
+        <KPI label="Own Revenue (MTD)" value={fmtCurrency(d.own_book.revenue_mtd)} color="#FFFFFF" />
+        <KPI label="Own Leads" value={String(d.own_book.total_leads)} color={C.gold} />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Attention items */}
           <Panel title="WHAT NEEDS ATTENTION TODAY" color="#E05050">
-            <AttentionItem severity="high" text="David Kim — payment failed" sub="Card declined, needs update" />
-            <AttentionItem severity="high" text="2 agents below quota this week" sub="David Kim, Tanya Brooks" />
-            <AttentionItem severity="medium" text="1 agent in onboarding" sub="Jamal Foster — Day 3" />
-            <AttentionItem severity="info" text="Team production up +12% this week" />
+            {d.attention.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>Nothing needs attention right now.</div>
+            )}
+            {d.attention.map((a, i) => (
+              <AttentionItem key={i} severity={a.severity} text={a.text} sub={a.sub} />
+            ))}
           </Panel>
-          <Panel title="TEAM PERFORMANCE" color="#00E6A8">
-            {[
-              { name: "Priya Sharma", prod: "$4,200", status: "Top producer" },
-              { name: "Alex Chen", prod: "$3,800", status: "Strong" },
-              { name: "Carlos Vega", prod: "$3,100", status: "Growing" },
-              { name: "Rachel Torres", prod: "$2,400", status: "On track" },
-              { name: "David Kim", prod: "$1,200", status: "Needs coaching", alert: true },
-            ].map(a => (
-              <div key={a.name} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+
+          {/* Agent roster (read-only) */}
+          <Panel title="AGENT ROSTER" color="#00E6A8">
+            {d.agents.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No agents in your territory yet.</div>
+            )}
+            {d.agents.map(a => (
+              <div key={a.user_id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <div>
                   <div style={{ fontSize: 13, color: "#FFFFFF", ...mono, fontWeight: 600 }}>{a.name}</div>
-                  <div style={{ fontSize: 11, color: a.alert ? "#E05050" : "rgba(255,255,255,0.45)", ...mono }}>{a.status}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", ...mono }}>{a.territory} — {a.lead_count} lead{a.lead_count !== 1 ? "s" : ""}</div>
                 </div>
-                <span style={{ fontSize: 13, color: "#00E6A8", ...mono, fontWeight: 700 }}>{a.prod}</span>
+                <span style={{
+                  padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, ...mono,
+                  background: a.is_accepting_leads ? "rgba(0,230,168,0.1)" : "rgba(224,80,80,0.1)",
+                  border: `1px solid ${a.is_accepting_leads ? "rgba(0,230,168,0.3)" : "rgba(224,80,80,0.3)"}`,
+                  color: a.is_accepting_leads ? "#00E6A8" : "#E05050",
+                }}>
+                  {a.is_accepting_leads ? "ACTIVE" : "PAUSED"}
+                </span>
+              </div>
+            ))}
+            {d.agents.length > 0 && (
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", ...mono, marginTop: 8, fontStyle: "italic" }}>
+                Read-only view — agent data managed by each agent
+              </div>
+            )}
+          </Panel>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Own book pipeline */}
+          <Panel title="MY LEAD PIPELINE" color={C.gold}>
+            {d.own_book.pipeline.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in your personal pipeline yet.</div>
+            )}
+            {d.own_book.pipeline
+              .sort((a, b) => b.count - a.count)
+              .map((p, i) => (
+                <EarningsRow key={i} label={p.status} value={String(p.count)} />
+              ))}
+          </Panel>
+
+          {/* Territory info */}
+          <Panel title="TERRITORY" color="#00E6A8">
+            {d.territories.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No territory assignments.</div>
+            )}
+            {d.territories.map(t => (
+              <div key={t.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <span style={{ fontSize: 13, color: "#FFFFFF", ...mono, fontWeight: 600 }}>{t.name}</span>
+                <span style={{ fontSize: 13, color: C.gold, ...mono, fontWeight: 700 }}>{t.state}</span>
               </div>
             ))}
           </Panel>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <Panel title="AGENTS NEEDING HELP" color="#E05050">
-            <AttentionItem severity="high" text="David Kim — low production" sub="$1,200 this month · below $2k target" />
-            <AttentionItem severity="medium" text="Tanya Brooks — billing issue" sub="Suspended account · $1,500 outstanding" />
-            <AttentionItem severity="info" text="Jamal Foster — new (trial)" sub="Onboarding Day 3 · no production yet" />
-          </Panel>
-          <EarningsPanel role="RVP" />
         </div>
       </div>
     </>
   );
 }
 
-// ── CP DASHBOARD ────────────────────────────────────────────────────────────
+// ── CP DASHBOARD (Phase 2: wired to real backend data) ─────────────────────
 
-function CPDash({ territory, navigate }) {
+function CPDash({ navigate }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
+    fetch("/v1/dashboard/cp-summary", {
+      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
+    })
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { setError(e.message); setLoading(false); });
+  }, []);
+
+  if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
+  if (error) return <div style={{ color: "#E05050", ...mono, padding: 40 }}>Failed to load dashboard: {error}</div>;
+
+  const d = data;
+  const fmtCurrency = (v) => v > 0 ? `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : "$0";
+  const hasTerritories = d.territories.length > 0;
+
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <KPI label="Territory Revenue" value="$42,400" color="#FFFFFF" />
-        <KPI label="Active RVPs" value="3" color={C.gold} />
-        <KPI label="Active Agents" value="14" color="#00E6A8" />
-        <KPI label="Pending Payouts" value="$1,465" color={C.gold} />
+      {/* Identity header — visual anchor */}
+      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
+          <div style={{
+            fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.gold,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            textShadow: "0 0 20px rgba(201,168,76,0.25)",
+          }}>
+            CHAPTER PRESIDENT
+          </div>
+        </div>
+        <div style={{
+          fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6,
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          letterSpacing: 0.5, lineHeight: 1.2,
+        }}>
+          {d.user.name || d.user.email}
+        </div>
+        {d.primary_territory.name ? (
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
+            {d.primary_territory.name} Territory
+            {d.territories.length > 1 && (
+              <span style={{ color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>+{d.territories.length - 1} more</span>
+            )}
+          </div>
+        ) : (
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
+            No territory assigned
+          </div>
+        )}
       </div>
+
+      {/* Page subtitle */}
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+          Territory Command Center
+        </h2>
+      </div>
+
+      {/* KPI row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        <KPI label="Territory Revenue (MTD)" value={fmtCurrency(d.revenue.mtd_total)} color="#FFFFFF" />
+        <KPI label="Active RVPs" value={String(d.downline.rvp_count)} color={C.gold} />
+        <KPI label="Active Agents" value={String(d.downline.agent_count)} color="#00E6A8" />
+        <KPI label="Total Leads" value={String(d.total_leads)} color={C.blue} />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Attention items */}
           <Panel title="WHAT NEEDS ATTENTION TODAY" color="#E05050">
-            <AttentionItem severity="high" text="James Obi — $1,000 past due" sub="RVP · TX territory · 32 days" />
-            <AttentionItem severity="medium" text="TX territory nearing capacity" sub="3/3 agents per RVP · consider expansion" />
-            <AttentionItem severity="medium" text="GA territory — low agent count" sub="1 RVP, 4 agents · below density target" />
-            <AttentionItem severity="info" text="Territory growth +16% this month" />
+            {d.attention.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>Nothing needs attention right now.</div>
+            )}
+            {d.attention.map((a, i) => (
+              <AttentionItem key={i} severity={a.severity} text={a.text} sub={a.sub} />
+            ))}
           </Panel>
+
+          {/* Territory snapshot */}
           <Panel title="TERRITORY SNAPSHOT" color="#00E6A8">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {[
-                { label: "Primary", value: territory.primaryState, color: "#00E6A8" },
-                { label: "Expansion", value: territory.expansionStates.join(", ") || "None", color: C.gold },
-                { label: "Licensing Rev", value: "$18,400", color: PURPLE },
-                { label: "Production Rev", value: "$24,000", color: "#00E6A8" },
-                { label: "Growth Rate", value: "+16%", color: "#00E6A8" },
-                { label: "Health Score", value: "88%", color: "#00E6A8" },
-              ].map(s => (
-                <div key={s.label} style={{ padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>{s.label}</div>
-                  <div style={{ fontSize: 15, color: s.color, ...mono, fontWeight: 700, marginTop: 2 }}>{s.value}</div>
+            {!hasTerritories && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No territories assigned yet.</div>
+            )}
+            {hasTerritories && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>Territories</div>
+                  <div style={{ fontSize: 15, color: "#00E6A8", ...mono, fontWeight: 700, marginTop: 2 }}>{d.territories.length}</div>
                 </div>
-              ))}
-            </div>
+                <div style={{ padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>States</div>
+                  <div style={{ fontSize: 15, color: C.gold, ...mono, fontWeight: 700, marginTop: 2 }}>
+                    {[...new Set(d.territories.map(t => t.state).filter(Boolean))].join(", ") || "—"}
+                  </div>
+                </div>
+                <div style={{ padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>MTD Revenue</div>
+                  <div style={{ fontSize: 15, color: "#00E6A8", ...mono, fontWeight: 700, marginTop: 2 }}>{fmtCurrency(d.revenue.mtd_total)}</div>
+                </div>
+                <div style={{ padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>MTD Claims</div>
+                  <div style={{ fontSize: 15, color: "#FFFFFF", ...mono, fontWeight: 700, marginTop: 2 }}>{d.revenue.mtd_claim_count}</div>
+                </div>
+              </div>
+            )}
           </Panel>
         </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Growth gaps */}
           <Panel title="GROWTH GAPS" color={C.gold}>
-            <AttentionItem severity="high" text="GA needs more agents" sub="4 agents · target 8 · recruit 4 more" />
-            <AttentionItem severity="medium" text="No new RVPs this quarter" sub="Pipeline: 1 prospect in LA" />
-            <AttentionItem severity="info" text="TX at capacity" sub="Consider opening adjacent state" />
+            {d.growth_gaps.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>
+                {hasTerritories ? "All territories are at capacity." : "No territories to analyze."}
+              </div>
+            )}
+            {d.growth_gaps.map((g, i) => (
+              <AttentionItem
+                key={i}
+                severity={g.needed >= 3 ? "high" : "medium"}
+                text={`${g.territory} needs ${g.needed} more agent${g.needed > 1 ? "s" : ""}`}
+                sub={`${g.current_agents}/${g.max_agents} slots filled`}
+              />
+            ))}
           </Panel>
-          <EarningsPanel role="CP" />
+
+          {/* Lead pipeline */}
+          <Panel title="LEAD PIPELINE" color={C.blue}>
+            {d.lead_pipeline.length === 0 && (
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in pipeline yet.</div>
+            )}
+            {d.lead_pipeline
+              .sort((a, b) => b.count - a.count)
+              .map((p, i) => (
+                <EarningsRow key={i} label={p.status} value={String(p.count)} />
+              ))}
+          </Panel>
         </div>
       </div>
     </>
@@ -369,17 +625,20 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: 1100, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>{t.title}</h1>
-        <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>{t.sub}</p>
-      </div>
+      {/* Page header — hidden for CP/RVP/agent (identity header replaces it) */}
+      {userRole !== "CP" && userRole !== "RVP" && userRole !== "agent" && (
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>{t.title}</h1>
+          <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>{t.sub}</p>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         {[
-          { label: "🔥 Launch Caller", to: "/portal/fire-leads", color: "#00E6A8" },
-          { label: "📋 Start Intake", to: "/portal/protection-plans", color: "#3B82F6" },
-          { label: "📐 Estimator", to: "/portal/earnings", color: C.gold },
+          { label: "🔥 Find Leads", to: "/portal/rin/fire-leads", color: "#00E6A8" },
+          { label: "📞 Call with Marcus", to: "/portal/rin/marcus", color: "#3B82F6" },
+          { label: "✍️ Sign Client", to: "/portal/rin/sign", color: C.gold },
         ].map(a => (
           <button
             key={a.to}
@@ -399,7 +658,7 @@ export default function Dashboard() {
 
       {userRole === "agent" && <AgentDash navigate={navigate} />}
       {userRole === "RVP" && <RVPDash navigate={navigate} />}
-      {userRole === "CP" && <CPDash territory={territory} navigate={navigate} />}
+      {userRole === "CP" && <CPDash navigate={navigate} />}
       {userRole === "home_office" && <HomeOfficeDash navigate={navigate} />}
     </div>
   );
