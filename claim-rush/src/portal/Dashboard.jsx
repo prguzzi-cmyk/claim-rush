@@ -533,7 +533,164 @@ function CPDash({ navigate }) {
           </Panel>
         </div>
       </div>
+
+      {/* Phase 12: Growth Path panel */}
+      <GrowthPathPanel />
     </>
+  );
+}
+
+// ── GROWTH PATH PANEL (CP only) ────────────────────────────────────────────
+
+function GrowthPathPanel() {
+  const [gp, setGp] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [expressing, setExpressing] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
+    fetch("/v1/cp/growth-path", {
+      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setGp(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  function expressInterest() {
+    setExpressing(true);
+    const token = localStorage.getItem("access_token");
+    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
+    fetch("/v1/cp/express-interest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(parsed ? { Authorization: `Bearer ${parsed}` } : {}) },
+    })
+      .then(r => r.json())
+      .then(() => {
+        setGp(prev => ({ ...prev, adjusting_track_status: "interested" }));
+        setShowModal(false);
+        setExpressing(false);
+      })
+      .catch(() => setExpressing(false));
+  }
+
+  if (loading || !gp) return null;
+  const status = gp.adjusting_track_status || "not_interested";
+
+  return (
+    <div style={{ marginTop: 24, padding: "24px", background: "linear-gradient(135deg, rgba(168,85,247,0.06) 0%, rgba(168,85,247,0.02) 100%)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12 }}>
+
+      {/* NOT INTERESTED */}
+      {status === "not_interested" && (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 22 }}>{"\u{1F4C8}"}</span>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", ...mono }}>Your Growth Path — Adjusting Track</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", ...mono }}>CPs with adjusting credentials earn +15% on every self-adjusted claim. Curious?</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+            {[
+              "+15% income boost on every self-adjusted claim",
+              "Per-claim choice — self-adjust or hand to ACI",
+              "ACI provides training, mentorship, and state licensing support",
+              "Progression visible in your dashboard",
+            ].map(item => (
+              <div key={item} style={{ display: "flex", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.7)", ...mono }}>
+                <span style={{ color: "#A855F7" }}>{"\u2713"}</span> {item}
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setShowModal(true)} style={{
+            padding: "10px 24px", background: "rgba(168,85,247,0.15)", border: "1px solid rgba(168,85,247,0.4)",
+            borderRadius: 6, color: "#A855F7", fontSize: 13, fontWeight: 700, cursor: "pointer", ...mono,
+          }}>
+            Explore Adjusting Track
+          </button>
+
+          {/* Modal */}
+          {showModal && (
+            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+              <div style={{ background: "#131A2E", border: "1px solid #1F2742", borderRadius: 10, padding: 28, width: 460 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", ...mono, marginBottom: 16 }}>Hybrid CP Adjusting Track</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, marginBottom: 20 }}>
+                  As a Hybrid CP, you'll earn a <strong style={{ color: "#A855F7" }}>+15% income boost</strong> on every claim you self-adjust. You choose per claim — self-adjust for more income, or hand to ACI's expert team.
+                  <br /><br />
+                  ACI provides full support: licensing guidance, training curriculum, exam prep, and ongoing mentorship. Your growth path is tracked in your dashboard.
+                </div>
+                <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                  <button onClick={() => setShowModal(false)} style={{ padding: "8px 16px", background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, color: "#fff", cursor: "pointer", ...mono }}>Maybe Later</button>
+                  <button onClick={expressInterest} disabled={expressing} style={{
+                    padding: "8px 20px", background: "#A855F7", border: "none", borderRadius: 6, color: "#fff",
+                    fontSize: 13, fontWeight: 700, cursor: "pointer", ...mono,
+                  }}>
+                    {expressing ? "Submitting..." : "Express Interest"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* INTERESTED */}
+      {status === "interested" && (
+        <>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#A855F7", ...mono, marginBottom: 8 }}>{"\u{1F4CB}"} Growth Path — Interest Registered</div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", ...mono, marginBottom: 16 }}>
+            Your interest is logged. An ACI Adjusting Development coach will reach out within 48 hours.
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {["Initial consultation call", "State licensing assessment", "Course enrollment (if needed)", "Adjuster exam preparation", "State exam", "Active license on file"].map((step, i) => (
+              <div key={step} style={{ display: "flex", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.5)", ...mono }}>
+                <span style={{ color: "rgba(255,255,255,0.2)" }}>{"\u25CB"}</span> {step}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: "rgba(255,255,255,0.35)", ...mono }}>
+            Questions? Email adjuster-track@aciadjustment.com
+          </div>
+        </>
+      )}
+
+      {/* IN PROGRESS */}
+      {status === "in_progress" && (
+        <>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#A855F7", ...mono, marginBottom: 12 }}>{"\u{1F680}"} Growth Path — In Progress</div>
+          {gp.licenses.length > 0 ? gp.licenses.map(lic => (
+            <div key={lic.id} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 13 }}>
+              <span style={{ color: "#fff", ...mono, fontWeight: 600 }}>{lic.state_code}</span>
+              <span style={{ color: lic.status === "active" ? "#00E6A8" : "#C9A84C", ...mono }}>{lic.status}</span>
+            </div>
+          )) : (
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", ...mono }}>License pipeline setup in progress...</div>
+          )}
+        </>
+      )}
+
+      {/* QUALIFIED (Hybrid CP) */}
+      {status === "qualified" && (
+        <>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#00E6A8", ...mono, marginBottom: 12 }}>{"\u{1F451}"} Hybrid Chapter President — Active</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+            {gp.licenses.filter(l => l.status === "active").map(lic => (
+              <span key={lic.id} style={{
+                padding: "4px 12px", background: "rgba(0,230,168,0.1)", border: "1px solid rgba(0,230,168,0.3)",
+                borderRadius: 20, fontSize: 12, color: "#00E6A8", ...mono, fontWeight: 600,
+              }}>
+                {lic.state_code} — Active until {lic.expiry_date || "N/A"}
+              </span>
+            ))}
+          </div>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", ...mono }}>
+            +{gp.boost_percentage * 100}% income boost available on self-adjusted claims in licensed states.
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
