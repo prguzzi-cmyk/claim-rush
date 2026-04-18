@@ -6,6 +6,7 @@ import ClaimRushES from "./pages/ClaimRush_ES";
 import GetHelp from "./pages/GetHelp";
 import FileClaim from "./pages/FileClaim";
 import LeadsViewer from "./pages/LeadsViewer";
+import SitePreview from "./pages/SitePreview";
 import PortalLayout from "./portal/PortalLayout";
 import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
@@ -97,6 +98,7 @@ export default function App() {
       <Route path="/file-a-claim" element={<FileClaim />} />
       <Route path="/leads" element={<LeadsViewer />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/preview/:role/:slug" element={<SitePreview />} />
       {/* /dashboard redirects into the portal */}
       <Route path="/dashboard" element={<Navigate to="/portal" replace />} />
       <Route path="/portal" element={<RequireAuth><PortalLayout /></RequireAuth>}>
