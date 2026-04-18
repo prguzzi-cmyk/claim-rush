@@ -47,6 +47,9 @@ const items = {
 
   // ── EARNINGS ──
   commission:      { to: "/portal/rin/commission",       label: "Commission",          icon: "\u{1F4B5}", rinRoute: "/app/basic-commission-calculator" },
+
+  // ── SEMINARS ──
+  seminarTraining: { to: "/portal/seminar-training",     label: "Seminar Training",    icon: "\u{1F393}" },
 };
 
 
@@ -59,6 +62,7 @@ export const AGENT_NAV = [
   { group: "CLOSE", items: [items.signClient] },
   { group: "MY CLIENTS", items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
+  { group: "SEMINARS", items: [items.seminarTraining] },
 ];
 
 // ── RVP ─────────────────────────────────────────────────────────────────────
@@ -72,6 +76,7 @@ export const RVP_NAV = [
   { group: "MY TEAM", items: [items.agentPerf] },
   { group: "RECRUITING", items: [items.myRecruits] },
   { group: "PERFORMANCE", items: [items.commission] },
+  { group: "SEMINARS", items: [items.seminarTraining] },
 ];
 
 // ── CP ──────────────────────────────────────────────────────────────────────
@@ -85,6 +90,7 @@ export const CP_NAV = [
   { group: "MY TERRITORY", items: [items.agentPerf] },
   { group: "RECRUITING", items: [items.myRecruits] },
   { group: "PERFORMANCE", items: [items.commission] },
+  { group: "SEMINARS", items: [items.seminarTraining] },
 ];
 
 // ── HOME OFFICE ─────────────────────────────────────────────────────────────

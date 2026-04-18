@@ -11,6 +11,7 @@ import PortalLayout from "./portal/PortalLayout";
 import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
 import PitchMode from "./portal/PitchMode";
+import SeminarTraining from "./portal/SeminarTraining";
 import { useAxisContext } from "./portal/AxisContext";
 
 // Auth guard — redirects to /login if no JWT in localStorage.
@@ -107,6 +108,7 @@ export default function App() {
 
         {/* Native ClaimRush pages */}
         <Route path="pitch" element={<PitchMode />} />
+        <Route path="seminar-training" element={<SeminarTraining />} />
 
         {/* Phase 5+6: RIN iframe features — FIND/WORK LEADS */}
         <Route path="rin/fire-leads"    element={<IframeFeature rinRoute="/app/fire-leads" title="Fire Leads" />} />
