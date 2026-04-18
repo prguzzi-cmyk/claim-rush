@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C } from "./theme";
 import { useAxisContext } from "./AxisContext";
+import RetentionWidgets from "./RetentionWidgets";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 const PURPLE = "#A855F7";
@@ -246,6 +247,8 @@ function AgentDash({ navigate }) {
           </Panel>
         </div>
       </div>
+
+      <RetentionWidgets role="agent" />
     </>
   );
 }
@@ -382,6 +385,8 @@ function RVPDash({ navigate }) {
           </Panel>
         </div>
       </div>
+
+      <RetentionWidgets role="RVP" />
     </>
   );
 }
@@ -536,6 +541,8 @@ function CPDash({ navigate }) {
 
       {/* Phase 12: Growth Path panel */}
       <GrowthPathPanel />
+
+      <RetentionWidgets role="CP" />
     </>
   );
 }
