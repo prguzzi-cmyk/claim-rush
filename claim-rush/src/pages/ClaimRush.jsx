@@ -197,14 +197,43 @@ function Objection({ q, a }) {
 // ── APPLICATION FORM ──────────────────────────────────────────────────────────
 function ApplicationForm() {
   const [step, setStep] = useState(1);
-  const [data, setData] = useState({ name: "", email: "", phone: "", state: "", role: "", experience: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [data, setData] = useState({
+    first_name: "", last_name: "", email: "", phone: "",
+    tier: "cp", years_in_insurance: "", years_in_sales: "", current_role: "", current_income_range: "",
+    availability: "full_time", capital_ready: false, motivation: "", goals: "",
+    first_choice_state: "", second_choice_state: "", territory_reason: "", founding_cp_requested: false,
+  });
   const set = (k, v) => setData(d => ({ ...d, [k]: v }));
+  const inputStyle = { width: "100%", background: C.panel2, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", color: "#FFFFFF", fontSize: 15, fontFamily: "Georgia,serif", outline: "none", boxSizing: "border-box" };
+  const labelStyle = { color: "#FFFFFF", fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 6 };
+  const stepLabel = { color: "#FFFFFF", fontSize: 13, letterSpacing: 3, fontFamily: "'Courier New',monospace", marginBottom: 6 };
+  const btnGold = { background: C.gold, color: "#060810", fontWeight: 900, fontSize: 13, padding: "13px 0", borderRadius: 4, border: "none", cursor: "pointer", fontFamily: "'Courier New',monospace", letterSpacing: 2, marginTop: 6, width: "100%" };
+  const btnBack = { flex: 1, background: "transparent", color: "#FFFFFF", fontWeight: 700, fontSize: 12, padding: "13px 0", borderRadius: 4, border: `1px solid ${C.border}`, cursor: "pointer", fontFamily: "'Courier New',monospace" };
 
-  if (step === 3) return (
+  const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
+  const INCOME_RANGES = ["Under $50K", "$50K–$100K", "$100K–$150K", "$150K–$250K", "$250K+"];
+
+  async function handleSubmit() {
+    setSubmitting(true); setError("");
+    try {
+      const res = await fetch("/v1/applications", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, years_in_insurance: parseInt(data.years_in_insurance) || 0, years_in_sales: parseInt(data.years_in_sales) || 0 }),
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || `Error ${res.status}`); }
+      setStep(6);
+    } catch (e) { setError(e.message); }
+    setSubmitting(false);
+  }
+
+  // Success screen
+  if (step === 6) return (
     <div style={{ textAlign: "center", padding: "40px 20px" }}>
       <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
-      <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 22, fontFamily: "'Courier New',monospace", letterSpacing: 2, marginBottom: 12 }}>APPLICATION RECEIVED</div>
-      <div style={{ color: "#FFFFFF", fontSize: 14, fontFamily: "Georgia,serif", lineHeight: 1.7 }}>Your territory request is under review. A senior operator will contact you within 24 hours to discuss positioning and next steps.</div>
+      <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 20, fontFamily: "'Courier New',monospace", letterSpacing: 2, marginBottom: 12 }}>APPLICATION RECEIVED</div>
+      <div style={{ color: "#FFFFFF", fontSize: 14, fontFamily: "Georgia,serif", lineHeight: 1.7 }}>A senior team member will contact you within 48 hours to schedule an interview.</div>
       <div style={{ marginTop: 20, color: "#E03030", fontSize: 11, fontFamily: "'Courier New',monospace", letterSpacing: 2 }}>● YOUR TERRITORY IS BEING HELD PENDING REVIEW</div>
     </div>
   );
@@ -212,47 +241,112 @@ function ApplicationForm() {
   return (
     <div>
       <div style={{ display: "flex", gap: 0, marginBottom: 24 }}>
-        {[1, 2].map(s => (
-          <div key={s} style={{ flex: 1, height: 3, background: step >= s ? C.gold : C.border, transition: "all 0.3s" }} />
-        ))}
+        {[1,2,3,4,5].map(s => <div key={s} style={{ flex: 1, height: 3, background: step >= s ? C.gold : C.border, transition: "all 0.3s" }} />)}
       </div>
 
       {step === 1 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ color: "#FFFFFF", fontSize: 13, letterSpacing: 3, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>STEP 1 — IDENTIFICATION</div>
-          {[["Full Name", "name", "text"], ["Email Address", "email", "email"], ["Phone Number", "phone", "tel"]].map(([label, key, type]) => (
-            <div key={key}>
-              <div style={{ color: "#FFFFFF", fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>{label}</div>
-              <input type={type} value={data[key]} onChange={e => set(key, e.target.value)}
-                style={{ width: "100%", background: C.panel2, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", color: "#FFFFFF", fontSize: 15, fontFamily: "Georgia,serif", outline: "none", boxSizing: "border-box" }} />
-            </div>
-          ))}
-          <button onClick={() => setStep(2)} style={{ background: C.gold, color: "#060810", fontWeight: 900, fontSize: 13, padding: "13px 0", borderRadius: 4, border: "none", cursor: "pointer", fontFamily: "'Courier New',monospace", letterSpacing: 2, marginTop: 6 }}>CONTINUE →</button>
+          <div style={stepLabel}>STEP 1 — IDENTIFICATION</div>
+          <div><div style={labelStyle}>First Name</div><input style={inputStyle} value={data.first_name} onChange={e => set("first_name", e.target.value)} /></div>
+          <div><div style={labelStyle}>Last Name</div><input style={inputStyle} value={data.last_name} onChange={e => set("last_name", e.target.value)} /></div>
+          <div><div style={labelStyle}>Email</div><input type="email" style={inputStyle} value={data.email} onChange={e => set("email", e.target.value)} /></div>
+          <div><div style={labelStyle}>Phone</div><input type="tel" style={inputStyle} value={data.phone} onChange={e => set("phone", e.target.value)} /></div>
+          <button onClick={() => setStep(2)} disabled={!data.first_name || !data.email} style={btnGold}>CONTINUE →</button>
         </div>
       )}
 
       {step === 2 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ color: "#FFFFFF", fontSize: 13, letterSpacing: 3, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>STEP 2 — YOUR POSITION</div>
-          <div>
-            <div style={{ color: "#FFFFFF", fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>Target Territory (State)</div>
-            <input value={data.state} onChange={e => set("state", e.target.value)} placeholder="e.g. Florida, Texas, California"
-              style={{ width: "100%", background: C.panel2, border: `1px solid ${C.border}`, borderRadius: 4, padding: "10px 14px", color: "#FFFFFF", fontSize: 15, fontFamily: "Georgia,serif", outline: "none", boxSizing: "border-box" }} />
+          <div style={stepLabel}>STEP 2 — EXPERIENCE</div>
+          <div><div style={labelStyle}>Years in Insurance</div><input type="number" style={inputStyle} value={data.years_in_insurance} onChange={e => set("years_in_insurance", e.target.value)} /></div>
+          <div><div style={labelStyle}>Years in Sales</div><input type="number" style={inputStyle} value={data.years_in_sales} onChange={e => set("years_in_sales", e.target.value)} /></div>
+          <div><div style={labelStyle}>Current Role</div><input style={inputStyle} value={data.current_role} onChange={e => set("current_role", e.target.value)} placeholder="e.g. Insurance Agent, Claims Adjuster" /></div>
+          <div><div style={labelStyle}>Current Income Range</div>
+            <select style={{ ...inputStyle, appearance: "auto" }} value={data.current_income_range} onChange={e => set("current_income_range", e.target.value)}>
+              <option value="">Select...</option>
+              {INCOME_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
           </div>
-          <div>
-            <div style={{ color: "#FFFFFF", fontSize: 11, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>I Am Applying As</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {["Chapter President — I want to build a team", "Licensed Adjuster — I want to manage my own pipeline", "Agency Owner — I want enterprise deployment", "Exploring — I want more information"].map(opt => (
-                <div key={opt} onClick={() => set("role", opt)}
-                  style={{ background: data.role === opt ? `${C.gold}18` : C.panel2, border: `1px solid ${data.role === opt ? C.gold : C.border}`, borderRadius: 4, padding: "10px 14px", cursor: "pointer", color: data.role === opt ? C.gold : C.muted, fontSize: 12, fontFamily: "Georgia,serif", transition: "all 0.2s" }}>
-                  {opt}
-                </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setStep(1)} style={btnBack}>← BACK</button>
+            <button onClick={() => setStep(3)} style={{ ...btnGold, flex: 2 }}>CONTINUE →</button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={stepLabel}>STEP 3 — COMMITMENT</div>
+          <div><div style={labelStyle}>Availability</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[["full_time","Full-Time"],["part_time","Part-Time"]].map(([v,l]) => (
+                <div key={v} onClick={() => set("availability", v)} style={{ flex: 1, padding: "10px", textAlign: "center", background: data.availability === v ? `${C.gold}18` : C.panel2, border: `1px solid ${data.availability === v ? C.gold : C.border}`, borderRadius: 4, cursor: "pointer", color: data.availability === v ? C.gold : "#fff", fontSize: 13, fontFamily: "'Courier New',monospace" }}>{l}</div>
               ))}
             </div>
           </div>
+          <div onClick={() => set("capital_ready", !data.capital_ready)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "10px 14px", background: data.capital_ready ? `${C.gold}12` : C.panel2, border: `1px solid ${data.capital_ready ? C.gold : C.border}`, borderRadius: 4 }}>
+            <span style={{ fontSize: 18 }}>{data.capital_ready ? "☑" : "☐"}</span>
+            <span style={{ color: "#FFFFFF", fontSize: 13 }}>I am prepared to invest $100,000 entry + $2,000/month</span>
+          </div>
+          <div><div style={labelStyle}>Why do you want to build with ACI?</div><textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={data.motivation} onChange={e => set("motivation", e.target.value)} /></div>
+          <div><div style={labelStyle}>What are your goals for the first 12 months?</div><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={data.goals} onChange={e => set("goals", e.target.value)} /></div>
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={() => setStep(1)} style={{ flex: 1, background: "transparent", color: "#FFFFFF", fontWeight: 700, fontSize: 12, padding: "13px 0", borderRadius: 4, border: `1px solid ${C.border}`, cursor: "pointer", fontFamily: "'Courier New',monospace" }}>← BACK</button>
-            <button onClick={() => setStep(3)} style={{ flex: 2, background: C.red, color: "#fff", fontWeight: 900, fontSize: 13, padding: "13px 0", borderRadius: 4, border: "none", cursor: "pointer", fontFamily: "'Courier New',monospace", letterSpacing: 1.5 }}>SECURE MY TERRITORY</button>
+            <button onClick={() => setStep(2)} style={btnBack}>← BACK</button>
+            <button onClick={() => setStep(4)} style={{ ...btnGold, flex: 2 }}>CONTINUE →</button>
+          </div>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={stepLabel}>STEP 4 — TERRITORY</div>
+          <div><div style={labelStyle}>First Choice State</div>
+            <select style={{ ...inputStyle, appearance: "auto" }} value={data.first_choice_state} onChange={e => set("first_choice_state", e.target.value)}>
+              <option value="">Select state...</option>
+              {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div><div style={labelStyle}>Second Choice State</div>
+            <select style={{ ...inputStyle, appearance: "auto" }} value={data.second_choice_state} onChange={e => set("second_choice_state", e.target.value)}>
+              <option value="">Select state...</option>
+              {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div><div style={labelStyle}>Why these territories?</div><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={data.territory_reason} onChange={e => set("territory_reason", e.target.value)} /></div>
+          <div onClick={() => set("founding_cp_requested", !data.founding_cp_requested)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", padding: "10px 14px", background: data.founding_cp_requested ? `${C.gold}12` : C.panel2, border: `1px solid ${data.founding_cp_requested ? C.gold : C.border}`, borderRadius: 4 }}>
+            <span style={{ fontSize: 18 }}>{data.founding_cp_requested ? "☑" : "☐"}</span>
+            <span style={{ color: "#FFFFFF", fontSize: 13 }}>I want to apply as a Founding Chapter President (entry fee waived)</span>
+          </div>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setStep(3)} style={btnBack}>← BACK</button>
+            <button onClick={() => setStep(5)} style={{ ...btnGold, flex: 2 }}>REVIEW APPLICATION →</button>
+          </div>
+        </div>
+      )}
+
+      {step === 5 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={stepLabel}>STEP 5 — REVIEW & SUBMIT</div>
+          <div style={{ background: C.panel2, border: `1px solid ${C.border}`, borderRadius: 4, padding: "14px" }}>
+            {[
+              ["Name", `${data.first_name} ${data.last_name}`], ["Email", data.email], ["Phone", data.phone || "—"],
+              ["Experience", `${data.years_in_insurance || 0}yr insurance, ${data.years_in_sales || 0}yr sales`],
+              ["Current Role", data.current_role || "—"], ["Availability", data.availability],
+              ["Capital Ready", data.capital_ready ? "Yes" : "No"],
+              ["Territory", `${data.first_choice_state || "—"} / ${data.second_choice_state || "—"}`],
+              ["Founding CP", data.founding_cp_requested ? "Yes" : "No"],
+            ].map(([k,v]) => (
+              <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: `1px solid ${C.border}`, fontSize: 13 }}>
+                <span style={{ color: "#8A92A8" }}>{k}</span><span style={{ color: "#FFFFFF" }}>{v}</span>
+              </div>
+            ))}
+          </div>
+          {error && <div style={{ color: "#E05050", fontSize: 13, padding: "8px 12px", background: "rgba(224,80,80,0.1)", border: "1px solid rgba(224,80,80,0.3)", borderRadius: 4 }}>{error}</div>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setStep(4)} style={btnBack}>← BACK</button>
+            <button onClick={handleSubmit} disabled={submitting} style={{ ...btnGold, flex: 2, background: submitting ? "#333" : C.red, color: "#fff" }}>
+              {submitting ? "SUBMITTING..." : "SECURE MY TERRITORY"}
+            </button>
           </div>
         </div>
       )}
