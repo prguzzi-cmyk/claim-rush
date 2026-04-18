@@ -211,7 +211,11 @@ function Footer({ name, phone, email, territory, roleLabel, licenseStr }) {
           </div>
         </div>
       </div>
-      <div style={{ maxWidth: 1100, margin: "24px auto 0", paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
+      {/* Legal separation — mandatory on every CP/RVP/Agent site */}
+      <div style={{ maxWidth: 1100, margin: "20px auto 0", padding: "12px 0", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.7, textAlign: "center" }}>
+        {name} is an independent commercial operation affiliated with ACI Adjustment Group. Any references to community initiatives reflect personal volunteer engagement only. {name} does not receive, distribute, or administer nonprofit funds. ACI and Unified Public Advocacy are separate legal entities.
+      </div>
+      <div style={{ maxWidth: 1100, margin: "8px auto 0", paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center" }}>
         © 2026 ACI Adjustment Group™ · All Rights Reserved · Pax Equitas Network
       </div>
     </footer>
@@ -348,6 +352,19 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
               <div style={{ fontSize: 14, color: "#555", lineHeight: 1.6 }}>{w.text}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* COMMUNITY INVOLVEMENT (compliance-safe) */}
+      <section style={{ padding: "50px 40px", background: GRAY_BG }}>
+        <div style={{ maxWidth: 700, margin: "0 auto" }}>
+          <h2 style={{ ...hd, marginBottom: 16 }}>Community Involvement</h2>
+          <p style={{ fontSize: 15, color: "#555", lineHeight: 1.7, marginBottom: 16 }}>
+            Many members of our team personally volunteer in support of community-focused initiatives led by nonprofit organizations such as Unified Public Advocacy, which are developing programs to assist underserved homeowners. These are individual volunteer efforts and are separate from our commercial claims services.
+          </p>
+          <p style={{ fontSize: 15, color: "#555", lineHeight: 1.7 }}>
+            We believe in building stronger communities by supporting both homeowners and the next generation of skilled professionals involved in property recovery and restoration.
+          </p>
         </div>
       </section>
 

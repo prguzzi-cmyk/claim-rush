@@ -906,6 +906,24 @@ export default function ClaimRush({ lang, onSetLang }) {
         </div>
       </Section>
 
+      {/* ── COMMUNITY ALIGNMENT (compliance-safe) ── */}
+      <Section>
+        <div style={{ padding: "60px 40px", borderTop: `1px solid ${C.border}` }}>
+          <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
+            <div style={{ color: C.gold, fontSize: 10, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 16 }}>● MORE THAN JUST CLAIMS</div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#FFFFFF", fontFamily: "'Courier New',monospace", marginBottom: 16 }}>
+              A Model Built for <span style={{ color: C.gold }}>Real Impact</span>
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 15, lineHeight: 1.85, marginBottom: 20 }}>
+              ACI supports the mission of Unified Public Advocacy, a nonprofit organization currently developing programs focused on helping underserved homeowners and promoting workforce development in disaster recovery. Program availability may be limited by region as initiatives scale.
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, lineHeight: 1.7 }}>
+              Chapter Presidents may choose to personally volunteer their time in support of UPA's mission. This participation is entirely optional and is separate from commercial territory operations. UPA operates independently as a 501(c)(3), and nonprofit resources do not flow to Chapter Presidents or their businesses.
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {/* ── APPLICATION ── */}
       <Section id="apply">
         <div style={{ padding: "80px 40px", borderTop: `1px solid ${C.border}` }}>
