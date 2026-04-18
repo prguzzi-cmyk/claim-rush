@@ -76,13 +76,24 @@ function TopBar({ phone }) {
   );
 }
 
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function Nav() {
+  const navItems = [
+    { label: "Services", target: "section-services" },
+    { label: "Why Us", target: "section-why" },
+    { label: "Free Inspection", target: "section-form" },
+    { label: "Contact", target: "contact" },
+  ];
   return (
     <nav style={{ padding: "12px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #eee", background: WHITE, position: "sticky", top: 0, zIndex: 100 }}>
       <div style={{ fontSize: 22, fontWeight: 900, color: NAVY }}><span style={{ color: MAROON }}>ACI</span> ADJUSTMENT GROUP</div>
       <div style={{ display: "flex", gap: 20, alignItems: "center", fontSize: 14, fontWeight: 500 }}>
-        {["Services", "Why Us", "Free Inspection", "Contact"].map(i => <a key={i} href={`#${i.toLowerCase().replace(/ /g,"-")}`} style={{ color: "#555", textDecoration: "none" }}>{i}</a>)}
-        <a href="#free-inspection" style={{ background: GOLD, color: NAVY, padding: "8px 20px", borderRadius: 3, fontWeight: 700, textDecoration: "none", fontSize: 13 }}>File a Claim</a>
+        {navItems.map(i => <a key={i.label} href={`#${i.target}`} onClick={e => { e.preventDefault(); scrollTo(i.target); }} style={{ color: "#555", textDecoration: "none", cursor: "pointer" }}>{i.label}</a>)}
+        <a href="#section-form" onClick={e => { e.preventDefault(); scrollTo("section-form"); }} style={{ background: GOLD, color: NAVY, padding: "8px 20px", borderRadius: 3, fontWeight: 700, textDecoration: "none", fontSize: 13, cursor: "pointer" }}>File a Claim</a>
       </div>
     </nav>
   );
@@ -152,7 +163,6 @@ function Footer({ name, phone, email, territory, roleLabel, licenseStr }) {
             {licenseStr}<br />
             ACI Adjustment Group · Licensed Public Adjusters since 2004<br />
             803 Park Avenue, Newtown, PA 18940<br />
-            Backed by Unified Public Advocacy (UPA) — 501(c)(3)<br />
             All claims handled on contingency — no fee unless we win.<br />
             Individual results vary. Past results do not guarantee future outcomes.
           </div>
@@ -187,7 +197,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
         </p>
         {territory && <div style={{ fontSize: 13, color: GOLD, marginBottom: 24 }}>Serving {territory} Homeowners</div>}
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <a href="#free-inspection" style={{ background: GOLD, color: NAVY, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 14 }}>Check If You Have a Claim</a>
+          <a href="#section-form" onClick={e => { e.preventDefault(); scrollTo("section-form"); }} style={{ background: GOLD, color: NAVY, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 14 }}>Check If You Have a Claim</a>
           <a href={`tel:${phone}`} style={{ background: MAROON, color: WHITE, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 14 }}>Speak to an Adjuster</a>
         </div>
       </section>
@@ -200,7 +210,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
             <div style={{ fontSize: 20, fontWeight: 700, color: NAVY }}>{name}</div>
             <div style={{ fontSize: 14, color: MAROON, fontWeight: 600 }}>{roleLabel}{territory ? ` · ${territory}` : ""}</div>
             <div style={{ fontSize: 13, color: "#888" }}>{licenseStr}</div>
-            <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>📞 {phone} · Backed by Unified Public Advocacy — 501(c)(3)</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>📞 {phone} · Backed by ACI Adjustment Group</div>
           </div>
         </div>
         {tagline && <p style={{ fontSize: 15, color: "#666", fontStyle: "italic", marginTop: 12, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>"{tagline}"</p>}
@@ -235,7 +245,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
       )}
 
       {/* 5. SERVICES */}
-      <section id="services" style={{ background: showStats ? WHITE : GRAY_BG, padding: "60px 40px" }}>
+      <section id="section-services" style={{ background: showStats ? WHITE : GRAY_BG, padding: "60px 40px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <h2 style={hd}>What We Handle</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
@@ -254,11 +264,11 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
       <section style={{ background: `linear-gradient(135deg, ${NAVY}, #142238)`, padding: "50px 40px", textAlign: "center" }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, color: WHITE, margin: "0 0 12px" }}>Not sure if you have a claim?</h2>
         <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 16, maxWidth: 500, margin: "0 auto 20px" }}>We'll review your situation and tell you instantly. No cost, no obligation.</p>
-        <a href="#free-inspection" style={{ display: "inline-block", background: GOLD, color: NAVY, padding: "14px 36px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 15 }}>Check My Property</a>
+        <a href="#section-form" onClick={e => { e.preventDefault(); scrollTo("section-form"); }} style={{ display: "inline-block", background: GOLD, color: NAVY, padding: "14px 36px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 15 }}>Check My Property</a>
       </section>
 
       {/* 7. WHY PUBLIC ADJUSTER */}
-      <section id="why-us" style={sec}>
+      <section id="section-why" style={sec}>
         <h2 style={hd}>Why Use a Public Adjuster?</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, maxWidth: 800, margin: "0 auto" }}>
           {WHY_PA.map(w => (
@@ -290,7 +300,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
         <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, maxWidth: 500, margin: "0 auto 24px" }}>Don't leave money on the table. Let us fight for what you're owed.</p>
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href={`tel:${phone}`} style={{ background: GOLD, color: NAVY, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none" }}>Call Now</a>
-          <a href="#free-inspection" style={{ background: WHITE, color: MAROON, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none" }}>Start My Claim Review</a>
+          <a href="#section-form" onClick={e => { e.preventDefault(); scrollTo("section-form"); }} style={{ background: WHITE, color: MAROON, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none" }}>Start My Claim Review</a>
         </div>
       </section>
 
@@ -298,7 +308,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
       <Footer name={name} phone={phone} email={email} territory={territory} roleLabel={roleLabel} licenseStr={licenseStr} />
 
       {/* FREE INSPECTION FORM (floating section) */}
-      <section id="free-inspection" style={{ padding: "60px 40px", background: WHITE }}>
+      <section id="section-form" style={{ padding: "60px 40px", background: WHITE }}>
         <div style={{ maxWidth: 600, margin: "0 auto" }}>
           <h2 style={hd}>Request a FREE Inspection</h2>
           <p style={{ textAlign: "center", color: "#666", fontSize: 15, marginBottom: 24 }}>Fill out the form and we'll contact you within 24 hours.</p>
