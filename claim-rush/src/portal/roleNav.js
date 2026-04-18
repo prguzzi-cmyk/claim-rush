@@ -51,6 +51,7 @@ const items = {
   // ── SEMINARS ──
   seminarTraining: { to: "/portal/seminar-training",     label: "Training Center",     icon: "\u{1F393}" },
   mySeminars:      { to: "/portal/my-seminars",          label: "My Seminars",         icon: "\u{1F3A4}" },
+  stormAlerts:     { to: "/portal/storm-alerts",         label: "Storm Alerts",        icon: "\u26A1" },
 };
 
 
@@ -63,7 +64,7 @@ export const AGENT_NAV = [
   { group: "CLOSE", items: [items.signClient] },
   { group: "MY CLIENTS", items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
-  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars] },
+  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars, items.stormAlerts] },
 ];
 
 // ── RVP ─────────────────────────────────────────────────────────────────────
@@ -77,7 +78,7 @@ export const RVP_NAV = [
   { group: "MY TEAM", items: [items.agentPerf] },
   { group: "RECRUITING", items: [items.myRecruits] },
   { group: "PERFORMANCE", items: [items.commission] },
-  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars] },
+  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars, items.stormAlerts] },
 ];
 
 // ── CP ──────────────────────────────────────────────────────────────────────
@@ -91,7 +92,7 @@ export const CP_NAV = [
   { group: "MY TERRITORY", items: [items.agentPerf] },
   { group: "RECRUITING", items: [items.myRecruits] },
   { group: "PERFORMANCE", items: [items.commission] },
-  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars] },
+  { group: "SEMINARS", items: [items.seminarTraining, items.mySeminars, items.stormAlerts] },
 ];
 
 // ── HOME OFFICE ─────────────────────────────────────────────────────────────
