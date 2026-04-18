@@ -60,6 +60,26 @@ const TRUST_BADGES = [
   { icon: "🥇", title: "#1 Service Award", sub: "3 Consecutive Years" },
 ];
 
+const FAQ = [
+  { q: "What does a public adjuster do?", a: "A licensed public adjuster represents YOU, not the insurance company. We document damage, review your policy, negotiate with the insurer, and fight for maximum settlement." },
+  { q: "How are you different from the insurance company's adjuster?", a: "The insurance company's adjuster works for the insurance company. Their goal is to minimize payouts. Our adjusters work exclusively for policyholders — we have no incentive to underpay your claim." },
+  { q: "What does it cost to work with ACI?", a: "We only get paid when you get paid. Our fee is a percentage of the settlement we secure for you — no recovery, no fee. Free consultation, no upfront cost." },
+  { q: "What if my claim was already denied?", a: "Denied claims are often our best cases. Insurance companies routinely deny valid claims hoping homeowners won't push back. We reopen denied claims and fight for what you're owed." },
+  { q: "What if I already accepted a settlement?", a: "In many cases we can still help. If you accepted less than you were entitled to, we can review the claim and pursue supplemental payment within your policy period." },
+  { q: "How long does the claim process take?", a: "Most claims resolve within 30-90 days once we take over. Complex or disputed claims can take longer. We keep you informed at every step." },
+  { q: "What types of damage do you handle?", a: "Fire, water, storm, hail, wind, smoke, and vandalism. Residential and commercial. If your property is damaged and you have a policy, we can help." },
+  { q: "Do I need to have a lawyer?", a: "No. Public adjusting is a regulated profession separate from law. Licensed public adjusters can handle the full claim process without legal escalation. If litigation becomes necessary, we coordinate with attorneys when appropriate." },
+];
+
+const CASE_STORIES = [
+  { icon: "🔥", type: "Fire Damage, Residential", scope: "Structure fire in a single-family home. Smoke damage throughout, partial roof collapse, and significant contents loss.", process: "We documented all visible and hidden damage, identified policy coverage gaps the carrier missed, and negotiated a full rebuild scope with contents replacement." },
+  { icon: "💧", type: "Water Damage, Denied Claim", scope: "Burst pipe caused flooding across two floors. Initial claim denied — carrier argued wear-and-tear exclusion.", process: "We reopened the claim, provided expert documentation proving sudden failure, and pursued the claim through the insurer's appeal process." },
+  { icon: "🧊", type: "Hail Storm, Roof & Exterior", scope: "Severe hailstorm damaged roof, siding, gutters, and outdoor HVAC unit across a residential property.", process: "We performed full damage documentation within 72 hours of the event, identified covered damage the insurance adjuster overlooked, and negotiated a comprehensive repair scope." },
+  { icon: "🏢", type: "Commercial, Underpaid Settlement", scope: "Small business property damage claim initially settled for a fraction of actual loss. Owner suspected the adjuster underestimated damage.", process: "We reviewed the original estimate, identified missed damage categories and depreciation errors, and reopened the claim for supplemental payment." },
+];
+
+const CALENDLY_URL = "https://calendly.com/prguzzi/30min";
+
 const DAMAGE_TYPES = ["Fire Damage", "Water Damage", "Storm & Roof", "Denied Claim", "Other"];
 
 // ── Shared components ──
@@ -79,6 +99,29 @@ function TopBar({ phone }) {
 function scrollTo(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function FaqSection() {
+  const [open, setOpen] = useState(null);
+  return (
+    <section style={{ padding: "60px 40px", maxWidth: 800, margin: "0 auto" }}>
+      <h2 style={{ fontSize: 28, fontWeight: 700, color: NAVY, textAlign: "center", marginBottom: 24 }}>Frequently Asked Questions</h2>
+      {FAQ.map((item, i) => (
+        <div key={i} style={{ borderBottom: "1px solid #e8e8e8", marginBottom: 0 }}>
+          <button onClick={() => setOpen(open === i ? null : i)} style={{
+            width: "100%", padding: "16px 0", background: "none", border: "none", cursor: "pointer",
+            display: "flex", justifyContent: "space-between", alignItems: "center", textAlign: "left",
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{item.q}</span>
+            <span style={{ fontSize: 20, color: GOLD, fontWeight: 700, flexShrink: 0, marginLeft: 12 }}>{open === i ? "−" : "+"}</span>
+          </button>
+          {open === i && (
+            <div style={{ padding: "0 0 16px", fontSize: 14, color: "#555", lineHeight: 1.7 }}>{item.a}</div>
+          )}
+        </div>
+      ))}
+    </section>
+  );
 }
 
 function Nav() {
@@ -177,7 +220,7 @@ function Footer({ name, phone, email, territory, roleLabel, licenseStr }) {
 
 // ── CP/RVP Full Franchise Template ──
 
-function FranchiseSite({ role, name, phone, email, territory, state, tagline, licenseStr, showTicker, showStats }) {
+function FranchiseSite({ role, name, phone, email, territory, state, tagline, licenseStr, showTicker, showStats, startYear, isNew, calendlyUrl }) {
   const roleLabel = ROLE_LABELS[role] || "Representative";
   const hd = { fontSize: 28, fontWeight: 700, color: NAVY, textAlign: "center", marginBottom: 12 };
   const sec = { padding: "60px 40px", maxWidth: 1100, margin: "0 auto" };
@@ -215,6 +258,15 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
         </div>
         {tagline && <p style={{ fontSize: 15, color: "#666", fontStyle: "italic", marginTop: 12, maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>"{tagline}"</p>}
       </section>
+
+      {/* SERVING SINCE TRUST STRIP */}
+      <div style={{ padding: "14px 40px", borderTop: `2px solid ${GOLD}20`, borderBottom: `2px solid ${GOLD}20`, display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap", fontSize: 13, color: "#888" }}>
+        <span>{territory ? `Serving ${territory}` : "Serving homeowners nationwide"}{startYear ? (isNew ? "" : ` since ${startYear}`) : ""}</span>
+        <span style={{ color: GOLD }}>·</span>
+        <span>40+ years of ACI operator experience</span>
+        <span style={{ color: GOLD }}>·</span>
+        <span>{licenseStr}</span>
+      </div>
 
       {/* 3. LIVE CLAIM TICKER (compliance-gated, OFF by default) */}
       {showTicker && (
@@ -260,6 +312,25 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
         </div>
       </section>
 
+      {/* CASE STORIES */}
+      <section style={{ padding: "60px 40px", maxWidth: 1100, margin: "0 auto" }}>
+        <h2 style={hd}>What We've Handled</h2>
+        <p style={{ textAlign: "center", color: "#666", fontSize: 14, marginBottom: 24 }}>Real cases, anonymized for privacy. Results vary based on policy terms and coverage.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          {CASE_STORIES.map(c => (
+            <div key={c.type} style={{ border: "1px solid #e8e8e8", borderRadius: 8, padding: 20 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 24 }}>{c.icon}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>{c.type}</span>
+              </div>
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, marginBottom: 8 }}><strong>Scope:</strong> {c.scope}</div>
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}><strong>Process:</strong> {c.process}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: "#bbb", textAlign: "center", marginTop: 12 }}>Scenarios represent general case categories. Actual results depend on specific policy language, coverage limits, documentation, and carrier response.</div>
+      </section>
+
       {/* 6. MAIN CONVERSION BLOCK */}
       <section style={{ background: `linear-gradient(135deg, ${NAVY}, #142238)`, padding: "50px 40px", textAlign: "center" }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, color: WHITE, margin: "0 0 12px" }}>Not sure if you have a claim?</h2>
@@ -279,6 +350,9 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
           ))}
         </div>
       </section>
+
+      {/* FAQ */}
+      <FaqSection />
 
       {/* 8. TRUST/AUTHORITY */}
       <section style={{ background: GRAY_BG, padding: "50px 40px" }}>
@@ -313,6 +387,19 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
           <h2 style={hd}>Request a FREE Inspection</h2>
           <p style={{ textAlign: "center", color: "#666", fontSize: 15, marginBottom: 24 }}>Fill out the form and we'll contact you within 24 hours.</p>
           <LeadForm />
+        </div>
+      </section>
+
+      {/* CALENDLY SCHEDULER */}
+      <section style={{ padding: "50px 40px", background: GRAY_BG, textAlign: "center" }}>
+        <h2 style={hd}>Prefer to Schedule a Call?</h2>
+        <p style={{ color: "#666", fontSize: 15, marginBottom: 20 }}>Pick a time that works for you. No obligation.</p>
+        <div style={{ maxWidth: 600, margin: "0 auto", border: "1px solid #e8e8e8", borderRadius: 8, overflow: "hidden", background: WHITE }}>
+          <iframe
+            src={`${calendlyUrl || CALENDLY_URL}?hide_gdpr_banner=1&background_color=ffffff&text_color=0a1628&primary_color=c9a84c`}
+            style={{ width: "100%", height: 600, border: "none" }}
+            title="Schedule a consultation"
+          />
         </div>
       </section>
     </>
@@ -414,6 +501,12 @@ export default function SitePreview() {
   const showTicker = false;  // Admin enables per state after compliance review
   const showStats = false;   // Admin enables per state after compliance review
 
+  // Start year for "Serving since" strip
+  const startYear = f.start_year || (site?.created_at ? new Date(site.created_at).getFullYear() : null);
+  const isNew = startYear && startYear >= new Date().getFullYear();
+
+  const calendlyUrl = f.calendly_url || null;
+
   return (
     <div style={{ fontFamily: "'Segoe UI', Arial, sans-serif", color: "#333", background: WHITE }}>
       <div style={{ background: GOLD, color: NAVY, padding: "6px 20px", fontSize: 12, fontWeight: 700, textAlign: "center", letterSpacing: 1 }}>
@@ -422,7 +515,7 @@ export default function SitePreview() {
       {role === "agent" ? (
         <AgentLanding name={name} phone={phone} email={email} territory={territory} state={state} tagline={tagline} licenseStr={licenseStr} />
       ) : (
-        <FranchiseSite role={role} name={name} phone={phone} email={email} territory={territory} state={state} tagline={tagline} licenseStr={licenseStr} showTicker={showTicker} showStats={showStats} />
+        <FranchiseSite role={role} name={name} phone={phone} email={email} territory={territory} state={state} tagline={tagline} licenseStr={licenseStr} showTicker={showTicker} showStats={showStats} startYear={startYear} isNew={isNew} calendlyUrl={calendlyUrl} />
       )}
     </div>
   );
