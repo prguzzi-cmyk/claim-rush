@@ -185,7 +185,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
         <p style={{ fontSize: 17, color: "rgba(255,255,255,0.8)", maxWidth: 600, margin: "0 auto 20px", lineHeight: 1.6 }}>
           Licensed public adjusters who fight for maximum settlements. Free inspections. No fee unless we win.
         </p>
-        <div style={{ fontSize: 13, color: GOLD, marginBottom: 24 }}>Serving {territory} Homeowners</div>
+        {territory && <div style={{ fontSize: 13, color: GOLD, marginBottom: 24 }}>Serving {territory} Homeowners</div>}
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a href="#free-inspection" style={{ background: GOLD, color: NAVY, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 14 }}>Check If You Have a Claim</a>
           <a href={`tel:${phone}`} style={{ background: MAROON, color: WHITE, padding: "14px 32px", borderRadius: 3, fontWeight: 800, textDecoration: "none", fontSize: 14 }}>Speak to an Adjuster</a>
@@ -198,7 +198,7 @@ function FranchiseSite({ role, name, phone, email, territory, state, tagline, li
           <div style={{ width: 80, height: 80, borderRadius: "50%", background: `linear-gradient(135deg,${MAROON},${NAVY})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, color: WHITE, fontWeight: 700 }}>{name.charAt(0)}</div>
           <div style={{ textAlign: "left" }}>
             <div style={{ fontSize: 20, fontWeight: 700, color: NAVY }}>{name}</div>
-            <div style={{ fontSize: 14, color: MAROON, fontWeight: 600 }}>{roleLabel} · {territory}</div>
+            <div style={{ fontSize: 14, color: MAROON, fontWeight: 600 }}>{roleLabel}{territory ? ` · ${territory}` : ""}</div>
             <div style={{ fontSize: 13, color: "#888" }}>{licenseStr}</div>
             <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>📞 {phone} · Backed by Unified Public Advocacy — 501(c)(3)</div>
           </div>
@@ -324,7 +324,7 @@ function AgentLanding({ name, phone, email, territory, state, tagline, licenseSt
       <section style={{ background: `linear-gradient(135deg, ${NAVY}, ${MAROON})`, padding: "70px 40px", textAlign: "center", color: WHITE }}>
         <div style={{ width: 130, height: 130, borderRadius: "50%", background: `linear-gradient(135deg,${GOLD},${MAROON})`, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52, color: WHITE, fontWeight: 700, border: `3px solid ${GOLD}` }}>{name.charAt(0)}</div>
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: "0 0 6px" }}>{name}</h1>
-        <div style={{ fontSize: 15, color: GOLD, fontWeight: 600, marginBottom: 4 }}>Licensed Agent · {territory}</div>
+        <div style={{ fontSize: 15, color: GOLD, fontWeight: 600, marginBottom: 4 }}>Licensed Agent{territory ? ` · ${territory}` : ""}</div>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{licenseStr}</div>
         {tagline && <p style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", maxWidth: 400, margin: "12px auto 20px" }}>"{tagline}"</p>}
         <a href="#get-help" style={{ display: "inline-block", background: GOLD, color: NAVY, padding: "14px 36px", borderRadius: 3, fontWeight: 800, textDecoration: "none" }}>Get Help Today</a>
@@ -390,12 +390,12 @@ export default function SitePreview() {
   if (error) return <div style={{ minHeight: "100vh", background: WHITE, display: "flex", alignItems: "center", justifyContent: "center", color: MAROON }}>Error: {error}</div>;
 
   const f = site?.fields || {};
-  const name = f.name || slug;
+  const name = f.name || f.hero_title || slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   const tagline = f.hero_subtitle || "Here to help you recover what you're owed.";
   const email = f.email || "";
   const phone = f.phone || "1-800-809-4302";
   const state = site?.territory_state || "";
-  const territory = state ? `${state} Territory` : "Your Territory";
+  const territory = state ? `${state} Territory` : "";  // empty = no territory label shown
 
   // License validation: if admin has entered a verified license, show it. Otherwise generic.
   const licenseStr = state ? `Licensed Public Adjuster — ${state}` : "Backed by ACI Adjustment Group";
