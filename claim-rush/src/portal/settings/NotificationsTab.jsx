@@ -40,13 +40,14 @@ export default function NotificationsTab() {
 
   useEffect(() => {
     apiJson("/users/me").then(u => {
-      if (u.notification_preferences) {
-        try {
-          const p = typeof u.notification_preferences === "string" ? JSON.parse(u.notification_preferences) : u.notification_preferences;
-          setPrefs({ email: p.email ?? true, sms: p.sms ?? false, in_app: p.in_app ?? true });
-        } catch {}
-      }
-    }).catch(() => {});
+      try {
+        const raw = u?.notification_preferences;
+        if (raw) {
+          const p = typeof raw === "string" ? JSON.parse(raw) : raw;
+          setPrefs({ email: p?.email ?? true, sms: p?.sms ?? false, in_app: p?.in_app ?? true });
+        }
+      } catch { /* field doesn't exist yet — use defaults */ }
+    }).catch(() => { /* API error — use defaults */ });
   }, []);
 
   async function save() {

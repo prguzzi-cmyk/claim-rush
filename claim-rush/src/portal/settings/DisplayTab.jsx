@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const THEMES = [
   { id: "dark", label: "Dark", desc: "Default dark interface", icon: "\u{1F31A}" },
