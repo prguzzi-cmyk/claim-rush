@@ -167,38 +167,135 @@ def _parse_tps_html(html: str) -> Optional[SkipTraceResult]:
 # SkipSherpa provider (paid API)
 # ---------------------------------------------------------------------------
 
+# Words that appear as "city" in PulsePoint addresses but are not real cities.
+# "OUT" is PulsePoint's sentinel for "outside agency jurisdiction"; the
+# others come up when the agency covers unincorporated or cross-county areas.
+_SENTINEL_CITY_TOKENS = {
+    "OUT",
+    "UNINCORPORATED",
+    "UNINCORP",
+    "DOMINICAN AREA",
+    "LA COUNTY",
+    "LOS ANGELES COUNTY",
+    "ORANGE COUNTY",
+    "COUNTY",
+}
+
+# Lines between street and city that are really suite/unit identifiers and
+# belong glued onto the street (the parent address, not a city).
+_SUITE_PREFIX_RE = re.compile(
+    r"^\s*(STE|SUITE|APT|APARTMENT|UNIT|BLDG|BUILDING|RM|ROOM|FL|FLOOR|#)\b",
+    re.IGNORECASE,
+)
+# "7 FL" / "2 FLOOR" — floor number followed by FL/FLOOR.
+_FLOOR_NUM_RE = re.compile(r"^\s*\d+\s*(FL|FLOOR)\b", re.IGNORECASE)
+
+# Two-letter US / Canada state/territory codes — used to detect when a
+# comma-separated chunk is actually a stray state and not a city.
+_STATE_CODES = {
+    # US states + DC + territories
+    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
+    "KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+    "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT",
+    "VA","WA","WV","WI","WY","DC","PR","VI","GU","AS","MP",
+    # Canadian provinces (PulsePoint also covers some Canadian agencies)
+    "AB","BC","MB","NB","NL","NS","NT","NU","ON","PE","QC","SK","YT",
+}
+
+
+def _is_sentinel_city(token: str) -> bool:
+    """Detect tokens that appear in the city slot but are not real cities."""
+    t = token.strip().upper()
+    if not t:
+        return True
+    if t in _SENTINEL_CITY_TOKENS:
+        return True
+    if t.endswith(" COUNTY") or t == "COUNTY":
+        return True
+    return False
+
+
+def _is_suite_fragment(token: str) -> bool:
+    """Detect a suite / unit / floor line that should glue onto the street."""
+    t = token.strip()
+    if not t:
+        return False
+    return bool(_SUITE_PREFIX_RE.match(t) or _FLOOR_NUM_RE.match(t))
+
+
 def _parse_address_components(address: str) -> dict[str, str]:
-    """Parse a full address string into street/city/state/zip components."""
-    parts = [p.strip() for p in address.split(",")]
+    """Parse a full address string into street/city/state/zip components.
+
+    Handles four patterns that the upstream free-text `FullDisplayAddress`
+    from PulsePoint regularly produces, all of which the naive positional
+    parser used to misroute:
+
+    1. Clean 3-part:         "1127 NICHOLS CT, MILLERSVILLE, MD"
+    2. With suite line:      "31 WILLOWOOD DR, STE 204, YORK COUNTY, VA"
+    3. Sentinel city:        "1707 CROFTON PARKWAY, OUT, MD"
+    4. Double-state (caller appends state_loss to an address that already
+       has state):           "1100 S WEST PL, ANAHEIM, CA, , CA"
+
+    Strategy: scan from the right end for state (and optional ZIP). Then
+    read the city candidate. If it's a sentinel (OUT, * COUNTY,
+    UNINCORPORATED, a bare state code), drop it. Any middle parts that look
+    like suite/unit/floor get merged back onto the street.
+    """
     result = {"street": "", "city": "", "state": "", "zip": ""}
 
-    if len(parts) >= 3:
-        result["street"] = parts[0]
-        result["city"] = parts[1]
-        # Last part may be "IL 60601" or "IL" + "60601"
-        state_zip = parts[2].strip()
-        sz_parts = state_zip.split()
-        if len(sz_parts) >= 2:
-            result["state"] = sz_parts[0]
-            result["zip"] = sz_parts[1]
-        elif len(sz_parts) == 1:
-            result["state"] = sz_parts[0]
-        # Check if there's a 4th part (zip separate)
-        if len(parts) >= 4:
-            result["zip"] = parts[3].strip()
-    elif len(parts) == 2:
-        result["street"] = parts[0]
-        state_zip = parts[1].strip()
-        sz_parts = state_zip.split()
-        if len(sz_parts) >= 3:
-            result["city"] = sz_parts[0]
-            result["state"] = sz_parts[1]
-            result["zip"] = sz_parts[2]
-        elif len(sz_parts) >= 2:
-            result["state"] = sz_parts[0]
-            result["zip"] = sz_parts[1]
-    else:
+    parts = [p.strip() for p in address.split(",") if p.strip()]
+    if not parts:
         result["street"] = address
+        return result
+    if len(parts) == 1:
+        result["street"] = parts[0]
+        return result
+
+    # ── Extract state + ZIP from the last chunk ─────────────────────────
+    # Common forms: "CA", "CA 92805", "92805".
+    tail = parts[-1].split()
+    consumed_last = False
+    if len(tail) >= 2 and tail[0].upper() in _STATE_CODES:
+        result["state"] = tail[0].upper()
+        result["zip"] = " ".join(tail[1:])
+        consumed_last = True
+    elif len(tail) == 1:
+        if tail[0].isdigit():
+            result["zip"] = tail[0]
+            consumed_last = True
+        elif tail[0].upper() in _STATE_CODES:
+            result["state"] = tail[0].upper()
+            consumed_last = True
+    # If we couldn't recognise the last chunk as state/zip, leave it alone
+    # — some Canadian or international addresses arrive with unusual tails.
+
+    middle = parts[:-1] if consumed_last else parts[:]
+
+    # Double-state protection: if the now-last chunk is a bare state code
+    # matching the one we just found, drop it. Handles the caller's
+    # "address, , CA" pattern where state_loss got appended redundantly.
+    while middle and middle[-1].upper() in _STATE_CODES and middle[-1].upper() == result["state"]:
+        middle.pop()
+
+    # ── Extract the city from the new rightmost chunk ──────────────────
+    if middle:
+        city_candidate = middle[-1]
+        if _is_sentinel_city(city_candidate):
+            middle = middle[:-1]
+            # One more pass in case the sentinel had a state behind it,
+            # e.g. "STREET, STE X, OUT, MD" → after stripping MD we already
+            # stripped MD; "OUT" pops next.
+        else:
+            result["city"] = city_candidate
+            middle = middle[:-1]
+
+    # ── Everything left belongs to the street (first chunk is the real
+    # street line; subsequent ones are suite/unit/floor fragments we glue
+    # back on). Unknown middle chunks that don't look like suites (e.g. a
+    # neighbourhood name) are appended defensively — it is safer for
+    # SkipSherpa to see extra text than to throw it away. ───────────────
+    if middle:
+        result["street"] = ", ".join(middle).strip()
 
     return result
 
