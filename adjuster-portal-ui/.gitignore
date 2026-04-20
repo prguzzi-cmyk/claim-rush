@@ -9,8 +9,12 @@
 /node_modules
 /.angular
 
-# local environment
-/src/environments/environment.ts
+# NOTE: src/environments/environment.ts used to be gitignored (Angular's
+# historical "keep-secrets-out-of-vcs" default). We now keep it tracked —
+# production builds swap it for environment.prod.ts via angular.json
+# fileReplacements, and the dev file itself contains only placeholders.
+# Removing this entry fixes TS2307 on Vercel/Linux where the file must exist
+# on disk for module resolution to start.
 
 # profiling files
 chrome-profiler-events.json
