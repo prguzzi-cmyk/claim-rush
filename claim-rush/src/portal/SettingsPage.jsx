@@ -1,36 +1,53 @@
+import { useState } from "react";
 import { C } from "./theme";
+import PasswordTab from "./settings/PasswordTab";
+import NotificationsTab from "./settings/NotificationsTab";
+import DisplayTab from "./settings/DisplayTab";
+import TwoFactorTab from "./settings/TwoFactorTab";
+
+const TABS = [
+  { id: "password", label: "Password", icon: "\u{1F512}" },
+  { id: "notifications", label: "Notifications", icon: "\u{1F514}" },
+  { id: "display", label: "Display", icon: "\u{1F3A8}" },
+  { id: "2fa", label: "Two-Factor Auth", icon: "\u{1F6E1}\uFE0F" },
+];
 
 export default function SettingsPage() {
+  const [active, setActive] = useState("password");
+
   return (
-    <div style={{ padding: "32px 24px", maxWidth: 600 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 24 }}>Settings</h1>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
-        {[
-          ["Notifications", "Email and SMS notification preferences"],
-          ["Display", "Theme and dashboard layout options"],
-          ["Password", "Change your login password"],
-          ["Two-Factor Auth", "Enable passkey or authenticator app"],
-        ].map(([title, desc]) => (
-          <div key={title} style={{
-            padding: "16px 0",
-            borderBottom: `1px solid ${C.border}`,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-          }}>
-            <div>
-              <div style={{ fontSize: 14, color: "#fff", fontWeight: 600 }}>{title}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{desc}</div>
-            </div>
-            <span style={{
-              fontSize: 10, fontWeight: 700, letterSpacing: 1,
-              padding: "4px 10px", borderRadius: 12,
-              background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.3)", color: "#A855F7",
-            }}>SOON</span>
-          </div>
+    <div style={{ maxWidth: 700, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 24, fontFamily: "'Inter', sans-serif" }}>Settings</h1>
+
+      {/* Tab bar */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 0 }}>
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActive(tab.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "10px 16px",
+              background: "transparent", border: "none",
+              borderBottom: active === tab.id ? "2px solid #00E6A8" : "2px solid transparent",
+              color: active === tab.id ? "#fff" : "rgba(255,255,255,0.4)",
+              fontSize: 13, fontWeight: 600, cursor: "pointer",
+              fontFamily: "'Inter', sans-serif",
+              transition: "all 0.15s",
+              marginBottom: -1,
+            }}
+          >
+            <span style={{ fontSize: 15 }}>{tab.icon}</span>
+            {tab.label}
+          </button>
         ))}
       </div>
-      <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-        Settings features are rolling out soon. For urgent changes, contact your administrator.
-      </p>
+
+      {/* Tab content */}
+      {active === "password" && <PasswordTab />}
+      {active === "notifications" && <NotificationsTab />}
+      {active === "display" && <DisplayTab />}
+      {active === "2fa" && <TwoFactorTab />}
     </div>
   );
 }

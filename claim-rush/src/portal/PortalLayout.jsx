@@ -6,6 +6,7 @@ import AxisLiveOverlay from "./AxisLiveOverlay";
 import { AxisProvider, useAxisContext } from "./AxisContext";
 import logoIcon from "../assets/logo/claimrush-icon.svg";
 import { getNavForRole } from "./roleNav";
+import UserMenu from "./UserMenu";
 
 const PURPLE = "#A855F7";
 
@@ -325,6 +326,17 @@ function PortalInner() {
         display: "flex",
         flexDirection: "column",
       }}>
+        {/* Top bar with user menu */}
+        <div style={{
+          display: "flex", justifyContent: "flex-end", alignItems: "center",
+          padding: "8px 24px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(10,16,32,0.8)",
+          backdropFilter: "blur(8px)",
+          position: "sticky", top: 0, zIndex: 40,
+        }}>
+          <UserMenu />
+        </div>
         {/* Live ticker bar */}
         <LiveTicker />
         <div style={{ padding: "36px 48px", flex: 1 }}>
