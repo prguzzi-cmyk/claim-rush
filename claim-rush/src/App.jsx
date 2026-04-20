@@ -17,6 +17,8 @@ import PitchMode from "./portal/PitchMode";
 import SeminarTraining from "./portal/SeminarTraining";
 import MySeminars from "./portal/MySeminars";
 import StormAlerts from "./portal/StormAlerts";
+import ProfilePage from "./portal/ProfilePage";
+import SettingsPage from "./portal/SettingsPage";
 import { useAxisContext } from "./portal/AxisContext";
 
 // Auth guard — redirects to /login if no JWT in localStorage.
@@ -119,6 +121,8 @@ export default function App() {
         <Route path="seminar-training" element={<SeminarTraining />} />
         <Route path="my-seminars" element={<MySeminars />} />
         <Route path="storm-alerts" element={<StormAlerts />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
 
         {/* Phase 5+6: RIN iframe features — FIND/WORK LEADS */}
         <Route path="rin/fire-leads"    element={<IframeFeature rinRoute="/app/fire-leads" title="Fire Leads" />} />

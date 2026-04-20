@@ -263,7 +263,7 @@ function PortalInner() {
               </div>
             </div>
           )}
-          {/* User badge + logout */}
+          {/* User badge + account links */}
           {displayName && (
             <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}` }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'Courier New', monospace", fontWeight: 500, marginBottom: 2 }}>
@@ -274,6 +274,28 @@ function PortalInner() {
               </div>
             </div>
           )}
+          <NavLink to="/portal/profile" style={({ isActive }) => ({
+            display: "flex", alignItems: "center", gap: 10,
+            width: "100%", padding: "8px 16px",
+            background: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+            color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+            fontSize: 13, fontWeight: 500, textDecoration: "none",
+            fontFamily: "'Courier New', monospace", transition: "color 0.15s",
+          })}>
+            <span style={{ fontSize: 14 }}>&#128100;</span>
+            Profile
+          </NavLink>
+          <NavLink to="/portal/settings" style={({ isActive }) => ({
+            display: "flex", alignItems: "center", gap: 10,
+            width: "100%", padding: "8px 16px",
+            background: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+            color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+            fontSize: 13, fontWeight: 500, textDecoration: "none",
+            fontFamily: "'Courier New', monospace", transition: "color 0.15s",
+          })}>
+            <span style={{ fontSize: 14 }}>&#9881;&#65039;</span>
+            Settings
+          </NavLink>
           <button
             onClick={handleLogout}
             style={{

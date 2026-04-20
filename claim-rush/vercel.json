@@ -3,6 +3,7 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
-    "VITE_GTM_ID": ""
+    "VITE_GTM_ID": "",
+    "VITE_API_URL": "https://accurate-warmth-production-4f18.up.railway.app"
   }
 }

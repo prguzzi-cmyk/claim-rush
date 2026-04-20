@@ -1,10 +1,11 @@
 /**
  * Phase 1 — RIN API client for ClaimRush.
- * All calls go through the Vite dev proxy (/v1/* → localhost:8888/v1/*).
+ * In dev: Vite proxy forwards /v1/* → localhost:8888/v1/*.
+ * In prod: VITE_API_URL points to the Railway backend.
  * JWT is read from localStorage (same key as RIN: 'access_token').
  */
 
-const API_BASE = '/v1';
+const API_BASE = (import.meta.env.VITE_API_URL || '') + '/v1';
 
 function getToken() {
   const raw = localStorage.getItem('access_token');
