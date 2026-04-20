@@ -1,71 +1,9 @@
-<p class="mat-headline-4 section-title">My Recruits & Non team members</p>
-<ul class="breadcrumb">
-    <li class="breadcrumb-item">
-        <a [routerLink]="['/app/dashboard']" (click)="onNavigate('Dashboard')"><mat-icon>home</mat-icon></a>
-    </li>
-    <li class="breadcrumb-item"><a
-            href="javascript:">Home</a>
-    </li>
-    <li class="breadcrumb-item"><a href="javascript:">My Recruits & Non team members</a>
-    </li>
-</ul>
-
-
-
-    <mat-tab-group>
-        <mat-tab label="My Recruits">
-            <mat-card appearance="outlined">
-                <mat-card-header>
-                    <button mat-icon-button class="org-chart-info" (click)="viewManagerOverrides($event)" matTooltip="View manager overrides">
-                        <mat-icon>info</mat-icon>
-                    </button>
-                </mat-card-header>
-            <div class="col-md-12 d-flex justify-content-center align-items-center">
-                <div *ngIf="!this.myTeamDataSource?.length" class="no-data-actions">
-                    <mat-icon>info</mat-icon>
-                    <p>No data available to display.</p>
-                </div>
-                <app-ng-organization-chart class="myRecruit"
-                                           [editable]="false"
-                                           [data]="this.myTeamDataSource"
-                ></app-ng-organization-chart>
-            </div>
-            </mat-card>
-        </mat-tab>
-        <mat-tab label="Breaking away from my team">
-            <mat-card appearance="outlined" style="min-height: 600px;">
-                <mat-card-header>
-                    <button mat-icon-button
-                            matTooltip="The following agents have achieved equal or higher rank, leading them to break away from your team hierarchy. While these agents are no longer part of your direct team, you will continue to benefit from a 2.5% override on their production, provided they were directly recruited by you to the company."
-                            matTooltipPosition="before"
-                            matTooltipShowDelay="500"
-                            matTooltipHideDelay="200">
-                        <mat-icon>info</mat-icon>
-                    </button>
-                </mat-card-header>
-                <div class="col-md-12 d-flex justify-content-center align-items-center">
-                    <div *ngIf="!this.nonTeamMemberObjs?.length" class="no-data-actions">
-                        <mat-icon>info</mat-icon>
-                        <p>No data available to display.</p>
-                    </div>
-
-                    <div class="scrollable-list-container">
-                        <mat-list style="min-height: 450px;">
-                            <mat-list-item *ngFor="let item of nonTeamMemberObjs" class="hoverable-item">
-                                <mat-icon mat-list-icon [ngClass]="{'company-icon': item.source === 0, 'staff-icon': item.source === 1}"
-                                          [matTooltip]="item.source === 0 ? 'Assigned by UPA Admin' : 'Directly recruited by you'">
-                                    {{ item.source === 0 ? 'business' : 'person' }}
-                                </mat-icon>
-                                <div mat-line>
-                                    <h4>{{ item.full_name }}</h4>
-                                    <p class="item-title">{{ item.title_name }}</p> <!-- Title added here -->
-                                </div>
-                            </mat-list-item>
-                        </mat-list>
-                    </div>
-                </div>
-            </mat-card>
-        </mat-tab>
-    </mat-tab-group>
-
-<ngx-spinner type="ball-scale-multiple"></ngx-spinner>
+<mat-card appearance="outlined" class="mat-card">
+  <mat-card-content class="mat-card-content h-100 position-relative">
+    <div class="d-flex flex-column align-items-center justify-content-center text-center p-5">
+      <mat-icon class="mb-3" style="font-size: 48px; width: 48px; height: 48px;">groups</mat-icon>
+      <h3 class="mb-2">Coming soon</h3>
+      <p class="mb-0 text-muted">My Recruits is in production rollout. The team hierarchy view will return once the recruiting service is brought online on the new backend.</p>
+    </div>
+  </mat-card-content>
+</mat-card>

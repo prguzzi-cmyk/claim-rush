@@ -816,7 +816,7 @@ export function tokenGetter() {
   JwtModule.forRoot({
     config: {
       tokenGetter: tokenGetter,
-      allowedDomains: ['localhost', '127.0.0.1', '127.0.0.1:8000'], // Updated property name
+      allowedDomains: environment.jwtAllowedDomains,
     },
   }),
   // Specify your library as an import

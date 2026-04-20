@@ -1,12 +1,25 @@
 export const environment = {
   production: true,
   name: "Prod",
-  server: "https://api.upaportal.org/v1",
+  server: "https://accurate-warmth-production-4f18.up.railway.app/v1",
   mlmServer: "https://api.mlm.upaportal.org/",
   checkVersion: true,
   googleMapsApiKey: "",
+  jwtAllowedDomains: [
+    "rin.aciunited.com",
+    "www.aciunited.com",
+    "aciunited.com",
+    "accurate-warmth-production-4f18.up.railway.app",
+  ],
+  featureFlags: {
+    chatgptEnabled: false,
+  },
+  // TODO: Route OpenAI calls through backend proxy instead of exposing a
+  // client-side key. Until that exists, ChatGPT features are gated off in prod
+  // via featureFlags.chatgptEnabled. See UPA Assistant placeholder in
+  // assistant.component.html.
   openai: {
-    organizationId: "org-o1DNEO5pUbY1j1YVb2Imkf91",
-    apiKey: "OPENAI_API_KEY_PLACEHOLDER",
+    organizationId: "",
+    apiKey: "",
   },
 };

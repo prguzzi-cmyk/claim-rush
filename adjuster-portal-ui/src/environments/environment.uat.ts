@@ -5,8 +5,18 @@ export const environment = {
   server: "https://api.upaportal.org/v1",
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env
   checkVersion: false,
+  googleMapsApiKey: "",
+  jwtAllowedDomains: [
+    "localhost",
+    "127.0.0.1",
+    "127.0.0.1:8000",
+    "api.upaportal.org",
+  ],
+  featureFlags: {
+    chatgptEnabled: false,
+  },
   openai: {
-    organizationId: "org-o1DNEO5pUbY1j1YVb2Imkf91",
-    apiKey: "OPENAI_API_KEY_PLACEHOLDER",
+    organizationId: "",
+    apiKey: "",
   },
 };

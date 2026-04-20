@@ -29,8 +29,9 @@ function _normalizeRinRole(rinRole) {
 const _RIN_PORTAL_ALLOWED_ORIGINS = new Set([
   "http://127.0.0.1:4200",
   "http://localhost:4200",
-  "https://app.upaportal.org",      // primary candidate (api.* ↔ app.* convention)
-  "https://portal.upaportal.org",   // alternate candidate
+  "https://rin.aciunited.com",      // production RIN deployment
+  "https://app.upaportal.org",      // legacy candidate (keep until DNS cutover confirmed)
+  "https://portal.upaportal.org",   // legacy candidate
 ]);
 
 /** Pull role/user/jwt from URL params, then strip them from the URL bar
