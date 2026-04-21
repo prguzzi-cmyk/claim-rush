@@ -124,4 +124,10 @@ from app.models.voice_script import VoiceScript  # noqa
 from app.models.incident import Incident  # noqa
 from app.models.outreach_compliance_config import OutreachComplianceConfig  # noqa
 
+# Commission engine
+from app.models.commission_claim import CommissionClaim  # noqa
+from app.models.commission_ledger import CommissionLedger  # noqa
+from app.models.commission_payout import CommissionPayout  # noqa
+from app.models.commission_advance import CommissionAdvance  # noqa
+
 # from app.models.task_comment import TaskComment  # noqa

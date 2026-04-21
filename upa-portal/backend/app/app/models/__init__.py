@@ -109,4 +109,10 @@ from .intake_appointment import IntakeAppointment
 from .lead_rescue_log import LeadRescueLog
 from .intake_config import IntakeConfig
 
+# Commission engine — agent earnings, ledger, payouts, advances
+from .commission_claim import CommissionClaim
+from .commission_ledger import CommissionLedger
+from .commission_payout import CommissionPayout
+from .commission_advance import CommissionAdvance
+
 # from .task_comment import TaskComment
