@@ -30,6 +30,11 @@ export type LoginMode = 'main' | 'password' | 'magic-link' | 'magic-link-sent';
   ],
 })
 export class LoginComponent implements OnInit {
+  // Exposed to the template so we can suppress the login UI entirely when the
+  // dev-auto-login bypass is on — prevents a login-screen flash even if the
+  // route guard somehow lets the component mount.
+  readonly devAutoLogin: boolean = !!(environment as any).devAutoLogin;
+
   mode: LoginMode = 'main';
   credentials: any = {};
   magicLinkEmail: string = '';

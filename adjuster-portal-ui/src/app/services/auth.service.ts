@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
 import { map, catchError, switchMap } from 'rxjs/operators';
-import { throwError, from, Observable } from 'rxjs';
+import { throwError, from, Observable, of } from 'rxjs';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,7 @@ export class AuthService {
   ) {}
 
   isAuthenticated(): boolean {
+    if ((environment as any).devAutoLogin) return true;
     const token = this.getToken();
     return !this.jwtHelper.isTokenExpired(token);
   }
@@ -47,11 +49,19 @@ export class AuthService {
 
   // ─── Auth capabilities ───
   getAuthCapabilities(): Observable<any> {
+    // Dev bypass: skip the backend hop; surface disabled capabilities so nothing renders.
+    if ((environment as any).devAutoLogin) {
+      return of({ passkeys: false, google: false, magic_link: false });
+    }
     return this.http.get<any>('auth/capabilities');
   }
 
   // ─── Google ───
   getGoogleAuthStatus(): Observable<any> {
+    // Dev bypass: never hit Railway for OAuth status while the flag is on.
+    if ((environment as any).devAutoLogin) {
+      return of({ enabled: false, client_id: '' });
+    }
     return this.http.get<any>('auth/google/status');
   }
 
