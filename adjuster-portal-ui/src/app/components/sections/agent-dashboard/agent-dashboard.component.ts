@@ -17,7 +17,9 @@ import { AgentDashboardApiService, AgentAvailabilityResponse } from 'src/app/ser
 import { AgentDashboardLead } from 'src/app/models/agent-dashboard.model';
 import { FireIncidentService } from 'src/app/services/fire-incident.service';
 import { ConvertToLeadDialogComponent } from '../fire-incidents/convert-to-lead-dialog/convert-to-lead-dialog.component';
-import { CommissionEngineMockService } from 'src/app/services/commission-engine-mock.service';
+// (Commission data for the Earnings tab now comes through CommissionEngineDataService
+// via CommissionEngineService. The dashboard only needs the current user's id / name,
+// which it gets from UserService — same source as the rest of the authenticated app.)
 import { environment } from 'src/environments/environment';
 
 // --- Marker colors by event/lead type ---
@@ -176,11 +178,14 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private zone: NgZone,
     private router: Router,
-    private commissionMock: CommissionEngineMockService,
   ) {
-    this.commissionMock.getCurrentUser().subscribe(u => {
+    // Current user for the Earnings tab. In devAutoLogin the UserService
+    // returns the stub "dev_user" super-admin; CommissionEngineDataService
+    // aliases that to Alice's seed UUID before hitting the backend.
+    this.userService.getUser().subscribe((u: any) => {
+      if (!u) return;
       this.currentUserId = u.id;
-      this.currentUserName = u.name;
+      this.currentUserName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email || u.id;
     });
   }
 
