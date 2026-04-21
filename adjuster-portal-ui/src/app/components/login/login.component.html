@@ -20,15 +20,24 @@
         <mat-spinner *ngIf="passkeyDisabled" diameter="20"></mat-spinner>
       </button>
 
-      <!-- Google Button -->
+      <!-- Google Button (placeholder — wire when OAuth client is configured) -->
       <button
-        mat-raised-button
-        class="auth-btn google-btn"
-        [disabled]="!googleEnabled"
+        mat-stroked-button
+        class="auth-btn social-btn google-btn"
         [matTooltip]="!googleEnabled ? 'Google Sign-In not configured' : ''"
       >
-        <mat-icon>login</mat-icon>
-        <span>Sign in with Google</span>
+        <span class="social-glyph">G</span>
+        <span>Continue with Google</span>
+      </button>
+
+      <!-- Apple Button (placeholder) -->
+      <button
+        mat-stroked-button
+        class="auth-btn social-btn apple-btn"
+        matTooltip="Apple Sign-In not configured"
+      >
+        <mat-icon>apple</mat-icon>
+        <span>Continue with Apple</span>
       </button>
 
       <!-- Magic Link Button -->
@@ -82,12 +91,22 @@
           <input
             matInput
             name="password"
-            type="password"
+            [type]="hidePassword ? 'password' : 'text'"
             required
             autocomplete="current-password"
             [(ngModel)]="credentials.password"
           />
           <mat-icon matPrefix>vpn_key</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            class="pw-toggle"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+          >
+            <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
         </mat-form-field>
 
         <div class="error-message" *ngIf="message">{{ message }}</div>

@@ -1,6 +1,7 @@
 export const environment = {
   production: false,
   name: "Dev",
+  devAutoLogin: false,
   shopServer: "http://api.dev.shop.upaportal.org/v1",
   server: "https://api.upaportal.org/v1",
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env

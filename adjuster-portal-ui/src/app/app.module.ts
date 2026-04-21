@@ -79,6 +79,7 @@ import {
 // Interceptors
 import { ApiInterceptor } from "./interceptors/api-interceptor";
 import { ErrorInterceptor } from "./interceptors/error.interceptor";
+import { TwilioKillSwitchInterceptor } from "./interceptors/twilio-kill-switch.interceptor";
 
 // Guards
 import { AuthGuard } from "./guards/auth.guard";
@@ -163,6 +164,10 @@ import { ClaimTasksDialogComponent } from "./components/dialogs/claim-tasks-dial
 import { ClaimFilesDialogComponent } from "./components/dialogs/claim-files-dialog/claim-files-dialog.component";
 import { ClaimCommentsDialogComponent } from "./components/dialogs/claim-comments-dialog/claim-comments-dialog.component";
 import { AgentDashboardComponent } from "./components/sections/agent-dashboard/agent-dashboard.component";
+import { EarningsTabComponent } from "./components/sections/agent-dashboard/earnings-tab/earnings-tab.component";
+import { FinancialDetailDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/financial-detail-dialog/financial-detail-dialog.component";
+import { CommissionStatementDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component";
+import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { CreateClientTaskComponent } from "./components/sections/client-task/create-client-task/create-client-task.component";
 import { UserClientListComponent } from "./components/sections/client-task/user-client-list/user-client-list.component";
 import { AngularEditorModule } from "@kolkov/angular-editor";
@@ -243,8 +248,6 @@ import { TopbarComponent } from "./components/layout/topbar/topbar.component";
 import { TaskBoardComponent } from "./components/sections/task-board/task-board.component";
 import { ClaimTaskBoardComponent } from "./components/sections/claims/claim-task-board/claim-task-board.component";
 import { CollaboratorsDialogComponent } from "./components/dialogs/collaborators-dialog/collaborators-dialog.component";
-import { CommissionAdminComponent } from './components/sections/commission-admin/commission-admin.component';
-import { CommissionReadjustDialogComponent } from './components/sections/commission-admin/commission-readjust-dialog/commission-readjust-dialog.component';
 import { TeamMgrOverrideGraphComponentComponent } from './components/sections/recruits-admin/team-mgr-override-graph-component/team-mgr-override-graph-component.component';
 import { ClientSidebarComponent } from './components/layout/client-sidebar/client-sidebar.component';
 import { CustomerDashboardComponent } from './components/sections/customer-dashboard/customer-dashboard.component';
@@ -524,6 +527,10 @@ export function tokenGetter() {
     ClaimFilesDialogComponent,
     ClaimCommentsDialogComponent,
     AgentDashboardComponent,
+    EarningsTabComponent,
+    FinancialDetailDialogComponent,
+    CommissionStatementDialogComponent,
+    CommissionsAdminViewComponent,
     CreateClientTaskComponent,
     UserClientListComponent,
     NewslettersComponent,
@@ -598,8 +605,6 @@ export function tokenGetter() {
     CustomerDashboardComponent,
     CustomerClaimsComponent,
     MyRecruitsComponent,
-    CommissionAdminComponent,
-    CommissionReadjustDialogComponent,
     TeamMgrOverrideGraphComponentComponent,
     MyPersonalDocsDialogComponent,
     ClickOutsideDirective,
@@ -828,6 +833,7 @@ export function tokenGetter() {
     AngularEditorModule,
     NgxDocViewerModule], providers: [
       { provide: LOCALE_ID, useValue: "en-US" },
+      { provide: HTTP_INTERCEPTORS, useClass: TwilioKillSwitchInterceptor, multi: true },
       { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true },
       { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
       { provide: MAT_DATE_LOCALE, useValue: "en-US" },

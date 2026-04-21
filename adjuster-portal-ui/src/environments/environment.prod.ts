@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
   name: "Prod",
+  devAutoLogin: false,
   server: "https://accurate-warmth-production-4f18.up.railway.app/v1",
   mlmServer: "https://api.mlm.upaportal.org/",
   checkVersion: true,

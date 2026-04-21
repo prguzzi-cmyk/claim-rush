@@ -59,6 +59,7 @@ export class ApplicationComponent implements OnInit {
   selectedIndex: number = 0;
 
   role: string;
+  readonly isDevPortal: boolean = !!(environment as any).devAutoLogin;
 
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChild('outlet', { read: ViewContainerRef }) outletRef: ViewContainerRef;
@@ -140,7 +141,7 @@ export class ApplicationComponent implements OnInit {
 
       },
       error => {
-        if (error?.status == 403) {
+        if (error?.status == 403 && !(environment as any).devAutoLogin) {
           this.router.navigate(['login']);
         }
       },

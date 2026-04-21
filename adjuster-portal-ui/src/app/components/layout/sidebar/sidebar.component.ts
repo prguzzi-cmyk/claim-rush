@@ -104,7 +104,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
     '/app/rotation-leads/metrics': 'Rotation Metrics',
     '/app/administration/recruits-admin': 'Recruits Admin',
     '/app/administration/title-change': 'Title Change',
-    '/app/administration/commission-admin': 'Commission Admin',
+    '/app/admin/commissions': 'Commission Admin',
     '/app/administration/policies': 'Policies',
     '/app/administration/templates': 'Templates',
     '/app/administration/business-documents': 'Business Documents',

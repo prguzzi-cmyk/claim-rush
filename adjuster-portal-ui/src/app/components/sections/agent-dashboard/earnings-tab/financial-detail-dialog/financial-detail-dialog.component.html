@@ -1,0 +1,124 @@
+<div class="fd-wrap" *ngIf="detail$ | async as d">
+
+  <div class="fd-head">
+    <div>
+      <h2 class="fd-title">Financial Detail</h2>
+      <div class="fd-sub" *ngIf="data.userDisplayName">{{ data.userDisplayName }}</div>
+    </div>
+    <button mat-icon-button (click)="close()" aria-label="Close"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <!-- Summary row (interest visible here, but not on main dashboard) -->
+  <div class="fd-summary">
+    <div class="fd-summary-cell">
+      <div class="fd-summary-label">Advances</div>
+      <div class="fd-summary-val">{{ d.advances_total | currency:'USD':'symbol':'1.2-2' }}</div>
+    </div>
+    <div class="fd-summary-cell">
+      <div class="fd-summary-label">Offsets</div>
+      <div class="fd-summary-val fd-summary-val--pos">
+        {{ d.offsets_total | currency:'USD':'symbol':'1.2-2' }}
+      </div>
+    </div>
+    <div class="fd-summary-cell">
+      <div class="fd-summary-label">Interest / Carrying Cost</div>
+      <div class="fd-summary-val">{{ d.interest_total | currency:'USD':'symbol':'1.2-2' }}</div>
+    </div>
+    <div class="fd-summary-cell">
+      <div class="fd-summary-label">Adjustments</div>
+      <div class="fd-summary-val">{{ d.adjustments_total | currency:'USD':'symbol':'1.2-2' }}</div>
+    </div>
+    <div class="fd-summary-cell fd-summary-cell--total">
+      <div class="fd-summary-label">Remaining Balance</div>
+      <div class="fd-summary-val">{{ d.remaining_balance | currency:'USD':'symbol':'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <!-- Running transaction history -->
+  <h3 class="fd-section-title">Transaction History</h3>
+  <div class="fd-table-wrap">
+    <table class="fd-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Claim</th>
+          <th>Type</th>
+          <th class="num">Amount</th>
+          <th class="num">Running</th>
+          <th>Memo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of d.rows" [class]="typeClass(r.type)">
+          <td>{{ r.date | date:'MMM d, y' }}</td>
+          <td><span class="claim-ref">{{ r.claim_ref }}</span></td>
+          <td>{{ typeLabel(r.type) }}</td>
+          <td class="num">{{ r.amount | currency:'USD':'symbol':'1.2-2' }}</td>
+          <td class="num">{{ r.running_balance | currency:'USD':'symbol':'1.2-2' }}</td>
+          <td class="memo">{{ r.memo }}</td>
+        </tr>
+        <tr *ngIf="d.rows.length === 0"><td colspan="6" class="empty">No transactions.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Per-claim two-section breakdown: House (master) + Field Distribution (normalized) -->
+  <h3 class="fd-section-title">Commission Breakdown by Claim</h3>
+  <div class="fd-claim" *ngFor="let c of d.bucket_breakdown_by_claim">
+    <div class="fd-claim-head">
+      <span class="fd-claim-ref">{{ c.claim_ref }}</span>
+      <span class="fd-claim-gross">Gross fee: {{ c.gross_fee | currency:'USD':'symbol':'1.2-2' }}</span>
+    </div>
+
+    <!-- Single bar: left half = House, right half = Field split among WA/RVP/CP -->
+    <div class="fd-split-bar">
+      <div class="fd-split-house"
+           [style.width.%]="c.house.percent_of_gross"
+           [title]="'House — ' + c.house.percent_of_gross + '% of gross'"></div>
+      <div class="fd-split-field"
+           [style.width.%]="c.field_total.percent_of_gross">
+        <div *ngFor="let b of c.field_buckets"
+             class="fd-field-seg"
+             [attr.data-bucket]="b.bucket"
+             [style.width.%]="b.percent_of_field"
+             [title]="b.label + ' — ' + b.percent_of_field + '% of field'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section A — House -->
+    <div class="fd-section-block">
+      <div class="fd-section-head">
+        <span class="fd-section-letter">A</span>
+        <span class="fd-section-name">House</span>
+        <span class="fd-section-pct">{{ c.house.percent_of_gross }}% of gross</span>
+      </div>
+      <div class="fd-bucket-legend">
+        <div class="fd-bucket-chip" data-bucket="house">
+          <span class="fd-bucket-dot"></span>
+          <span class="fd-bucket-name">House</span>
+          <span class="fd-bucket-pct">{{ c.house.percent_of_gross }}%</span>
+          <span class="fd-bucket-amt">{{ c.house.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B — Field Distribution (100% of field) -->
+    <div class="fd-section-block">
+      <div class="fd-section-head">
+        <span class="fd-section-letter">B</span>
+        <span class="fd-section-name">Field Distribution</span>
+        <span class="fd-section-pct">100% of field ({{ c.field_total.percent_of_gross }}% of gross)</span>
+      </div>
+      <div class="fd-bucket-legend">
+        <div class="fd-bucket-chip" *ngFor="let b of c.field_buckets" [attr.data-bucket]="b.bucket">
+          <span class="fd-bucket-dot"></span>
+          <span class="fd-bucket-name">{{ b.label }}</span>
+          <span class="fd-bucket-pct">{{ b.percent_of_field }}% of field</span>
+          <span class="fd-bucket-amt">{{ b.amount | currency:'USD':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,163 @@
+<div class="cs-dialog">
+
+  <!-- CONTROLS (hidden on print) -->
+  <div class="cs-controls no-print">
+    <div class="cs-controls-left">
+      <div class="period-segments">
+        <button type="button" [class.active]="selectedPeriod === 'week'"  (click)="setPeriod('week')">Week</button>
+        <button type="button" [class.active]="selectedPeriod === 'month'" (click)="setPeriod('month')">Month</button>
+        <button type="button" [class.active]="selectedPeriod === 'year'"  (click)="setPeriod('year')">Year</button>
+        <button type="button" [class.active]="selectedPeriod === 'custom'" (click)="selectedPeriod = 'custom'">Custom</button>
+      </div>
+
+      <div class="custom-range" *ngIf="selectedPeriod === 'custom'">
+        <label>
+          <span>From</span>
+          <input type="date" [(ngModel)]="customStart" />
+        </label>
+        <label>
+          <span>To</span>
+          <input type="date" [(ngModel)]="customEnd" />
+        </label>
+        <button class="apply-btn" type="button" (click)="applyCustomRange()">Apply</button>
+      </div>
+    </div>
+
+    <div class="cs-controls-right">
+      <button mat-stroked-button type="button" class="action-btn" (click)="printStatement()">
+        <mat-icon>print</mat-icon><span>Print</span>
+      </button>
+      <button mat-flat-button type="button" class="action-btn primary"
+              *ngIf="statement$ | async as s"
+              (click)="downloadPdf(s)">
+        <mat-icon>file_download</mat-icon><span>Download PDF</span>
+      </button>
+      <button mat-icon-button type="button" class="close-btn" (click)="close()" aria-label="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- STATEMENT DOCUMENT (print surface) -->
+  <div class="statement" *ngIf="statement$ | async as s">
+
+    <!-- Document header -->
+    <header class="doc-head" [style.border-bottom-color]="branding.accent_hex">
+      <div class="brand-block">
+        <img *ngIf="branding.logo_path" class="brand-logo" [src]="branding.logo_path" [alt]="branding.company_name"/>
+        <div class="brand-text">
+          <div class="brand-name">{{ branding.company_name }}</div>
+          <div class="brand-addr" *ngFor="let line of branding.address_lines | slice:1">{{ line }}</div>
+          <div class="brand-contact" *ngIf="branding.contact_email">{{ branding.contact_email }}</div>
+        </div>
+      </div>
+      <div class="doc-meta">
+        <div class="doc-title">Commission Statement</div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Period</span><span class="doc-meta-val">{{ s.period.label }}</span></div>
+        <div class="doc-meta-row"><span class="doc-meta-label">Generated</span><span class="doc-meta-val">{{ s.generated_at | date:'medium' }}</span></div>
+      </div>
+    </header>
+
+    <!-- Prepared for -->
+    <section class="recipient">
+      <div class="recipient-label">Prepared for</div>
+      <div class="recipient-name">{{ s.user_name }}</div>
+      <div class="recipient-role">{{ s.user_role }}</div>
+    </section>
+
+    <!-- Summary -->
+    <section class="summary">
+      <div class="summary-title">Summary</div>
+      <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="summary-label">Opening Balance</div>
+          <div class="summary-value">{{ s.opening_balance | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">Earned Through Period End</div>
+          <div class="summary-value positive">{{ s.total_earned | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">Paid Through Period End</div>
+          <div class="summary-value positive">{{ s.total_paid | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label advance-label">Advances Through Period End</div>
+          <div class="summary-value">{{ s.advances_issued | currency:'USD':'symbol':'1.2-2' }}</div>
+          <div class="summary-sub">Tracked separately from 1099 YTD</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">Closing Balance</div>
+          <div class="summary-value strong">{{ s.closing_balance | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+        <div class="summary-cell highlight">
+          <div class="summary-label">1099 YTD</div>
+          <div class="summary-value strong">{{ s.taxable_1099_ytd | currency:'USD':'symbol':'1.2-2' }}</div>
+          <div class="summary-sub">Payouts issued this calendar year</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Claim detail -->
+    <section class="claim-section" *ngIf="s.claim_details.length > 0">
+      <div class="section-title">Claim Detail</div>
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>Claim #</th>
+            <th>Client</th>
+            <th>Stage</th>
+            <th class="num">Earned</th>
+            <th class="num">Paid</th>
+            <th class="num">Advances</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of s.claim_details">
+            <td class="mono">{{ c.claim_ref }}</td>
+            <td>{{ c.client_name }}</td>
+            <td class="stage">{{ c.stage_label }}</td>
+            <td class="num">{{ c.earned_in_period | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td class="num">{{ c.paid_in_period | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td class="num">{{ c.advances_in_period | currency:'USD':'symbol':'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Transaction ledger -->
+    <section class="tx-section">
+      <div class="section-title">Transaction History</div>
+      <table class="doc-table tx-table" *ngIf="s.transactions.length > 0">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Claim</th>
+            <th class="num">Amount</th>
+            <th>Memo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of s.transactions" [class]="rowClass(t.type)">
+            <td>{{ t.date | date:'MMM d, y' }}</td>
+            <td>{{ t.type_label }}</td>
+            <td class="mono">{{ t.claim_ref }}</td>
+            <td class="num">{{ t.amount | currency:'USD':'symbol':'1.2-2' }}</td>
+            <td class="memo">{{ t.memo }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="tx-empty" *ngIf="s.transactions.length === 0">
+        No transactions in this period.
+      </div>
+    </section>
+
+    <footer class="doc-foot" [style.border-top-color]="branding.accent_hex">
+      <div class="foot-left">{{ branding.footer_tagline }}</div>
+      <div class="foot-right">{{ branding.company_name }} · {{ s.period.label }}</div>
+    </footer>
+
+  </div>
+
+</div>

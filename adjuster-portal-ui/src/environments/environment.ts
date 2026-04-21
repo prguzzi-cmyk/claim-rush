@@ -5,6 +5,8 @@
 export const environment = {
   production: false,
   name: "Dev",
+  // Dev-only: skip login and stub the current user so :4200 lands straight in the authenticated shell.
+  devAutoLogin: true,
   server: "http://api.dev.adjuster.upaportal.org/v1",
   // mlmServer:'http://localhost:8080',
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env

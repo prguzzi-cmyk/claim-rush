@@ -110,7 +110,9 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "buildTarget": "adjuster-portal-ui:build",
-            "proxyConfig": "proxy.conf.json"
+            "proxyConfig": "proxy.conf.json",
+            "liveReload": false,
+            "hmr": false
           },
           "configurations": {
             "production": {

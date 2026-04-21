@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { User } from '../models/user.model';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import {map, catchError, tap} from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
     providedIn: 'root',
@@ -16,6 +17,22 @@ export class UserService {
     constructor(private http: HttpClient) { }
 
     getUser() {
+        if ((environment as any).devAutoLogin) {
+            const devUser: any = {
+                id: 'dev_user',
+                first_name: 'Dev',
+                last_name: 'Admin',
+                email: 'dev@localhost',
+                role_id: 'super-admin',
+                manager_id: null,
+                role: { name: 'super-admin', display_name: 'Super Admin', can_be_removed: true, id: 'super-admin' },
+                permissions: [],
+                is_active: true,
+                operating_mode: 'neutral',
+            };
+            this.currentUserSubject.next(devUser);
+            return of(devUser);
+        }
         return this.http.get<any>('users/me', {}).pipe(
             map((data) => {
                 this.currentUserSubject.next(data);

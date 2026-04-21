@@ -1,3 +1,7 @@
+<div *ngIf="isDevPortal"
+     style="position:sticky;top:0;z-index:2000;background:linear-gradient(90deg,#10b981 0%,#00C2FF 100%);color:#0B0F14;padding:8px 16px;font-weight:800;font-size:13px;letter-spacing:0.14em;text-align:center;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+  CANONICAL DEV PORTAL
+</div>
 <mat-sidenav-container autosize>
   <mat-sidenav #sidenav [opened]="!narrowScreen" [mode]="narrowScreen ? 'over' : 'side'" class="mat-elevation-z2">
     <app-sidebar></app-sidebar>

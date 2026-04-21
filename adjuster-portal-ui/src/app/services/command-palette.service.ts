@@ -122,7 +122,7 @@ export class CommandPaletteService {
         { id: 'nav-permissions', label: 'Permissions', category: 'navigation', icon: 'admin_panel_settings', route: '/app/administration/permissions', sideTitle: 'Permissions', keywords: ['permissions', 'access', 'admin'] },
         { id: 'nav-recruits-admin', label: 'Recruits Admin', category: 'navigation', icon: 'group_add', route: '/app/administration/recruits-admin', sideTitle: 'Recruits Admin', keywords: ['recruits', 'admin'] },
         { id: 'nav-title-change', label: 'Title Change', category: 'navigation', icon: 'update', route: '/app/administration/title-change', sideTitle: 'Title Change', keywords: ['title', 'promotion'] },
-        { id: 'nav-commission-admin', label: 'Commission Admin', category: 'navigation', icon: 'attach_money', route: '/app/administration/commission-admin', sideTitle: 'Commission Admin', keywords: ['commission', 'admin', 'payment'] },
+        { id: 'nav-commission-admin', label: 'Commission Admin', category: 'navigation', icon: 'attach_money', route: '/app/admin/commissions', sideTitle: 'Commission Admin', keywords: ['commission', 'admin', 'payment'] },
         { id: 'nav-call-types', label: 'Call Types', category: 'navigation', icon: 'tune', route: '/app/administration/call-type-configs', sideTitle: 'Call Types', keywords: ['call', 'types', 'config'] },
         { id: 'nav-policies', label: 'Policies', category: 'navigation', icon: 'policy', route: '/app/administration/policies', sideTitle: 'Policies', keywords: ['policies', 'rules'] },
         { id: 'nav-shop-order-list', label: 'Shop Order List', category: 'navigation', icon: 'sell', route: '/app/administration/shop-management/order-list', sideTitle: 'Shop Management', keywords: ['shop', 'orders', 'admin'] },

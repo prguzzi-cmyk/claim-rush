@@ -3,6 +3,7 @@ import { NgModule } from "@angular/core";
 import { Routes, RouterModule } from "@angular/router";
 import { LoginComponent } from "./components/login/login.component";
 import { AuthGuard } from "./guards/auth.guard";
+import { DevAutoLoginGuard } from "./guards/dev-auto-login.guard";
 import { ApplicationComponent } from "./components/application.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
 import { UsersComponent } from "./components/sections/users/users.component";
@@ -36,6 +37,7 @@ import { CreateuserTaskComponent } from "./components/sections/user-task/create-
 import { SignComponent } from "./components/sections/resources/sign/sign.component";
 import { ClaimsComponent } from "./components/sections/claims/claims/claims.component";
 import { AgentDashboardComponent } from "./components/sections/agent-dashboard/agent-dashboard.component";
+import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { SidebarComponent } from "./components/layout/sidebar/sidebar.component";
 import { NewslettersComponent } from "./components/sections/newsletters/newsletters.component";
 import { AnnouncementsComponent } from "./components/sections/announcements/announcements.component";
@@ -73,7 +75,6 @@ import {StormIntelligenceComponent} from "./components/sections/storm-intelligen
 import {RoofIntelligenceComponent} from "./components/sections/roof-intelligence/roof-intelligence.component";
 import {PotentialClaimsComponent} from "./components/sections/potential-claims/potential-claims.component";
 import {IncidentIntelligenceComponent} from "./components/sections/incident-intelligence/incident-intelligence.component";
-import {CommissionAdminComponent} from "./components/sections/commission-admin/commission-admin.component";
 import {CustomerClaimsComponent} from "./components/sections/claims/customer-claims/customer-claims.component";
 import {EstimatingListComponent} from "./components/sections/estimating/estimating-list/estimating-list.component";
 import {EstimatingDetailComponent} from "./components/sections/estimating/estimating-detail/estimating-detail.component";
@@ -194,6 +195,7 @@ const routes: Routes = [
   {
     path: "",
     component: PublicLayoutComponent,
+    canActivate: [DevAutoLoginGuard],
     children: [
       { path: "", component: LandingPageComponent },
       { path: "features", component: FeaturesPageComponent },
@@ -215,6 +217,10 @@ const routes: Routes = [
       {
         path: "agent-dashboard",
         component: AgentDashboardComponent,
+      },
+      {
+        path: "admin/commissions",
+        component: CommissionsAdminViewComponent,
       },
       {
         path: "customer-dashboard",
@@ -471,8 +477,9 @@ const routes: Routes = [
             component: TitleChangeComponent
           },
           {
-            path:"commission-admin",
-            component: CommissionAdminComponent,
+            path: "commission-admin",
+            redirectTo: "/app/admin/commissions",
+            pathMatch: "full",
           },
           {
             path: "policies",
@@ -549,7 +556,7 @@ const routes: Routes = [
     ],
   },
   // Authentication routes (stay at root)
-  { path: "login", component: LoginComponent },
+  { path: "login", component: LoginComponent, canActivate: [DevAutoLoginGuard] },
   { path: "auth/magic-link", component: MagicLinkCallbackComponent },
   { path: "forgot-password", component: ForgotPasswordComponent },
   // User registration

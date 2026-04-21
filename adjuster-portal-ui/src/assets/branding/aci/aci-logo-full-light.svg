@@ -1,0 +1,12 @@
+<svg width="600" height="160" viewBox="0 0 600 160" xmlns="http://www.w3.org/2000/svg">
+  <!-- ACI Adjustment Group — Full Logo (Light Background Version) -->
+  <!-- Print-ready vector. Scale to any size. -->
+
+  <!-- Hexagonal mark -->
+  <polygon points="40,20 120,20 160,80 120,140 40,140 0,80" fill="#ffffff" stroke="#6b1d2a" stroke-width="6"/>
+  <text x="80" y="100" text-anchor="middle" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="64" font-weight="700" fill="#c5a55a">A</text>
+
+  <!-- Wordmark -->
+  <text x="190" y="88" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="60" font-weight="900" letter-spacing="6" fill="#111111">ACI</text>
+  <text x="190" y="126" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="4" fill="#c5a55a">ADJUSTMENT GROUP</text>
+</svg>

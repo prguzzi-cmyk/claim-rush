@@ -1,0 +1,195 @@
+<div class="earnings-shell">
+
+  <!-- ─── ROW 1 — HERO SUMMARY ─── -->
+  <div class="hero-row" *ngIf="earnings$ | async as e">
+    <div class="hero-tile tone-cyan">
+      <div class="hero-label">Total Earned</div>
+      <div class="hero-value">{{ e.total_earned | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="hero-sub">Lifetime, writing-agent share</div>
+    </div>
+
+    <div class="hero-tile tone-green">
+      <div class="hero-label">Paid to Date</div>
+      <div class="hero-value">{{ e.paid_to_date | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="hero-sub">
+        <mat-icon class="inline-icon">check_circle</mat-icon>
+        Disbursed to you
+      </div>
+    </div>
+
+    <div class="hero-tile tone-amber">
+      <div class="hero-label">
+        Remaining Balance
+        <span class="pulse-dot" *ngIf="e.remaining_balance > 0"></span>
+      </div>
+      <div class="hero-value">{{ e.remaining_balance | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="hero-sub" *ngIf="e.remaining_balance > 0">Owed to you</div>
+      <div class="hero-sub" *ngIf="e.remaining_balance === 0">Fully settled</div>
+    </div>
+
+    <div class="hero-tile tone-violet" *ngIf="tax1099$ | async as tx">
+      <div class="hero-label">
+        1099 YTD
+        <span class="chip chip-tax">Taxable</span>
+      </div>
+      <div class="hero-value">{{ tx.ytd_total | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="hero-sub hero-sub-breakdown">
+        <span>Calendar {{ tx.year }}</span>
+        <span class="dot-sep">·</span>
+        <span>Payouts only</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── ROW 2 — INSIGHT TRIO ─── -->
+  <div class="trio-row">
+
+    <!-- Trend card (wide) -->
+    <div class="panel trend-panel" *ngIf="trend$ | async as t">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Earnings Trend</div>
+          <div class="panel-sub">Last 6 months</div>
+        </div>
+        <div class="trend-delta" [class.up]="t.delta_percent >= 0" [class.down]="t.delta_percent < 0">
+          <mat-icon>{{ t.delta_percent >= 0 ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          <span>{{ (t.delta_percent | number:'1.0-0') }}% vs prior</span>
+        </div>
+      </div>
+
+      <div class="trend-current">
+        <div class="trend-current-value">{{ t.current_month | currency:'USD':'symbol':'1.0-0' }}</div>
+        <div class="trend-current-label">This month</div>
+      </div>
+
+      <svg class="trend-svg" viewBox="0 0 240 60" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00C2FF" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#00C2FF" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon [attr.points]="trendArea(t.points)" fill="url(#trend-fill)"/>
+        <polyline [attr.points]="trendPolyline(t.points)"
+                  fill="none" stroke="#00C2FF" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+
+      <div class="trend-axis">
+        <span *ngFor="let p of t.points" [class.current]="p.is_current">{{ p.month_label }}</span>
+      </div>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="panel activity-panel">
+      <div class="panel-head">
+        <div class="panel-title">Recent Commission Activity</div>
+      </div>
+
+      <div class="activity-feed" *ngIf="activity$ | async as acts">
+        <div class="activity-row" *ngFor="let a of acts" [class]="activityTone(a.type)">
+          <div class="activity-icon">
+            <mat-icon>{{ activityIcon(a.type) }}</mat-icon>
+          </div>
+          <div class="activity-body">
+            <div class="activity-top">
+              <span class="activity-label">{{ activityLabel(a.type) }}</span>
+              <span class="activity-claim" *ngIf="a.claim_ref">· {{ a.claim_ref }}</span>
+            </div>
+            <div class="activity-memo" *ngIf="a.memo">{{ a.memo }}</div>
+          </div>
+          <div class="activity-right">
+            <div class="activity-amt">
+              {{ a.amount | currency:'USD':'symbol':'1.0-0' }}
+            </div>
+            <div class="activity-time">{{ a.timestamp | date:'MMM d' }}</div>
+          </div>
+        </div>
+        <div class="activity-empty" *ngIf="acts.length === 0">No activity yet.</div>
+      </div>
+    </div>
+
+    <!-- Active claims -->
+    <div class="panel active-panel">
+      <div class="panel-head">
+        <div class="panel-title">Active Claims Contributing</div>
+      </div>
+
+      <div class="active-list" *ngIf="activeClaims$ | async as acs">
+        <div class="active-row" *ngFor="let c of acs">
+          <div class="active-top">
+            <span class="active-ref">{{ c.claim_ref }}</span>
+            <span class="stage-chip" [class]="stageTone(c.stage)">{{ c.stage_label }}</span>
+          </div>
+          <div class="active-bottom">
+            <span class="active-client">{{ c.client_name }}</span>
+            <span class="active-amt">{{ c.projected_agent_share | currency:'USD':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+        <div class="active-empty" *ngIf="acs.length === 0">No active claims.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── ROW 3 — CLAIM TABLE ─── -->
+  <div class="panel table-panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Claim Ledger</div>
+        <div class="panel-sub">Click a row to view the full financial detail</div>
+      </div>
+    </div>
+
+    <div class="table-wrap" *ngIf="claimTable$ | async as rows">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Claim #</th>
+            <th>Stage</th>
+            <th class="num">Earned</th>
+            <th class="num">Paid</th>
+            <th class="num">Remaining</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of rows" (click)="openFinancialDetail()">
+            <td class="client">{{ r.client_name }}</td>
+            <td class="ref">{{ r.claim_ref }}</td>
+            <td><span class="stage-chip" [class]="stageTone(r.stage)">{{ r.stage_label }}</span></td>
+            <td class="num num-earned">{{ r.earned | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="num num-paid">{{ r.paid | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="num num-remaining">{{ r.remaining | currency:'USD':'symbol':'1.0-0' }}</td>
+          </tr>
+          <tr *ngIf="rows.length === 0">
+            <td colspan="6" class="table-empty">No claims on record.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── ROW 4 — ACTION STRIP ─── -->
+  <div class="action-strip" *ngIf="nextPayout$ | async as np">
+    <button mat-flat-button class="primary-cta" (click)="openFinancialDetail()">
+      <mat-icon>receipt_long</mat-icon>
+      <span>View Financial Detail</span>
+    </button>
+    <button mat-stroked-button class="secondary-cta" (click)="openStatement()">
+      <mat-icon>picture_as_pdf</mat-icon>
+      <span>Generate Statement</span>
+    </button>
+    <div class="status-card" [class.pending]="np.has_pending">
+      <span class="status-dot"></span>
+      <div class="status-text">
+        <div class="status-title">Next payout</div>
+        <div class="status-sub">
+          <ng-container *ngIf="np.has_pending">{{ np.estimated_date | date:'MMM d' }} · {{ np.status_label }}</ng-container>
+          <ng-container *ngIf="!np.has_pending">{{ np.status_label }}</ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -17,6 +17,8 @@ import { AgentDashboardApiService, AgentAvailabilityResponse } from 'src/app/ser
 import { AgentDashboardLead } from 'src/app/models/agent-dashboard.model';
 import { FireIncidentService } from 'src/app/services/fire-incident.service';
 import { ConvertToLeadDialogComponent } from '../fire-incidents/convert-to-lead-dialog/convert-to-lead-dialog.component';
+import { CommissionEngineMockService } from 'src/app/services/commission-engine-mock.service';
+import { environment } from 'src/environments/environment';
 
 // --- Marker colors by event/lead type ---
 
@@ -157,6 +159,12 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
   isChapterPresident = false;
   cpStates: string[] = [];
 
+  // Tab system: 0 = Leads, 1 = Earnings, 2 = Claims, 3 = Performance
+  // Temporarily defaulting to Earnings (1) for verification.
+  activeTabIndex = 1;
+  currentUserId: string | null = null;
+  currentUserName: string | null = null;
+
   constructor(
     private liveActivity: LiveActivityService,
     private dashboardService: DashboardService,
@@ -168,7 +176,13 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private zone: NgZone,
     private router: Router,
-  ) {}
+    private commissionMock: CommissionEngineMockService,
+  ) {
+    this.commissionMock.getCurrentUser().subscribe(u => {
+      this.currentUserId = u.id;
+      this.currentUserName = u.name;
+    });
+  }
 
   ngOnInit() {
     // Load config from backend
@@ -271,8 +285,13 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
     this.loadAvailability();
     this.loadKpis();
     this.loadRealLeads();
-    this.startCountdown();
-    this.startLeadPolling();
+    // In dev (devAutoLogin) skip the 1s countdown and 15s lead poll — they run inside
+    // zone.run and force a full Angular change-detection pass every tick, which is the
+    // dominant visual-flicker source on the dashboard while building.
+    if (!(environment as any).devAutoLogin) {
+      this.startCountdown();
+      this.startLeadPolling();
+    }
 
     // Subscribe to live activities for map markers, ticker, and recent feed
     this.subs.push(

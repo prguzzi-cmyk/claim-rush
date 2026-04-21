@@ -79,15 +79,45 @@
   }
 }
 
-.google-btn {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+.social-btn {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
 
-  &[disabled] {
-    opacity: 0.4 !important;
-    color: rgba(255, 255, 255, 0.5) !important;
+  &:hover {
+    background: rgba(255, 255, 255, 0.09) !important;
+    border-color: rgba(255, 255, 255, 0.28) !important;
   }
+  &:active {
+    transform: translateY(1px);
+  }
+
+  mat-icon {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.social-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #fff;
+  color: #1a73e8;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: 'Product Sans', 'Roboto', sans-serif;
+}
+
+.pw-toggle {
+  color: rgba(255, 255, 255, 0.55) !important;
+  &:hover { color: rgba(255, 255, 255, 0.85) !important; }
 }
 
 .magic-btn {

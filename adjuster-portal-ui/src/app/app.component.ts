@@ -1,6 +1,7 @@
 import { Component, HostBinding } from "@angular/core";
 import { Router, NavigationEnd } from "@angular/router";
 import { UpdateService } from "./services/update.service";
+import { environment } from "src/environments/environment";
 
 @Component({
     selector: "app-root",
@@ -16,9 +17,15 @@ export class AppComponent {
     private router: Router,
     private updateNotificationService: UpdateService
   ) {
-    // Subscribe to router URL
+    // Dev-auto-login routing happens in DevAutoLoginGuard on "/" and "/login" so the
+    // landing page never renders. A router-events subscription here would fire for every
+    // navigation and has repeatedly caused a visible landing-flash → portal flicker.
+
+    // Track whether we're inside the authenticated shell, for the host class binding.
     router.events.subscribe((event) => {
-      this.inApplication = router.url.startsWith('/app');
+      if (event instanceof NavigationEnd) {
+        this.inApplication = event.urlAfterRedirects.startsWith('/app');
+      }
     });
   }
 }

@@ -8,6 +8,7 @@ import { UserService } from 'src/app/services/user.service';
 import { TabService } from 'src/app/services/tab.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PasskeyRegisterDialogComponent } from '../dialogs/passkey-register-dialog/passkey-register-dialog.component';
+import { environment } from 'src/environments/environment';
 
 export type LoginMode = 'main' | 'password' | 'magic-link' | 'magic-link-sent';
 
@@ -36,6 +37,7 @@ export class LoginComponent implements OnInit {
   loginDisabled: boolean = false;
   magicLinkDisabled: boolean = false;
   passkeyDisabled: boolean = false;
+  hidePassword: boolean = true;
 
   passkeysAvailable: boolean = false;
   googleEnabled: boolean = false;
@@ -52,8 +54,16 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    if ((environment as any).devAutoLogin) {
+      this.router.navigateByUrl('/app/agent-dashboard');
+      return;
+    }
     this.authService.logout();
     this.loadCapabilities();
+  }
+
+  togglePasswordVisibility() {
+    this.hidePassword = !this.hidePassword;
   }
 
   loadCapabilities() {

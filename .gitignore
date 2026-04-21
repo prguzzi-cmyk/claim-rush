@@ -27,7 +27,11 @@ Thumbs.db
 *.swp
 *.swo
 
-# Claude local config
+# Claude local config — .claude is a local symlink into ~/claude-brain and
+# CLAUDE.md is a per-machine symlink, not source. Keep both out of the repo.
+# (No trailing slash on .claude so the pattern matches a symlink, not just a dir.)
+.claude
+CLAUDE.md
 .claude/settings.local.json
 
 # Vercel

@@ -3,6 +3,17 @@
 // Live ops center with ticker, glass KPIs, and incident feed
 // ═══════════════════════════════════════════════════════════════
 
+.ad-tabs {
+  ::ng-deep .mat-mdc-tab-body-content { overflow-x: hidden; }
+  ::ng-deep .mat-mdc-tab-labels { background: #fff; border-bottom: 1px solid #e2e8f0; }
+}
+.ad-tab-placeholder {
+  padding: 60px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

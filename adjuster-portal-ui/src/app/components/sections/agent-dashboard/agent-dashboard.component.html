@@ -1,3 +1,6 @@
+<mat-tab-group class="ad-tabs" [(selectedIndex)]="activeTabIndex" animationDuration="200ms">
+
+<mat-tab label="Leads">
 <div class="mission-control">
   <!-- Header Row -->
   <div class="mc-header">
@@ -249,3 +252,21 @@
     </div>
   </div>
 </div>
+</mat-tab>
+
+<mat-tab label="Earnings">
+  <app-earnings-tab *ngIf="currentUserId"
+                    [userId]="currentUserId"
+                    [userDisplayName]="currentUserName">
+  </app-earnings-tab>
+</mat-tab>
+
+<mat-tab label="Claims">
+  <div class="ad-tab-placeholder">Claims view coming soon.</div>
+</mat-tab>
+
+<mat-tab label="Performance">
+  <div class="ad-tab-placeholder">Performance view coming soon.</div>
+</mat-tab>
+
+</mat-tab-group>

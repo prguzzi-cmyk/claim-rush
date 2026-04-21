@@ -126,3 +126,39 @@
     margin-bottom: 4px;
   }
 }
+
+/* Dark-theme dialog surface — used by the Financial Detail modal */
+.dark-dialog-panel .mat-mdc-dialog-surface,
+.dark-dialog-panel .mat-mdc-dialog-container {
+  background: #0B0F14 !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.60);
+  overflow: hidden;
+}
+
+/* Light print-ready surface — used by the Commission Statement dialog */
+.statement-dialog-panel .mat-mdc-dialog-surface,
+.statement-dialog-panel .mat-mdc-dialog-container {
+  background: #f4f4f6 !important;
+  color: #0f172a !important;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.statement-dialog-panel .mdc-dialog__container,
+.statement-dialog-panel .mat-mdc-dialog-content {
+  padding: 0 !important;
+}
+/* When the user opens the browser print dialog from the statement, only the dialog
+   surface should render — hide everything else. */
+@media print {
+  body > *:not(.cdk-overlay-container) { display: none !important; }
+  .cdk-overlay-container { position: static !important; }
+  .cdk-overlay-backdrop { display: none !important; }
+  .cdk-global-overlay-wrapper,
+  .cdk-overlay-pane { position: static !important; max-width: 100% !important; max-height: none !important; width: 100% !important; }
+  .statement-dialog-panel { width: 100% !important; max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
+}
+

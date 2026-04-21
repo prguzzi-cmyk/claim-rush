@@ -1,0 +1,105 @@
+<div class="admin-shell">
+
+  <div class="admin-head">
+    <div>
+      <h1 class="admin-title">Commission Admin</h1>
+      <div class="admin-sub">House roll-up · per-writing-agent drill-down</div>
+    </div>
+  </div>
+
+  <!-- ─── Top roll-up tiles ─── -->
+  <div class="rollup-row" *ngIf="overview$ | async as o">
+    <div class="rollup-tile tone-house">
+      <div class="tile-label">Gross Fee MTD</div>
+      <div class="tile-value">{{ o.total_gross_fee_mtd | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="tile-sub">Settled claims this month</div>
+    </div>
+    <div class="rollup-tile tone-cyan">
+      <div class="tile-label">House Share</div>
+      <div class="tile-value">{{ o.house_share_mtd | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="tile-sub">20% of gross</div>
+    </div>
+    <div class="rollup-tile tone-green">
+      <div class="tile-label">Field Share</div>
+      <div class="tile-value">{{ o.field_share_mtd | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="tile-sub">Agent + RVP + CP</div>
+    </div>
+    <div class="rollup-tile tone-violet">
+      <div class="tile-label">Reserve</div>
+      <div class="tile-value">{{ o.reserve_mtd | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="tile-sub">Held back</div>
+    </div>
+    <div class="rollup-tile tone-amber">
+      <div class="tile-label">Outstanding Advances</div>
+      <div class="tile-value">{{ o.outstanding_advances_total | currency:'USD':'symbol':'1.0-0' }}</div>
+      <div class="tile-sub">Across all agents</div>
+    </div>
+  </div>
+
+  <!-- ─── Writing-agent table ─── -->
+  <div class="panel table-panel" *ngIf="overview$ | async as o">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Writing Agents</div>
+        <div class="panel-sub">Click a row to view that agent's financial dashboard</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th class="num">Active Claims</th>
+            <th class="num">MTD Commission</th>
+            <th class="num">Remaining</th>
+            <th class="num">1099 YTD</th>
+            <th class="actions-col">Statement</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of o.rows"
+              [class.selected]="selectedUserId === r.user_id"
+              (click)="selectUser(r.user_id)">
+            <td class="name">{{ r.user_name }}</td>
+            <td><span class="role-chip" [attr.data-role]="r.org_role">{{ r.org_role }}</span></td>
+            <td class="num">{{ r.active_claims }}</td>
+            <td class="num num-earned">{{ r.commissions_earned_mtd | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="num num-remaining">{{ r.remaining_balance | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="num num-tax">{{ r.taxable_1099_ytd | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="actions-cell">
+              <button mat-icon-button
+                      class="statement-btn"
+                      matTooltip="Generate statement"
+                      (click)="openStatementFor(r.user_id, r.user_name, $event)">
+                <mat-icon>picture_as_pdf</mat-icon>
+              </button>
+            </td>
+            <td class="arrow-cell"><mat-icon>chevron_right</mat-icon></td>
+          </tr>
+          <tr *ngIf="o.rows.length === 0">
+            <td colspan="8" class="table-empty">No writing agents on record.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Drill-down (same dark EarningsTab) ─── -->
+  <div class="drill" *ngIf="selectedUser$ | async as u">
+    <div class="drill-head">
+      <div>
+        <h2 class="drill-title">{{ u.name }}</h2>
+        <div class="drill-sub">{{ u.org_role }} · writing-agent view</div>
+      </div>
+      <button mat-stroked-button class="drill-close" (click)="clearSelection()">
+        <mat-icon>close</mat-icon>
+        <span>Close</span>
+      </button>
+    </div>
+    <app-earnings-tab [userId]="u.id" [userDisplayName]="u.name"></app-earnings-tab>
+  </div>
+
+</div>
