@@ -107,6 +107,7 @@ from app.api.api_v1.endpoints import (
     incident_intelligence,
     lead_rescue,
     intake_config,
+    commission,
     client_portal_leads,
     voice_secretary,
     sales_agent_sessions,
@@ -909,4 +910,13 @@ api_router.include_router(
     intake_config.router,
     prefix="/intake-config",
     tags=[Tags.intake_config],
+)
+
+# Commission Engine Router — agent earnings, admin overview, statements,
+# 1099 YTD, payouts, advances. Auth gated via commission_auth dep
+# (DEV_BYPASS=1 to skip auth while the frontend is in devAutoLogin).
+api_router.include_router(
+    commission.router,
+    prefix="/commission",
+    tags=["Commission"],
 )
