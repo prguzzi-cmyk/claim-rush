@@ -1,0 +1,149 @@
+:host {
+  display: block;
+  background: #0b0f14;
+  color: #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cp-dialog {
+  max-width: 840px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px 32px 24px;
+}
+
+.cp-head {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.cp-head > div:first-child { flex: 1; }
+.cp-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #7dd3fc;
+}
+.cp-title {
+  font-size: 26px; font-weight: 700; color: #fff;
+  margin: 4px 0 8px;
+}
+.cp-sub {
+  font-size: 13px; color: rgba(255, 255, 255, 0.70);
+  line-height: 1.55;
+  strong { color: #00C2FF; }
+}
+.cp-close { color: rgba(255, 255, 255, 0.55) !important; }
+
+.cp-scenarios {
+  display: flex; flex-direction: column; gap: 20px;
+  padding: 24px 0;
+}
+
+.cp-scenario {
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.cp-scenario-head {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 14px;
+}
+.cp-scenario-head > div:nth-child(2) { flex: 1; }
+.cp-scenario-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  background: rgba(0, 194, 255, 0.12);
+  border: 1px solid rgba(0, 194, 255, 0.35);
+  color: #7dd3fc; font-weight: 800; font-size: 14px;
+}
+.cp-scenario-title { font-size: 15px; font-weight: 700; color: #fff; }
+.cp-scenario-cond { font-size: 12.5px; color: rgba(255, 255, 255, 0.60); margin-top: 2px; }
+
+.cp-role-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid;
+
+  &[data-role="AGENT"] { color: #7dd3fc; background: rgba(0, 194, 255, 0.10); border-color: rgba(0, 194, 255, 0.35); }
+  &[data-role="RVP"]   { color: #c4b5fd; background: rgba(139, 92, 246, 0.14); border-color: rgba(139, 92, 246, 0.38); }
+  &[data-role="CP"]    { color: #fcd34d; background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.38); }
+}
+
+.cp-split-row {
+  margin-bottom: 14px;
+}
+.cp-split-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 8px;
+}
+.cp-split-bars {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cp-split-seg {
+  padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+
+  &[data-bucket="Writing Agent"] {
+    background: linear-gradient(135deg, rgba(0, 194, 255, 0.20), rgba(0, 136, 204, 0.12));
+  }
+  &[data-bucket="RVP Override"] {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.22), rgba(109, 40, 217, 0.12));
+  }
+  &[data-bucket="CP Override"] {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(180, 83, 9, 0.12));
+  }
+}
+.cp-split-pct { font-size: 16px; font-weight: 800; color: #fff; }
+.cp-split-bucket { font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.70); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.cp-example {
+  border-top: 1px dashed rgba(255, 255, 255, 0.10);
+  padding-top: 12px;
+}
+.cp-example-title {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 6px;
+}
+.cp-example-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  td { padding: 5px 0; color: rgba(255, 255, 255, 0.80); }
+  td.num { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #fff; font-weight: 600; }
+  tr.cp-example-gross td { color: #7dd3fc; font-weight: 700; }
+}
+
+.cp-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.cp-foot-note {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: rgba(255, 255, 255, 0.55);
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: #7dd3fc; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1px 6px; border-radius: 4px;
+    color: #fff;
+  }
+}
+.cp-done {
+  background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
+  color: #041e2a !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  padding: 0 22px !important;
+}

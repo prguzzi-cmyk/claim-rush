@@ -1,0 +1,62 @@
+<div class="cp-dialog">
+
+  <div class="cp-head">
+    <div>
+      <div class="cp-eyebrow">ACI Commission Plan — Reference</div>
+      <h2 class="cp-title">Compensation Plan</h2>
+      <div class="cp-sub">
+        Master split: House <strong>{{ masterHouse }}%</strong> / Field <strong>{{ masterField }}%</strong>.
+        Field is distributed by scenario based on the writing agent's role.
+      </div>
+    </div>
+    <button mat-icon-button class="cp-close" (click)="close()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="cp-scenarios">
+    <div class="cp-scenario" *ngFor="let s of scenarios">
+
+      <div class="cp-scenario-head">
+        <div class="cp-scenario-num">S{{ s.id }}</div>
+        <div>
+          <div class="cp-scenario-title">{{ s.title }}</div>
+          <div class="cp-scenario-cond">{{ s.condition }}</div>
+        </div>
+        <span class="cp-role-chip" [attr.data-role]="s.writer">{{ s.writer }} writes</span>
+      </div>
+
+      <div class="cp-split-row">
+        <div class="cp-split-label">Field distribution</div>
+        <div class="cp-split-bars">
+          <div class="cp-split-seg" *ngFor="let r of s.splits"
+               [style.flex]="r.percent"
+               [attr.data-bucket]="r.bucket">
+            <span class="cp-split-pct">{{ r.percent }}%</span>
+            <span class="cp-split-bucket">{{ r.bucket }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-example">
+        <div class="cp-example-title">Example — $10,000 gross fee</div>
+        <table class="cp-example-table">
+          <tr *ngFor="let line of s.example; let i = index" [class.cp-example-gross]="i === 0">
+            <td>{{ line.label }}</td>
+            <td class="num">{{ line.amount | currency:'USD':'symbol':'1.0-0' }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="cp-foot">
+    <div class="cp-foot-note">
+      <mat-icon>info</mat-icon>
+      Reference only. To change the plan, edit
+      <code>_resolve_field_split</code> in <code>commission_service.py</code> and re-seed.
+    </div>
+    <button mat-flat-button class="cp-done" (click)="close()">Done</button>
+  </div>
+
+</div>

@@ -7,6 +7,7 @@ import {
 } from 'src/app/models/commission-engine.model';
 import { CommissionEngineService } from 'src/app/services/commission-engine.service';
 import { CommissionStatementDialogComponent } from '../agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component';
+import { CompPlanDialogComponent } from './comp-plan-dialog/comp-plan-dialog.component';
 
 /**
  * Admin / RIN House view.
@@ -77,6 +78,16 @@ export class CommissionsAdminViewComponent implements OnInit {
       maxHeight: '94vh',
       panelClass: 'statement-dialog-panel',
       data: { userId, userDisplayName: userName },
+      autoFocus: false,
+    });
+  }
+
+  openCompPlan(): void {
+    this.dialog.open(CompPlanDialogComponent, {
+      width: '880px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'comp-plan-dialog-panel',
       autoFocus: false,
     });
   }

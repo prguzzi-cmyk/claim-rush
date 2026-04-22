@@ -29,6 +29,19 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+.comp-plan-btn {
+  color: #7dd3fc !important;
+  border-color: rgba(0, 194, 255, 0.35) !important;
+  background: rgba(0, 194, 255, 0.05) !important;
+  border-radius: 999px !important;
+  padding: 0 18px !important;
+  mat-icon { margin-right: 4px; color: #7dd3fc; }
+  &:hover {
+    background: rgba(0, 194, 255, 0.12) !important;
+    border-color: rgba(0, 194, 255, 0.60) !important;
+  }
+}
+
 /* ─── Roll-up tiles ─── */
 .rollup-row {
   display: grid;

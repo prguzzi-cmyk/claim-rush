@@ -170,6 +170,7 @@ import { EarningsTabComponent } from "./components/sections/agent-dashboard/earn
 import { FinancialDetailDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/financial-detail-dialog/financial-detail-dialog.component";
 import { CommissionStatementDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component";
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
+import { CompPlanDialogComponent } from "./components/sections/commissions-admin-view/comp-plan-dialog/comp-plan-dialog.component";
 import { CreateClientTaskComponent } from "./components/sections/client-task/create-client-task/create-client-task.component";
 import { UserClientListComponent } from "./components/sections/client-task/user-client-list/user-client-list.component";
 import { AngularEditorModule } from "@kolkov/angular-editor";
@@ -535,6 +536,7 @@ export function tokenGetter() {
     FinancialDetailDialogComponent,
     CommissionStatementDialogComponent,
     CommissionsAdminViewComponent,
+    CompPlanDialogComponent,
     CreateClientTaskComponent,
     UserClientListComponent,
     NewslettersComponent,
