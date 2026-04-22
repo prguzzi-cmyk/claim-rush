@@ -43,7 +43,11 @@ class EstimateProjectBase(BaseModel):
 class EstimateProjectCreate(EstimateProjectBase):
     name: str = Field(max_length=200, description="Project name.")
     estimate_mode: str = Field(default="residential", max_length=50, description="Estimate mode/type.")
-    claim_id: UUID | None = Field(default=None, description="Associated claim UUID.")
+    claim_id: UUID | None = Field(default=None, description="Associated legacy claim UUID.")
+    commission_claim_id: UUID | None = Field(
+        default=None,
+        description="Associated commission_claim UUID — drives advance tier eligibility when present.",
+    )
     pricing_version_id: UUID | None = Field(default=None, description="Pricing version in use.")
     pricing_region: str | None = Field(default=None, description="Pricing region.")
     rooms: list[EstimateRoomCreate] | None = Field(
@@ -53,13 +57,19 @@ class EstimateProjectCreate(EstimateProjectBase):
 
 # Properties accepted on update
 class EstimateProjectUpdate(EstimateProjectBase):
-    pass
+    commission_claim_id: UUID | None = Field(
+        default=None,
+        description="Associated commission_claim UUID. Set to None to detach.",
+    )
 
 
 # Properties returned from DB
 class EstimateProjectInDB(EstimateProjectBase):
     id: UUID | None = Field(description="Project UUID.")
-    claim_id: UUID | None = Field(default=None, description="Associated claim UUID.")
+    claim_id: UUID | None = Field(default=None, description="Associated legacy claim UUID.")
+    commission_claim_id: UUID | None = Field(
+        default=None, description="Associated commission_claim UUID."
+    )
     pricing_version_id: UUID | None = Field(default=None, description="Pricing version in use.")
     pricing_region: str | None = Field(default=None, description="Pricing region.")
     rooms: list[EstimateRoom] = Field(default_factory=list, description="Project rooms.")

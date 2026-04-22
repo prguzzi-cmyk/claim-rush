@@ -57,18 +57,29 @@ class CarrierEstimateBase(BaseModel):
 class CarrierEstimateCreate(CarrierEstimateBase):
     carrier_name: str = Field(max_length=200, description="Carrier name.")
     project_id: UUID = Field(description="Parent project UUID.")
+    commission_claim_id: UUID | None = Field(
+        default=None,
+        description="Optional commission_claim UUID — when set, divergence vs. the firm "
+                    "estimate is computed and recorded on the claim (I3).",
+    )
     line_items: list[CarrierLineItemCreate] | None = Field(
         default=None, description="Line items to create."
     )
 
 
 class CarrierEstimateUpdate(CarrierEstimateBase):
-    pass
+    commission_claim_id: UUID | None = Field(
+        default=None,
+        description="Set to attach / detach the carrier estimate to a commission_claim.",
+    )
 
 
 class CarrierEstimateInDB(CarrierEstimateBase):
     id: UUID | None = Field(description="Carrier estimate UUID.")
     project_id: UUID | None = Field(default=None, description="Parent project UUID.")
+    commission_claim_id: UUID | None = Field(
+        default=None, description="Linked commission_claim UUID (if any)."
+    )
     file_key: str | None = Field(default=None, description="S3 file key.")
     line_items: list[CarrierLineItem] = Field(default_factory=list, description="Line items.")
 

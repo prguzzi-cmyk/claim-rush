@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.carrier_comparison import CarrierComparison
     from app.models.carrier_estimate import CarrierEstimate
     from app.models.carrier_payment import CarrierPayment
+    from app.models.commission_claim import CommissionClaim
     from app.models.defense_note import DefenseNote
     from app.models.estimate_photo import EstimatePhoto
     from app.models.estimate_room import EstimateRoom
@@ -52,6 +53,20 @@ class EstimateProject(SoftDeleteMixin, TimestampMixin, AuditMixin, Base):
     )
     pricing_region: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
+    # Link to the commission engine claim. Nullable — many estimate
+    # projects pre-date the commission engine and aren't bound to any
+    # commission_claim. Distinct from the legacy `claim_id` above which
+    # references the original `claim` table.
+    commission_claim_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "commission_claim.id",
+            name="fk_estimate_project_commission_claim_id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        index=True,
+    )
+
     # Relationships
     claim: Mapped["Claim"] = relationship(
         lazy="joined",
@@ -86,6 +101,11 @@ class EstimateProject(SoftDeleteMixin, TimestampMixin, AuditMixin, Base):
         back_populates="project",
         uselist=False,
         cascade="all, delete-orphan",
+    )
+    commission_claim: Mapped["CommissionClaim | None"] = relationship(
+        foreign_keys=[commission_claim_id],
+        viewonly=True,
+        lazy="select",
     )
 
     def __repr__(self) -> str:

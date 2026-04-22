@@ -65,6 +65,7 @@ from app.api.api_v1.endpoints import (
     call_type_configs,
     estimate_projects,
     estimate_photos,
+    estimates_link,
     pricing,
     pricing_versions,
     fire_claims,
@@ -569,6 +570,13 @@ api_router.include_router(
     estimate_photos.router,
     prefix="/estimate-projects",
     tags=[Tags.estimate_photos],
+)
+
+# Estimates ↔ commission_claim plumbing (attach / detach)
+api_router.include_router(
+    estimates_link.router,
+    prefix="/estimates",
+    tags=["estimates"],
 )
 
 # Pricing Router

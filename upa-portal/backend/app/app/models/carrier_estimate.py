@@ -12,6 +12,7 @@ from app.db.base_class import Base
 from app.db.mixins import AuditMixin, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.commission_claim import CommissionClaim
     from app.models.estimate_project import EstimateProject
     from app.models.estimate_room import EstimateRoom
 
@@ -37,11 +38,30 @@ class CarrierEstimate(TimestampMixin, AuditMixin, Base):
         ),
         index=True,
     )
+    # Optional direct link to a commission_claim. The carrier estimate
+    # belongs to a project, but the project may serve multiple claims
+    # over time, so the carrier estimate carries its own claim pointer.
+    # SET NULL on claim delete — losing the claim shouldn't drop the
+    # parsed estimate data.
+    commission_claim_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(
+            "commission_claim.id",
+            name="fk_carrier_estimate_commission_claim_id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        index=True,
+    )
 
     # Relationships
     project: Mapped["EstimateProject"] = relationship(
         back_populates="carrier_estimates",
         viewonly=True,
+    )
+    commission_claim: Mapped["CommissionClaim | None"] = relationship(
+        foreign_keys=[commission_claim_id],
+        viewonly=True,
+        lazy="select",
     )
     line_items: Mapped[list["CarrierLineItem"]] = relationship(
         back_populates="carrier_estimate",
