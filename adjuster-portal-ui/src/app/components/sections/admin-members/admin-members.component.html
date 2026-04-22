@@ -1,0 +1,142 @@
+<div class="am-shell">
+
+  <div class="am-head">
+    <div>
+      <h1 class="am-title">Members</h1>
+      <div class="am-sub">Existing-member onboarding · charter sign · W-9 capture</div>
+    </div>
+    <button mat-flat-button class="am-invite-btn" (click)="openInvite()">
+      <mat-icon>person_add</mat-icon>
+      <span>Invite Member</span>
+    </button>
+  </div>
+
+  <ng-container *ngIf="members$ | async as members">
+    <div class="am-tiles">
+      <div class="am-tile tone-amber">
+        <div class="t-label">Pending Charter</div>
+        <div class="t-value">{{ countBy(members, 'pending_charter') }}</div>
+        <div class="t-sub">Awaiting signature</div>
+      </div>
+      <div class="am-tile tone-cyan">
+        <div class="t-label">Pending W-9</div>
+        <div class="t-value">{{ countBy(members, 'pending_w9') }}</div>
+        <div class="t-sub">Charter signed · portal access ON</div>
+      </div>
+      <div class="am-tile tone-green">
+        <div class="t-label">Active</div>
+        <div class="t-value">{{ countBy(members, 'active') }}</div>
+        <div class="t-sub">Fully onboarded</div>
+      </div>
+    </div>
+
+    <div class="panel table-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">All members</div>
+          <div class="panel-sub">{{ members.length }} member<ng-container *ngIf="members.length !== 1">s</ng-container></div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="am-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>W-9</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of members">
+              <td class="name">{{ m.full_name }}</td>
+              <td class="email">{{ m.email }}</td>
+              <td><span class="role-pill" [attr.data-role]="m.role.toUpperCase()">{{ m.role.toUpperCase() }}</span></td>
+              <td>
+                <span class="status-chip" [class]="statusToneClass(m.status)">
+                  {{ statusLabel(m.status) }}
+                </span>
+              </td>
+              <td>
+                <span class="w9-chip" [class.w9-yes]="m.w9_uploaded" [class.w9-no]="!m.w9_uploaded">
+                  {{ m.w9_uploaded ? '✓ On file' : '— Not received' }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button mat-stroked-button class="resend-btn"
+                        *ngIf="m.status === 'pending_charter'"
+                        (click)="resendInvite(m)">
+                  <mat-icon>send</mat-icon><span>Resend invite</span>
+                </button>
+                <button mat-stroked-button class="markw9-btn"
+                        *ngIf="m.status === 'pending_w9'"
+                        (click)="markW9Received(m)">
+                  <mat-icon>check_circle</mat-icon><span>Mark W-9 received</span>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="members.length === 0">
+              <td colspan="6" class="table-empty">No members on record.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Invite dialog (inline panel rather than overlay — small surface) -->
+  <div class="invite-overlay" *ngIf="showInvite" (click)="cancelInvite()">
+    <div class="invite-panel" (click)="$event.stopPropagation()">
+      <div class="ip-head">
+        <div class="ip-title">Invite Member</div>
+        <button mat-icon-button class="ip-close" (click)="cancelInvite()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="ip-body">
+        <div class="field">
+          <label>Full name<span class="req">*</span></label>
+          <input type="text" [(ngModel)]="inviteForm.full_name" placeholder="e.g. Alex Patel" />
+        </div>
+        <div class="field">
+          <label>Email<span class="req">*</span></label>
+          <input type="email" [(ngModel)]="inviteForm.email" placeholder="alex@example.com" />
+        </div>
+        <div class="field">
+          <label>Role<span class="req">*</span></label>
+          <select [(ngModel)]="inviteForm.role">
+            <option [ngValue]="'agent'">Agent</option>
+            <option [ngValue]="'rvp'">RVP</option>
+            <option [ngValue]="'cp'">Community Partner (CP)</option>
+          </select>
+        </div>
+
+        <div class="ip-error" *ngIf="errorText">
+          <mat-icon>error_outline</mat-icon> {{ errorText }}
+        </div>
+
+        <div class="ip-help">
+          A RIN user is created in <strong>pending_charter</strong> state, a UPASign
+          charter agreement is generated from the active template for this role,
+          and an invite email with the signing URL is logged. The user gains
+          portal access only after signing the charter.
+        </div>
+      </div>
+
+      <div class="ip-foot">
+        <button mat-stroked-button (click)="cancelInvite()" [disabled]="saving">Cancel</button>
+        <button mat-flat-button class="ip-submit"
+                [disabled]="!canSubmitInvite()"
+                (click)="submitInvite()">
+          <mat-icon *ngIf="saving">sync</mat-icon>
+          <span>{{ saving ? 'Inviting…' : 'Send Invite' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

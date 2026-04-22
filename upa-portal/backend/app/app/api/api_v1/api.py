@@ -63,6 +63,7 @@ from app.api.api_v1.endpoints import (
     fire_incidents,
     fire_data_source_configs,
     call_type_configs,
+    admin_members,
     estimate_projects,
     estimate_photos,
     estimates_link,
@@ -577,6 +578,13 @@ api_router.include_router(
     estimates_link.router,
     prefix="/estimates",
     tags=["estimates"],
+)
+
+# Admin: existing-member regularization onboarding (R1)
+api_router.include_router(
+    admin_members.router,
+    prefix="/admin/members",
+    tags=["admin-members"],
 )
 
 # Pricing Router

@@ -40,6 +40,7 @@ import { SignComponent } from "./components/sections/resources/sign/sign.compone
 import { ClaimsComponent } from "./components/sections/claims/claims/claims.component";
 import { AgentDashboardComponent } from "./components/sections/agent-dashboard/agent-dashboard.component";
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
+import { AdminMembersComponent } from "./components/sections/admin-members/admin-members.component";
 import { SidebarComponent } from "./components/layout/sidebar/sidebar.component";
 import { NewslettersComponent } from "./components/sections/newsletters/newsletters.component";
 import { AnnouncementsComponent } from "./components/sections/announcements/announcements.component";
@@ -223,6 +224,10 @@ const routes: Routes = [
       {
         path: "admin/commissions",
         component: CommissionsAdminViewComponent,
+      },
+      {
+        path: "admin/members",
+        component: AdminMembersComponent,
       },
       {
         path: "customer-dashboard",

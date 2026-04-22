@@ -165,7 +165,36 @@ class AgreementService:
         # Update lead status
         self._update_lead_status(agr)
 
+        # Onboarding: a charter agreement signing flips the assigned user
+        # from 'pending_charter' → 'pending_w9' (R1). Charter agreements are
+        # those linked to a user via agent_id AND whose title starts with
+        # one of the role-specific charter prefixes (the only thing that
+        # writes those titles is the admin invite endpoint).
+        self._maybe_flip_to_pending_w9(agr)
+
         return agr
+
+    def _maybe_flip_to_pending_w9(self, agr: Agreement) -> None:
+        """If this signed agreement is a charter and its agent_id user is
+        currently 'pending_charter', advance them to 'pending_w9'. No-op
+        for any other agreement / user state."""
+        if not agr.agent_id:
+            return
+        # Charter detection: title begins with "CP Charter" / "RVP Charter"
+        # / "Agent Charter" — set by the invite endpoint when seeding from
+        # the role's active template.
+        title = (agr.title or "")
+        if not (title.startswith("CP Charter")
+                or title.startswith("RVP Charter")
+                or title.startswith("Agent Charter")):
+            return
+        from app.models.user import User
+        user = self.db.get(User, agr.agent_id)
+        if user is None or user.status != "pending_charter":
+            return
+        user.status = "pending_w9"
+        self.db.add(user)
+        self.db.commit()
 
     # ══════════════════════════════════════════════════════════════
     # 6. Send Completed Copies

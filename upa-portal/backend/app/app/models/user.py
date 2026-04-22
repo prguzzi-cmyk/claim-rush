@@ -19,6 +19,11 @@ class User(SoftDeleteMixin, TimestampMixin, AuditMixin, Base):
     email: Mapped[str] = mapped_column(String(100))
     hashed_password: Mapped[str] = mapped_column(String(200))
     is_active: Mapped[bool] = mapped_column(default=True)
+    # 'pending_charter' | 'pending_w9' | 'active' — drives the onboarding
+    # regularization flow (R1). CHECK constraint enforced at DB layer.
+    status: Mapped[str] = mapped_column(
+        String(30), server_default="active", default="active"
+    )
     operating_mode: Mapped[str] = mapped_column(
         String(20), server_default="neutral", default="neutral"
     )

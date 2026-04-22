@@ -172,6 +172,7 @@ import { EarningsTabComponent } from "./components/sections/agent-dashboard/earn
 import { FinancialDetailDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/financial-detail-dialog/financial-detail-dialog.component";
 import { CommissionStatementDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component";
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
+import { AdminMembersComponent } from "./components/sections/admin-members/admin-members.component";
 import { CompPlanDialogComponent } from "./components/sections/commissions-admin-view/comp-plan-dialog/comp-plan-dialog.component";
 import { NewClaimDialogComponent } from "./components/sections/commissions-admin-view/new-claim-dialog/new-claim-dialog.component";
 import { RecordSettlementDialogComponent } from "./components/sections/commissions-admin-view/record-settlement-dialog/record-settlement-dialog.component";
@@ -544,6 +545,7 @@ export function tokenGetter() {
     FinancialDetailDialogComponent,
     CommissionStatementDialogComponent,
     CommissionsAdminViewComponent,
+    AdminMembersComponent,
     CompPlanDialogComponent,
     NewClaimDialogComponent,
     RecordSettlementDialogComponent,
