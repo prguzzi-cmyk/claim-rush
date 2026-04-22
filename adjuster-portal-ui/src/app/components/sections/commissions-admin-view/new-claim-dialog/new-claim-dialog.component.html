@@ -25,6 +25,18 @@
           <input type="text" [(ngModel)]="form.client_name" placeholder="e.g. Harper Residence" maxlength="200" />
         </div>
 
+        <div class="field field-wide">
+          <label>Claim type<span class="req">*</span></label>
+          <select [(ngModel)]="form.claim_type">
+            <option [ngValue]="''">— Select claim type —</option>
+            <option [ngValue]="'residential'">Residential</option>
+            <option [ngValue]="'commercial'">Commercial</option>
+          </select>
+          <div class="field-help">
+            Drives carrier-divergence detection mode — commercial claims warn on coinsurance overshoot.
+          </div>
+        </div>
+
         <!-- Structured address: street on its own row -->
         <div class="field field-wide">
           <label>Street address<span class="req">*</span></label>

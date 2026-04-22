@@ -41,6 +41,9 @@ interface HierarchyPreview {
 export class NewClaimDialogComponent implements OnInit {
   form = {
     client_name: '',
+    // J2 — required at intake; no default; drives bidirectional
+    // divergence detection in J3.
+    claim_type: '' as '' | 'residential' | 'commercial',
     // Structured address (street / city / state / zip required).
     // No separate unit field — operators append to street_address.
     street_address: '',
@@ -141,6 +144,7 @@ export class NewClaimDialogComponent implements OnInit {
   canSubmit(): boolean {
     return !this.saving &&
       !!this.form.client_name.trim() &&
+      !!this.form.claim_type &&
       !!this.form.writing_agent_id &&
       !!this.form.street_address.trim() &&
       !!this.form.city.trim() &&
@@ -157,6 +161,7 @@ export class NewClaimDialogComponent implements OnInit {
 
     const payload: CreateClaimPayload = {
       client_name: this.form.client_name.trim(),
+      claim_type: this.form.claim_type as 'residential' | 'commercial',
       writing_agent_id: this.form.writing_agent_id,
       street_address: this.form.street_address.trim(),
       city: this.form.city.trim(),

@@ -263,6 +263,7 @@ export interface ClaimTwoSectionBreakdownDTO {
 
 export interface CreateClaimPayload {
   client_name: string;
+  claim_type: 'residential' | 'commercial';   // J2 — required at intake
   writing_agent_id: string;                // DB column preserved; UI label is "Team Member"
   claim_number?: string | null;            // server auto-generates when omitted
   stage?: string;
@@ -287,6 +288,7 @@ export interface CreateClaimPayload {
 export interface ClaimDTO {
   id: string;
   client_name: string;
+  claim_type: 'residential' | 'commercial';
   claim_number: string;
   stage: string;
   gross_fee: number;

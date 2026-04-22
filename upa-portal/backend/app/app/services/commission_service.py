@@ -487,6 +487,7 @@ class CommissionService:
                 "id": str(c.id),
                 "claim_number": c.claim_number,
                 "client_name": c.client_name,
+                "claim_type": c.claim_type,
                 "stage": c.stage,
                 "stage_label": CLAIM_STAGE_LABELS.get(c.stage, c.stage),
                 "gross_fee": _round(c.gross_fee or Decimal("0")),
@@ -616,6 +617,7 @@ class CommissionService:
         db: Session,
         *,
         client_name: str,
+        claim_type: str,                     # 'residential' | 'commercial' (J2)
         claim_number: str | None = None,
         stage: str = "INTAKE_SIGNED",
         writing_agent_id: UUID,
@@ -667,6 +669,7 @@ class CommissionService:
 
         claim = CommissionClaim(
             client_name=client_name,
+            claim_type=claim_type,
             claim_number=claim_number,
             stage=stage,
             writing_agent_id=writing_agent_id,

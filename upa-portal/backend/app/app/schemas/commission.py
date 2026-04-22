@@ -221,6 +221,7 @@ class FinancialDetailDTO(BaseModel):
 
 
 LossType = Literal["FIRE", "WATER", "WIND", "STORM", "THEFT", "OTHER"]
+ClaimType = Literal["residential", "commercial"]
 
 
 class CreateClaimRequest(BaseModel):
@@ -230,6 +231,9 @@ class CreateClaimRequest(BaseModel):
     calculator. Actual gross is recorded at settlement via
     POST /v1/commission/claims/{id}/gross-fee."""
     client_name: str
+    # Required — drives divergence-detection mode (J3 bidirectional for
+    # commercial). No default; operator must pick at intake.
+    claim_type: ClaimType
     claim_number: str | None = None          # auto-generated server-side if omitted
     stage: str = "INTAKE_SIGNED"
     writing_agent_id: UUID                   # DB column name preserved; UI label is "Team Member"
@@ -308,6 +312,7 @@ class IssueAdjusterCompensationRequest(BaseModel):
 class ClaimDTO(BaseModel):
     id: str
     client_name: str
+    claim_type: str
     claim_number: str
     stage: str
     gross_fee: float

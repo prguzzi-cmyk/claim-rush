@@ -26,6 +26,9 @@ if TYPE_CHECKING:
 class CommissionClaim(TimestampMixin, AuditMixin, Base):
     client_name: Mapped[str] = mapped_column(String(200))
     claim_number: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    # 'residential' | 'commercial' — drives divergence-detection mode (J3).
+    # CHECK constraint enforced at the DB layer; required at intake.
+    claim_type: Mapped[str] = mapped_column(String(20), nullable=False)
     # Free-form stage string; matches the 12 values in Angular ClaimStage enum
     # (INTAKE_SIGNED, INSPECTION_SCHEDULED, …, SETTLEMENT_REACHED, PAID).
     stage: Mapped[str] = mapped_column(String(40), server_default="INTAKE_SIGNED")

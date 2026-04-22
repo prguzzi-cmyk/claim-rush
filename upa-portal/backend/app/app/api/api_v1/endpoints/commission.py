@@ -338,6 +338,7 @@ def _claim_to_dto(claim) -> dict:
     return {
         "id": str(claim.id),
         "client_name": claim.client_name,
+        "claim_type": claim.claim_type,
         "claim_number": claim.claim_number,
         "stage": claim.stage,
         "gross_fee": float(claim.gross_fee),
