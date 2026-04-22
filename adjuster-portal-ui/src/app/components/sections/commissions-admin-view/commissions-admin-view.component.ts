@@ -71,11 +71,39 @@ export class CommissionsAdminViewComponent implements OnInit {
     return claims.filter(c => c.estimate_divergence_flagged).length;
   }
 
-  /** Human-readable summary for the banner: "$10,000 lower (20% gap)". */
+  /** Count of flagged claims where the carrier is OVER the firm — i.e.
+   *  commercial coinsurance scenarios. Drives the coinsurance banner copy. */
+  coinsuranceFlaggedCount(claims: ClaimRowDTO[]): number {
+    return claims.filter(c =>
+      c.estimate_divergence_flagged
+      && (c.estimate_divergence_dollars ?? 0) < 0,
+    ).length;
+  }
+
+  /** True when the divergence on a flagged claim is carrier-OVER-firm
+   *  (negative dollars). Only commercial claims can hit this case per
+   *  the rule in compute_divergence. */
+  isCoinsuranceCase(claim: ClaimRowDTO): boolean {
+    return (
+      claim.estimate_divergence_flagged
+      && (claim.estimate_divergence_dollars ?? 0) < 0
+    );
+  }
+
+  /** Per-claim chip text — direction-aware. */
+  divergenceChipText(claim: ClaimRowDTO): string {
+    return this.isCoinsuranceCase(claim)
+      ? '⚠ Carrier over firm — possible coinsurance'
+      : '⚠ Diverges from firm';
+  }
+
+  /** Human-readable tooltip for the chip / banner. */
   divergenceSummary(claim: ClaimRowDTO): string {
-    const dollars = claim.estimate_divergence_dollars ?? 0;
+    const signedDollars = claim.estimate_divergence_dollars ?? 0;
+    const absDollars = Math.abs(signedDollars);
     const pct = claim.estimate_divergence_percentage ?? 0;
-    return `$${dollars.toLocaleString('en-US', { maximumFractionDigits: 0 })} lower `
+    const direction = signedDollars >= 0 ? 'lower' : 'HIGHER';
+    return `$${absDollars.toLocaleString('en-US', { maximumFractionDigits: 0 })} ${direction} `
          + `(${pct.toFixed(0)}% gap)`;
   }
 

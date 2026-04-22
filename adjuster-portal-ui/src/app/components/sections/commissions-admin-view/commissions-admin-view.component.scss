@@ -351,6 +351,21 @@
   letter-spacing: 0.02em;
   white-space: nowrap;
   cursor: help;
+
+  /* J3 — coinsurance variant for commercial carrier-over-firm */
+  &.divergence-chip--coinsurance {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(239, 68, 68, 0.55);
+    color: #fecaca;
+  }
+}
+
+.divergence-banner.divergence-banner--coinsurance {
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.10), rgba(239, 68, 68, 0.04));
+  border-color: rgba(239, 68, 68, 0.40);
+  margin-top: 10px;
+  mat-icon { color: #f87171; }
+  .db-title { color: #fca5a5; }
 }
 
 .claims-table tbody tr.row-flagged {

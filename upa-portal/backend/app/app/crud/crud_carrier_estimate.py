@@ -45,9 +45,12 @@ def _sync_carrier_estimate_to_claim(
 
     claim.carrier_estimate_amount = Decimal(str(carrier_estimate.total_cost))
 
+    # Pass the claim's type so commercial claims pick up the bidirectional
+    # rule (J3) and residential keeps the one-sided lowball rule.
     result = compute_divergence(
         firm_estimate=claim.estimate_amount,
         carrier_estimate=carrier_estimate.total_cost,
+        claim_type=claim.claim_type,
     )
     claim.estimate_divergence_flagged = result["flagged"]
     claim.estimate_divergence_percentage = result["percentage"]

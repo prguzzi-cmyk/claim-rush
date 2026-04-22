@@ -5,21 +5,27 @@
 Python port of adjuster-portal-ui/src/app/config/estimate-divergence.ts.
 Keep these two files in lockstep — they encode the same business rule.
 
-Rule: when both a firm estimate (estimate_amount, written by the
-EstimateProject sync in I2) and a carrier estimate (carrier total_cost,
-linked via I1) exist on a commission_claim, fire a divergence warning
-when the carrier value is materially LOWER than the firm value.
+Rule (residential):
+  Fire a warning only when the carrier estimate is materially LOWER
+  than the firm estimate. A higher carrier is a homeowner windfall —
+  no warning.
+
+Rule (commercial):
+  Bidirectional. Fire when |carrier − firm| meets the dollar / percent
+  thresholds in EITHER direction. Carrier-over-firm on a commercial
+  policy can indicate coinsurance penalty exposure — operationally
+  significant for the firm.
 
 Thresholds (OR'd — either trips the flag):
-  PERCENTAGE_THRESHOLD = 25    → (firm − carrier) / firm >= 25%
-  DOLLAR_THRESHOLD     = 5000  → (firm − carrier) >= $5,000
+  PERCENTAGE_THRESHOLD = 25    → |firm − carrier| / firm >= 25%
+  DOLLAR_THRESHOLD     = 5000  → |firm − carrier| >= $5,000
 
-`percentage` is stored / returned as a literal percent value
-(28.00 == 28%), NOT a fractional decimal. Schema is NUMERIC(5,2).
+Output `percentage` is a literal percent value (28.00 == 28%), stored
+as NUMERIC(5,2). Always non-negative — UI uses `dollars` sign to know
+direction.
 
-We deliberately do NOT warn when carrier > firm — that's a windfall for
-the homeowner, not something the residential operator needs to review.
-(J3 will add bidirectional commercial-mode handling on top of this.)
+Output `dollars` is signed: positive = carrier lower (lowball),
+negative = carrier higher (windfall residential / coinsurance commercial).
 """
 
 from __future__ import annotations
@@ -30,22 +36,30 @@ from decimal import Decimal
 PERCENTAGE_THRESHOLD = Decimal("25")      # 25 (literal percent)
 DOLLAR_THRESHOLD = Decimal("5000")        # $5,000
 
+CLAIM_TYPE_COMMERCIAL = "commercial"
+CLAIM_TYPE_RESIDENTIAL = "residential"
+
 
 def compute_divergence(
     firm_estimate: Decimal | float | int | None,
     carrier_estimate: Decimal | float | int | None,
+    claim_type: str | None = None,
 ) -> dict:
     """Return a structured divergence result.
 
     Output keys:
       flagged              : bool         — True if any threshold tripped
-      percentage           : Decimal|None — literal percent (e.g. 28.00 == 28%)
+      percentage           : Decimal|None — literal absolute percent
       dollars              : Decimal|None — firm − carrier (signed)
       threshold_triggered  : 'percent' | 'dollars' | 'both' | None
 
+    Branching:
+      claim_type is None or 'residential' → residential rule (one-sided)
+      claim_type == 'commercial'          → bidirectional rule
+
     Returns flagged=False with all-None metrics when either side is
     missing or non-positive. Returns flagged=False with percentage=0
-    and signed dollars when carrier >= firm (windfall — no warning).
+    and signed dollars when residential and carrier >= firm.
     """
     if firm_estimate is None or carrier_estimate is None:
         return _no_flag()
@@ -56,9 +70,11 @@ def compute_divergence(
     if firm <= 0 or carrier <= 0:
         return _no_flag()
 
-    dollars = firm - carrier
-    if dollars <= 0:
-        # Carrier matches or beats firm — no warning per residential policy.
+    dollars = firm - carrier  # signed
+    is_commercial = (claim_type or CLAIM_TYPE_RESIDENTIAL).lower() == CLAIM_TYPE_COMMERCIAL
+
+    if not is_commercial and dollars <= 0:
+        # Residential + carrier matches or beats firm — no warning.
         return {
             "flagged": False,
             "percentage": Decimal("0"),
@@ -66,11 +82,12 @@ def compute_divergence(
             "threshold_triggered": None,
         }
 
-    # Literal percent (28.00 means 28%), rounded to 2dp to match NUMERIC(5,2).
-    percentage = ((dollars / firm) * Decimal("100")).quantize(Decimal("0.01"))
+    abs_dollars = abs(dollars)
+    # Literal absolute percent (28.00 == 28%), rounded to 2dp for NUMERIC(5,2).
+    percentage = ((abs_dollars / firm) * Decimal("100")).quantize(Decimal("0.01"))
 
     pct_trip = percentage >= PERCENTAGE_THRESHOLD
-    dol_trip = dollars >= DOLLAR_THRESHOLD
+    dol_trip = abs_dollars >= DOLLAR_THRESHOLD
 
     triggered: str | None
     if pct_trip and dol_trip:
@@ -85,7 +102,7 @@ def compute_divergence(
     return {
         "flagged": triggered is not None,
         "percentage": percentage,
-        "dollars": dollars,
+        "dollars": dollars,  # SIGNED — UI keys off the sign for which banner/chip variant
         "threshold_triggered": triggered,
     }
 

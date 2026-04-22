@@ -18,11 +18,13 @@
 export const PERCENTAGE_THRESHOLD = 25;       // literal percent (25%)
 export const DOLLAR_THRESHOLD = 5_000;        // $5,000
 
+export type ClaimType = 'residential' | 'commercial';
+
 export interface DivergenceResult {
   flagged: boolean;
-  /** Literal percent (28.00 == 28%); null when either side missing. */
+  /** Literal absolute percent (28 == 28%); null when either side missing. */
   percentage: number | null;
-  /** firm − carrier, in dollars (signed); null when either side missing. */
+  /** firm − carrier, signed: positive = carrier lower, negative = carrier higher. */
   dollars: number | null;
   thresholdTriggered: 'percent' | 'dollars' | 'both' | null;
 }
@@ -30,18 +32,23 @@ export interface DivergenceResult {
 export function computeDivergence(
   firmEstimate: number | null | undefined,
   carrierEstimate: number | null | undefined,
+  claimType: ClaimType | string | null | undefined = 'residential',
 ): DivergenceResult {
   if (firmEstimate == null || carrierEstimate == null) return noFlag();
   if (firmEstimate <= 0 || carrierEstimate <= 0) return noFlag();
 
-  const dollars = firmEstimate - carrierEstimate;
-  if (dollars <= 0) {
+  const dollars = firmEstimate - carrierEstimate;  // signed
+  const isCommercial = (claimType ?? 'residential').toString().toLowerCase() === 'commercial';
+
+  if (!isCommercial && dollars <= 0) {
+    // Residential + carrier matches or beats firm — no warning.
     return { flagged: false, percentage: 0, dollars, thresholdTriggered: null };
   }
 
-  const percentage = (dollars / firmEstimate) * 100;
+  const absDollars = Math.abs(dollars);
+  const percentage = (absDollars / firmEstimate) * 100;
   const pctTrip = percentage >= PERCENTAGE_THRESHOLD;
-  const dolTrip = dollars >= DOLLAR_THRESHOLD;
+  const dolTrip = absDollars >= DOLLAR_THRESHOLD;
 
   let triggered: DivergenceResult['thresholdTriggered'] = null;
   if (pctTrip && dolTrip) triggered = 'both';
@@ -51,7 +58,7 @@ export function computeDivergence(
   return {
     flagged: triggered !== null,
     percentage,
-    dollars,
+    dollars,        // SIGNED — UI uses sign to pick chip/banner variant
     thresholdTriggered: triggered,
   };
 }
