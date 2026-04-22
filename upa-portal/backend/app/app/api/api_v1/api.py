@@ -108,6 +108,7 @@ from app.api.api_v1.endpoints import (
     lead_rescue,
     intake_config,
     commission,
+    agents,
     client_portal_leads,
     voice_secretary,
     sales_agent_sessions,
@@ -919,4 +920,12 @@ api_router.include_router(
     commission.router,
     prefix="/commission",
     tags=["Commission"],
+)
+
+# Agent Profile Router — /v1/agents/* — profile CRUD + read-only
+# license/banking satellites. Same DEV_BYPASS auth gate as /commission.
+api_router.include_router(
+    agents.router,
+    prefix="/agents",
+    tags=["Agents"],
 )

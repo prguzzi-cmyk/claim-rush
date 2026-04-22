@@ -31,7 +31,7 @@ from __future__ import annotations
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -48,6 +48,8 @@ from sqlalchemy.orm import Session
 from app.core.config import settings  # type: ignore  # noqa: E402
 from app.db.base import Base  # noqa: F401  # ensure all models registered
 from app.models import (  # noqa: E402
+    AgentLicense,
+    AgentProfile,
     CommissionAdvance,
     CommissionClaim,
     CommissionLedger,
@@ -55,6 +57,7 @@ from app.models import (  # noqa: E402
     Role,
     User,
 )
+from app.services.agent_service import agent_service  # noqa: E402
 
 
 # ─── Deterministic UUIDs (so re-runs are idempotent) ─────────────────────────
@@ -337,6 +340,120 @@ def seed_payouts_and_advances(db: Session) -> None:
     db.commit()
 
 
+def seed_agent_profiles(db: Session) -> None:
+    """Create agent_profile rows for the 5 seeded users.
+
+    agent_number is auto-generated via the service layer (per-prefix sequences):
+      Alice Nguyen  (AGENT) → WA-0001
+      Brian Ortiz   (AGENT) → WA-0002
+      Carla Mendes  (RVP)   → RVP-0001
+      Diego Park    (CP)    → CP-0001
+      RIN Admin     (ADMIN) → ADM-0001
+
+    Idempotent: skips a user if an agent_profile already exists.
+    """
+    print("→ ensuring agent_profile rows…")
+
+    # Seed in a deterministic order so agent numbers are stable across re-runs.
+    users_in_order = [
+        (U_AGENT_ALICE, "Alice Nguyen", {
+            "tax_classification": "1099",
+            "employment_start_date": date(2025, 6, 1),
+            "background_check_status": "PASSED",
+            "background_check_completed_at": date(2025, 5, 20),
+            "emergency_contact_name": "Jordan Nguyen",
+            "emergency_contact_phone": "555-0101",
+        }),
+        (U_AGENT_BRIAN, "Brian Ortiz", {
+            "tax_classification": "1099",
+            "employment_start_date": date(2025, 8, 15),
+            "background_check_status": "PASSED",
+            "background_check_completed_at": date(2025, 8, 1),
+        }),
+        (U_RVP_CARLA, "Carla Mendes", {
+            "tax_classification": "W2",
+            "employment_start_date": date(2024, 3, 10),
+            "background_check_status": "PASSED",
+            "background_check_completed_at": date(2024, 3, 1),
+        }),
+        (U_CP_DIEGO, "Diego Park", {
+            "tax_classification": "1099",
+            "employment_start_date": date(2025, 1, 20),
+            "background_check_status": "PASSED",
+            "background_check_completed_at": date(2025, 1, 10),
+        }),
+        (U_ADMIN, "RIN Admin", {
+            "tax_classification": "W2",
+            "employment_start_date": date(2024, 1, 1),
+            "background_check_status": "EXEMPT",
+        }),
+    ]
+
+    for user_id, display_name, fields in users_in_order:
+        existing = db.execute(
+            select(AgentProfile).where(AgentProfile.user_id == user_id)
+        ).scalar_one_or_none()
+        if existing:
+            print(f"  - {display_name} [{existing.agent_number}] already has profile")
+            continue
+        profile = agent_service.create_profile(db, user_id=user_id, **fields)
+        print(f"  + {display_name} [{profile.agent_number}]")
+
+
+def seed_agent_licenses(db: Session) -> None:
+    """Seed one example Public Adjuster license per seeded AGENT user.
+
+    Alice → Pennsylvania  (ACI HQ state)
+    Brian → Texas         (mock-data canonical territory)
+
+    Idempotent: the composite UNIQUE on agent_license prevents dupes on re-run.
+    """
+    print("→ ensuring agent_license rows…")
+
+    licenses = [
+        {
+            "user_id": U_AGENT_ALICE,
+            "state": "PA",
+            "license_type": "PUBLIC_ADJUSTER",
+            "license_number": "PA-2026-0001",
+            "issued_on": date(2025, 6, 1),
+            "expires_on": date(2027, 5, 31),
+            "verified_at": datetime(2025, 6, 5, 12, 0, tzinfo=timezone.utc),
+            "verified_by_id": U_ADMIN,
+            "status": "ACTIVE",
+            "notes": "Initial PA license — verified via PADOI online portal",
+        },
+        {
+            "user_id": U_AGENT_BRIAN,
+            "state": "TX",
+            "license_type": "PUBLIC_ADJUSTER",
+            "license_number": "PA-2026-0002",
+            "issued_on": date(2025, 8, 15),
+            "expires_on": date(2027, 8, 14),
+            "verified_at": datetime(2025, 8, 20, 14, 0, tzinfo=timezone.utc),
+            "verified_by_id": U_ADMIN,
+            "status": "ACTIVE",
+            "notes": "Initial TX license — verified via TDI agent lookup",
+        },
+    ]
+
+    for lic in licenses:
+        existing = db.execute(
+            select(AgentLicense).where(
+                AgentLicense.user_id == lic["user_id"],
+                AgentLicense.state == lic["state"],
+                AgentLicense.license_type == lic["license_type"],
+                AgentLicense.license_number == lic["license_number"],
+            )
+        ).scalar_one_or_none()
+        if existing:
+            print(f"  - {lic['state']} {lic['license_number']} already present")
+            continue
+        db.add(AgentLicense(**lic))
+        print(f"  + {lic['state']} {lic['license_number']} (user {lic['user_id']})")
+    db.commit()
+
+
 def verify(db: Session) -> None:
     print()
     print("→ verification (Alice / 2026):")
@@ -356,6 +473,24 @@ def verify(db: Session) -> None:
     print()
     print("  ✅ RECONCILED" if ok else "  ❌ MISMATCH — data does not match mock")
 
+    # Agent-profile verification
+    print()
+    print("→ verification (agent profiles + licenses):")
+    profiles = db.execute(
+        select(AgentProfile).order_by(AgentProfile.agent_number)
+    ).scalars().all()
+    print(f"  agent_profile rows: {len(profiles)}  (expected 5)")
+    for p in profiles:
+        user = db.get(User, p.user_id)
+        name = f"{user.first_name} {user.last_name}" if user else "?"
+        print(f"    {p.agent_number:<10}  {name}")
+    licenses = db.execute(select(AgentLicense)).scalars().all()
+    print(f"  agent_license rows: {len(licenses)}  (expected 2)")
+    for lic in licenses:
+        user = db.get(User, lic.user_id)
+        name = f"{user.first_name} {user.last_name}" if user else "?"
+        print(f"    {lic.state} {lic.license_number:<16}  {name}  [{lic.status}]")
+
 
 def main() -> None:
     url = _get_database_url()
@@ -367,6 +502,8 @@ def main() -> None:
         seed_claims(db)
         seed_ledger(db)
         seed_payouts_and_advances(db)
+        seed_agent_profiles(db)
+        seed_agent_licenses(db)
         verify(db)
     print()
     print("Seed complete.")
