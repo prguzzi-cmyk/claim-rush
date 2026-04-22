@@ -121,19 +121,11 @@ CLAIMS = [
 ]
 
 
-# Ledger rows for c_004 settlement (emits on 2026-02-10 at 10:00 UTC).
-# gross=$6400 × master 50/50 × field 60/20/20:
-#   House            $3,200.00
-#   Writing Agent    $1,920.00 (Alice)
-#   RVP Override       $640.00 (Carla)
-#   CP Override        $640.00 (Diego)
-#   ── total ──────  $6,400.00 ✓ reconciles with gross
-EARNED_ROWS_C004 = [
-    (None, C_004, "HOUSE", "COMMISSION_EARNED", "3200.00", datetime(2026, 2, 10, 10, 0, tzinfo=timezone.utc), "Commission earned — HOUSE — RIN-2604-0004"),
-    (U_AGENT_ALICE, C_004, "WRITING_AGENT", "COMMISSION_EARNED", "1920.00", datetime(2026, 2, 10, 10, 0, tzinfo=timezone.utc), "Commission earned — WRITING_AGENT — RIN-2604-0004"),
-    (U_RVP_CARLA, C_004, "RVP_OVERRIDE", "COMMISSION_EARNED", "640.00", datetime(2026, 2, 10, 10, 0, tzinfo=timezone.utc), "Commission earned — RVP_OVERRIDE — RIN-2604-0004"),
-    (U_CP_DIEGO, C_004, "CP_OVERRIDE", "COMMISSION_EARNED", "640.00", datetime(2026, 2, 10, 10, 0, tzinfo=timezone.utc), "Commission earned — CP_OVERRIDE — RIN-2604-0004"),
-]
+# Settlement timestamp for c_004's COMMISSION_EARNED rows. The actual
+# amounts are no longer hardcoded here — they're emitted by
+# commission_service._emit_earned_rows so the seed stays in sync with
+# whatever the current comp plan math says. See seed_earned_rows().
+C_004_SETTLED_AT = datetime(2026, 2, 10, 10, 0, tzinfo=timezone.utc)
 
 # Alice's advances, interest, offset, payout, adjustment rows (match mock t_a1..t_adj1)
 ALICE_ADVANCE_ROWS = [
@@ -272,9 +264,57 @@ def _seed_ledger_rows(db: Session, rows: list[tuple]) -> None:
         ))
 
 
+def seed_earned_rows(db: Session) -> None:
+    """Emit c_004's COMMISSION_EARNED rows via the service at the *current*
+    comp-plan rates.
+
+    Strategy: wipe and re-emit every run. Can't reliably detect "rates
+    changed" by comparing sums alone (old 60/20/20 and new 70/10/20 both
+    total to gross for a $6400 claim — they just differ per-bucket), so
+    rather than maintain a drift-detection heuristic, rebuild from
+    authoritative source of truth each seed run. Cheap and deterministic.
+
+    The re-emit uses commission_service._emit_earned_rows which reads
+    the writing agent's role and dispatches to the right scenario split.
+    """
+    print("→ rebuilding c_004 COMMISSION_EARNED rows at current comp-plan rates…")
+    from app.services.commission_service import commission_service
+
+    c = db.get(CommissionClaim, C_004)
+    if not c:
+        print(f"  ⚠ claim {C_004} not found — seed_claims must run first")
+        return
+
+    # Wipe existing earned rows for this claim.
+    existing = db.execute(
+        select(CommissionLedger).where(
+            CommissionLedger.claim_id == C_004,
+            CommissionLedger.txn_type == "COMMISSION_EARNED",
+        )
+    ).scalars().all()
+    if existing:
+        for r in existing:
+            db.delete(r)
+        db.flush()
+        print(f"  - wiped {len(existing)} old earned row(s)")
+
+    # Emit fresh at current rates.
+    commission_service._emit_earned_rows(db, c, ts=C_004_SETTLED_AT)
+    db.commit()
+    fresh = db.execute(
+        select(CommissionLedger).where(
+            CommissionLedger.claim_id == C_004,
+            CommissionLedger.txn_type == "COMMISSION_EARNED",
+        ).order_by(CommissionLedger.bucket)
+    ).scalars().all()
+    print(f"  + emitted {len(fresh)} earned row(s):")
+    for r in fresh:
+        print(f"      {r.bucket:<15} ${r.amount}")
+
+
 def seed_ledger(db: Session) -> None:
     print("→ ensuring commission_ledger rows…")
-    _seed_ledger_rows(db, EARNED_ROWS_C004)
+    seed_earned_rows(db)
     _seed_ledger_rows(db, ALICE_ADVANCE_ROWS)
     _seed_ledger_rows(db, BRIAN_ADVANCE_ROWS)
     _seed_ledger_rows(db, CARLA_ADVANCE_ROWS)
@@ -456,22 +496,26 @@ def seed_agent_licenses(db: Session) -> None:
 
 def verify(db: Session) -> None:
     print()
-    print("→ verification (Alice / 2026):")
+    print("→ verification (Alice Nguyen / 2026 — Scenario 3 split 70/10/20):")
     from app.services.commission_service import commission_service
     earnings = commission_service.get_agent_simple_earnings(db, U_AGENT_ALICE)
     y1099 = commission_service.get_taxable_1099_ytd(db, U_AGENT_ALICE, year=2026)
-    print(f"  Total Earned:      ${earnings['total_earned']:,.2f}   (expected $1,920.00)")
+    # Expected values at WA=70% of field, on c_004 $6,400 gross:
+    #   field = $6400 × 50% = $3,200
+    #   WA    = $3,200 × 70% = $2,240
+    # Payout stays $1,600 (partial disbursement, unchanged).
+    print(f"  Total Earned:      ${earnings['total_earned']:,.2f}   (expected $2,240.00)")
     print(f"  Paid to Date:      ${earnings['paid_to_date']:,.2f}   (expected $1,600.00)")
-    print(f"  Remaining Balance: ${earnings['remaining_balance']:,.2f}   (expected   $320.00)")
+    print(f"  Remaining Balance: ${earnings['remaining_balance']:,.2f}   (expected   $640.00)")
     print(f"  1099 YTD (2026):   ${y1099['ytd_total']:,.2f}   (expected $1,600.00)")
     ok = (
-        earnings["total_earned"] == 1920.0
+        earnings["total_earned"] == 2240.0
         and earnings["paid_to_date"] == 1600.0
-        and earnings["remaining_balance"] == 320.0
+        and earnings["remaining_balance"] == 640.0
         and y1099["ytd_total"] == 1600.0
     )
     print()
-    print("  ✅ RECONCILED" if ok else "  ❌ MISMATCH — data does not match mock")
+    print("  ✅ RECONCILED" if ok else "  ❌ MISMATCH — current comp-plan math not applied")
 
     # Agent-profile verification
     print()

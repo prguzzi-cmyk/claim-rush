@@ -32,17 +32,24 @@ from app.models import (
 )
 
 
-# ─── Commission math constants ──────────────────────────────────────────────
+# ─── Commission math ───────────────────────────────────────────────────────
+#
+# Master split (unchanged): House 50% / Field 50%.
+# Field distribution is scenario-dispatched by the writing agent's role:
+#
+#   S1  CP writes solo                       CP 100%
+#   S2  RVP writes (CP above, no WA)         RVP 80 | CP 20
+#   S3  WA writes full chain (RVP + CP)      WA 70 | RVP 10 | CP 20
+#   S4  WA writes direct-CP (no RVP)         WA 70 | CP 30
+#
+# The writing agent always receives their share into the WRITING_AGENT
+# bucket regardless of their own role. Override buckets (RVP_OVERRIDE /
+# CP_OVERRIDE) are only for people ABOVE the writing agent in the chain.
+# Every scenario sums to 100% of field (no Reserve bucket unless explicitly
+# allocated).
 
-MASTER_HOUSE_PCT = Decimal("50")   # House share (of gross)
-MASTER_FIELD_PCT = Decimal("50")   # Field share (of gross)
-# Field allocation, normalized to 100% within the field pool:
-FIELD_WA_PCT = Decimal("60")       # Writing Agent's portion of field
-FIELD_RVP_PCT = Decimal("20")      # RVP Override
-FIELD_CP_PCT = Decimal("20")       # CP Override
-# Direct-CP (no RVP in chain):
-DIRECT_FIELD_WA_PCT = Decimal("80")
-DIRECT_FIELD_CP_PCT = Decimal("20")
+MASTER_HOUSE_PCT = Decimal("50")
+MASTER_FIELD_PCT = Decimal("50")
 
 
 CLAIM_STAGE_LABELS: dict[str, str] = {
@@ -196,7 +203,7 @@ class CommissionService:
         ).scalars().all()
         out = []
         for c in claims:
-            wa_of_gross = self._wa_share_of_gross(c.direct_cp) * c.gross_fee / Decimal("100")
+            wa_of_gross = self._wa_share_of_gross(db, c) * c.gross_fee / Decimal("100")
             out.append({
                 "claim_id": str(c.id),
                 "claim_ref": c.claim_number,
@@ -439,7 +446,7 @@ class CommissionService:
         claims = db.execute(
             select(CommissionClaim).where(CommissionClaim.writing_agent_id == user_id)
         ).scalars().all()
-        bucket_breakdown = [self._two_section_breakdown(c) for c in claims]
+        bucket_breakdown = [self._two_section_breakdown(c, db) for c in claims]
 
         return {
             "writing_agent_id": str(user_id),
@@ -657,14 +664,56 @@ class CommissionService:
 
     # ─── Internals ──────────────────────────────────────────────────────
 
-    def _wa_share_of_gross(self, direct_cp: bool) -> Decimal:
-        wa_field_pct = DIRECT_FIELD_WA_PCT if direct_cp else FIELD_WA_PCT
-        return (MASTER_FIELD_PCT * wa_field_pct) / Decimal("100")
+    def _get_writing_agent_role_name(self, db: Session, claim: CommissionClaim) -> str | None:
+        wa = db.get(User, claim.writing_agent_id) if claim.writing_agent_id else None
+        if wa and wa.role_id:
+            role = db.get(Role, wa.role_id)
+            return role.name if role else None
+        return None
+
+    def _resolve_field_split(
+        self, claim: CommissionClaim, writing_agent_role: str | None,
+    ) -> tuple[Decimal, Decimal, Decimal]:
+        """Return (wa_pct, rvp_pct, cp_pct) — percent of field by bucket
+        recipient — per the 4-scenario comp plan. Dispatched from the
+        writing agent's ROLE, not the `direct_cp` flag (which is advisory).
+        """
+        role = (writing_agent_role or "").upper()
+
+        # Scenario 1: CP writes solo. 100% of field goes to the writing
+        # agent (into the WRITING_AGENT bucket regardless of their role).
+        if role == "CP":
+            return Decimal("100"), Decimal("0"), Decimal("0")
+
+        # Scenario 2: RVP writes with a CP above.
+        if role == "RVP":
+            return Decimal("80"), Decimal("0"), Decimal("20")
+
+        # Scenarios 3 / 4: Agent writes.
+        has_rvp = claim.rvp_id is not None
+        if has_rvp:
+            # Scenario 3: full chain
+            return Decimal("70"), Decimal("10"), Decimal("20")
+        else:
+            # Scenario 4: direct-CP (WA absorbs nothing; CP absorbs the
+            # missing RVP's 10% → CP gets 30%)
+            return Decimal("70"), Decimal("0"), Decimal("30")
+
+    def _wa_share_of_gross(
+        self, db: Session, claim: CommissionClaim,
+    ) -> Decimal:
+        """Writing agent's take (as percent of gross fee) under the
+        current comp plan for this claim's scenario. Used by pipeline
+        projection on active claims."""
+        role = self._get_writing_agent_role_name(db, claim)
+        wa_pct, _, _ = self._resolve_field_split(claim, role)
+        return (MASTER_FIELD_PCT * wa_pct) / Decimal("100")
 
     def _emit_earned_rows(
         self, db: Session, claim: CommissionClaim, ts: datetime
     ) -> None:
-        """Write the 5-bucket COMMISSION_EARNED ledger entries for a settled claim."""
+        """Write COMMISSION_EARNED ledger entries for a settled claim, using
+        the 4-scenario comp plan dispatched from the writing agent's role."""
         gross = claim.gross_fee
         if gross is None or gross <= 0:
             return
@@ -672,10 +721,8 @@ class CommissionService:
         house_amt = gross * MASTER_HOUSE_PCT / Decimal("100")
         field_share = gross * MASTER_FIELD_PCT / Decimal("100")
 
-        if claim.direct_cp:
-            wa_pct, rvp_pct, cp_pct = DIRECT_FIELD_WA_PCT, Decimal("0"), DIRECT_FIELD_CP_PCT
-        else:
-            wa_pct, rvp_pct, cp_pct = FIELD_WA_PCT, FIELD_RVP_PCT, FIELD_CP_PCT
+        role = self._get_writing_agent_role_name(db, claim)
+        wa_pct, rvp_pct, cp_pct = self._resolve_field_split(claim, role)
 
         wa_amt = field_share * wa_pct / Decimal("100")
         rvp_amt = field_share * rvp_pct / Decimal("100")
@@ -692,38 +739,52 @@ class CommissionService:
                 notes=memo,
             )
 
-        # House always emits (sentinel user_id=None)
+        # House always emits (sentinel user_id=None).
         db.add(row(None, "HOUSE", house_amt, f"Commission earned — HOUSE — {claim.claim_number}"))
-        # Writing agent
-        db.add(row(
-            claim.writing_agent_id, "WRITING_AGENT", wa_amt,
-            f"Commission earned — WRITING_AGENT — {claim.claim_number}",
-        ))
-        # RVP (only if present and non-zero)
+
+        # Writing agent always receives their share via WRITING_AGENT bucket,
+        # regardless of their own role (CP-solo included).
+        if wa_amt > 0:
+            db.add(row(
+                claim.writing_agent_id, "WRITING_AGENT", wa_amt,
+                f"Commission earned — WRITING_AGENT — {claim.claim_number}",
+            ))
+
+        # RVP override (only if the scenario allocates to RVP and a recipient
+        # is actually designated).
         if rvp_amt > 0 and claim.rvp_id:
             db.add(row(
                 claim.rvp_id, "RVP_OVERRIDE", rvp_amt,
                 f"Commission earned — RVP_OVERRIDE — {claim.claim_number}",
             ))
-        # CP (only if present and non-zero)
-        if cp_amt > 0 and claim.cp_id:
+
+        # CP override — only emitted when the writing agent is NOT themselves
+        # the CP. (In Scenario 1, the writing agent already received 100% as
+        # WRITING_AGENT; emitting a CP_OVERRIDE to the same user would
+        # double-count.)
+        role_upper = (role or "").upper()
+        if cp_amt > 0 and claim.cp_id and role_upper != "CP":
             db.add(row(
                 claim.cp_id, "CP_OVERRIDE", cp_amt,
                 f"Commission earned — CP_OVERRIDE — {claim.claim_number}",
             ))
 
-    def _two_section_breakdown(self, claim: CommissionClaim) -> dict[str, Any]:
+    def _two_section_breakdown(self, claim: CommissionClaim, db: Session) -> dict[str, Any]:
         gross = claim.gross_fee
         house_amt = gross * MASTER_HOUSE_PCT / Decimal("100")
         field_amt = gross * MASTER_FIELD_PCT / Decimal("100")
 
-        if claim.direct_cp:
-            wa_pct, rvp_pct, cp_pct = DIRECT_FIELD_WA_PCT, Decimal("0"), DIRECT_FIELD_CP_PCT
-        else:
-            wa_pct, rvp_pct, cp_pct = FIELD_WA_PCT, FIELD_RVP_PCT, FIELD_CP_PCT
+        role = self._get_writing_agent_role_name(db, claim)
+        wa_pct, rvp_pct, cp_pct = self._resolve_field_split(claim, role)
 
         def pct_of_gross(p_field: Decimal) -> Decimal:
             return MASTER_FIELD_PCT * p_field / Decimal("100")
+
+        # In scenario 1 (CP solo), the writing agent recipient IS the CP; no
+        # separate CP_OVERRIDE bucket is emitted. Only display the buckets
+        # that actually carry money in this claim's scenario.
+        role_upper = (role or "").upper()
+        suppress_cp_override = role_upper == "CP"
 
         field_buckets = []
         for bucket, p_field, recipient in (
@@ -732,6 +793,8 @@ class CommissionService:
             ("CP_OVERRIDE", cp_pct, claim.cp_id),
         ):
             if p_field <= 0:
+                continue
+            if bucket == "CP_OVERRIDE" and suppress_cp_override:
                 continue
             field_buckets.append({
                 "bucket": bucket,
