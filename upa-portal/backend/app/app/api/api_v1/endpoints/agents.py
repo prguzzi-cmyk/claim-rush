@@ -25,6 +25,7 @@ from app.schemas.agent import (
     AgentProfileCreateRequest,
     AgentProfileDTO,
     AgentProfileUpdateRequest,
+    AgentWithUserCreateRequest,
 )
 from app.services.agent_service import agent_service
 
@@ -42,6 +43,26 @@ def list_agent_profiles(
 ):
     """List all agent profiles (ordered by agent_number)."""
     return agent_service.list_profiles(db_session)
+
+
+@router.get("/meta/roles")
+def list_commission_roles(
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Canonical role list for the Add-Agent dropdown. Only surfaces the
+    5 commission-engine roles (AGENT, RVP, CP, ADMIN, ADJUSTER) — lowercase
+    legacy rows and unrelated roles (client, sales-rep, manager) are filtered
+    out."""
+    from app.models import Role
+    from sqlalchemy import select as sa_select
+    canonical = {"AGENT", "RVP", "CP", "ADMIN", "ADJUSTER"}
+    rows = db_session.execute(sa_select(Role)).scalars().all()
+    return [
+        {"id": str(r.id), "name": r.name, "display_name": r.display_name}
+        for r in rows
+        if r.name in canonical
+    ]
 
 
 @router.get("/by-number/{agent_number}", response_model=AgentProfileDTO)
@@ -81,6 +102,24 @@ def get_agent_by_id(
     if not p:
         raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
     return p
+
+
+@router.post("/with-user", response_model=AgentProfileDTO, status_code=status.HTTP_201_CREATED)
+def create_agent_with_user(
+    payload: AgentWithUserCreateRequest,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Create a User + agent_profile in one transaction. agent_number is
+    derived from the role's prefix (WA/RVP/CP/ADM/GEN)."""
+    try:
+        profile = agent_service.create_user_and_profile(
+            db_session,
+            **payload.dict(exclude_unset=True),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return agent_service.get_profile_by_id(db_session, profile.id)
 
 
 @router.post("/", response_model=AgentProfileDTO, status_code=status.HTTP_201_CREATED)

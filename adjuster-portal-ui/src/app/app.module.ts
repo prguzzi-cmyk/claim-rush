@@ -101,6 +101,7 @@ import { DashboardComponent } from "./components/sections/dashboard/dashboard.co
 import { CommandCenterIntroComponent } from "./components/sections/dashboard/command-center-intro/command-center-intro.component";
 import { UsersComponent } from "./components/sections/users/users.component";
 import { AgentsListComponent } from "./components/sections/agents-list/agents-list.component";
+import { AddAgentDialogComponent } from "./components/sections/agents-list/add-agent-dialog/add-agent-dialog.component";
 import { AgentProfileDetailComponent } from "./components/sections/agent-profile-detail/agent-profile-detail.component";
 import { PasswordChangeDialogComponent } from "./components/dialogs/password-change-dialog/password-change-dialog.component";
 import { UserDetailsDialogComponent } from "./components/dialogs/user-details-dialog/user-details-dialog.component";
@@ -466,6 +467,7 @@ export function tokenGetter() {
     SidebarComponent,
     UsersComponent,
     AgentsListComponent,
+    AddAgentDialogComponent,
     AgentProfileDetailComponent,
     PasswordChangeDialogComponent,
     UserDetailsDialogComponent,

@@ -64,6 +64,21 @@ class AgentProfileCreateRequest(AgentProfileBase):
     user_id: UUID
 
 
+class AgentWithUserCreateRequest(BaseModel):
+    """POST /v1/agents/with-user — creates both the User and their
+    agent_profile satellite in a single transaction. The role_id drives
+    both the user's role and the agent_number prefix."""
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
+    email: str = Field(..., min_length=3, max_length=100)
+    role_id: UUID
+    manager_id: UUID | None = None
+    employment_start_date: date | None = None
+    # If omitted, a random password is generated (admin-created agents
+    # reset on first login — this is a dev/seed path).
+    password: str | None = None
+
+
 class AgentProfileUpdateRequest(AgentProfileBase):
     """PATCH /v1/agents/{id} body — all fields optional; provide only what to change."""
     pass

@@ -21,6 +21,9 @@ from uuid import UUID
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+import secrets
+
+from app.core.security import get_password_hash
 from app.models import AgentBanking, AgentLicense, AgentProfile, File, Role, User
 from app.models.user_personal_file import UserPersonalFile
 
@@ -102,6 +105,63 @@ class AgentService:
             select(AgentProfile).where(AgentProfile.agent_number == agent_number)
         ).scalar_one_or_none()
         return self._profile_to_dto(db, p) if p else None
+
+    def create_user_and_profile(
+        self,
+        db: Session,
+        *,
+        first_name: str,
+        last_name: str,
+        email: str,
+        role_id: UUID,
+        manager_id: UUID | None = None,
+        employment_start_date=None,
+        password: str | None = None,
+    ) -> AgentProfile:
+        """Create a new User and their agent_profile satellite in one
+        transaction. Raises ValueError on duplicate email or missing role."""
+        from sqlalchemy import func as sa_func
+
+        # Duplicate email — compare case-insensitively so operator typos
+        # like `Carla@ACIadjustmentgroup.com` collide with an existing row.
+        existing = db.execute(
+            select(User).where(sa_func.lower(User.email) == email.lower())
+        ).scalar_one_or_none()
+        if existing:
+            raise ValueError(f"A user with email {email} already exists")
+
+        role = db.get(Role, role_id)
+        if role is None:
+            raise ValueError(f"Role {role_id} not found")
+
+        if manager_id is not None:
+            mgr = db.get(User, manager_id)
+            if mgr is None:
+                raise ValueError(f"Manager {manager_id} not found")
+
+        plain_pwd = password or secrets.token_urlsafe(24)
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            hashed_password=get_password_hash(plain_pwd),
+            role_id=role_id,
+            manager_id=manager_id,
+            is_active=True,
+        )
+        db.add(user)
+        db.flush()  # populate user.id before agent_profile insert
+
+        agent_number = self._generate_agent_number(db, role.name)
+        profile = AgentProfile(
+            user_id=user.id,
+            agent_number=agent_number,
+            employment_start_date=employment_start_date,
+        )
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
+        return profile
 
     def create_profile(
         self,

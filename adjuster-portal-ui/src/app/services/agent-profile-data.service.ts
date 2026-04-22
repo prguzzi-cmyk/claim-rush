@@ -117,6 +117,21 @@ export interface AgentDocumentDTO {
   size: number | null;
 }
 
+export interface RoleOption {
+  id: string;
+  name: string;         // UPPERCASE canonical: AGENT / RVP / CP / ADMIN / ADJUSTER
+  display_name: string;
+}
+
+export interface AgentWithUserCreateRequest {
+  first_name: string;
+  last_name: string;
+  email: string;
+  role_id: string;
+  manager_id?: string | null;
+  employment_start_date?: string | null;
+}
+
 export interface AgentProfileUpdateRequest {
   ssn_or_itin_last4?: string | null;
   tax_classification?: string | null;
@@ -171,6 +186,14 @@ export class AgentProfileDataService {
 
   delete$(profileId: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${profileId}`);
+  }
+
+  listCommissionRoles$(): Observable<RoleOption[]> {
+    return this.http.get<RoleOption[]>(`${this.base}/meta/roles`);
+  }
+
+  createWithUser$(payload: AgentWithUserCreateRequest): Observable<AgentProfileDTO> {
+    return this.http.post<AgentProfileDTO>(`${this.base}/with-user`, payload);
   }
 
   // ─── Licenses ─────────────────────────────────────────────────────────

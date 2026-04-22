@@ -5,6 +5,10 @@
       <h1 class="agents-title">Agents</h1>
       <div class="agents-sub">Licensed agents · RVPs · Community Partners · Admins</div>
     </div>
+    <button mat-flat-button class="add-agent-btn" (click)="openAddAgent()">
+      <mat-icon>person_add</mat-icon>
+      <span>Add Agent</span>
+    </button>
   </div>
 
   <div class="panel table-panel" *ngIf="agents$ | async as agents">

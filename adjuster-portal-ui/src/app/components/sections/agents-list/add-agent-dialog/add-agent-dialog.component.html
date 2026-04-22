@@ -1,0 +1,87 @@
+<div class="aa-dialog">
+
+  <div class="aa-head">
+    <div>
+      <div class="aa-eyebrow">Agent Directory</div>
+      <h2 class="aa-title">Add Agent</h2>
+      <div class="aa-sub">Creates a user + agent_profile. An agent number is auto-assigned from the role prefix.</div>
+    </div>
+    <button mat-icon-button class="aa-close" (click)="cancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="aa-body">
+    <div class="aa-loading" *ngIf="loading">
+      <mat-icon>sync</mat-icon> Loading roles…
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="field-grid">
+        <div class="field">
+          <label>First name<span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.first_name" placeholder="e.g. Alice" maxlength="50" />
+        </div>
+        <div class="field">
+          <label>Last name<span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.last_name" placeholder="e.g. Nguyen" maxlength="50" />
+        </div>
+        <div class="field field-wide">
+          <label>Email<span class="req">*</span></label>
+          <input type="email" [(ngModel)]="form.email" placeholder="person@aciadjustmentgroup.com" maxlength="100" />
+        </div>
+
+        <div class="field">
+          <label>Role<span class="req">*</span></label>
+          <select [(ngModel)]="form.role_id">
+            <option [ngValue]="''">— Select role —</option>
+            <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.display_name }} ({{ r.name }})</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Start date</label>
+          <input type="date" [(ngModel)]="form.employment_start_date" />
+        </div>
+
+        <div class="field field-wide" *ngIf="showManagerPicker()">
+          <label>Manager</label>
+          <select [(ngModel)]="form.manager_id">
+            <option [ngValue]="null">— No manager —</option>
+            <option *ngFor="let m of managerOptions()" [ngValue]="m.id">{{ m.label }}</option>
+          </select>
+          <div class="field-help">
+            {{ selectedRoleName() === 'AGENT' ? 'Agents report to an RVP or directly to a CP.' : 'RVPs report to a CP.' }}
+          </div>
+        </div>
+
+        <div class="aa-note" *ngIf="selectedRoleName() === 'CP'">
+          <mat-icon>info</mat-icon>
+          Community Partners sit at the top of the hierarchy — no manager.
+        </div>
+        <div class="aa-note" *ngIf="selectedRoleName() === 'ADMIN'">
+          <mat-icon>info</mat-icon>
+          Admins are not part of the commission hierarchy.
+        </div>
+        <div class="aa-note" *ngIf="selectedRoleName() === 'ADJUSTER'">
+          <mat-icon>info</mat-icon>
+          Adjusters are compensated from the House bucket — set their comp plan on the profile's Compensation tab after creation.
+        </div>
+      </div>
+
+      <div class="aa-error" *ngIf="errorText">
+        <mat-icon>error_outline</mat-icon>
+        <div>{{ errorText }}</div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="aa-foot">
+    <button mat-stroked-button class="aa-cancel" (click)="cancel()" [disabled]="saving">Cancel</button>
+    <button mat-flat-button class="aa-create" [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon *ngIf="saving">sync</mat-icon>
+      <span>{{ saving ? 'Creating…' : 'Create Agent' }}</span>
+    </button>
+  </div>
+
+</div>
