@@ -250,14 +250,19 @@ def create_advance(
     db_session: Annotated[Session, Depends(get_db_session)],
     _auth=Depends(commission_auth),
 ):
-    a = commission_service.issue_advance(
-        db_session,
-        user_id=payload.user_id,
-        amount=payload.amount,
-        issued_at=payload.issued_at,
-        notes=payload.notes,
-        claim_id=payload.claim_id,
-    )
+    try:
+        a = commission_service.issue_advance(
+            db_session,
+            user_id=payload.user_id,
+            amount=payload.amount,
+            issued_at=payload.issued_at,
+            notes=payload.notes,
+            claim_id=payload.claim_id,
+            admin_override=payload.admin_override,
+        )
+    except ValueError as e:
+        # Cap violation or one-advance-per-claim rule.
+        raise HTTPException(status_code=400, detail=str(e))
     return {
         "id": str(a.id),
         "user_id": str(a.user_id),
@@ -267,6 +272,19 @@ def create_advance(
         "notes": a.notes,
         "claim_id": str(a.claim_id) if a.claim_id else None,
     }
+
+
+@router.get("/agent/{user_id}/advance-stats")
+def get_agent_advance_stats(
+    user_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+    claim_id: UUID | None = Query(None),
+):
+    """Totals for the Issue Advance dialog's cap tiles + pre-submit
+    validation. When `claim_id` is supplied, also reports whether that
+    claim already has an ADVANCE_ISSUED row."""
+    return commission_service.get_advance_stats(db_session, user_id, claim_id=claim_id)
 
 
 @router.post("/adjuster-comp", status_code=status.HTTP_201_CREATED)

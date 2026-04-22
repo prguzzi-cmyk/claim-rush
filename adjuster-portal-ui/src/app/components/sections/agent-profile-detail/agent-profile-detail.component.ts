@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 
 import {
@@ -13,6 +14,7 @@ import {
   AgentProfileDTO,
   AgentProfileUpdateRequest,
 } from 'src/app/services/agent-profile-data.service';
+import { IssueAdvanceDialogComponent } from '../commissions-admin-view/issue-advance-dialog/issue-advance-dialog.component';
 
 type TabKey = 'identity' | 'contact' | 'role' | 'licenses' | 'banking' | 'compliance' | 'documents' | 'compensation';
 
@@ -88,7 +90,26 @@ export class AgentProfileDetailComponent implements OnInit {
     private readonly router: Router,
     private readonly data: AgentProfileDataService,
     private readonly snack: MatSnackBar,
+    private readonly dialog: MatDialog,
   ) {}
+
+  openIssueAdvance(): void {
+    if (!this.profile) return;
+    this.dialog.open(IssueAdvanceDialogComponent, {
+      width: '680px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'issue-advance-dialog-panel',
+      data: { agentId: this.profile.user_id },
+      autoFocus: false,
+    });
+  }
+
+  openIssuePayout(): void {
+    // B5 will wire this to the IssuePayoutDialog. Kept as a stub so the
+    // Financial Actions button is interactive from this commit onward.
+    this.snack.open('Payouts dialog coming next.', 'OK', { duration: 2500 });
+  }
 
   ngOnInit(): void {
     const userId = this.route.snapshot.paramMap.get('id') ?? '';

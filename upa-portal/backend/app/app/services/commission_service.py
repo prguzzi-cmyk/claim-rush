@@ -22,6 +22,11 @@ from uuid import UUID, uuid4
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
+from app.config.advance_schedule import (
+    LIFETIME_CAP_PER_MEMBER,
+    WEEKLY_CAP_PER_MEMBER,
+    compute_tier_amount,
+)
 from app.models import (
     AgentProfile,
     CommissionAdvance,
@@ -485,6 +490,7 @@ class CommissionService:
                 "stage": c.stage,
                 "stage_label": CLAIM_STAGE_LABELS.get(c.stage, c.stage),
                 "gross_fee": _round(c.gross_fee or Decimal("0")),
+                "estimate_amount": _round(c.estimate_amount) if c.estimate_amount is not None else None,
                 "writing_agent_id": str(c.writing_agent_id),
                 "writing_agent_name": name_of(c.writing_agent_id) or "",
                 "rvp_id": str(c.rvp_id) if c.rvp_id else None,
@@ -493,6 +499,11 @@ class CommissionService:
                 "cp_name": name_of(c.cp_id),
                 "direct_cp": c.direct_cp,
                 "property_address": c.property_address,
+                "street_address": c.street_address,
+                "unit": c.unit,
+                "city": c.city,
+                "state": c.state,
+                "zip": c.zip,
                 "carrier": c.carrier,
                 "loss_date": c.loss_date,
                 "loss_type": c.loss_type,
@@ -779,6 +790,63 @@ class CommissionService:
         db.refresh(payout)
         return payout
 
+    # Schedule caps — sourced from app.config.advance_schedule (shared
+    # policy mirror of adjuster-portal-ui/src/app/config/advance-schedule.ts).
+    ADVANCE_WEEKLY_CAP = WEEKLY_CAP_PER_MEMBER
+    ADVANCE_LIFETIME_CAP = LIFETIME_CAP_PER_MEMBER
+
+    def get_advance_stats(
+        self,
+        db: Session,
+        user_id: UUID,
+        claim_id: UUID | None = None,
+    ) -> dict[str, Any]:
+        """Return the totals used by the Issue Advance dialog's cap tiles
+        and pre-submit validation:
+
+          - lifetime_total: sum of all ADVANCE_ISSUED amounts for the user
+          - week_total: sum within the current Monday–Sunday calendar week
+          - this_claim_has_advance: True if claim_id already has an
+            ADVANCE_ISSUED row (one-advance-per-claim rule)
+          - lifetime_cap / weekly_cap: mirrored from constants
+
+        Week boundary is Mon 00:00:00 UTC through next Mon 00:00:00 UTC.
+        """
+        rows = db.execute(
+            select(CommissionLedger).where(
+                CommissionLedger.user_id == user_id,
+                CommissionLedger.txn_type == "ADVANCE_ISSUED",
+            )
+        ).scalars().all()
+
+        now = datetime.now(timezone.utc)
+        week_start = (
+            now.replace(hour=0, minute=0, second=0, microsecond=0)
+            - timedelta(days=now.weekday())
+        )
+        week_end = week_start + timedelta(days=7)
+
+        lifetime = sum((abs(r.amount) for r in rows), Decimal("0"))
+        week = sum(
+            (abs(r.amount) for r in rows if week_start <= r.ts < week_end),
+            Decimal("0"),
+        )
+        has_claim_advance = False
+        if claim_id is not None:
+            has_claim_advance = any(r.claim_id == claim_id for r in rows)
+
+        return {
+            "user_id": str(user_id),
+            "claim_id": str(claim_id) if claim_id else None,
+            "week_total": _round(week),
+            "lifetime_total": _round(lifetime),
+            "this_claim_has_advance": has_claim_advance,
+            "weekly_cap": float(self.ADVANCE_WEEKLY_CAP),
+            "lifetime_cap": float(self.ADVANCE_LIFETIME_CAP),
+            "week_start": week_start,
+            "week_end": week_end,
+        }
+
     def issue_advance(
         self,
         db: Session,
@@ -788,7 +856,83 @@ class CommissionService:
         issued_at: datetime | None = None,
         notes: str | None = None,
         claim_id: UUID | None = None,
+        admin_override: bool = False,
     ) -> CommissionAdvance:
+        """Emit an ADVANCE_ISSUED ledger row + a commission_advance record.
+
+        Enforces the advance schedule defined in app.config.advance_schedule:
+
+          1. Tier match — if a linked claim with an estimate_amount is
+             present and it maps to a tier, `amount` MUST equal the
+             tier's amount unless `admin_override=True`.
+          2. Under-minimum policy — if the claim's estimate is below
+             the lowest tier's minimum, `admin_override=True` is
+             required for any amount.
+          3. Discretionary — if no claim_id is supplied, or the claim
+             has no estimate_amount, `admin_override=True` is required.
+          4. One-advance-per-claim — a claim already bearing an
+             ADVANCE_ISSUED row rejects further advances.
+          5. Weekly cap — week_total + amount <= $5,000.
+          6. Lifetime cap — lifetime_total + amount <= $25,000.
+
+        Raises ValueError on any violation. `admin_override` lifts (1)
+        and (2)/(3) but NEVER the caps (4)/(5) or the one-per-claim
+        rule — those are hard limits."""
+        abs_amount = abs(amount)
+
+        # ── Rule 1–3: tier / under-minimum / discretionary ─────────────
+        claim = db.get(CommissionClaim, claim_id) if claim_id else None
+        estimate = claim.estimate_amount if claim else None
+        tier = compute_tier_amount(estimate)
+
+        if tier is not None:
+            # Estimate matched a tier — amount must match or admin_override.
+            if abs_amount != tier and not admin_override:
+                raise ValueError(
+                    f"Advance amount ${float(abs_amount)} does not match the "
+                    f"tier amount ${float(tier)} for this claim's estimate "
+                    f"(${float(estimate)}). Toggle admin override to issue "
+                    f"a discretionary amount."
+                )
+        else:
+            # No tier matched — either no claim, no estimate, or below minimum.
+            # All three require admin discretion.
+            if not admin_override:
+                if claim is None:
+                    reason = "no linked claim"
+                elif estimate is None or estimate <= 0:
+                    reason = "the linked claim has no estimate_amount"
+                else:
+                    reason = (
+                        f"the estimate (${float(estimate)}) is below the lowest "
+                        "tier minimum"
+                    )
+                raise ValueError(
+                    f"Advance requires admin override — {reason}. "
+                    "Set admin_override=True to proceed."
+                )
+
+        # ── Rules 4–6: caps + one-per-claim (re-fetched stats) ─────────
+        stats = self.get_advance_stats(db, user_id, claim_id=claim_id)
+        if claim_id is not None and stats["this_claim_has_advance"]:
+            raise ValueError("An advance has already been issued against this claim.")
+
+        week_after = Decimal(str(stats["week_total"])) + abs_amount
+        if week_after > self.ADVANCE_WEEKLY_CAP:
+            raise ValueError(
+                f"Weekly advance cap exceeded: ${stats['week_total']} already issued "
+                f"this week, requested ${float(abs_amount)} would bring total to "
+                f"${float(week_after)} (cap ${float(self.ADVANCE_WEEKLY_CAP)})."
+            )
+
+        lifetime_after = Decimal(str(stats["lifetime_total"])) + abs_amount
+        if lifetime_after > self.ADVANCE_LIFETIME_CAP:
+            raise ValueError(
+                f"Lifetime advance cap exceeded: ${stats['lifetime_total']} lifetime "
+                f"issued, requested ${float(abs_amount)} would bring total to "
+                f"${float(lifetime_after)} (cap ${float(self.ADVANCE_LIFETIME_CAP)})."
+            )
+
         ts = issued_at or datetime.now(timezone.utc)
         adv = CommissionAdvance(
             user_id=user_id,
@@ -803,7 +947,7 @@ class CommissionService:
             claim_id=claim_id,
             bucket="WRITING_AGENT",
             txn_type="ADVANCE_ISSUED",
-            amount=abs(amount),
+            amount=abs_amount,
             ts=ts,
             notes=notes,
         )

@@ -150,6 +150,74 @@ export class CommissionEngineDataService {
   createClaim$(payload: CreateClaimPayload): Observable<ClaimDTO> {
     return this.http.post<ClaimDTO>(`${this.base}/claims`, payload);
   }
+
+  issueAdvance$(payload: IssueAdvancePayload): Observable<AdvanceDTO> {
+    return this.http.post<AdvanceDTO>(`${this.base}/advances`, payload);
+  }
+
+  issuePayout$(payload: IssuePayoutPayload): Observable<PayoutDTO> {
+    return this.http.post<PayoutDTO>(`${this.base}/payouts`, payload);
+  }
+
+  getAdvanceStats$(userId: string, claimId?: string | null): Observable<AdvanceStatsDTO> {
+    let params = new HttpParams();
+    if (claimId) params = params.set('claim_id', claimId);
+    return this.http.get<AdvanceStatsDTO>(
+      `${this.base}/agent/${resolveUserId(userId)}/advance-stats`,
+      { params },
+    );
+  }
+}
+
+export interface AdvanceStatsDTO {
+  user_id: string;
+  claim_id: string | null;
+  week_total: number;
+  lifetime_total: number;
+  this_claim_has_advance: boolean;
+  weekly_cap: number;
+  lifetime_cap: number;
+  week_start: string;
+  week_end: string;
+}
+
+export interface IssueAdvancePayload {
+  user_id: string;
+  amount: number | string;
+  issued_at?: string | null;
+  notes?: string | null;
+  claim_id?: string | null;
+  admin_override?: boolean;
+}
+
+export interface AdvanceDTO {
+  id: string;
+  user_id: string;
+  amount: number;
+  issued_at: string;
+  repaid_amount: number;
+  notes: string | null;
+  claim_id: string | null;
+}
+
+export interface IssuePayoutPayload {
+  user_id: string;
+  amount: number | string;
+  issued_at?: string | null;
+  method?: string | null;
+  reference?: string | null;
+  claim_id?: string | null;
+  offset_advances?: boolean;
+}
+
+export interface PayoutDTO {
+  id: string;
+  user_id: string;
+  amount: number;
+  issued_at: string;
+  method: string | null;
+  reference: string | null;
+  claim_id: string | null;
 }
 
 export interface ClaimRowDTO extends ClaimDTO {

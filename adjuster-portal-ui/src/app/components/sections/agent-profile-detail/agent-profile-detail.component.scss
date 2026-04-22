@@ -353,6 +353,40 @@
   }
 }
 
+/* ── Financial Actions ───────────────────────────────────────────────── */
+.financial-actions {
+  margin-top: 28px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 194, 255, 0.22);
+  background: linear-gradient(180deg, rgba(0, 194, 255, 0.06), rgba(0, 194, 255, 0.02));
+  border-radius: 12px;
+}
+.fa-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 12px;
+  mat-icon { color: #7dd3fc; margin-top: 2px; }
+  > div { flex: 1; }
+}
+.fa-title { font-weight: 700; color: #7dd3fc; font-size: 14px; }
+.fa-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.60); margin-top: 2px; }
+.fa-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.fa-btn {
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  padding: 0 18px !important;
+  mat-icon { margin-right: 4px; }
+  &.fa-btn-advance {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #1a1000 !important;
+    mat-icon { color: #1a1000; }
+  }
+  &.fa-btn-payout {
+    background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
+    color: #041e2a !important;
+    mat-icon { color: #041e2a; }
+  }
+}
+
 /* ── Danger zone ─────────────────────────────────────────────────────── */
 .danger-zone {
   margin-top: 32px;

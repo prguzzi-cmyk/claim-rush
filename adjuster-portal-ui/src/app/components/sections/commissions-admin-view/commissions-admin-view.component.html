@@ -86,6 +86,12 @@
                       (click)="openStatementFor(r.user_id, r.user_name, $event)">
                 <mat-icon>picture_as_pdf</mat-icon>
               </button>
+              <button mat-icon-button
+                      class="advance-btn"
+                      matTooltip="Issue advance"
+                      (click)="openIssueAdvanceFor(r.user_id, $event)">
+                <mat-icon>payments</mat-icon>
+              </button>
             </td>
             <td class="arrow-cell"><mat-icon>chevron_right</mat-icon></td>
           </tr>

@@ -1,0 +1,167 @@
+<div class="ia-dialog">
+
+  <div class="ia-head">
+    <div>
+      <div class="ia-eyebrow">Financial Actions</div>
+      <h2 class="ia-title">Issue Advance</h2>
+      <div class="ia-sub">Tier-driven against the claim's damage estimate. Weekly and lifetime caps are hard limits.</div>
+    </div>
+    <button mat-icon-button class="ia-close" (click)="cancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="ia-body">
+    <div class="ia-loading" *ngIf="loading">
+      <mat-icon>sync</mat-icon> Loading…
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="field-grid">
+
+        <!-- Team member selector / chip -->
+        <div class="field field-wide" *ngIf="showAgentPicker()">
+          <label>Team Member<span class="req">*</span></label>
+          <select [(ngModel)]="form.agent_id" (ngModelChange)="onAgentChange()">
+            <option [ngValue]="''">— Select team member —</option>
+            <option *ngFor="let a of agents" [ngValue]="a.user_id">
+              {{ a.agent_number }} — {{ a.user_name }} ({{ a.user_role }})
+            </option>
+          </select>
+        </div>
+
+        <div class="ia-agent-chip field-wide" *ngIf="!showAgentPicker() && selectedAgent() as a">
+          <span class="ia-agent-chip-label">Team Member</span>
+          <span class="ia-agent-chip-value">{{ a.user_name }} · <span class="mono">{{ a.agent_number }}</span> ({{ a.user_role }})</span>
+        </div>
+
+        <!-- Cap tiles -->
+        <div class="cap-row field-wide" *ngIf="form.agent_id">
+          <div class="cap-tile" [class.cap-red]="weekAtCap()">
+            <div class="cap-label">This Week</div>
+            <div class="cap-value mono">
+              {{ weekUsed() | currency:'USD':'symbol':'1.0-0' }}
+              <span class="cap-of"> of {{ weekCap() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="cap-bar">
+              <div class="cap-bar-fill" [style.width.%]="(weekUsed() / weekCap()) * 100"></div>
+            </div>
+          </div>
+          <div class="cap-tile" [class.cap-red]="lifetimeAtCap()">
+            <div class="cap-label">Lifetime</div>
+            <div class="cap-value mono">
+              {{ lifetimeUsed() | currency:'USD':'symbol':'1.0-0' }}
+              <span class="cap-of"> of {{ lifetimeCap() | currency:'USD':'symbol':'1.0-0' }}</span>
+            </div>
+            <div class="cap-bar">
+              <div class="cap-bar-fill" [style.width.%]="(lifetimeUsed() / lifetimeCap()) * 100"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Claim picker -->
+        <div class="field field-wide">
+          <label>Linked claim</label>
+          <select [(ngModel)]="form.claim_id" [disabled]="!form.agent_id" (ngModelChange)="onClaimChange()">
+            <option [ngValue]="null">— None —</option>
+            <option *ngFor="let c of claimsForSelectedAgent()" [ngValue]="c.id">
+              {{ c.claim_number }} · {{ c.client_name }}<ng-container *ngIf="c.estimate_amount"> · est {{ c.estimate_amount | currency:'USD':'symbol':'1.0-0' }}</ng-container>
+            </option>
+          </select>
+          <div class="field-help" *ngIf="!form.agent_id">Select a team member first to see their open claims.</div>
+        </div>
+
+        <!-- Tier preview -->
+        <div class="tier-preview field-wide" *ngIf="selectedClaim() as c">
+          <ng-container *ngIf="estimate() as est">
+            <ng-container *ngIf="tierAmount() as tier">
+              <mat-icon class="tier-icon">savings</mat-icon>
+              <div class="tier-body">
+                <div class="tier-title">Tier Amount: {{ tier | currency:'USD':'symbol':'1.0-0' }}</div>
+                <div class="tier-sub">Based on {{ est | currency:'USD':'symbol':'1.0-0' }} estimate.</div>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="isUnderMinimum()">
+              <mat-icon class="tier-icon warn">priority_high</mat-icon>
+              <div class="tier-body">
+                <div class="tier-title warn">Under tier minimum (${{ schedule.tiers[0].min | number }})</div>
+                <div class="tier-sub">Requires admin override + free-text amount.</div>
+              </div>
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="!estimate()">
+            <mat-icon class="tier-icon warn">info</mat-icon>
+            <div class="tier-body">
+              <div class="tier-title warn">No estimate on this claim</div>
+              <div class="tier-sub">Add estimate_amount to the claim, or toggle admin override to issue discretionary.</div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Override toggle -->
+        <div class="override-row field-wide" *ngIf="selectedClaim()">
+          <label class="override-toggle">
+            <input type="checkbox" [checked]="form.admin_override" (change)="toggleOverride()" />
+            <span>Admin override — unlock amount for discretionary entry</span>
+          </label>
+        </div>
+
+        <!-- Amount -->
+        <div class="field">
+          <label>Amount<span class="req">*</span></label>
+          <input appCurrency
+                 type="text"
+                 inputmode="decimal"
+                 [currencyMin]="0"
+                 [currencyMax]="25000"
+                 [(ngModel)]="form.amount"
+                 [disabled]="!form.admin_override && !!tierAmount()"
+                 placeholder="$250" />
+          <div class="field-help" *ngIf="!form.admin_override && tierAmount()">
+            Locked to tier amount. Toggle admin override to edit.
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Linked claim #</label>
+          <input type="text" readonly
+                 [value]="selectedClaim() ? selectedClaim()!.claim_number : '—'"
+                 class="readonly-field" />
+        </div>
+
+        <div class="field field-wide">
+          <label>Notes<span class="req">*</span></label>
+          <textarea rows="2" [(ngModel)]="form.notes" placeholder="Reason for advance (required for audit trail)"></textarea>
+        </div>
+
+        <div class="ia-ack field-wide">
+          <label class="ack-label">
+            <input type="checkbox" [(ngModel)]="form.acknowledge" />
+            <span>I understand this will be deducted from future payouts.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Validation error (pre-submit) -->
+      <div class="ia-validation" *ngIf="validationError() as err">
+        <mat-icon>block</mat-icon>
+        <div>{{ err }}</div>
+      </div>
+
+      <!-- Backend error (post-submit) -->
+      <div class="ia-error" *ngIf="errorText">
+        <mat-icon>error_outline</mat-icon>
+        <div>{{ errorText }}</div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="ia-foot">
+    <button mat-stroked-button class="ia-cancel" (click)="cancel()" [disabled]="saving">Cancel</button>
+    <button mat-flat-button class="ia-confirm" [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon *ngIf="saving">sync</mat-icon>
+      <span>{{ saving ? 'Issuing…' : 'Issue Advance' }}</span>
+    </button>
+  </div>
+
+</div>

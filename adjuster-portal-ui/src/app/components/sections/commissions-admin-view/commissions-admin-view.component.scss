@@ -80,6 +80,9 @@
   padding: 0 10px;
 }
 
+.advance-btn mat-icon { color: #fbbf24; }
+.advance-btn:hover { background: rgba(245, 158, 11, 0.12) !important; }
+
 .new-claim-btn {
   background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
   color: #041e2a !important;

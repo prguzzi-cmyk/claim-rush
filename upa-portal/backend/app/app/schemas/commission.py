@@ -283,6 +283,9 @@ class CreateAdvanceRequest(BaseModel):
     issued_at: datetime | None = None
     notes: str | None = None
     claim_id: UUID | None = None
+    # Admin override for estimates below the lowest tier (under-minimum
+    # policy is "admin_discretionary"). Does NOT bypass weekly/lifetime caps.
+    admin_override: bool = False
 
 
 class IssueAdjusterCompensationRequest(BaseModel):

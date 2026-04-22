@@ -119,6 +119,27 @@
           </div>
         </div>
 
+        <!-- Financial Actions -->
+        <div class="financial-actions">
+          <div class="fa-head">
+            <mat-icon>payments</mat-icon>
+            <div>
+              <div class="fa-title">Financial Actions</div>
+              <div class="fa-sub">Write against this agent's ledger — issue advances or settle earnings.</div>
+            </div>
+          </div>
+          <div class="fa-actions">
+            <button mat-flat-button class="fa-btn fa-btn-advance" (click)="openIssueAdvance()">
+              <mat-icon>account_balance_wallet</mat-icon>
+              <span>Issue Advance</span>
+            </button>
+            <button mat-flat-button class="fa-btn fa-btn-payout" (click)="openIssuePayout()">
+              <mat-icon>send</mat-icon>
+              <span>Issue Payout</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Danger zone -->
         <div class="danger-zone">
           <div class="dz-head">

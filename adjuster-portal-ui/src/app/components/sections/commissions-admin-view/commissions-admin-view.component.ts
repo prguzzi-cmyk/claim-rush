@@ -14,6 +14,7 @@ import { CommissionStatementDialogComponent } from '../agent-dashboard/earnings-
 import { CompPlanDialogComponent } from './comp-plan-dialog/comp-plan-dialog.component';
 import { NewClaimDialogComponent } from './new-claim-dialog/new-claim-dialog.component';
 import { RecordSettlementDialogComponent } from './record-settlement-dialog/record-settlement-dialog.component';
+import { IssueAdvanceDialogComponent } from './issue-advance-dialog/issue-advance-dialog.component';
 
 /**
  * Admin / RIN House view.
@@ -131,6 +132,24 @@ export class CommissionsAdminViewComponent implements OnInit {
       maxHeight: '92vh',
       panelClass: 'comp-plan-dialog-panel',
       autoFocus: false,
+    });
+  }
+
+  openIssueAdvanceFor(userId: string, event: Event): void {
+    event.stopPropagation();
+    const ref = this.dialog.open(IssueAdvanceDialogComponent, {
+      width: '680px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'issue-advance-dialog-panel',
+      data: { agentId: userId },
+      autoFocus: false,
+    });
+    ref.afterClosed().subscribe(adv => {
+      if (adv) {
+        this.overview$ = this.engine.getAdminOverview().pipe(shareReplay(1));
+        this.refreshSelected();
+      }
     });
   }
 
