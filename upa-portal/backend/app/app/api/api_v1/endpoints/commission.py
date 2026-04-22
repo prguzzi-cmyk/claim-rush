@@ -165,17 +165,15 @@ def create_claim(
     db_session: Annotated[Session, Depends(get_db_session)],
     _auth=Depends(commission_auth),
 ):
-    claim = commission_service.create_claim(
-        db_session,
-        client_name=payload.client_name,
-        claim_number=payload.claim_number,
-        stage=payload.stage,
-        writing_agent_id=payload.writing_agent_id,
-        rvp_id=payload.rvp_id,
-        cp_id=payload.cp_id,
-        direct_cp=payload.direct_cp,
-        gross_fee=payload.gross_fee,
-    )
+    # Pass the raw payload through — unset fields become service defaults
+    # (claim_number auto-generates, rvp/cp auto-resolve from manager chain).
+    try:
+        claim = commission_service.create_claim(
+            db_session,
+            **payload.dict(exclude_unset=True),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return _claim_to_dto(claim)
 
 
@@ -287,9 +285,19 @@ def _claim_to_dto(claim) -> dict:
         "claim_number": claim.claim_number,
         "stage": claim.stage,
         "gross_fee": float(claim.gross_fee),
+        "estimate_amount": float(claim.estimate_amount) if claim.estimate_amount is not None else None,
         "writing_agent_id": str(claim.writing_agent_id),
         "rvp_id": str(claim.rvp_id) if claim.rvp_id else None,
         "cp_id": str(claim.cp_id) if claim.cp_id else None,
         "direct_cp": claim.direct_cp,
+        "property_address": claim.property_address,
+        "street_address": claim.street_address,
+        "city": claim.city,
+        "state": claim.state,
+        "zip": claim.zip,
+        "carrier": claim.carrier,
+        "loss_date": claim.loss_date,
+        "loss_type": claim.loss_type,
+        "notes": claim.notes,
         "created_at": claim.created_at,
     }

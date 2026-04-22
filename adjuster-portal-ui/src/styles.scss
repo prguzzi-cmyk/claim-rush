@@ -162,3 +162,18 @@
   .statement-dialog-panel { width: 100% !important; max-width: 100% !important; box-shadow: none !important; border-radius: 0 !important; }
 }
 
+/* ──────────────────────────────────────────────────────────────────────
+ * Number-input spinner arrow suppression — global.
+ * Applies to every <input type="number"> in the app (not just currency
+ * fields). The spinner UX is noisy for money values and non-essential
+ * everywhere else, so we kill it uniformly. Keyboard up/down still works.
+ * ────────────────────────────────────────────────────────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+

@@ -8,11 +8,12 @@ tracks the commission-engine view: writing agent / RVP / CP assignment, gross
 fee, stage in the commission lifecycle. Commission math runs from here.
 """
 
+from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, Date, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -31,6 +32,31 @@ class CommissionClaim(TimestampMixin, AuditMixin, Base):
     gross_fee: Mapped[Decimal] = mapped_column(Numeric(12, 2), server_default="0")
     # True when there's no RVP in the chain (writing agent absorbs RVP override).
     direct_cp: Mapped[bool] = mapped_column(Boolean, server_default="false", default=False)
+
+    # ── Operational / intake metadata (non-financial) ───────────────
+    # Legacy single-field address — retained for existing rows + read paths;
+    # no longer written to by the New Claim dialog. Backfill + drop planned.
+    property_address: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Structured address (all nullable at DB layer; dialog enforces required).
+    # Unit / apt / suite intentionally NOT modeled — operators append to
+    # street_address when needed ("123 Maple St, Apt 4B").
+    street_address: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    zip: Mapped[str | None] = mapped_column(String(10), nullable=True)
+
+    carrier: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    loss_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # 'FIRE' | 'WATER' | 'WIND' | 'STORM' | 'THEFT' | 'OTHER'
+    loss_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Damage estimate captured at intake — drives advance tier eligibility.
+    # Separate from gross_fee, which is the actual fee at settlement.
+    estimate_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
 
     # Foreign Keys — who's on this claim
     writing_agent_id: Mapped[UUID] = mapped_column(

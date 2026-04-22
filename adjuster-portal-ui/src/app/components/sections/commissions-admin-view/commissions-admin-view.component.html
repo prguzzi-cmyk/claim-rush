@@ -3,12 +3,18 @@
   <div class="admin-head">
     <div>
       <h1 class="admin-title">Commission Admin</h1>
-      <div class="admin-sub">House roll-up · per-writing-agent drill-down</div>
+      <div class="admin-sub">House roll-up · per-team-member drill-down</div>
     </div>
-    <button mat-stroked-button class="comp-plan-btn" (click)="openCompPlan()">
-      <mat-icon>account_balance_wallet</mat-icon>
-      <span>Comp Plan</span>
-    </button>
+    <div class="admin-head-actions">
+      <button mat-stroked-button class="comp-plan-btn" (click)="openCompPlan()">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <span>Comp Plan</span>
+      </button>
+      <button mat-flat-button class="new-claim-btn" (click)="openNewClaim()">
+        <mat-icon>add</mat-icon>
+        <span>New Claim</span>
+      </button>
+    </div>
   </div>
 
   <!-- ─── Top roll-up tiles ─── -->
@@ -40,12 +46,12 @@
     </div>
   </div>
 
-  <!-- ─── Writing-agent table ─── -->
+  <!-- ─── Team Members table ─── -->
   <div class="panel table-panel" *ngIf="overview$ | async as o">
     <div class="panel-head">
       <div>
-        <div class="panel-title">Writing Agents</div>
-        <div class="panel-sub">Click a row to view that agent's financial dashboard</div>
+        <div class="panel-title">Team Members</div>
+        <div class="panel-sub">Click a row to view that team member's financial dashboard</div>
       </div>
     </div>
 
@@ -84,7 +90,7 @@
             <td class="arrow-cell"><mat-icon>chevron_right</mat-icon></td>
           </tr>
           <tr *ngIf="o.rows.length === 0">
-            <td colspan="8" class="table-empty">No writing agents on record.</td>
+            <td colspan="8" class="table-empty">No team members on record.</td>
           </tr>
         </tbody>
       </table>
@@ -96,7 +102,7 @@
     <div class="drill-head">
       <div>
         <h2 class="drill-title">{{ u.name }}</h2>
-        <div class="drill-sub">{{ u.org_role }} · writing-agent view</div>
+        <div class="drill-sub">{{ u.org_role }} · team member view</div>
       </div>
       <button mat-stroked-button class="drill-close" (click)="clearSelection()">
         <mat-icon>close</mat-icon>

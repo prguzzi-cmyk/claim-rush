@@ -42,6 +42,17 @@
   }
 }
 
+.admin-head-actions { display: flex; align-items: center; gap: 10px; }
+
+.new-claim-btn {
+  background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
+  color: #041e2a !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  padding: 0 20px !important;
+  mat-icon { margin-right: 4px; color: #041e2a; }
+}
+
 /* ─── Roll-up tiles ─── */
 .rollup-row {
   display: grid;

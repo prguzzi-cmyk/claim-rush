@@ -1,0 +1,143 @@
+<div class="nc-dialog">
+
+  <div class="nc-head">
+    <div>
+      <div class="nc-eyebrow">Commission Admin</div>
+      <h2 class="nc-title">New Claim</h2>
+      <div class="nc-sub">
+        Claim number is auto-assigned (RIN-YYMM-XXXX). Commission splits fire at settlement, not at intake.
+      </div>
+    </div>
+    <button mat-icon-button class="nc-close" (click)="cancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="nc-body">
+    <div class="nc-loading" *ngIf="loading">
+      <mat-icon>sync</mat-icon> Loading team members…
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="field-grid">
+        <div class="field field-wide">
+          <label>Client name<span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.client_name" placeholder="e.g. Harper Residence" maxlength="200" />
+        </div>
+
+        <!-- Structured address: street on its own row -->
+        <div class="field field-wide">
+          <label>Street address<span class="req">*</span></label>
+          <input type="text" [(ngModel)]="form.street_address" placeholder="123 Maple St" maxlength="255" />
+        </div>
+
+        <!-- City | State | ZIP on one row (no Unit — append to street_address inline) -->
+        <div class="address-row field-wide">
+          <div class="field a-city">
+            <label>City<span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.city" placeholder="Chicago" maxlength="128" />
+          </div>
+          <div class="field a-state">
+            <label>State<span class="req">*</span></label>
+            <select [(ngModel)]="form.state">
+              <option [ngValue]="''">—</option>
+              <option *ngFor="let s of states" [ngValue]="s.code">{{ s.code }} — {{ s.name }}</option>
+            </select>
+          </div>
+          <div class="field a-zip">
+            <label>ZIP<span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.zip" placeholder="60601" maxlength="10" />
+            <div class="field-help zip-err" *ngIf="form.zip && !zipValid()">
+              Must be 5 digits, optional ZIP+4.
+            </div>
+          </div>
+        </div>
+
+        <div class="field field-wide">
+          <label>Team Member<span class="req">*</span></label>
+          <select [(ngModel)]="form.writing_agent_id">
+            <option [ngValue]="''">— Select team member —</option>
+            <option *ngFor="let a of agents" [ngValue]="a.user_id">
+              {{ a.agent_number }} — {{ a.user_name }} ({{ a.user_role }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Hierarchy preview -->
+        <div class="hierarchy-preview" *ngIf="form.writing_agent_id as waId">
+          <ng-container *ngIf="hierarchyPreview() as h">
+            <div class="hp-title">Override chain (auto-resolved at settlement)</div>
+            <div class="hp-badge">{{ scenarioBadge() }}</div>
+            <div class="hp-rows">
+              <div class="hp-row">
+                <span class="hp-slot">Team Member</span>
+                <span class="hp-val" *ngIf="h.team_member">{{ h.team_member.name }} · {{ h.team_member.agent_number }}</span>
+              </div>
+              <div class="hp-row">
+                <span class="hp-slot">RVP Override</span>
+                <span class="hp-val" *ngIf="h.rvp">{{ h.rvp.name }} · {{ h.rvp.agent_number }}</span>
+                <span class="hp-val hp-none" *ngIf="!h.rvp">—</span>
+              </div>
+              <div class="hp-row">
+                <span class="hp-slot">CP Override</span>
+                <span class="hp-val" *ngIf="h.cp">{{ h.cp.name }} · {{ h.cp.agent_number }}</span>
+                <span class="hp-val hp-none" *ngIf="!h.cp">—</span>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="field">
+          <label>Carrier</label>
+          <input type="text" [(ngModel)]="form.carrier" placeholder="e.g. State Farm" maxlength="120" />
+        </div>
+        <div class="field">
+          <label>Loss date</label>
+          <input type="date" [(ngModel)]="form.loss_date" [max]="todayIso" />
+          <div class="field-help zip-err" *ngIf="!lossDateValid()">
+            Loss date cannot be in the future.
+          </div>
+        </div>
+        <div class="field">
+          <label>Loss type</label>
+          <select [(ngModel)]="form.loss_type">
+            <option [ngValue]="''">—</option>
+            <option *ngFor="let t of lossTypes" [ngValue]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Estimate amount</label>
+          <input appCurrency
+                 type="text"
+                 inputmode="decimal"
+                 [(ngModel)]="form.estimate_amount"
+                 [currencyMax]="ESTIMATE_MAX"
+                 [currencyMin]="0"
+                 placeholder="$0" />
+          <div class="field-help">
+            Damage estimate if known. Used to determine advance eligibility. Gross fee is recorded at settlement.
+          </div>
+        </div>
+
+        <div class="field field-wide">
+          <label>Notes</label>
+          <textarea rows="3" [(ngModel)]="form.notes" placeholder="Intake context, special handling, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="nc-error" *ngIf="errorText">
+        <mat-icon>error_outline</mat-icon>
+        <div>{{ errorText }}</div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="nc-foot">
+    <button mat-stroked-button class="nc-cancel" (click)="cancel()" [disabled]="saving">Cancel</button>
+    <button mat-flat-button class="nc-create" [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon *ngIf="saving">sync</mat-icon>
+      <span>{{ saving ? 'Creating…' : 'Create Claim' }}</span>
+    </button>
+  </div>
+
+</div>

@@ -116,6 +116,7 @@ import { HeaderComponent } from "./components/layout/header/header.component";
 import { FooterComponent } from "./components/layout/footer/footer.component";
 import { NgbAccordionModule, NgbModule } from "@ng-bootstrap/ng-bootstrap";
 import { AutocompleteOffDirective } from "./directives/autocomplete-off.directive";
+import { CurrencyInputDirective } from "./directives/currency-input.directive";
 import { ForgotPasswordComponent } from "./components/forgot-password/forgot-password.component";
 import { Leads } from "./components/sections/leads/leads/leads.component";
 import { CreateLeadComponent } from "./components/sections/leads/create-lead/create-lead.component";
@@ -172,6 +173,7 @@ import { FinancialDetailDialogComponent } from "./components/sections/agent-dash
 import { CommissionStatementDialogComponent } from "./components/sections/agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component";
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { CompPlanDialogComponent } from "./components/sections/commissions-admin-view/comp-plan-dialog/comp-plan-dialog.component";
+import { NewClaimDialogComponent } from "./components/sections/commissions-admin-view/new-claim-dialog/new-claim-dialog.component";
 import { CreateClientTaskComponent } from "./components/sections/client-task/create-client-task/create-client-task.component";
 import { UserClientListComponent } from "./components/sections/client-task/user-client-list/user-client-list.component";
 import { AngularEditorModule } from "@kolkov/angular-editor";
@@ -482,6 +484,7 @@ export function tokenGetter() {
     HeaderComponent,
     FooterComponent,
     AutocompleteOffDirective,
+    CurrencyInputDirective,
     ForgotPasswordComponent,
     ResourcesComponent,
     ResourceComponent,
@@ -539,6 +542,7 @@ export function tokenGetter() {
     CommissionStatementDialogComponent,
     CommissionsAdminViewComponent,
     CompPlanDialogComponent,
+    NewClaimDialogComponent,
     CreateClientTaskComponent,
     UserClientListComponent,
     NewslettersComponent,

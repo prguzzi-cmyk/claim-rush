@@ -551,14 +551,55 @@ class CommissionService:
         db: Session,
         *,
         client_name: str,
-        claim_number: str,
-        stage: str,
+        claim_number: str | None = None,
+        stage: str = "INTAKE_SIGNED",
         writing_agent_id: UUID,
-        rvp_id: UUID | None,
-        cp_id: UUID | None,
-        direct_cp: bool,
+        rvp_id: UUID | None = None,
+        cp_id: UUID | None = None,
+        direct_cp: bool | None = None,
         gross_fee: Decimal = Decimal("0"),
+        estimate_amount: Decimal | None = None,
+        # Structured address (preferred).
+        # Unit / apt / suite is NOT a separate field — operators append
+        # to street_address ("123 Maple St, Apt 4B").
+        street_address: str | None = None,
+        city: str | None = None,
+        state: str | None = None,
+        zip: str | None = None,
+        # Legacy free-form address; only populated for back-compat writes
+        property_address: str | None = None,
+        carrier: str | None = None,
+        loss_date=None,
+        loss_type: str | None = None,
+        notes: str | None = None,
     ) -> CommissionClaim:
+        """Create a commission_claim. If `rvp_id` / `cp_id` are omitted, they
+        are auto-resolved by walking `User.manager_id` up from the writing
+        agent (first RVP ancestor → rvp_id, first CP ancestor → cp_id).
+        If `claim_number` is omitted, generates RIN-YYMM-XXXX from a per-month
+        sequence so dev/manual intake doesn't need the operator to invent one.
+
+        Intake does NOT fire commission splits — splits fire at settlement
+        via record_gross_fee. `estimate_amount` is captured for advance
+        tier eligibility but is financially inert.
+        """
+        if claim_number is None:
+            claim_number = self._next_claim_number(db)
+
+        if rvp_id is None or cp_id is None:
+            resolved_rvp, resolved_cp = self._resolve_hierarchy_from(
+                db, writing_agent_id,
+            )
+            if rvp_id is None:
+                rvp_id = resolved_rvp
+            if cp_id is None:
+                cp_id = resolved_cp
+
+        # direct_cp is a display/advisory flag — derive it if the caller
+        # didn't override. (Scenario 4 in the comp plan: no RVP, but a CP.)
+        if direct_cp is None:
+            direct_cp = rvp_id is None and cp_id is not None
+
         claim = CommissionClaim(
             client_name=client_name,
             claim_number=claim_number,
@@ -568,6 +609,16 @@ class CommissionService:
             cp_id=cp_id,
             direct_cp=direct_cp,
             gross_fee=gross_fee,
+            estimate_amount=estimate_amount,
+            street_address=street_address,
+            city=city,
+            state=state,
+            zip=zip,
+            property_address=property_address,
+            carrier=carrier,
+            loss_date=loss_date,
+            loss_type=loss_type,
+            notes=notes,
         )
         db.add(claim)
         db.flush()
@@ -577,6 +628,52 @@ class CommissionService:
         db.commit()
         db.refresh(claim)
         return claim
+
+    def _resolve_hierarchy_from(
+        self, db: Session, writing_agent_id: UUID,
+    ) -> tuple[UUID | None, UUID | None]:
+        """Walk manager_id up from the writing agent, returning the first
+        RVP ancestor's user_id and the first CP ancestor's user_id (either
+        may be None). Cycles are guarded by a visited-set — malformed data
+        can't spin forever."""
+        rvp_id: UUID | None = None
+        cp_id: UUID | None = None
+        visited: set = set()
+
+        cursor = db.get(User, writing_agent_id)
+        while cursor is not None and cursor.id not in visited:
+            visited.add(cursor.id)
+            role = db.get(Role, cursor.role_id) if cursor.role_id else None
+            role_name = (role.name if role else "").upper()
+            # The writing agent themselves shouldn't claim their own override
+            # slot — skip attribution on the seed node.
+            if cursor.id != writing_agent_id:
+                if role_name == "RVP" and rvp_id is None:
+                    rvp_id = cursor.id
+                elif role_name == "CP" and cp_id is None:
+                    cp_id = cursor.id
+            if cp_id is not None and rvp_id is not None:
+                break
+            if cursor.manager_id is None:
+                break
+            cursor = db.get(User, cursor.manager_id)
+
+        return rvp_id, cp_id
+
+    def _next_claim_number(self, db: Session) -> str:
+        """Generate a RIN-YYMM-XXXX claim number. The XXXX is a 4-digit
+        zero-padded counter scoped to the YYMM prefix; concurrent inserts
+        are protected by the unique-index on claim_number — on collision
+        the caller should retry at a higher layer, but the race window is
+        very small given the intake cadence."""
+        now = datetime.now(timezone.utc)
+        prefix = f"RIN-{now.strftime('%y%m')}"
+        existing = db.execute(
+            select(func.count(CommissionClaim.id)).where(
+                CommissionClaim.claim_number.like(f"{prefix}-%")
+            )
+        ).scalar() or 0
+        return f"{prefix}-{existing + 1:04d}"
 
     def record_gross_fee(
         self,

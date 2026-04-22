@@ -8,10 +8,11 @@ import {
 import { CommissionEngineService } from 'src/app/services/commission-engine.service';
 import { CommissionStatementDialogComponent } from '../agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component';
 import { CompPlanDialogComponent } from './comp-plan-dialog/comp-plan-dialog.component';
+import { NewClaimDialogComponent } from './new-claim-dialog/new-claim-dialog.component';
 
 /**
  * Admin / RIN House view.
- * Reuses EarningsTabComponent to drill into any writing agent.
+ * Reuses EarningsTabComponent to drill into any team member.
  * Same engine, admin-level visibility (all users, house share roll-up).
  */
 @Component({
@@ -89,6 +90,23 @@ export class CommissionsAdminViewComponent implements OnInit {
       maxHeight: '92vh',
       panelClass: 'comp-plan-dialog-panel',
       autoFocus: false,
+    });
+  }
+
+  openNewClaim(): void {
+    const ref = this.dialog.open(NewClaimDialogComponent, {
+      width: '720px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'new-claim-dialog-panel',
+      autoFocus: false,
+    });
+    ref.afterClosed().subscribe(created => {
+      if (created) {
+        // Refresh the roll-up so any gross fee supplied at intake reflects.
+        this.overview$ = this.engine.getAdminOverview();
+        this.refreshSelected();
+      }
     });
   }
 }

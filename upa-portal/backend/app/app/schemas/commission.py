@@ -7,12 +7,12 @@ Angular model (`commission-engine.model.ts`) so the frontend data service can
 consume responses without transformation.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, validator
 
 
 # ─── Enumerations (as Literal types to preserve the string values) ──────────
@@ -220,15 +220,43 @@ class FinancialDetailDTO(BaseModel):
 # ─── Write DTOs (POST requests) ─────────────────────────────────────────────
 
 
+LossType = Literal["FIRE", "WATER", "WIND", "STORM", "THEFT", "OTHER"]
+
+
 class CreateClaimRequest(BaseModel):
+    """Intake-only payload. `gross_fee` is NOT captured here —
+    commission splits don't fire at intake. The dialog sends
+    `estimate_amount`, which is used downstream by the advance tier
+    calculator. Actual gross is recorded at settlement via
+    POST /v1/commission/claims/{id}/gross-fee."""
     client_name: str
-    claim_number: str
+    claim_number: str | None = None          # auto-generated server-side if omitted
     stage: str = "INTAKE_SIGNED"
-    writing_agent_id: UUID
-    rvp_id: UUID | None = None
-    cp_id: UUID | None = None
+    writing_agent_id: UUID                   # DB column name preserved; UI label is "Team Member"
+    rvp_id: UUID | None = None               # auto-resolved from manager chain if null
+    cp_id: UUID | None = None                # auto-resolved from manager chain if null
     direct_cp: bool = False
-    gross_fee: Decimal = Decimal("0")
+    # ── Intake metadata ──
+    # Structured address (UI-required; backend defaults all nullable so
+    # legacy / machine clients can still create skeleton claims).
+    # No unit/apt field — append to street_address when needed.
+    street_address: str | None = Field(None, max_length=255)
+    city: str | None = Field(None, max_length=128)
+    state: str | None = Field(None, min_length=2, max_length=2)
+    zip: str | None = Field(None, max_length=10)
+    carrier: str | None = None
+    loss_date: date | None = None
+    loss_type: LossType | None = None
+    notes: str | None = None
+    # Damage estimate — drives advance tier eligibility.
+    estimate_amount: Decimal | None = None
+
+    @validator("loss_date")
+    def _loss_date_not_future(cls, v: date | None) -> date | None:
+        """Loss date can't be in the future — a loss hasn't happened yet."""
+        if v is not None and v > date.today():
+            raise ValueError("Loss date cannot be in the future.")
+        return v
 
 
 class RecordGrossFeeRequest(BaseModel):
@@ -276,10 +304,20 @@ class ClaimDTO(BaseModel):
     claim_number: str
     stage: str
     gross_fee: float
+    estimate_amount: float | None = None
     writing_agent_id: str
     rvp_id: str | None = None
     cp_id: str | None = None
     direct_cp: bool
+    property_address: str | None = None   # legacy; new claims populate structured fields
+    street_address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    zip: str | None = None
+    carrier: str | None = None
+    loss_date: date | None = None
+    loss_type: str | None = None
+    notes: str | None = None
     created_at: datetime
 
 

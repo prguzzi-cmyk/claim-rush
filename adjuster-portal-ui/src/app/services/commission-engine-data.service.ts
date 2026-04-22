@@ -125,4 +125,56 @@ export class CommissionEngineDataService {
   getAdminOverview$(): Observable<AdminOverviewView> {
     return this.http.get<AdminOverviewView>(`${this.base}/admin/overview`);
   }
+
+  // ─── Writes ───────────────────────────────────────────────────────────
+
+  createClaim$(payload: CreateClaimPayload): Observable<ClaimDTO> {
+    return this.http.post<ClaimDTO>(`${this.base}/claims`, payload);
+  }
+}
+
+export interface CreateClaimPayload {
+  client_name: string;
+  writing_agent_id: string;                // DB column preserved; UI label is "Team Member"
+  claim_number?: string | null;            // server auto-generates when omitted
+  stage?: string;
+  rvp_id?: string | null;                  // server auto-resolves from manager chain
+  cp_id?: string | null;
+  direct_cp?: boolean;
+  // Structured address (required at UI, nullable at API for legacy /
+  // machine clients). No `unit` field — operators include apt/suite
+  // inline on street_address.
+  street_address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  carrier?: string | null;
+  loss_date?: string | null;
+  loss_type?: 'FIRE' | 'WATER' | 'WIND' | 'STORM' | 'THEFT' | 'OTHER' | null;
+  notes?: string | null;
+  // Damage estimate — drives advance tier at issue time (B4).
+  estimate_amount?: number | string | null;
+}
+
+export interface ClaimDTO {
+  id: string;
+  client_name: string;
+  claim_number: string;
+  stage: string;
+  gross_fee: number;
+  estimate_amount: number | null;
+  writing_agent_id: string;
+  rvp_id: string | null;
+  cp_id: string | null;
+  direct_cp: boolean;
+  property_address: string | null;   // legacy free-form
+  street_address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  carrier: string | null;
+  loss_date: string | null;
+  loss_type: string | null;
+  notes: string | null;
+  created_at: string;
 }
