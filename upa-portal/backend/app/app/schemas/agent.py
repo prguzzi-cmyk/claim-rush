@@ -76,6 +76,28 @@ class AgentProfileDTO(AgentProfileBase):
 # ─── AgentLicense ───────────────────────────────────────────────────────────
 
 
+class AgentLicenseCreateRequest(BaseModel):
+    state: str = Field(..., min_length=2, max_length=2)
+    license_type: str
+    license_number: str
+    issued_on: date | None = None
+    expires_on: date | None = None
+    status: LicenseStatus = "ACTIVE"
+    notes: str | None = None
+
+
+class AgentLicenseUpdateRequest(BaseModel):
+    state: str | None = Field(None, min_length=2, max_length=2)
+    license_type: str | None = None
+    license_number: str | None = None
+    issued_on: date | None = None
+    expires_on: date | None = None
+    status: LicenseStatus | None = None
+    verified_at: datetime | None = None
+    verified_by_id: UUID | None = None
+    notes: str | None = None
+
+
 class AgentLicenseDTO(BaseModel):
     id: UUID
     user_id: UUID
@@ -91,6 +113,25 @@ class AgentLicenseDTO(BaseModel):
     notes: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
+
+    # Pydantic v1 — read attributes from ORM instances.
+    class Config:
+        orm_mode = True
+
+
+# ─── Document (user_personal_file) ──────────────────────────────────────────
+
+
+class AgentDocumentDTO(BaseModel):
+    """Read-only list view of an agent's personal files (license scans,
+    W-9 PDFs, etc.) — joins user_personal_file + file for display."""
+    id: UUID                 # user_personal_file.id (== file.id)
+    state: str               # document state (free-form label)
+    expiration_date: str | None = None
+    # File table columns used by the UI
+    name: str | None = None
+    type: str | None = None
+    size: int | None = None
 
 
 
@@ -112,4 +153,7 @@ class AgentBankingDTO(BaseModel):
     notes: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
+
+    class Config:
+        orm_mode = True
 

@@ -21,7 +21,8 @@ from uuid import UUID
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from app.models import AgentBanking, AgentLicense, AgentProfile, Role, User
+from app.models import AgentBanking, AgentLicense, AgentProfile, File, Role, User
+from app.models.user_personal_file import UserPersonalFile
 
 
 # ─── role.name → agent_number prefix ────────────────────────────────────────
@@ -173,10 +174,78 @@ class AgentService:
             .order_by(AgentLicense.state, AgentLicense.license_type)
         ).scalars().all()
 
+    def create_license(self, db: Session, *, user_id: UUID, **fields) -> AgentLicense:
+        # Defensive: raise a readable error on the composite-unique clash rather
+        # than let IntegrityError bubble.
+        dup = db.execute(
+            select(AgentLicense).where(
+                AgentLicense.user_id == user_id,
+                AgentLicense.state == fields.get("state"),
+                AgentLicense.license_type == fields.get("license_type"),
+                AgentLicense.license_number == fields.get("license_number"),
+            )
+        ).scalar_one_or_none()
+        if dup:
+            raise ValueError(
+                f"License already exists for user {user_id}: "
+                f"{fields.get('state')} {fields.get('license_type')} {fields.get('license_number')}"
+            )
+        lic = AgentLicense(user_id=user_id, **{k: v for k, v in fields.items() if v is not None})
+        db.add(lic)
+        db.commit()
+        db.refresh(lic)
+        return lic
+
+    def update_license(self, db: Session, license_id: UUID, **fields) -> AgentLicense | None:
+        IMMUTABLE = {"id", "user_id", "created_at", "created_by_id"}
+        lic = db.get(AgentLicense, license_id)
+        if not lic:
+            return None
+        for key, value in fields.items():
+            if key in IMMUTABLE:
+                continue
+            if value is None:
+                continue
+            if hasattr(lic, key):
+                setattr(lic, key, value)
+        db.commit()
+        db.refresh(lic)
+        return lic
+
+    def delete_license(self, db: Session, license_id: UUID) -> bool:
+        lic = db.get(AgentLicense, license_id)
+        if not lic:
+            return False
+        db.delete(lic)
+        db.commit()
+        return True
+
     def get_banking(self, db: Session, user_id: UUID) -> AgentBanking | None:
         return db.execute(
             select(AgentBanking).where(AgentBanking.user_id == user_id)
         ).scalar_one_or_none()
+
+    def list_documents(self, db: Session, user_id: UUID) -> list[dict[str, Any]]:
+        """List an agent's uploaded documents (user_personal_file entries).
+
+        UserPersonalFile is joined-inheritance on File, so a single instance
+        exposes both the personal-file-specific columns (state,
+        expiration_date) and the file-table columns (name, type, size).
+        """
+        rows = db.execute(
+            select(UserPersonalFile).where(UserPersonalFile.owner_id == user_id)
+        ).scalars().all()
+        return [
+            {
+                "id": upf.id,
+                "state": upf.state,
+                "expiration_date": upf.expiration_date,
+                "name": getattr(upf, "name", None),
+                "type": getattr(upf, "type", None),
+                "size": getattr(upf, "size", None),
+            }
+            for upf in rows
+        ]
 
     # ─── Internals ────────────────────────────────────────────────────────
 

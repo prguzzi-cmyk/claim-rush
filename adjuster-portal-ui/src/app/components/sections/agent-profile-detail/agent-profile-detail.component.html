@@ -1,0 +1,394 @@
+<div class="apd-shell">
+
+  <!-- Loading / not found gates -->
+  <div class="apd-state" *ngIf="loading">
+    <mat-icon class="apd-spinner">sync</mat-icon>
+    Loading agent…
+  </div>
+
+  <div class="apd-state apd-state--error" *ngIf="notFound && !loading">
+    <mat-icon>error_outline</mat-icon>
+    <div>
+      <div class="apd-state-title">No agent profile</div>
+      <div class="apd-state-sub">This user doesn't have an agent_profile yet.</div>
+    </div>
+    <button mat-stroked-button class="apd-back" (click)="backToList()">
+      <mat-icon>arrow_back</mat-icon><span>Back to Agents</span>
+    </button>
+  </div>
+
+  <!-- Main content -->
+  <ng-container *ngIf="profile && !loading">
+
+    <div class="apd-header">
+      <button mat-icon-button class="apd-back-btn" (click)="backToList()" matTooltip="Back to Agents">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <div class="apd-avatar">{{ avatarInitials() }}</div>
+
+      <div class="apd-header-main">
+        <div class="apd-name">{{ profile.user_name }}</div>
+        <div class="apd-meta">
+          <span class="apd-agent-number">{{ profile.agent_number }}</span>
+          <span class="role-chip" [class]="roleToneClass()">{{ profile.user_role }}</span>
+          <span class="apd-email">{{ profile.user_email }}</span>
+        </div>
+      </div>
+
+      <div class="apd-header-right">
+        <span class="active-pill" [class.on]="profile.is_active">
+          <span class="active-dot"></span>
+          {{ profile.is_active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Tab strip -->
+    <div class="apd-tabs">
+      <button *ngFor="let t of tabs"
+              class="apd-tab"
+              [class.active]="activeTab === t.key"
+              (click)="setTab(t.key)">
+        <mat-icon>{{ t.icon }}</mat-icon>
+        <span>{{ t.label }}</span>
+      </button>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="apd-panel">
+
+      <!-- IDENTITY -->
+      <section *ngIf="activeTab === 'identity'">
+        <div class="panel-title">Identity</div>
+
+        <div class="field-grid">
+          <div class="field readonly">
+            <label>First name</label>
+            <div class="value">{{ profile.user_name.split(' ')[0] }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Last name</label>
+            <div class="value">{{ profile.user_name.split(' ').slice(1).join(' ') || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Email</label>
+            <div class="value">{{ profile.user_email }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Agent number</label>
+            <div class="value mono">{{ profile.agent_number }}</div>
+          </div>
+        </div>
+
+        <div class="readonly-note">
+          <mat-icon>info</mat-icon>
+          Name and email come from the User record — edit in the Users admin.
+        </div>
+
+        <div class="field-grid mt-4">
+          <div class="field">
+            <label>SSN / ITIN (last 4)</label>
+            <input type="text" maxlength="4" [(ngModel)]="editable.ssn_or_itin_last4" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Tax classification</label>
+            <select [(ngModel)]="editable.tax_classification" (ngModelChange)="markDirty()">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let t of taxClassifications" [ngValue]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>W-9 signed on</label>
+            <input type="date" [(ngModel)]="editable.w9_signed_at" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Employment start</label>
+            <input type="date" [(ngModel)]="editable.employment_start_date" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Employment end</label>
+            <input type="date" [(ngModel)]="editable.employment_end_date" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Commission tier override (%)</label>
+            <input type="number" step="0.01" min="0" max="100" [(ngModel)]="editable.commission_tier_override" (ngModelChange)="markDirty()" />
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section *ngIf="activeTab === 'contact'">
+        <div class="panel-title">Emergency contact &amp; beneficiary</div>
+        <div class="readonly-note">
+          <mat-icon>info</mat-icon>
+          Address and phone are on the User record — edit in the Users admin.
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label>Emergency contact name</label>
+            <input type="text" [(ngModel)]="editable.emergency_contact_name" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Emergency contact phone</label>
+            <input type="text" [(ngModel)]="editable.emergency_contact_phone" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Beneficiary name</label>
+            <input type="text" [(ngModel)]="editable.beneficiary_name" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Beneficiary relationship</label>
+            <input type="text" [(ngModel)]="editable.beneficiary_relationship" (ngModelChange)="markDirty()" />
+          </div>
+        </div>
+      </section>
+
+      <!-- ROLE & HIERARCHY (read-only) -->
+      <section *ngIf="activeTab === 'role'">
+        <div class="panel-title">Role &amp; hierarchy</div>
+        <div class="readonly-note">
+          <mat-icon>info</mat-icon>
+          Role, manager, and hierarchy live on the User record — edit in the Users admin.
+        </div>
+        <div class="field-grid">
+          <div class="field readonly">
+            <label>Role</label>
+            <div class="value">
+              <span class="role-chip" [class]="roleToneClass()">{{ profile.user_role }}</span>
+            </div>
+          </div>
+          <div class="field readonly">
+            <label>Active</label>
+            <div class="value">{{ profile.is_active ? 'Yes' : 'No' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Agent number</label>
+            <div class="value mono">{{ profile.agent_number }}</div>
+          </div>
+          <div class="field readonly">
+            <label>User ID</label>
+            <div class="value mono">{{ profile.user_id }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LICENSES -->
+      <section *ngIf="activeTab === 'licenses'">
+        <div class="panel-title-row">
+          <div class="panel-title">Licenses</div>
+          <button mat-flat-button class="add-btn" (click)="openNewLicenseForm()" *ngIf="!showLicenseForm">
+            <mat-icon>add</mat-icon><span>Add License</span>
+          </button>
+        </div>
+
+        <div class="lic-form" *ngIf="showLicenseForm">
+          <div class="field-grid">
+            <div class="field">
+              <label>State (2-char)</label>
+              <input type="text" maxlength="2" [(ngModel)]="licenseForm.state" />
+            </div>
+            <div class="field">
+              <label>Type</label>
+              <select [(ngModel)]="licenseForm.license_type">
+                <option *ngFor="let t of licenseTypes" [ngValue]="t">{{ t }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>License number</label>
+              <input type="text" [(ngModel)]="licenseForm.license_number" />
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select [(ngModel)]="licenseForm.status">
+                <option *ngFor="let s of licenseStatuses" [ngValue]="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Issued on</label>
+              <input type="date" [(ngModel)]="licenseForm.issued_on" />
+            </div>
+            <div class="field">
+              <label>Expires on</label>
+              <input type="date" [(ngModel)]="licenseForm.expires_on" />
+            </div>
+            <div class="field field-wide">
+              <label>Notes</label>
+              <input type="text" [(ngModel)]="licenseForm.notes" />
+            </div>
+          </div>
+          <div class="lic-form-actions">
+            <button mat-stroked-button (click)="cancelLicenseForm()">Cancel</button>
+            <button mat-flat-button class="primary-cta"
+                    [disabled]="!licenseForm.state || !licenseForm.license_type || !licenseForm.license_number"
+                    (click)="submitLicense()">
+              {{ editingLicenseId ? 'Update' : 'Add' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap" *ngIf="licenses$ | async as licenses">
+          <table class="lic-table">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Type</th>
+                <th>Number</th>
+                <th>Issued</th>
+                <th>Expires</th>
+                <th>Status</th>
+                <th class="lic-col-actions"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let lic of licenses">
+                <td class="lic-state">{{ lic.state }}</td>
+                <td>{{ lic.license_type }}</td>
+                <td class="mono">{{ lic.license_number }}</td>
+                <td>{{ lic.issued_on || '—' }}</td>
+                <td>{{ lic.expires_on || '—' }}</td>
+                <td><span class="lic-status" [class]="licenseStatusTone(lic.status)">{{ lic.status }}</span></td>
+                <td class="lic-actions">
+                  <button mat-icon-button matTooltip="Edit" (click)="editLicense(lic)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Remove" (click)="deleteLicense(lic)"><mat-icon>delete</mat-icon></button>
+                </td>
+              </tr>
+              <tr *ngIf="licenses.length === 0">
+                <td colspan="7" class="table-empty">No licenses on file.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- BANKING -->
+      <section *ngIf="activeTab === 'banking'">
+        <div class="panel-title">Banking</div>
+
+        <div class="readonly-note warn">
+          <mat-icon>lock</mat-icon>
+          Banking details managed separately — full edit flow pending encryption implementation.
+        </div>
+
+        <div *ngIf="!banking && bankingLoaded" class="empty">No banking on file.</div>
+
+        <div class="field-grid" *ngIf="banking">
+          <div class="field readonly">
+            <label>Payout method</label>
+            <div class="value">{{ banking.payout_method || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Bank</label>
+            <div class="value">{{ banking.bank_name || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Account holder</label>
+            <div class="value">{{ banking.account_holder_name || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Account # (last 4)</label>
+            <div class="value mono">•••• {{ banking.account_number_last4 || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>Routing # (last 4)</label>
+            <div class="value mono">•••• {{ banking.routing_number_last4 || '—' }}</div>
+          </div>
+          <div class="field readonly">
+            <label>ACH auth signed</label>
+            <div class="value">{{ banking.ach_authorization_signed_at || '—' }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPLIANCE -->
+      <section *ngIf="activeTab === 'compliance'">
+        <div class="panel-title">Compliance</div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label>Background check status</label>
+            <select [(ngModel)]="editable.background_check_status" (ngModelChange)="markDirty()">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let s of bgStatuses" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Background check completed</label>
+            <input type="date" [(ngModel)]="editable.background_check_completed_at" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Drug test passed</label>
+            <input type="date" [(ngModel)]="editable.drug_test_passed_at" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field">
+            <label>Non-compete signed</label>
+            <input type="date" [(ngModel)]="editable.non_compete_signed_at" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field field-wide">
+            <label>Termination reason</label>
+            <input type="text" [(ngModel)]="editable.termination_reason" (ngModelChange)="markDirty()" />
+          </div>
+          <div class="field field-wide">
+            <label>Notes</label>
+            <textarea rows="3" [(ngModel)]="editable.notes" (ngModelChange)="markDirty()"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENTS -->
+      <section *ngIf="activeTab === 'documents'">
+        <div class="panel-title-row">
+          <div class="panel-title">Documents</div>
+          <button mat-flat-button class="add-btn" (click)="uploadComingSoon()">
+            <mat-icon>upload</mat-icon><span>Upload</span>
+          </button>
+        </div>
+
+        <div class="readonly-note">
+          <mat-icon>info</mat-icon>
+          Upload wiring pending a file-service audit. Listing below reflects current docs on file.
+        </div>
+
+        <div class="table-wrap" *ngIf="documentsLoaded">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>State / Label</th>
+                <th>Expires</th>
+                <th>Type</th>
+                <th class="num">Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of documents">
+                <td>{{ d.name || '—' }}</td>
+                <td>{{ d.state }}</td>
+                <td>{{ d.expiration_date || '—' }}</td>
+                <td>{{ d.type || '—' }}</td>
+                <td class="num">{{ d.size ? (d.size + ' B') : '—' }}</td>
+              </tr>
+              <tr *ngIf="documents.length === 0">
+                <td colspan="5" class="table-empty">No documents uploaded.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Sticky save footer — only visible on editable tabs with unsaved changes -->
+    <div class="apd-save-bar"
+         *ngIf="dirty && (activeTab === 'identity' || activeTab === 'contact' || activeTab === 'compliance')">
+      <div class="apd-save-msg">Unsaved changes</div>
+      <button mat-stroked-button (click)="resetEditable()" [disabled]="saving">Discard</button>
+      <button mat-flat-button class="primary-cta" (click)="saveProfile()" [disabled]="saving">
+        <mat-icon *ngIf="saving">sync</mat-icon>
+        <span>{{ saving ? 'Saving…' : 'Save' }}</span>
+      </button>
+    </div>
+
+  </ng-container>
+</div>

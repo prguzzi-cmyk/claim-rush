@@ -1,0 +1,54 @@
+<div class="agents-shell">
+
+  <div class="agents-head">
+    <div>
+      <h1 class="agents-title">Agents</h1>
+      <div class="agents-sub">Licensed agents · RVPs · Community Partners · Admins</div>
+    </div>
+  </div>
+
+  <div class="panel table-panel" *ngIf="agents$ | async as agents">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Agent Directory</div>
+        <div class="panel-sub">{{ agents.length }} active profile<ng-container *ngIf="agents.length !== 1">s</ng-container></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="agents-table">
+        <thead>
+          <tr>
+            <th class="ag-col-number">Agent #</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Email</th>
+            <th>Tax Class</th>
+            <th>Start Date</th>
+            <th class="ag-col-status">Status</th>
+            <th class="ag-col-arrow"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of agents" (click)="openAgent(a)" class="ag-row">
+            <td class="ag-number">{{ a.agent_number }}</td>
+            <td class="ag-name">{{ a.user_name }}</td>
+            <td><span class="role-chip" [class]="roleToneClass(a.user_role)">{{ a.user_role }}</span></td>
+            <td class="ag-email">{{ a.user_email }}</td>
+            <td>{{ a.tax_classification || '—' }}</td>
+            <td>{{ a.employment_start_date || '—' }}</td>
+            <td class="ag-status">
+              <span class="status-dot" [class.active]="a.is_active"></span>
+              {{ a.is_active ? 'Active' : 'Inactive' }}
+            </td>
+            <td class="ag-arrow"><mat-icon>chevron_right</mat-icon></td>
+          </tr>
+          <tr *ngIf="agents.length === 0">
+            <td colspan="8" class="table-empty">No agents on record.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

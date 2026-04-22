@@ -7,6 +7,8 @@ import { DevAutoLoginGuard } from "./guards/dev-auto-login.guard";
 import { ApplicationComponent } from "./components/application.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
 import { UsersComponent } from "./components/sections/users/users.component";
+import { AgentsListComponent } from "./components/sections/agents-list/agents-list.component";
+import { AgentProfileDetailComponent } from "./components/sections/agent-profile-detail/agent-profile-detail.component";
 import { RegistrationComponent } from "./components/sections/users/registration/registration.component";
 import { RolesComponent } from "./components/sections/roles/roles.component";
 import { ProfileComponent } from "./components/sections/profile/profile.component";
@@ -408,6 +410,19 @@ const routes: Routes = [
           {
             path: "users",
             component: UsersComponent,
+          },
+
+          // Agents list — filtered to AGENT/RVP/CP/ADMIN roles only.
+          {
+            path: "agents",
+            component: AgentsListComponent,
+          },
+
+          // Shared agent profile detail — both the all-users list and the
+          // filtered agents list navigate here.
+          {
+            path: "users/:id",
+            component: AgentProfileDetailComponent,
           },
 
           {

@@ -18,7 +18,10 @@ from app.api.deps.app import get_db_session
 from app.api.deps.dev_bypass import commission_auth
 from app.schemas.agent import (
     AgentBankingDTO,
+    AgentDocumentDTO,
+    AgentLicenseCreateRequest,
     AgentLicenseDTO,
+    AgentLicenseUpdateRequest,
     AgentProfileCreateRequest,
     AgentProfileDTO,
     AgentProfileUpdateRequest,
@@ -129,14 +132,96 @@ def list_agent_licenses(
     return agent_service.list_licenses(db_session, profile["user_id"])
 
 
+@router.post(
+    "/{profile_id}/licenses",
+    response_model=AgentLicenseDTO,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_agent_license(
+    profile_id: UUID,
+    payload: AgentLicenseCreateRequest,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Add a license row for an agent. Unique per (user, state, type, number)."""
+    profile = agent_service.get_profile_by_id(db_session, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
+    try:
+        return agent_service.create_license(
+            db_session,
+            user_id=profile["user_id"],
+            **payload.model_dump(exclude_unset=True),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@router.patch("/{profile_id}/licenses/{license_id}", response_model=AgentLicenseDTO)
+def update_agent_license(
+    profile_id: UUID,
+    license_id: UUID,
+    payload: AgentLicenseUpdateRequest,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Partial update to a license row."""
+    # profile_id is used to validate the license belongs to this agent
+    profile = agent_service.get_profile_by_id(db_session, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
+    updates = payload.model_dump(exclude_unset=True)
+    lic = agent_service.update_license(db_session, license_id, **updates)
+    if not lic:
+        raise HTTPException(status_code=404, detail=f"License {license_id} not found")
+    return lic
+
+
+@router.delete(
+    "/{profile_id}/licenses/{license_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_agent_license(
+    profile_id: UUID,
+    license_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Remove a license row."""
+    profile = agent_service.get_profile_by_id(db_session, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
+    ok = agent_service.delete_license(db_session, license_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"License {license_id} not found")
+    return None
+
+
 @router.get("/{profile_id}/banking", response_model=AgentBankingDTO | None)
 def get_agent_banking(
     profile_id: UUID,
     db_session: Annotated[Session, Depends(get_db_session)],
     _auth=Depends(commission_auth),
 ):
-    """Get banking (display-safe) for an agent, or null if none on file."""
+    """Get banking (display-safe) for an agent, or null if none on file.
+
+    Write path deferred until encryption infrastructure for full account +
+    routing numbers is wired. See agent_banking model docstring.
+    """
     profile = agent_service.get_profile_by_id(db_session, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
     return agent_service.get_banking(db_session, profile["user_id"])
+
+
+@router.get("/{profile_id}/documents", response_model=list[AgentDocumentDTO])
+def list_agent_documents(
+    profile_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """List uploaded personal documents (W-9, license scans, etc.)."""
+    profile = agent_service.get_profile_by_id(db_session, profile_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
+    return agent_service.list_documents(db_session, profile["user_id"])
