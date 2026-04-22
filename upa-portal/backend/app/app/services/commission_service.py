@@ -23,6 +23,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import (
+    AgentProfile,
     CommissionAdvance,
     CommissionClaim,
     CommissionLedger,
@@ -84,6 +85,7 @@ def _txn_type_label(t: str) -> str:
         "INTEREST_APPLIED": "Interest Applied",
         "REPAYMENT_OFFSET": "Repayment Offset",
         "ADJUSTMENT": "Adjustment",
+        "ADJUSTER_COMPENSATION": "Adjuster Compensation",
     }.get(t, t)
 
 
@@ -661,6 +663,73 @@ class CommissionService:
         db.commit()
         db.refresh(adv)
         return adv
+
+    def issue_adjuster_compensation(
+        self,
+        db: Session,
+        *,
+        user_id: UUID,
+        claim_id: UUID,
+        amount: Decimal | None = None,
+        notes: str | None = None,
+        ts: datetime | None = None,
+    ) -> CommissionLedger:
+        """Emit an ADJUSTER_COMPENSATION row that deducts from the HOUSE
+        bucket. If `amount` is omitted, computed as
+        profile.adjuster_comp_percent × claim.house_share on the supplied
+        claim. P&L math: two rows are written — a negative HOUSE row (so the
+        firm's take drops by the adjuster's cut) and a positive WRITING_AGENT
+        row on the adjuster's user_id (so they can see it in their earnings
+        view the same way other recipients do).
+        """
+        claim = db.get(CommissionClaim, claim_id)
+        if claim is None:
+            raise ValueError(f"Claim {claim_id} not found")
+
+        profile = db.execute(
+            select(AgentProfile).where(AgentProfile.user_id == user_id)
+        ).scalar_one_or_none()
+
+        if amount is None:
+            if profile is None or profile.adjuster_comp_percent is None:
+                raise ValueError(
+                    "amount not provided and adjuster profile has no "
+                    "adjuster_comp_percent configured"
+                )
+            if claim.gross_fee is None or claim.gross_fee <= 0:
+                raise ValueError("Cannot auto-compute: claim has no gross_fee")
+            house_share = claim.gross_fee * MASTER_HOUSE_PCT / Decimal("100")
+            amount = house_share * profile.adjuster_comp_percent / Decimal("100")
+
+        amount = abs(amount)
+        when = ts or datetime.now(timezone.utc)
+        memo = notes or f"Adjuster compensation — {claim.claim_number}"
+
+        # Negative HOUSE row: firm's take drops.
+        house_row = CommissionLedger(
+            user_id=None,
+            claim_id=claim.id,
+            bucket="HOUSE",
+            txn_type="ADJUSTER_COMPENSATION",
+            amount=-amount,
+            ts=when,
+            notes=memo,
+        )
+        # Positive recipient row: adjuster sees earnings.
+        agent_row = CommissionLedger(
+            user_id=user_id,
+            claim_id=claim.id,
+            bucket="WRITING_AGENT",
+            txn_type="ADJUSTER_COMPENSATION",
+            amount=amount,
+            ts=when,
+            notes=memo,
+        )
+        db.add(house_row)
+        db.add(agent_row)
+        db.commit()
+        db.refresh(agent_row)
+        return agent_row
 
     # ─── Internals ──────────────────────────────────────────────────────
 

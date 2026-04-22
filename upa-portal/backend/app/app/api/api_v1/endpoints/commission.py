@@ -34,6 +34,7 @@ from app.schemas.commission import (
     CreatePayoutRequest,
     EarningsTrendDTO,
     FinancialDetailDTO,
+    IssueAdjusterCompensationRequest,
     NextExpectedPayoutDTO,
     PayoutDTO,
     RecentActivityItemDTO,
@@ -242,6 +243,37 @@ def create_advance(
         "repaid_amount": float(a.repaid_amount),
         "notes": a.notes,
         "claim_id": str(a.claim_id) if a.claim_id else None,
+    }
+
+
+@router.post("/adjuster-comp", status_code=status.HTTP_201_CREATED)
+def issue_adjuster_compensation(
+    payload: IssueAdjusterCompensationRequest,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Manually emit an ADJUSTER_COMPENSATION ledger pair for a claim.
+    If `amount` is omitted, it's computed as profile.adjuster_comp_percent
+    × the claim's HOUSE share."""
+    try:
+        row = commission_service.issue_adjuster_compensation(
+            db_session,
+            user_id=payload.user_id,
+            claim_id=payload.claim_id,
+            amount=payload.amount,
+            notes=payload.notes,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "id": str(row.id),
+        "user_id": str(row.user_id),
+        "claim_id": str(row.claim_id) if row.claim_id else None,
+        "bucket": row.bucket,
+        "txn_type": row.txn_type,
+        "amount": float(row.amount),
+        "ts": row.ts,
+        "notes": row.notes,
     }
 
 

@@ -25,6 +25,7 @@ TxnType = Literal[
     "INTEREST_APPLIED",
     "REPAYMENT_OFFSET",
     "ADJUSTMENT",
+    "ADJUSTER_COMPENSATION",
 ]
 OrgRole = Literal["AGENT", "RVP", "CP", "ADMIN"]
 StatementPeriodType = Literal["week", "month", "year", "custom"]
@@ -254,6 +255,16 @@ class CreateAdvanceRequest(BaseModel):
     issued_at: datetime | None = None
     notes: str | None = None
     claim_id: UUID | None = None
+
+
+class IssueAdjusterCompensationRequest(BaseModel):
+    """Manual trigger to emit ADJUSTER_COMPENSATION against a claim.
+    If `amount` is omitted, it's computed as
+    profile.adjuster_comp_percent × claim.house_share."""
+    user_id: UUID
+    claim_id: UUID
+    amount: Decimal | None = None
+    notes: str | None = None
 
 
 # ─── Summary response wrappers ──────────────────────────────────────────────

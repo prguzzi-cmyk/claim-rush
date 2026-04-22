@@ -16,6 +16,9 @@ TaxClassification = Literal["1099", "W2", "S_CORP", "LLC"]
 BackgroundCheckStatus = Literal["PENDING", "PASSED", "FAILED", "EXEMPT"]
 LicenseStatus = Literal["ACTIVE", "LAPSED", "REVOKED", "SUSPENDED", "PENDING_RENEWAL"]
 PayoutMethod = Literal["ACH", "CHECK", "WIRE", "NONE"]
+AdjusterCompType = Literal[
+    "SALARIED", "HOURLY", "COMMISSION", "SALARY_PLUS_BONUS", "HYBRID"
+]
 
 
 # ─── AgentProfile ───────────────────────────────────────────────────────────
@@ -44,6 +47,14 @@ class AgentProfileBase(BaseModel):
     beneficiary_relationship: str | None = None
 
     commission_tier_override: Decimal | None = Field(None, ge=0, le=100)
+
+    # Adjuster compensation — only meaningful when user.role == 'ADJUSTER'.
+    # Percent is % of house_share on each paid claim; app-layer validated 1–25.
+    adjuster_comp_type: AdjusterCompType | None = None
+    adjuster_comp_percent: Decimal | None = Field(None, ge=1, le=25)
+    adjuster_annual_salary: Decimal | None = Field(None, ge=0)
+    adjuster_hourly_rate: Decimal | None = Field(None, ge=0)
+    adjuster_comp_effective_date: date | None = None
 
     notes: str | None = None
 

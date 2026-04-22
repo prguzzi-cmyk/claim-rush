@@ -91,6 +91,22 @@ class AgentProfile(TimestampMixin, AuditMixin, Base):
         Numeric(4, 2), nullable=True
     )
 
+    # ── Adjuster compensation ────────────────────────────────────────
+    # Only meaningful when user.role == 'ADJUSTER'. Nullable on all other roles.
+    # 'SALARIED' | 'HOURLY' | 'COMMISSION' | 'SALARY_PLUS_BONUS' | 'HYBRID'
+    adjuster_comp_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    # 1.00–25.00 (% of house_share on each paid claim). App-layer validated.
+    adjuster_comp_percent: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2), nullable=True
+    )
+    adjuster_annual_salary: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    adjuster_hourly_rate: Mapped[Decimal | None] = mapped_column(
+        Numeric(8, 2), nullable=True
+    )
+    adjuster_comp_effective_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # ── Relationships ────────────────────────────────────────────────
