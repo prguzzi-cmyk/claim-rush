@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, status as http_status
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status as http_status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -38,8 +38,10 @@ from app.api.deps.dev_bypass import commission_auth
 from app.core.security import get_password_hash
 from app.models.agent_profile import AgentProfile
 from app.models.agreement import Agreement
+from app.models.agreement_template import AgreementTemplate
 from app.models.role import Role
 from app.models.user import User
+from app.utils.s3 import S3
 
 
 router = APIRouter()
@@ -122,11 +124,20 @@ def _create_charter_agreement(
 ) -> Agreement:
     """Create a charter agreement in 'sent' state, agent_id = the new
     user, title prefixed for charter detection in agreement_service.
-    The actual template body / PDF lookup is wired in R2 — for R1 the
-    agreement is a thin shell with the role-prefixed title."""
+
+    R2: looks up the role's active AgreementTemplate. If a PDF has been
+    uploaded for that template (template.pdf_url set), the agreement's
+    original_pdf_url points at it; otherwise the signer renders the
+    template.body (placeholder text with the DRAFT banner)."""
     title_prefix = _TEMPLATE_TITLE_PREFIX[role]
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     title = f"{title_prefix} — {full_name} ({today})"
+
+    template = db.execute(
+        select(AgreementTemplate)
+        .where(AgreementTemplate.role == role)
+        .where(AgreementTemplate.is_active.is_(True))
+    ).scalar_one_or_none()
 
     agr = Agreement(
         agent_id=user.id,
@@ -137,6 +148,7 @@ def _create_charter_agreement(
         status="sent",
         signing_mode="standard",
         sent_at=datetime.now(timezone.utc),
+        original_pdf_url=template.pdf_url if template else None,
     )
     db.add(agr)
     db.flush()
@@ -323,3 +335,95 @@ def mark_w9_received(
     db_session.add(user)
     db_session.commit()
     return {"user_id": str(user.id), "status": user.status}
+
+
+# ─── Templates (R2) ───────────────────────────────────────────────────────
+
+
+class TemplateRowDTO(BaseModel):
+    id: str
+    role: str
+    name: str
+    body: str
+    pdf_url: str | None = None
+    is_active: bool
+
+
+@router.get("/templates", response_model=list[TemplateRowDTO])
+def list_templates(
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """All charter templates (active + inactive). The invite endpoint
+    only reads is_active=True rows."""
+    rows = db_session.execute(
+        select(AgreementTemplate).order_by(AgreementTemplate.role, AgreementTemplate.created_at.desc())
+    ).scalars().all()
+    return [
+        TemplateRowDTO(
+            id=str(t.id),
+            role=t.role,
+            name=t.name,
+            body=t.body,
+            pdf_url=t.pdf_url,
+            is_active=t.is_active,
+        )
+        for t in rows
+    ]
+
+
+@router.post("/templates/{template_id}/upload-pdf", response_model=TemplateRowDTO)
+async def upload_template_pdf(
+    template_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+    file: UploadFile = File(...),
+):
+    """Upload a real charter PDF to replace the seeded placeholder body.
+    Existing active template for the same role is deactivated; the
+    uploaded one becomes the new active template (so future invites pick
+    it up). Body text is preserved on the previous row for audit."""
+    template = db_session.get(AgreementTemplate, template_id)
+    if template is None:
+        raise HTTPException(status_code=404, detail=f"Template {template_id} not found")
+
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+
+    # Storage key: agreement-templates/{role}/{template_id}/{filename}.
+    # Uses the existing UPASign S3 helper — falls back to local FS at
+    # /app/media/ if S3 credentials aren't configured.
+    from io import BytesIO
+    file_key = f"agreement-templates/{template.role}/{template.id}/{file.filename}"
+    contents = await file.read()
+    S3.upload_file_obj(BytesIO(contents), file_key, content_type="application/pdf")
+    pdf_url = file_key  # callers resolve to full S3 URL via settings.S3_BUCKET_NAME
+
+    # Deactivate any other active template for this role, then mark this
+    # one active with the new PDF URL.
+    db_session.execute(
+        select(AgreementTemplate)
+        .where(AgreementTemplate.role == template.role)
+        .where(AgreementTemplate.is_active.is_(True))
+        .where(AgreementTemplate.id != template.id)
+    ).scalars().all()  # warm-fetch for cascade
+    db_session.execute(
+        AgreementTemplate.__table__.update()
+        .where(AgreementTemplate.role == template.role)
+        .where(AgreementTemplate.id != template.id)
+        .values(is_active=False)
+    )
+    template.pdf_url = pdf_url
+    template.is_active = True
+    db_session.add(template)
+    db_session.commit()
+    db_session.refresh(template)
+
+    return TemplateRowDTO(
+        id=str(template.id),
+        role=template.role,
+        name=template.name,
+        body=template.body,
+        pdf_url=template.pdf_url,
+        is_active=template.is_active,
+    )

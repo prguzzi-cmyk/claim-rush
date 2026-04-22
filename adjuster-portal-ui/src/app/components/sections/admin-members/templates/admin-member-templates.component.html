@@ -1,0 +1,58 @@
+<div class="tmpl-shell">
+
+  <div class="tmpl-head">
+    <div>
+      <a routerLink="/app/admin/members" class="tmpl-back">← Members</a>
+      <h1 class="tmpl-title">Charter Templates</h1>
+      <div class="tmpl-sub">One active template per role · upload a real PDF to replace the seeded placeholder</div>
+    </div>
+  </div>
+
+  <div class="tmpl-warning">
+    <mat-icon>warning</mat-icon>
+    <div>
+      Templates ship with a placeholder body labelled
+      <strong>"DRAFT TEMPLATE — REPLACE BEFORE SENDING TO REAL SIGNERS."</strong>
+      Upload your final, legally-reviewed charter PDF for each role
+      before inviting real Community Partners, RVPs, or Agents.
+    </div>
+  </div>
+
+  <div class="tmpl-grid" *ngIf="templates$ | async as templates">
+    <div class="tmpl-card" *ngFor="let t of templates">
+      <div class="card-head">
+        <span class="role-pill" [attr.data-role]="t.role.toUpperCase()">{{ t.role.toUpperCase() }}</span>
+        <span class="active-pill" *ngIf="t.is_active">ACTIVE</span>
+      </div>
+
+      <div class="card-name">{{ t.name }}</div>
+
+      <div class="card-state">
+        <ng-container *ngIf="t.pdf_url; else noPdf">
+          <mat-icon class="ok">picture_as_pdf</mat-icon>
+          <span class="state-ok">Real PDF uploaded</span>
+          <div class="card-pdf-key">{{ t.pdf_url }}</div>
+        </ng-container>
+        <ng-template #noPdf>
+          <mat-icon class="warn">edit_note</mat-icon>
+          <span class="state-warn" *ngIf="isDraftBody(t)">DRAFT placeholder body in use</span>
+          <span class="state-info" *ngIf="!isDraftBody(t)">Custom body text in use</span>
+        </ng-template>
+      </div>
+
+      <pre class="card-body">{{ t.body }}</pre>
+
+      <div class="card-actions">
+        <label class="upload-btn" [class.disabled]="isUploading(t)">
+          <mat-icon *ngIf="!isUploading(t)">upload_file</mat-icon>
+          <mat-icon *ngIf="isUploading(t)" class="spin">sync</mat-icon>
+          <span>{{ isUploading(t) ? 'Uploading…' : 'Upload PDF' }}</span>
+          <input type="file" accept="application/pdf"
+                 [disabled]="isUploading(t)"
+                 (change)="onFileSelected(t, $event)" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+</div>

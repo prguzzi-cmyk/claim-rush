@@ -41,6 +41,7 @@ import { ClaimsComponent } from "./components/sections/claims/claims/claims.comp
 import { AgentDashboardComponent } from "./components/sections/agent-dashboard/agent-dashboard.component";
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { AdminMembersComponent } from "./components/sections/admin-members/admin-members.component";
+import { AdminMemberTemplatesComponent } from "./components/sections/admin-members/templates/admin-member-templates.component";
 import { SidebarComponent } from "./components/layout/sidebar/sidebar.component";
 import { NewslettersComponent } from "./components/sections/newsletters/newsletters.component";
 import { AnnouncementsComponent } from "./components/sections/announcements/announcements.component";
@@ -228,6 +229,10 @@ const routes: Routes = [
       {
         path: "admin/members",
         component: AdminMembersComponent,
+      },
+      {
+        path: "admin/members/templates",
+        component: AdminMemberTemplatesComponent,
       },
       {
         path: "customer-dashboard",

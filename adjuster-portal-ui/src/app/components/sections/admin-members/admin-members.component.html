@@ -5,10 +5,16 @@
       <h1 class="am-title">Members</h1>
       <div class="am-sub">Existing-member onboarding · charter sign · W-9 capture</div>
     </div>
-    <button mat-flat-button class="am-invite-btn" (click)="openInvite()">
-      <mat-icon>person_add</mat-icon>
-      <span>Invite Member</span>
-    </button>
+    <div class="am-head-actions">
+      <a mat-stroked-button routerLink="/app/admin/members/templates" class="am-templates-btn">
+        <mat-icon>description</mat-icon>
+        <span>Templates</span>
+      </a>
+      <button mat-flat-button class="am-invite-btn" (click)="openInvite()">
+        <mat-icon>person_add</mat-icon>
+        <span>Invite Member</span>
+      </button>
+    </div>
   </div>
 
   <ng-container *ngIf="members$ | async as members">

@@ -18,6 +18,17 @@
 .am-sub {
   margin-top: 4px; font-size: 13px; color: rgba(255, 255, 255, 0.55);
 }
+.am-head-actions { display: flex; align-items: center; gap: 10px; }
+
+.am-templates-btn {
+  color: #7dd3fc !important;
+  border-color: rgba(0, 194, 255, 0.35) !important;
+  background: rgba(0, 194, 255, 0.05) !important;
+  border-radius: 999px !important;
+  padding: 0 18px !important;
+  mat-icon { margin-right: 4px; color: #7dd3fc; font-size: 18px; width: 18px; height: 18px; }
+}
+
 .am-invite-btn {
   background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
   color: #041e2a !important;

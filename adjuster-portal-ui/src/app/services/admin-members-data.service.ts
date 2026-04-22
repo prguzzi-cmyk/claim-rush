@@ -63,4 +63,28 @@ export class AdminMembersDataService {
       `${this.base}/${userId}/mark-w9-received`, {},
     );
   }
+
+  // ─── Templates (R2) ──────────────────────────────────────────────────
+
+  listTemplates$(): Observable<TemplateRowDTO[]> {
+    return this.http.get<TemplateRowDTO[]>(`${this.base}/templates`);
+  }
+
+  uploadTemplatePdf$(templateId: string, file: File): Observable<TemplateRowDTO> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<TemplateRowDTO>(
+      `${this.base}/templates/${templateId}/upload-pdf`,
+      fd,
+    );
+  }
+}
+
+export interface TemplateRowDTO {
+  id: string;
+  role: 'cp' | 'rvp' | 'agent';
+  name: string;
+  body: string;
+  pdf_url: string | null;
+  is_active: boolean;
 }
