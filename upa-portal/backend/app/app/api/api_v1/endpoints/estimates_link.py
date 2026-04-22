@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps.app import get_db_session
 from app.api.deps.dev_bypass import commission_auth
+from app.crud.crud_estimate_project import _sync_firm_estimate_to_claim
 from app.models.carrier_estimate import CarrierEstimate
 from app.models.commission_claim import CommissionClaim
 from app.models.estimate_project import EstimateProject
@@ -67,6 +68,12 @@ def attach_project_to_claim(
 
     project.commission_claim_id = commission_claim_id
     db_session.add(project)
+    # Attaching a project to a claim triggers the firm-estimate sync (I2).
+    # Detach (commission_claim_id=None) is a no-op for sync — we don't
+    # touch the previously-linked claim's estimate_amount on detach,
+    # because it might have been authored by a separate firm estimate
+    # since then. Operator can issue a manual update if needed.
+    _sync_firm_estimate_to_claim(db_session, project)
     db_session.commit()
     db_session.refresh(project)
 
