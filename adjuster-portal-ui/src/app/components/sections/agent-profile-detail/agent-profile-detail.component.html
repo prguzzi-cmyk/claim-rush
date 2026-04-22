@@ -110,9 +110,44 @@
             <label>Employment end</label>
             <input type="date" [(ngModel)]="editable.employment_end_date" (ngModelChange)="markDirty()" />
           </div>
-          <div class="field">
-            <label>Commission tier override (%)</label>
+          <div class="field field-wide">
+            <label>Commission override (%)</label>
             <input type="number" step="0.01" min="0" max="100" [(ngModel)]="editable.commission_tier_override" (ngModelChange)="markDirty()" />
+            <div class="field-help">
+              Leave blank to use role default. Default for AGENT role is 70% of field.
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger zone -->
+        <div class="danger-zone">
+          <div class="dz-head">
+            <mat-icon>warning</mat-icon>
+            <div>
+              <div class="dz-title">Danger zone</div>
+              <div class="dz-sub">Permanently delete this agent profile. The underlying User record is kept.</div>
+            </div>
+            <button mat-stroked-button class="dz-btn" *ngIf="!showDeleteConfirm" (click)="openDeleteConfirm()">
+              <mat-icon>delete_forever</mat-icon><span>Delete Agent</span>
+            </button>
+          </div>
+
+          <div class="dz-confirm" *ngIf="showDeleteConfirm">
+            <div class="dz-confirm-title">Confirm deletion</div>
+            <div class="dz-confirm-text">
+              Type <code>{{ profile.agent_number }}</code> to permanently delete this agent profile.
+              Ledger history referring to this user is preserved.
+            </div>
+            <input type="text" class="dz-input" [(ngModel)]="deleteConfirmInput" placeholder="{{ profile.agent_number }}" />
+            <div class="dz-actions">
+              <button mat-stroked-button (click)="cancelDelete()" [disabled]="deleting">Cancel</button>
+              <button mat-flat-button class="dz-confirm-btn"
+                      [disabled]="!canConfirmDelete() || deleting"
+                      (click)="confirmDelete()">
+                <mat-icon *ngIf="deleting">sync</mat-icon>
+                <span>{{ deleting ? 'Deleting…' : 'Delete permanently' }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -170,6 +205,58 @@
           <div class="field readonly">
             <label>User ID</label>
             <div class="value mono">{{ profile.user_id }}</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPENSATION (ADJUSTER only) -->
+      <section *ngIf="activeTab === 'compensation'">
+        <div class="panel-title">Adjuster compensation</div>
+        <div class="readonly-note">
+          <mat-icon>info</mat-icon>
+          Only visible for ADJUSTER-role users. Percent is taken out of the HOUSE share on each paid claim.
+        </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <label>Compensation type</label>
+            <select [(ngModel)]="editable.adjuster_comp_type" (ngModelChange)="markDirty()">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let t of compTypes" [ngValue]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Effective date</label>
+            <input type="date" [(ngModel)]="editable.adjuster_comp_effective_date" (ngModelChange)="markDirty()" />
+          </div>
+
+          <!-- Salary fields -->
+          <div class="field" *ngIf="showSalaryFields()">
+            <label>Annual salary ($)</label>
+            <input type="number" step="0.01" min="0"
+                   [(ngModel)]="editable.adjuster_annual_salary" (ngModelChange)="markDirty()" />
+          </div>
+
+          <!-- Hourly fields -->
+          <div class="field" *ngIf="showHourlyFields()">
+            <label>Hourly rate ($/hr)</label>
+            <input type="number" step="0.01" min="0"
+                   [(ngModel)]="editable.adjuster_hourly_rate" (ngModelChange)="markDirty()" />
+          </div>
+
+          <!-- Percent (commission) fields -->
+          <div class="field field-wide" *ngIf="showPercentFields()">
+            <label>Commission % (of HOUSE on each paid claim)</label>
+            <input type="number" step="0.01" min="1" max="25"
+                   [(ngModel)]="editable.adjuster_comp_percent" (ngModelChange)="markDirty()" />
+            <div class="preset-row">
+              <span class="preset-label">Presets:</span>
+              <button type="button" class="preset-chip"
+                      *ngFor="let p of compPercentPresets"
+                      [class.active]="editable.adjuster_comp_percent === p"
+                      (click)="setPercentPreset(p)">{{ p }}%</button>
+            </div>
+            <div class="field-help">Accepts 1.00–25.00.</div>
           </div>
         </div>
       </section>
@@ -381,9 +468,9 @@
 
     <!-- Sticky save footer — only visible on editable tabs with unsaved changes -->
     <div class="apd-save-bar"
-         *ngIf="dirty && (activeTab === 'identity' || activeTab === 'contact' || activeTab === 'compliance')">
+         *ngIf="dirty && (activeTab === 'identity' || activeTab === 'contact' || activeTab === 'compliance' || activeTab === 'compensation')">
       <div class="apd-save-msg">Unsaved changes</div>
-      <button mat-stroked-button (click)="resetEditable()" [disabled]="saving">Discard</button>
+      <button mat-stroked-button class="apd-discard-btn" (click)="resetEditable()" [disabled]="saving">Discard</button>
       <button mat-flat-button class="primary-cta" (click)="saveProfile()" [disabled]="saving">
         <mat-icon *ngIf="saving">sync</mat-icon>
         <span>{{ saving ? 'Saving…' : 'Save' }}</span>

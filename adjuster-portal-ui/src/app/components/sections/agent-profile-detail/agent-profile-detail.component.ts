@@ -14,7 +14,7 @@ import {
   AgentProfileUpdateRequest,
 } from 'src/app/services/agent-profile-data.service';
 
-type TabKey = 'identity' | 'contact' | 'role' | 'licenses' | 'banking' | 'compliance' | 'documents';
+type TabKey = 'identity' | 'contact' | 'role' | 'licenses' | 'banking' | 'compliance' | 'documents' | 'compensation';
 
 /**
  * Agent detail page at /app/administration/users/:id. Seven tabs mapped
@@ -33,15 +33,24 @@ type TabKey = 'identity' | 'contact' | 'role' | 'licenses' | 'banking' | 'compli
 })
 export class AgentProfileDetailComponent implements OnInit {
   activeTab: TabKey = 'identity';
-  readonly tabs: { key: TabKey; label: string; icon: string }[] = [
-    { key: 'identity',   label: 'Identity',          icon: 'badge' },
-    { key: 'contact',    label: 'Contact',           icon: 'contact_mail' },
-    { key: 'role',       label: 'Role & Hierarchy',  icon: 'account_tree' },
-    { key: 'licenses',   label: 'Licenses',          icon: 'verified_user' },
-    { key: 'banking',    label: 'Banking',           icon: 'account_balance' },
-    { key: 'compliance', label: 'Compliance',        icon: 'fact_check' },
-    { key: 'documents',  label: 'Documents',         icon: 'folder_open' },
+  private readonly allTabs: { key: TabKey; label: string; icon: string; roles?: string[] }[] = [
+    { key: 'identity',     label: 'Identity',          icon: 'badge' },
+    { key: 'contact',      label: 'Contact',           icon: 'contact_mail' },
+    { key: 'role',         label: 'Role & Hierarchy',  icon: 'account_tree' },
+    { key: 'compensation', label: 'Compensation',      icon: 'payments', roles: ['ADJUSTER'] },
+    { key: 'licenses',     label: 'Licenses',          icon: 'verified_user' },
+    { key: 'banking',      label: 'Banking',           icon: 'account_balance' },
+    { key: 'compliance',   label: 'Compliance',        icon: 'fact_check' },
+    { key: 'documents',    label: 'Documents',         icon: 'folder_open' },
   ];
+
+  get tabs(): { key: TabKey; label: string; icon: string }[] {
+    const role = (this.profile?.user_role || '').toUpperCase();
+    return this.allTabs.filter(t => !t.roles || t.roles.includes(role));
+  }
+
+  readonly compTypes = ['SALARIED', 'HOURLY', 'COMMISSION', 'SALARY_PLUS_BONUS', 'HYBRID'];
+  readonly compPercentPresets = [5, 10, 15];
 
   profile: AgentProfileDTO | null = null;
   loading = true;
@@ -68,6 +77,11 @@ export class AgentProfileDetailComponent implements OnInit {
   bankingLoaded = false;
   documents: AgentDocumentDTO[] = [];
   documentsLoaded = false;
+
+  // Danger zone — typed-confirm delete
+  showDeleteConfirm = false;
+  deleteConfirmInput = '';
+  deleting = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -138,9 +152,34 @@ export class AgentProfileDetailComponent implements OnInit {
       beneficiary_name: this.profile.beneficiary_name,
       beneficiary_relationship: this.profile.beneficiary_relationship,
       commission_tier_override: this.profile.commission_tier_override,
+      adjuster_comp_type: this.profile.adjuster_comp_type,
+      adjuster_comp_percent: this.profile.adjuster_comp_percent,
+      adjuster_annual_salary: this.profile.adjuster_annual_salary,
+      adjuster_hourly_rate: this.profile.adjuster_hourly_rate,
+      adjuster_comp_effective_date: this.profile.adjuster_comp_effective_date,
       notes: this.profile.notes,
     };
     this.dirty = false;
+  }
+
+  showSalaryFields(): boolean {
+    const t = this.editable.adjuster_comp_type;
+    return t === 'SALARIED' || t === 'SALARY_PLUS_BONUS';
+  }
+
+  showHourlyFields(): boolean {
+    const t = this.editable.adjuster_comp_type;
+    return t === 'HOURLY' || t === 'HYBRID';
+  }
+
+  showPercentFields(): boolean {
+    const t = this.editable.adjuster_comp_type;
+    return t === 'COMMISSION' || t === 'SALARY_PLUS_BONUS' || t === 'HYBRID';
+  }
+
+  setPercentPreset(p: number): void {
+    this.editable.adjuster_comp_percent = p;
+    this.markDirty();
   }
 
   saveProfile(): void {
@@ -221,6 +260,38 @@ export class AgentProfileDetailComponent implements OnInit {
         this.licensesRefresh$.next();
       },
       error: err => this.snack.open(`Failed: ${err?.error?.detail || err?.message}`, 'OK', { duration: 5000 }),
+    });
+  }
+
+  // ─── Danger zone ───────────────────────────────────────────────────────
+
+  openDeleteConfirm(): void {
+    this.deleteConfirmInput = '';
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm = false;
+    this.deleteConfirmInput = '';
+  }
+
+  canConfirmDelete(): boolean {
+    return !!this.profile && this.deleteConfirmInput.trim() === this.profile.agent_number;
+  }
+
+  confirmDelete(): void {
+    if (!this.profile || !this.canConfirmDelete()) return;
+    this.deleting = true;
+    this.data.delete$(this.profile.id).subscribe({
+      next: () => {
+        this.deleting = false;
+        this.snack.open(`Agent ${this.profile!.agent_number} deleted`, 'Dismiss', { duration: 3000 });
+        this.router.navigate(['/app/administration/agents']);
+      },
+      error: err => {
+        this.deleting = false;
+        this.snack.open(`Failed to delete: ${err?.error?.detail || err?.message || err}`, 'OK', { duration: 5000 });
+      },
     });
   }
 

@@ -305,3 +305,119 @@
   border-right: 1px solid rgba(255, 255, 255, 0.10);
   padding-right: 16px; margin-right: 4px;
 }
+
+/* High-contrast Discard against the dark save bar */
+.apd-discard-btn {
+  color: #e5e7eb !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+  }
+}
+
+/* ── Field helper text ───────────────────────────────────────────────── */
+.field-help {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 6px;
+}
+
+/* ── Compensation presets ────────────────────────────────────────────── */
+.preset-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px;
+}
+.preset-label {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.preset-chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  &:hover { background: rgba(0, 194, 255, 0.10); border-color: rgba(0, 194, 255, 0.30); }
+  &.active {
+    background: linear-gradient(135deg, rgba(0, 194, 255, 0.20), rgba(0, 136, 204, 0.20));
+    border-color: #00C2FF;
+    color: #7dd3fc;
+    font-weight: 600;
+  }
+}
+
+/* ── Danger zone ─────────────────────────────────────────────────────── */
+.danger-zone {
+  margin-top: 32px;
+  padding: 16px 18px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.05);
+  border-radius: 12px;
+}
+.dz-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  mat-icon { color: #f87171; margin-top: 2px; }
+}
+.dz-head > div { flex: 1; }
+.dz-title { font-weight: 700; color: #fca5a5; font-size: 14px; }
+.dz-sub { font-size: 12.5px; color: rgba(255, 255, 255, 0.60); margin-top: 2px; }
+.dz-btn {
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.45) !important;
+  &:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-color: #f87171 !important;
+  }
+}
+.dz-confirm {
+  margin-top: 14px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.30);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+}
+.dz-confirm-title {
+  font-weight: 700; color: #fca5a5; font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+.dz-confirm-text {
+  font-size: 12.5px; color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 12px;
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 1px 6px; border-radius: 4px;
+    color: #fff;
+  }
+}
+.dz-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  &:focus { outline: none; border-color: #f87171; }
+}
+.dz-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 12px;
+}
+.dz-confirm-btn {
+  background: #dc2626 !important;
+  color: #fff !important;
+  &:disabled {
+    background: rgba(239, 68, 68, 0.20) !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+}

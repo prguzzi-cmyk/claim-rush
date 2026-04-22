@@ -94,7 +94,7 @@ def create_agent_profile(
     try:
         profile = agent_service.create_profile(
             db_session,
-            **payload.model_dump(exclude_unset=True),
+            **payload.dict(exclude_unset=True),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -109,11 +109,24 @@ def update_agent_profile(
     _auth=Depends(commission_auth),
 ):
     """Partial update. agent_number and user_id are immutable."""
-    updates = payload.model_dump(exclude_unset=True)
+    updates = payload.dict(exclude_unset=True)
     profile = agent_service.update_profile(db_session, profile_id, **updates)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
     return agent_service.get_profile_by_id(db_session, profile.id)
+
+
+@router.delete("/{profile_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_agent_profile(
+    profile_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Hard-delete an agent_profile. Underlying User and ledger rows are kept."""
+    ok = agent_service.delete_profile(db_session, profile_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
+    return None
 
 
 # ─── Satellites (read-only in this step; writes ship with Step 3 UI) ───────
@@ -151,7 +164,7 @@ def create_agent_license(
         return agent_service.create_license(
             db_session,
             user_id=profile["user_id"],
-            **payload.model_dump(exclude_unset=True),
+            **payload.dict(exclude_unset=True),
         )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
@@ -170,7 +183,7 @@ def update_agent_license(
     profile = agent_service.get_profile_by_id(db_session, profile_id)
     if not profile:
         raise HTTPException(status_code=404, detail=f"Agent profile {profile_id} not found")
-    updates = payload.model_dump(exclude_unset=True)
+    updates = payload.dict(exclude_unset=True)
     lic = agent_service.update_license(db_session, license_id, **updates)
     if not lic:
         raise HTTPException(status_code=404, detail=f"License {license_id} not found")

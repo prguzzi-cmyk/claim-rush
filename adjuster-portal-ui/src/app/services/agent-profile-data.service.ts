@@ -46,6 +46,11 @@ export interface AgentProfileDTO {
   beneficiary_name: string | null;
   beneficiary_relationship: string | null;
   commission_tier_override: number | null;
+  adjuster_comp_type: string | null;
+  adjuster_comp_percent: number | null;
+  adjuster_annual_salary: number | null;
+  adjuster_hourly_rate: number | null;
+  adjuster_comp_effective_date: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string | null;
@@ -128,6 +133,11 @@ export interface AgentProfileUpdateRequest {
   beneficiary_name?: string | null;
   beneficiary_relationship?: string | null;
   commission_tier_override?: number | null;
+  adjuster_comp_type?: string | null;
+  adjuster_comp_percent?: number | null;
+  adjuster_annual_salary?: number | null;
+  adjuster_hourly_rate?: number | null;
+  adjuster_comp_effective_date?: string | null;
   notes?: string | null;
 }
 
@@ -157,6 +167,10 @@ export class AgentProfileDataService {
 
   update$(profileId: string, payload: AgentProfileUpdateRequest): Observable<AgentProfileDTO> {
     return this.http.patch<AgentProfileDTO>(`${this.base}/${profileId}`, payload);
+  }
+
+  delete$(profileId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${profileId}`);
   }
 
   // ─── Licenses ─────────────────────────────────────────────────────────

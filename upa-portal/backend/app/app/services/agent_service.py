@@ -141,6 +141,17 @@ class AgentService:
         db.refresh(profile)
         return profile
 
+    def delete_profile(self, db: Session, profile_id: UUID) -> bool:
+        """Hard-delete an agent_profile row. The underlying User record and
+        any commission_ledger rows referencing the user are preserved — only
+        the agent_profile satellite is removed."""
+        p = db.get(AgentProfile, profile_id)
+        if not p:
+            return False
+        db.delete(p)
+        db.commit()
+        return True
+
     def update_profile(
         self,
         db: Session,
