@@ -44,6 +44,42 @@
 
 .admin-head-actions { display: flex; align-items: center; gap: 10px; }
 
+/* Claims table */
+.claims-table .claim-num {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #7dd3fc;
+  font-weight: 600;
+}
+.stage-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+  &.stg-paid { color: #86efac; background: rgba(34, 197, 94, 0.10); border-color: rgba(34, 197, 94, 0.28); }
+  &.stg-settled { color: #7dd3fc; background: rgba(0, 194, 255, 0.10); border-color: rgba(0, 194, 255, 0.28); }
+  &.stg-escalated { color: #fcd34d; background: rgba(245, 158, 11, 0.10); border-color: rgba(245, 158, 11, 0.28); }
+  &.stg-active { color: #c4b5fd; background: rgba(139, 92, 246, 0.10); border-color: rgba(139, 92, 246, 0.28); }
+  &.stg-open { color: rgba(255, 255, 255, 0.75); background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.14); }
+}
+.record-settlement-btn {
+  color: #7dd3fc !important;
+  border-color: rgba(0, 194, 255, 0.35) !important;
+  background: rgba(0, 194, 255, 0.05) !important;
+  border-radius: 999px !important;
+  padding: 0 14px !important;
+  font-size: 12px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; color: #7dd3fc; vertical-align: middle; }
+}
+.stage-done {
+  font-size: 12px; font-weight: 600;
+  color: rgba(134, 239, 172, 0.80);
+  padding: 0 10px;
+}
+
 .new-claim-btn {
   background: linear-gradient(135deg, #00C2FF 0%, #0088cc 100%) !important;
   color: #041e2a !important;

@@ -1,0 +1,125 @@
+<div class="rs-dialog">
+
+  <div class="rs-head">
+    <div>
+      <div class="rs-eyebrow">Commission Admin</div>
+      <h2 class="rs-title">Record Settlement</h2>
+      <div class="rs-sub">Fires COMMISSION_EARNED ledger rows for House, Team Member, RVP, and CP per the active comp plan.</div>
+    </div>
+    <button mat-icon-button class="rs-close" (click)="close()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="rs-body">
+    <!-- Claim summary (read-only) -->
+    <div class="rs-claim">
+      <div class="rs-claim-row">
+        <span class="rs-label">Claim</span>
+        <span class="rs-val mono">{{ claim.claim_number }}</span>
+      </div>
+      <div class="rs-claim-row">
+        <span class="rs-label">Client</span>
+        <span class="rs-val">{{ claim.client_name }}</span>
+      </div>
+      <div class="rs-claim-row">
+        <span class="rs-label">Team Member</span>
+        <span class="rs-val">{{ claim.writing_agent_name }}</span>
+      </div>
+      <div class="rs-claim-row" *ngIf="claim.rvp_name">
+        <span class="rs-label">RVP</span>
+        <span class="rs-val">{{ claim.rvp_name }}</span>
+      </div>
+      <div class="rs-claim-row" *ngIf="claim.cp_name">
+        <span class="rs-label">CP</span>
+        <span class="rs-val">{{ claim.cp_name }}</span>
+      </div>
+      <div class="rs-claim-row" *ngIf="claim.property_address">
+        <span class="rs-label">Property</span>
+        <span class="rs-val">{{ claim.property_address }}</span>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <ng-container *ngIf="!done">
+      <div class="field-grid">
+        <div class="field field-wide">
+          <label>Actual gross fee received<span class="req">*</span></label>
+          <input appCurrency
+                 type="text"
+                 inputmode="decimal"
+                 [currencyMin]="0"
+                 [currencyMax]="10000000"
+                 [(ngModel)]="grossFee"
+                 placeholder="$50,000" />
+          <div class="field-help" *ngIf="claim.gross_fee > 0">
+            Pre-filled from intake expected gross — edit if the actual differs.
+          </div>
+        </div>
+        <div class="field">
+          <label>Settlement date</label>
+          <input type="date" [(ngModel)]="settlementDate" />
+        </div>
+        <div class="field field-wide">
+          <label>Notes</label>
+          <textarea rows="2" [(ngModel)]="notes" placeholder="Settlement details, supplement handling, etc."></textarea>
+        </div>
+      </div>
+
+      <div class="rs-error" *ngIf="errorText">
+        <mat-icon>error_outline</mat-icon>
+        <div>{{ errorText }}</div>
+      </div>
+    </ng-container>
+
+    <!-- Success breakdown -->
+    <div class="rs-breakdown" *ngIf="done && breakdown">
+      <div class="rs-done-head">
+        <mat-icon>check_circle</mat-icon>
+        <div>
+          <div class="rs-done-title">Settlement recorded</div>
+          <div class="rs-done-sub">Splits fired — ledger updated across {{ breakdown.field_buckets.length + 1 }} buckets.</div>
+        </div>
+      </div>
+
+      <div class="rs-totals">
+        <div class="rs-total-row">
+          <span>Gross fee</span>
+          <span class="mono">{{ breakdown.gross_fee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="rs-total-row rs-house">
+          <span>House ({{ breakdown.house.percent_of_gross }}%)</span>
+          <span class="mono">{{ breakdown.house.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="rs-total-row rs-field">
+          <span>Field ({{ breakdown.field_total.percent_of_gross }}%)</span>
+          <span class="mono">{{ breakdown.field_total.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="rs-bucket-list">
+        <div class="rs-bucket" *ngFor="let b of breakdown.field_buckets">
+          <div class="rs-bucket-head">
+            <span class="rs-bucket-name">{{ recipientLabel(b.bucket) }}</span>
+            <span class="rs-bucket-pct">{{ b.percent_of_field }}% of field · {{ b.percent_of_gross }}% of gross</span>
+          </div>
+          <div class="rs-bucket-amt mono">{{ b.amount | currency:'USD':'symbol':'1.2-2' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rs-foot">
+    <button mat-stroked-button class="rs-cancel" (click)="close()" [disabled]="saving">
+      {{ done ? 'Done' : 'Cancel' }}
+    </button>
+    <button mat-flat-button class="rs-confirm"
+            *ngIf="!done"
+            [disabled]="!canSubmit()"
+            (click)="submit()">
+      <mat-icon *ngIf="saving">sync</mat-icon>
+      <span>{{ saving ? 'Recording…' : 'Record Settlement' }}</span>
+    </button>
+  </div>
+
+</div>

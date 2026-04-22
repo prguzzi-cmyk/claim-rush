@@ -156,6 +156,31 @@ def get_admin_overview(
     return commission_service.get_admin_overview(db_session)
 
 
+@router.get("/claims")
+def list_claims(
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """All commission claims, newest first, with denormalized chain names
+    for the admin claims table."""
+    return commission_service.list_claims(db_session)
+
+
+@router.get("/claims/{claim_id}/breakdown")
+def get_claim_breakdown(
+    claim_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """House / field two-section breakdown for the settlement confirmation
+    UI. Returns the currently-expected math for `claim.gross_fee` even
+    before settlement has fired — useful for 'preview' displays too."""
+    try:
+        return commission_service.get_settlement_breakdown(db_session, claim_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 # ─── Writes ─────────────────────────────────────────────────────────────────
 
 

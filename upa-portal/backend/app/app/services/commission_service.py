@@ -461,6 +461,57 @@ class CommissionService:
             "bucket_breakdown_by_claim": bucket_breakdown,
         }
 
+    def list_claims(self, db: Session) -> list[dict[str, Any]]:
+        """Return all commission_claim rows with denormalized recipient
+        names for the admin claims table. Ordered newest-first."""
+        claims = db.execute(
+            select(CommissionClaim).order_by(CommissionClaim.created_at.desc())
+        ).scalars().all()
+
+        def name_of(user_id: UUID | None) -> str | None:
+            if not user_id:
+                return None
+            u = db.get(User, user_id)
+            if not u:
+                return None
+            return f"{u.first_name or ''} {u.last_name or ''}".strip() or u.email
+
+        out = []
+        for c in claims:
+            out.append({
+                "id": str(c.id),
+                "claim_number": c.claim_number,
+                "client_name": c.client_name,
+                "stage": c.stage,
+                "stage_label": CLAIM_STAGE_LABELS.get(c.stage, c.stage),
+                "gross_fee": _round(c.gross_fee or Decimal("0")),
+                "writing_agent_id": str(c.writing_agent_id),
+                "writing_agent_name": name_of(c.writing_agent_id) or "",
+                "rvp_id": str(c.rvp_id) if c.rvp_id else None,
+                "rvp_name": name_of(c.rvp_id),
+                "cp_id": str(c.cp_id) if c.cp_id else None,
+                "cp_name": name_of(c.cp_id),
+                "direct_cp": c.direct_cp,
+                "property_address": c.property_address,
+                "carrier": c.carrier,
+                "loss_date": c.loss_date,
+                "loss_type": c.loss_type,
+                "notes": c.notes,
+                "created_at": c.created_at,
+            })
+        return out
+
+    def get_settlement_breakdown(
+        self, db: Session, claim_id: UUID,
+    ) -> dict[str, Any]:
+        """Return the two-section (house + field) breakdown for a single
+        claim — used to display "House $X / WA $X / RVP $X / CP $X" after
+        settlement."""
+        claim = db.get(CommissionClaim, claim_id)
+        if claim is None:
+            raise ValueError(f"Claim {claim_id} not found")
+        return self._two_section_breakdown(claim, db)
+
     # ─── Admin ──────────────────────────────────────────────────────────
 
     def get_admin_overview(self, db: Session) -> dict[str, Any]:

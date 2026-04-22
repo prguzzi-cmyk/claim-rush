@@ -97,6 +97,56 @@
     </div>
   </div>
 
+  <!-- ─── Claims table ─── -->
+  <div class="panel table-panel" *ngIf="claims$ | async as claims">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Claims</div>
+        <div class="panel-sub">
+          {{ claims.length }} claim<ng-container *ngIf="claims.length !== 1">s</ng-container> ·
+          settlement fires splits on the HOUSE / Team Member / RVP / CP buckets
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="admin-table claims-table">
+        <thead>
+          <tr>
+            <th>Claim #</th>
+            <th>Client</th>
+            <th>Team Member</th>
+            <th>Stage</th>
+            <th class="num">Gross Fee</th>
+            <th class="actions-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of claims">
+            <td class="mono claim-num">{{ c.claim_number }}</td>
+            <td>{{ c.client_name }}</td>
+            <td>{{ c.writing_agent_name }}</td>
+            <td><span class="stage-chip" [class]="stageToneClass(c.stage)">{{ c.stage_label }}</span></td>
+            <td class="num num-earned">{{ c.gross_fee | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="actions-cell">
+              <button mat-stroked-button
+                      class="record-settlement-btn"
+                      *ngIf="canRecordSettlement(c)"
+                      (click)="openRecordSettlement(c, $event)">
+                <mat-icon>gavel</mat-icon>
+                <span>Record Settlement</span>
+              </button>
+              <span class="stage-done" *ngIf="!canRecordSettlement(c)">Paid</span>
+            </td>
+          </tr>
+          <tr *ngIf="claims.length === 0">
+            <td colspan="6" class="table-empty">No claims on record.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ─── Drill-down (same dark EarningsTab) ─── -->
   <div class="drill" *ngIf="selectedUser$ | async as u">
     <div class="drill-head">

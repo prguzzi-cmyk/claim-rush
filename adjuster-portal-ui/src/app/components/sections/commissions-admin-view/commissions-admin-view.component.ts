@@ -1,14 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, map, shareReplay } from 'rxjs';
+import { BehaviorSubject, Observable, map, shareReplay, switchMap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import {
   AdminOverviewView,
   User,
 } from 'src/app/models/commission-engine.model';
 import { CommissionEngineService } from 'src/app/services/commission-engine.service';
+import {
+  ClaimRowDTO,
+  CommissionEngineDataService,
+} from 'src/app/services/commission-engine-data.service';
 import { CommissionStatementDialogComponent } from '../agent-dashboard/earnings-tab/commission-statement-dialog/commission-statement-dialog.component';
 import { CompPlanDialogComponent } from './comp-plan-dialog/comp-plan-dialog.component';
 import { NewClaimDialogComponent } from './new-claim-dialog/new-claim-dialog.component';
+import { RecordSettlementDialogComponent } from './record-settlement-dialog/record-settlement-dialog.component';
 
 /**
  * Admin / RIN House view.
@@ -24,20 +29,56 @@ import { NewClaimDialogComponent } from './new-claim-dialog/new-claim-dialog.com
 export class CommissionsAdminViewComponent implements OnInit {
   overview$!: Observable<AdminOverviewView>;
   selectedUser$!: Observable<User | undefined>;
+  claims$!: Observable<ClaimRowDTO[]>;
+  private claimsRefresh$ = new BehaviorSubject<void>(undefined);
 
   selectedUserId: string | null = null;
 
+  readonly TERMINAL_STAGE = 'PAID';
+
   constructor(
     private readonly engine: CommissionEngineService,
+    private readonly engineData: CommissionEngineDataService,
     private readonly dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
     this.overview$ = this.engine.getAdminOverview().pipe(shareReplay(1));
-    // Drill-down derives the selected User from the overview rows — the admin
-    // overview already returns user_id / user_name / org_role per row, which
-    // is all the drill header needs.
+    this.claims$ = this.claimsRefresh$.pipe(
+      switchMap(() => this.engineData.listClaims$()),
+    );
     this.refreshSelected();
+  }
+
+  stageToneClass(stage: string): string {
+    if (stage === 'PAID') return 'stg-paid';
+    if (stage === 'SETTLEMENT_REACHED') return 'stg-settled';
+    if (stage === 'LITIGATION' || stage === 'APPRAISAL') return 'stg-escalated';
+    if (stage === 'NEGOTIATION' || stage === 'CARRIER_REVIEW') return 'stg-active';
+    return 'stg-open';
+  }
+
+  canRecordSettlement(claim: ClaimRowDTO): boolean {
+    return claim.stage !== this.TERMINAL_STAGE;
+  }
+
+  openRecordSettlement(claim: ClaimRowDTO, event: Event): void {
+    event.stopPropagation();
+    const ref = this.dialog.open(RecordSettlementDialogComponent, {
+      width: '680px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'record-settlement-dialog-panel',
+      data: { claim },
+      autoFocus: false,
+    });
+    ref.afterClosed().subscribe(result => {
+      if (result) {
+        this.claimsRefresh$.next();
+        this.overview$ = this.engine.getAdminOverview().pipe(shareReplay(1));
+        this.refreshSelected();
+      }
+    });
   }
 
   private refreshSelected(): void {
@@ -103,8 +144,8 @@ export class CommissionsAdminViewComponent implements OnInit {
     });
     ref.afterClosed().subscribe(created => {
       if (created) {
-        // Refresh the roll-up so any gross fee supplied at intake reflects.
-        this.overview$ = this.engine.getAdminOverview();
+        this.claimsRefresh$.next();
+        this.overview$ = this.engine.getAdminOverview().pipe(shareReplay(1));
         this.refreshSelected();
       }
     });

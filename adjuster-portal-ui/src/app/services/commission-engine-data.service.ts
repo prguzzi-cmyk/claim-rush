@@ -126,11 +126,55 @@ export class CommissionEngineDataService {
     return this.http.get<AdminOverviewView>(`${this.base}/admin/overview`);
   }
 
+  // ─── Claims ───────────────────────────────────────────────────────────
+
+  listClaims$(): Observable<ClaimRowDTO[]> {
+    return this.http.get<ClaimRowDTO[]>(`${this.base}/claims`);
+  }
+
+  getClaimBreakdown$(claimId: string): Observable<ClaimTwoSectionBreakdownDTO> {
+    return this.http.get<ClaimTwoSectionBreakdownDTO>(
+      `${this.base}/claims/${claimId}/breakdown`,
+    );
+  }
+
+  recordGrossFee$(claimId: string, grossFee: number, ts?: string): Observable<ClaimDTO> {
+    return this.http.post<ClaimDTO>(
+      `${this.base}/claims/${claimId}/gross-fee`,
+      { gross_fee: grossFee, ts: ts ?? null },
+    );
+  }
+
   // ─── Writes ───────────────────────────────────────────────────────────
 
   createClaim$(payload: CreateClaimPayload): Observable<ClaimDTO> {
     return this.http.post<ClaimDTO>(`${this.base}/claims`, payload);
   }
+}
+
+export interface ClaimRowDTO extends ClaimDTO {
+  stage_label: string;
+  writing_agent_name: string;
+  rvp_name: string | null;
+  cp_name: string | null;
+}
+
+export interface ClaimBucketDetail {
+  bucket: 'WRITING_AGENT' | 'RVP_OVERRIDE' | 'CP_OVERRIDE';
+  label: string;
+  percent_of_field: number;
+  percent_of_gross: number;
+  amount: number;
+  recipient_user_id: string | null;
+}
+
+export interface ClaimTwoSectionBreakdownDTO {
+  claim_id: string;
+  claim_ref: string;
+  gross_fee: number;
+  house: { percent_of_gross: number; amount: number };
+  field_total: { percent_of_gross: number; amount: number };
+  field_buckets: ClaimBucketDetail[];
 }
 
 export interface CreateClaimPayload {
