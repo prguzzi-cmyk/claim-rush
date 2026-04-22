@@ -76,7 +76,7 @@ export class CommissionsAdminViewComponent implements OnInit {
     const dollars = claim.estimate_divergence_dollars ?? 0;
     const pct = claim.estimate_divergence_percentage ?? 0;
     return `$${dollars.toLocaleString('en-US', { maximumFractionDigits: 0 })} lower `
-         + `(${(pct * 100).toFixed(0)}% gap)`;
+         + `(${pct.toFixed(0)}% gap)`;
   }
 
   openRecordSettlement(claim: ClaimRowDTO, event: Event): void {

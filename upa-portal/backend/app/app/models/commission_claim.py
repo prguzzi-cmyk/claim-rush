@@ -68,7 +68,7 @@ class CommissionClaim(TimestampMixin, AuditMixin, Base):
         Boolean, server_default="false", default=False
     )
     estimate_divergence_percentage: Mapped[Decimal | None] = mapped_column(
-        Numeric(5, 4), nullable=True
+        Numeric(5, 2), nullable=True
     )
     estimate_divergence_dollars: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2), nullable=True

@@ -15,14 +15,14 @@
  * something the operator needs to be alerted about.
  */
 
-export const PERCENTAGE_THRESHOLD = 0.25;     // 25%
+export const PERCENTAGE_THRESHOLD = 25;       // literal percent (25%)
 export const DOLLAR_THRESHOLD = 5_000;        // $5,000
 
 export interface DivergenceResult {
   flagged: boolean;
-  /** (firm - carrier) / firm, in [0, 1]; null when either side missing. */
+  /** Literal percent (28.00 == 28%); null when either side missing. */
   percentage: number | null;
-  /** firm - carrier, in dollars; null when either side missing. */
+  /** firm − carrier, in dollars (signed); null when either side missing. */
   dollars: number | null;
   thresholdTriggered: 'percent' | 'dollars' | 'both' | null;
 }
@@ -39,7 +39,7 @@ export function computeDivergence(
     return { flagged: false, percentage: 0, dollars, thresholdTriggered: null };
   }
 
-  const percentage = dollars / firmEstimate;
+  const percentage = (dollars / firmEstimate) * 100;
   const pctTrip = percentage >= PERCENTAGE_THRESHOLD;
   const dolTrip = dollars >= DOLLAR_THRESHOLD;
 
