@@ -64,6 +64,21 @@ export class CommissionsAdminViewComponent implements OnInit {
     return claim.stage !== this.TERMINAL_STAGE;
   }
 
+  /** Count of claims whose carrier estimate diverges materially from the firm
+   *  estimate per the policy in src/app/config/estimate-divergence.ts. Used by
+   *  the aggregate banner above the claims table. */
+  flaggedDivergenceCount(claims: ClaimRowDTO[]): number {
+    return claims.filter(c => c.estimate_divergence_flagged).length;
+  }
+
+  /** Human-readable summary for the banner: "$10,000 lower (20% gap)". */
+  divergenceSummary(claim: ClaimRowDTO): string {
+    const dollars = claim.estimate_divergence_dollars ?? 0;
+    const pct = claim.estimate_divergence_percentage ?? 0;
+    return `$${dollars.toLocaleString('en-US', { maximumFractionDigits: 0 })} lower `
+         + `(${(pct * 100).toFixed(0)}% gap)`;
+  }
+
   openRecordSettlement(claim: ClaimRowDTO, event: Event): void {
     event.stopPropagation();
     const ref = this.dialog.open(RecordSettlementDialogComponent, {

@@ -58,6 +58,22 @@ class CommissionClaim(TimestampMixin, AuditMixin, Base):
         Numeric(12, 2), nullable=True
     )
 
+    # ── Carrier-vs-firm divergence (I3) ─────────────────────────────
+    # Most recent linked carrier estimate total + divergence flags
+    # computed by app.config.estimate_divergence.compute_divergence().
+    carrier_estimate_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    estimate_divergence_flagged: Mapped[bool] = mapped_column(
+        Boolean, server_default="false", default=False
+    )
+    estimate_divergence_percentage: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 4), nullable=True
+    )
+    estimate_divergence_dollars: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+
     # Foreign Keys — who's on this claim
     writing_agent_id: Mapped[UUID] = mapped_column(
         ForeignKey("user.id", name="fk_commission_claim_writing_agent_id"),

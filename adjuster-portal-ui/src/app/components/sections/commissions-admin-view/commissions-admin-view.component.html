@@ -111,6 +111,22 @@
 
   <!-- ─── Claims table ─── -->
   <div class="panel table-panel" *ngIf="claims$ | async as claims">
+
+    <!-- I3 — aggregate carrier-divergence banner. Shows once when at least
+         one claim is flagged; per-row chips highlight which ones. -->
+    <div class="divergence-banner" *ngIf="flaggedDivergenceCount(claims) > 0">
+      <mat-icon>warning</mat-icon>
+      <div class="db-body">
+        <div class="db-title">
+          {{ flaggedDivergenceCount(claims) }} claim<ng-container *ngIf="flaggedDivergenceCount(claims) !== 1">s</ng-container>
+          flagged for carrier divergence
+        </div>
+        <div class="db-sub">
+          Carrier estimate is materially lower than the firm estimate. Review before advance issuance.
+        </div>
+      </div>
+    </div>
+
     <div class="panel-head">
       <div>
         <div class="panel-title">Claims</div>
@@ -130,16 +146,28 @@
             <th>Team Member</th>
             <th>Stage</th>
             <th class="num">Gross Fee</th>
+            <th class="num">Carrier Estimate</th>
             <th class="actions-col">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of claims">
+          <tr *ngFor="let c of claims" [class.row-flagged]="c.estimate_divergence_flagged">
             <td class="mono claim-num">{{ c.claim_number }}</td>
             <td>{{ c.client_name }}</td>
             <td>{{ c.writing_agent_name }}</td>
             <td><span class="stage-chip" [class]="stageToneClass(c.stage)">{{ c.stage_label }}</span></td>
             <td class="num num-earned">{{ c.gross_fee | currency:'USD':'symbol':'1.0-0' }}</td>
+            <td class="num num-carrier">
+              <ng-container *ngIf="c.carrier_estimate_amount != null; else noCarrier">
+                {{ c.carrier_estimate_amount | currency:'USD':'symbol':'1.0-0' }}
+                <span class="divergence-chip"
+                      *ngIf="c.estimate_divergence_flagged"
+                      [matTooltip]="divergenceSummary(c)">
+                  ⚠ Diverges from firm
+                </span>
+              </ng-container>
+              <ng-template #noCarrier><span class="dim">—</span></ng-template>
+            </td>
             <td class="actions-cell">
               <button mat-stroked-button
                       class="record-settlement-btn"
@@ -152,7 +180,7 @@
             </td>
           </tr>
           <tr *ngIf="claims.length === 0">
-            <td colspan="6" class="table-empty">No claims on record.</td>
+            <td colspan="7" class="table-empty">No claims on record.</td>
           </tr>
         </tbody>
       </table>

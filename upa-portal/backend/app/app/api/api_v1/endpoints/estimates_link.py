@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps.app import get_db_session
 from app.api.deps.dev_bypass import commission_auth
+from app.crud.crud_carrier_estimate import _sync_carrier_estimate_to_claim
 from app.crud.crud_estimate_project import _sync_firm_estimate_to_claim
 from app.models.carrier_estimate import CarrierEstimate
 from app.models.commission_claim import CommissionClaim
@@ -107,6 +108,10 @@ def attach_carrier_estimate_to_claim(
 
     carrier.commission_claim_id = commission_claim_id
     db_session.add(carrier)
+    # Attach triggers I3 divergence recompute against the claim's
+    # current firm estimate (estimate_amount). Detach (None) skips it
+    # — same rationale as the project endpoint.
+    _sync_carrier_estimate_to_claim(db_session, carrier)
     db_session.commit()
     db_session.refresh(carrier)
 

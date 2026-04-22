@@ -236,6 +236,11 @@ export interface ClaimRowDTO extends ClaimDTO {
   writing_agent_name: string;
   rvp_name: string | null;
   cp_name: string | null;
+  // I3 — carrier divergence surface
+  carrier_estimate_amount: number | null;
+  estimate_divergence_flagged: boolean;
+  estimate_divergence_percentage: number | null;   // 0.25 = 25%
+  estimate_divergence_dollars: number | null;
 }
 
 export interface ClaimBucketDetail {
