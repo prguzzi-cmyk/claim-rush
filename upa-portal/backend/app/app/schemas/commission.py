@@ -275,6 +275,10 @@ class CreatePayoutRequest(BaseModel):
     method: str | None = None
     reference: str | None = None
     claim_id: UUID | None = None
+    # When True, the backend also emits REPAYMENT_OFFSET for min(amount,
+    # outstanding_advance_balance) in the same transaction, so a payout
+    # and its advance offset can never leave the ledger partly-written.
+    offset_advances: bool = False
 
 
 class CreateAdvanceRequest(BaseModel):

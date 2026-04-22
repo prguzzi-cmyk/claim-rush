@@ -92,6 +92,12 @@
                       (click)="openIssueAdvanceFor(r.user_id, $event)">
                 <mat-icon>payments</mat-icon>
               </button>
+              <button mat-icon-button
+                      class="payout-btn"
+                      matTooltip="Issue payout"
+                      (click)="openIssuePayoutFor(r.user_id, $event)">
+                <mat-icon>send</mat-icon>
+              </button>
             </td>
             <td class="arrow-cell"><mat-icon>chevron_right</mat-icon></td>
           </tr>

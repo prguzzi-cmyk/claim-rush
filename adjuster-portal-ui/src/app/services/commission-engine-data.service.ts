@@ -167,6 +167,12 @@ export class CommissionEngineDataService {
       { params },
     );
   }
+
+  getAdvanceBalance$(userId: string): Observable<AdvanceBalanceDTO> {
+    return this.http.get<AdvanceBalanceDTO>(
+      `${this.base}/agent/${resolveUserId(userId)}/advance-balance`,
+    );
+  }
 }
 
 export interface AdvanceStatsDTO {
@@ -179,6 +185,11 @@ export interface AdvanceStatsDTO {
   lifetime_cap: number;
   week_start: string;
   week_end: string;
+}
+
+export interface AdvanceBalanceDTO {
+  user_id: string;
+  outstanding: number;
 }
 
 export interface IssueAdvancePayload {

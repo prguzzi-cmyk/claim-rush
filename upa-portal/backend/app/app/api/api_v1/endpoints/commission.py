@@ -232,6 +232,7 @@ def create_payout(
         method=payload.method,
         reference=payload.reference,
         claim_id=payload.claim_id,
+        offset_advances=payload.offset_advances,
     )
     return {
         "id": str(p.id),
@@ -242,6 +243,18 @@ def create_payout(
         "reference": p.reference,
         "claim_id": str(p.claim_id) if p.claim_id else None,
     }
+
+
+@router.get("/agent/{user_id}/advance-balance")
+def get_agent_advance_balance(
+    user_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Outstanding (unrepaid) advance balance for the agent. Used by the
+    Issue Payout dialog to display and to cap the offset amount."""
+    bal = commission_service._outstanding_advance_balance(db_session, user_id)
+    return {"user_id": str(user_id), "outstanding": float(bal)}
 
 
 @router.post("/advances", response_model=AdvanceDTO, status_code=status.HTTP_201_CREATED)

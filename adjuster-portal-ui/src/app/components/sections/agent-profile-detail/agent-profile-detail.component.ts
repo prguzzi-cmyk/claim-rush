@@ -15,6 +15,7 @@ import {
   AgentProfileUpdateRequest,
 } from 'src/app/services/agent-profile-data.service';
 import { IssueAdvanceDialogComponent } from '../commissions-admin-view/issue-advance-dialog/issue-advance-dialog.component';
+import { IssuePayoutDialogComponent } from '../commissions-admin-view/issue-payout-dialog/issue-payout-dialog.component';
 
 type TabKey = 'identity' | 'contact' | 'role' | 'licenses' | 'banking' | 'compliance' | 'documents' | 'compensation';
 
@@ -106,9 +107,15 @@ export class AgentProfileDetailComponent implements OnInit {
   }
 
   openIssuePayout(): void {
-    // B5 will wire this to the IssuePayoutDialog. Kept as a stub so the
-    // Financial Actions button is interactive from this commit onward.
-    this.snack.open('Payouts dialog coming next.', 'OK', { duration: 2500 });
+    if (!this.profile) return;
+    this.dialog.open(IssuePayoutDialogComponent, {
+      width: '720px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      panelClass: 'issue-payout-dialog-panel',
+      data: { agentId: this.profile.user_id },
+      autoFocus: false,
+    });
   }
 
   ngOnInit(): void {

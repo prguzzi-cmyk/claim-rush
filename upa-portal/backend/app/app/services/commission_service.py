@@ -764,8 +764,15 @@ class CommissionService:
         method: str | None = None,
         reference: str | None = None,
         claim_id: UUID | None = None,
+        offset_advances: bool = False,
     ) -> CommissionPayout:
+        """Emit a PAYOUT_ISSUED row. When `offset_advances` is True, also
+        emit a REPAYMENT_OFFSET row in the SAME transaction for
+        min(payout_amount, outstanding_advance_balance) — so the payout
+        and its advance offset can never end up partially written."""
         ts = issued_at or datetime.now(timezone.utc)
+        abs_amount = abs(amount)
+
         payout = CommissionPayout(
             user_id=user_id,
             amount=amount,
@@ -775,17 +782,32 @@ class CommissionService:
             claim_id=claim_id,
         )
         db.add(payout)
-        # Matching ledger entry (negative amount per Angular convention)
+        # Matching PAYOUT_ISSUED ledger entry (negative amount per Angular convention)
         ledger = CommissionLedger(
             user_id=user_id,
             claim_id=claim_id,
             bucket="WRITING_AGENT",
             txn_type="PAYOUT_ISSUED",
-            amount=-abs(amount),
+            amount=-abs_amount,
             ts=ts,
             notes=f"Payout {reference or ''}".strip(),
         )
         db.add(ledger)
+
+        if offset_advances:
+            outstanding = self._outstanding_advance_balance(db, user_id)
+            offset_amt = min(abs_amount, outstanding)
+            if offset_amt > 0:
+                db.add(CommissionLedger(
+                    user_id=user_id,
+                    claim_id=claim_id,
+                    bucket="WRITING_AGENT",
+                    txn_type="REPAYMENT_OFFSET",
+                    amount=-offset_amt,
+                    ts=ts,
+                    notes=f"Advance offset against payout {reference or ''}".strip(),
+                ))
+
         db.commit()
         db.refresh(payout)
         return payout
@@ -846,6 +868,26 @@ class CommissionService:
             "week_start": week_start,
             "week_end": week_end,
         }
+
+    def _outstanding_advance_balance(self, db: Session, user_id: UUID) -> Decimal:
+        """Sum of ADVANCE_ISSUED minus absolute value of REPAYMENT_OFFSET
+        for the user. Clamped to ≥ 0 (the ledger shouldn't go negative,
+        but a safety clamp costs nothing)."""
+        rows = db.execute(
+            select(CommissionLedger).where(
+                CommissionLedger.user_id == user_id,
+                CommissionLedger.txn_type.in_(("ADVANCE_ISSUED", "REPAYMENT_OFFSET")),
+            )
+        ).scalars().all()
+        advances = sum(
+            (r.amount for r in rows if r.txn_type == "ADVANCE_ISSUED"),
+            Decimal("0"),
+        )
+        offsets = abs(sum(
+            (r.amount for r in rows if r.txn_type == "REPAYMENT_OFFSET"),
+            Decimal("0"),
+        ))
+        return max(Decimal("0"), advances - offsets)
 
     def issue_advance(
         self,

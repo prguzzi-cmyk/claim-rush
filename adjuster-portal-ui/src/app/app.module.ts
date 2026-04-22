@@ -176,6 +176,7 @@ import { CompPlanDialogComponent } from "./components/sections/commissions-admin
 import { NewClaimDialogComponent } from "./components/sections/commissions-admin-view/new-claim-dialog/new-claim-dialog.component";
 import { RecordSettlementDialogComponent } from "./components/sections/commissions-admin-view/record-settlement-dialog/record-settlement-dialog.component";
 import { IssueAdvanceDialogComponent } from "./components/sections/commissions-admin-view/issue-advance-dialog/issue-advance-dialog.component";
+import { IssuePayoutDialogComponent } from "./components/sections/commissions-admin-view/issue-payout-dialog/issue-payout-dialog.component";
 import { CreateClientTaskComponent } from "./components/sections/client-task/create-client-task/create-client-task.component";
 import { UserClientListComponent } from "./components/sections/client-task/user-client-list/user-client-list.component";
 import { AngularEditorModule } from "@kolkov/angular-editor";
@@ -547,6 +548,7 @@ export function tokenGetter() {
     NewClaimDialogComponent,
     RecordSettlementDialogComponent,
     IssueAdvanceDialogComponent,
+    IssuePayoutDialogComponent,
     CreateClientTaskComponent,
     UserClientListComponent,
     NewslettersComponent,

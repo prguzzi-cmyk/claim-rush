@@ -1,0 +1,119 @@
+<div class="ip-dialog">
+
+  <div class="ip-head">
+    <div>
+      <div class="ip-eyebrow">Financial Actions</div>
+      <h2 class="ip-title">Issue Payout</h2>
+      <div class="ip-sub">Atomic payout + advance offset. PAYOUT_ISSUED and REPAYMENT_OFFSET (when enabled) write in a single transaction.</div>
+    </div>
+    <button mat-icon-button class="ip-close" (click)="cancel()" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="ip-body">
+    <div class="ip-loading" *ngIf="loading">
+      <mat-icon>sync</mat-icon> Loading…
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="field-grid">
+
+        <div class="field field-wide" *ngIf="showAgentPicker()">
+          <label>Agent<span class="req">*</span></label>
+          <select [(ngModel)]="form.agent_id" (ngModelChange)="onAgentChange()">
+            <option [ngValue]="''">— Select agent —</option>
+            <option *ngFor="let a of agents" [ngValue]="a.user_id">
+              {{ a.agent_number }} — {{ a.user_name }} ({{ a.user_role }})
+            </option>
+          </select>
+        </div>
+
+        <div class="ip-agent-chip field-wide" *ngIf="!showAgentPicker() && selectedAgent() as a">
+          <span class="ip-agent-chip-label">Agent</span>
+          <span class="ip-agent-chip-value">{{ a.user_name }} · <span class="mono">{{ a.agent_number }}</span> ({{ a.user_role }})</span>
+        </div>
+
+        <!-- Balance tiles -->
+        <div class="balance-row field-wide" *ngIf="form.agent_id">
+          <div class="balance-tile tile-remaining">
+            <div class="bt-label">Remaining balance</div>
+            <div class="bt-val" *ngIf="!loadingBalances">{{ remainingBalance() | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="bt-val bt-skel" *ngIf="loadingBalances">—</div>
+          </div>
+          <div class="balance-tile tile-advance">
+            <div class="bt-label">Outstanding advances</div>
+            <div class="bt-val" *ngIf="!loadingBalances">{{ outstandingAdvance | currency:'USD':'symbol':'1.2-2' }}</div>
+            <div class="bt-val bt-skel" *ngIf="loadingBalances">—</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Payout amount<span class="req">*</span></label>
+          <input appCurrency
+                 type="text"
+                 inputmode="decimal"
+                 [currencyMin]="0"
+                 [currencyMax]="10000000"
+                 [(ngModel)]="form.amount"
+                 placeholder="$5,000" />
+          <div class="field-help" *ngIf="amountTooHigh()" style="color:#fca5a5">
+            Exceeds remaining balance of {{ remainingBalance() | currency:'USD':'symbol':'1.2-2' }}.
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Payment method</label>
+          <select [(ngModel)]="form.method">
+            <option *ngFor="let m of methods" [ngValue]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <div class="field field-wide">
+          <label>Reference number</label>
+          <input type="text" [(ngModel)]="form.reference" placeholder="ACH trace, check #, etc." maxlength="80" />
+        </div>
+
+        <!-- Auto-offset toggle + projection -->
+        <div class="offset-row field-wide" *ngIf="outstandingAdvance > 0">
+          <label class="offset-toggle">
+            <input type="checkbox" [(ngModel)]="form.offset_advances" />
+            <span>Auto-offset advances</span>
+          </label>
+          <div class="offset-help">
+            Reduces outstanding advance by the lesser of the payout amount or the advance balance.
+          </div>
+          <div class="offset-projection" *ngIf="form.amount && form.amount > 0">
+            <div class="op-row">
+              <span>Payout amount</span>
+              <span class="mono">{{ form.amount | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="op-row op-offset" *ngIf="form.offset_advances && projectedOffset() > 0">
+              <span>Advance offset</span>
+              <span class="mono">– {{ projectedOffset() | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+            <div class="op-row op-net">
+              <span>Net to agent</span>
+              <span class="mono">{{ netToAgent() | currency:'USD':'symbol':'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="ip-error" *ngIf="errorText">
+        <mat-icon>error_outline</mat-icon>
+        <div>{{ errorText }}</div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="ip-foot">
+    <button mat-stroked-button class="ip-cancel" (click)="cancel()" [disabled]="saving">Cancel</button>
+    <button mat-flat-button class="ip-confirm" [disabled]="!canSubmit()" (click)="submit()">
+      <mat-icon *ngIf="saving">sync</mat-icon>
+      <span>{{ saving ? 'Issuing…' : 'Issue Payout' }}</span>
+    </button>
+  </div>
+
+</div>
