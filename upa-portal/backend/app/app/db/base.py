@@ -130,4 +130,9 @@ from app.models.commission_ledger import CommissionLedger  # noqa
 from app.models.commission_payout import CommissionPayout  # noqa
 from app.models.commission_advance import CommissionAdvance  # noqa
 
+# Agent profile satellites
+from app.models.agent_profile import AgentProfile  # noqa
+from app.models.agent_license import AgentLicense  # noqa
+from app.models.agent_banking import AgentBanking  # noqa
+
 # from app.models.task_comment import TaskComment  # noqa

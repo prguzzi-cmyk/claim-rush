@@ -115,4 +115,9 @@ from .commission_ledger import CommissionLedger
 from .commission_payout import CommissionPayout
 from .commission_advance import CommissionAdvance
 
+# Agent profile — 1:1/1:N satellites on user for agent-specific data
+from .agent_profile import AgentProfile
+from .agent_license import AgentLicense
+from .agent_banking import AgentBanking
+
 # from .task_comment import TaskComment
