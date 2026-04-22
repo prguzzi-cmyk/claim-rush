@@ -51,6 +51,10 @@ services:
       - POSTGRES_SERVER=db
       - JUPYTER=jupyter lab --ip=0.0.0.0 --allow-root --NotebookApp.custom_display_url=http://127.0.0.1:8888
       - SERVER_HOST=http://${DOMAIN?Variable not set}
+      # Dev-only: skip bearer-token auth on /v1/commission/* routes so the
+      # Angular frontend (still in devAutoLogin mode) can reach them without
+      # a JWT. See app/api/deps/dev_bypass.py. Remove before prod rollout.
+      - DEV_BYPASS=1
     build:
       context: ./backend
       dockerfile: Dockerfile.backend.dev

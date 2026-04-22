@@ -7,7 +7,10 @@ export const environment = {
   name: "Dev",
   // Dev-only: skip login and stub the current user so :4200 lands straight in the authenticated shell.
   devAutoLogin: true,
-  server: "http://api.dev.adjuster.upaportal.org/v1",
+  // Relative base so the ApiInterceptor produces /v1/... paths — the ng-serve
+  // proxy (proxy.conf.json) catches those and forwards to localhost:8888.
+  // Point this at a full URL when you need to hit a remote dev API instead.
+  server: "/v1",
   // mlmServer:'http://localhost:8080',
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env
   checkVersion: false,
