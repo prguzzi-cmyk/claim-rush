@@ -1,0 +1,72 @@
+<div class="w9-shell">
+
+  <div class="w9-head">
+    <h1 class="w9-title">Upload Your W-9</h1>
+    <div class="w9-sub">Required for tax reporting · accepted format: PDF</div>
+  </div>
+
+  <div class="w9-loading" *ngIf="loading">
+    <mat-icon class="spin">sync</mat-icon> Loading…
+  </div>
+
+  <ng-container *ngIf="!loading && status as s">
+
+    <div class="w9-status">
+      <div class="ws-row">
+        <span class="ws-label">Member</span>
+        <span class="ws-val">{{ s.full_name }}</span>
+      </div>
+      <div class="ws-row">
+        <span class="ws-label">Onboarding status</span>
+        <span class="ws-val ws-chip" [attr.data-status]="s.status">{{ s.status }}</span>
+      </div>
+      <div class="ws-row">
+        <span class="ws-label">W-9 on file</span>
+        <span class="ws-val" [class.ws-ok]="s.w9_uploaded">{{ s.w9_uploaded ? '✓ Yes' : '— Not received' }}</span>
+      </div>
+    </div>
+
+    <div class="w9-already-active" *ngIf="s.status === 'active' && s.w9_uploaded">
+      <mat-icon>check_circle</mat-icon>
+      <div>
+        Your W-9 is on file and your account is fully active. No further action needed.
+        Replace your W-9 below if you need to update it.
+      </div>
+    </div>
+
+    <div class="w9-upload-card">
+      <div class="card-title">Upload PDF</div>
+      <div class="card-body">
+        <input type="file" id="w9-file" accept="application/pdf" (change)="onFileSelected($event)" />
+        <label for="w9-file" class="file-label">
+          <mat-icon>upload_file</mat-icon>
+          <span>{{ selectedFile ? selectedFile.name : 'Choose PDF…' }}</span>
+        </label>
+
+        <div class="card-help">
+          Use Form W-9 (Request for Taxpayer Identification Number and Certification).
+          You can download the latest blank form from
+          <a href="https://www.irs.gov/forms-pubs/about-form-w-9" target="_blank" rel="noopener">IRS.gov</a>.
+        </div>
+
+        <div class="error" *ngIf="errorText">
+          <mat-icon>error_outline</mat-icon> {{ errorText }}
+        </div>
+
+        <button mat-flat-button class="submit"
+                [disabled]="!selectedFile || uploading"
+                (click)="submit()">
+          <mat-icon *ngIf="uploading" class="spin">sync</mat-icon>
+          <span>{{ uploading ? 'Uploading…' : 'Submit W-9' }}</span>
+        </button>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <div class="w9-error" *ngIf="!loading && !status && errorText">
+    <mat-icon>error_outline</mat-icon>
+    <div>{{ errorText }}</div>
+  </div>
+
+</div>

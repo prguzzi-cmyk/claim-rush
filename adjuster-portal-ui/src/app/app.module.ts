@@ -174,6 +174,8 @@ import { CommissionStatementDialogComponent } from "./components/sections/agent-
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { AdminMembersComponent } from "./components/sections/admin-members/admin-members.component";
 import { AdminMemberTemplatesComponent } from "./components/sections/admin-members/templates/admin-member-templates.component";
+import { W9UploadComponent } from "./components/sections/w9-upload/w9-upload.component";
+import { OnboardingBannerComponent } from "./components/shared/onboarding-banner/onboarding-banner.component";
 import { CompPlanDialogComponent } from "./components/sections/commissions-admin-view/comp-plan-dialog/comp-plan-dialog.component";
 import { NewClaimDialogComponent } from "./components/sections/commissions-admin-view/new-claim-dialog/new-claim-dialog.component";
 import { RecordSettlementDialogComponent } from "./components/sections/commissions-admin-view/record-settlement-dialog/record-settlement-dialog.component";
@@ -548,6 +550,8 @@ export function tokenGetter() {
     CommissionsAdminViewComponent,
     AdminMembersComponent,
     AdminMemberTemplatesComponent,
+    W9UploadComponent,
+    OnboardingBannerComponent,
     CompPlanDialogComponent,
     NewClaimDialogComponent,
     RecordSettlementDialogComponent,

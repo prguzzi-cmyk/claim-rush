@@ -78,6 +78,35 @@ export class AdminMembersDataService {
       fd,
     );
   }
+
+  // ─── R3: status + W-9 upload ─────────────────────────────────────────
+
+  getMemberStatus$(userId: string): Observable<MemberStatusViewDTO> {
+    return this.http.get<MemberStatusViewDTO>(`${this.base}/${userId}/status`);
+  }
+
+  uploadW9$(userId: string, file: File): Observable<W9UploadResponseDTO> {
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    return this.http.post<W9UploadResponseDTO>(
+      `${this.base}/${userId}/w9`,
+      fd,
+    );
+  }
+}
+
+export interface MemberStatusViewDTO {
+  user_id: string;
+  status: MemberStatus;
+  full_name: string;
+  w9_uploaded: boolean;
+}
+
+export interface W9UploadResponseDTO {
+  user_id: string;
+  status: MemberStatus;
+  w9_file_id: string;
+  file_key: string;
 }
 
 export interface TemplateRowDTO {

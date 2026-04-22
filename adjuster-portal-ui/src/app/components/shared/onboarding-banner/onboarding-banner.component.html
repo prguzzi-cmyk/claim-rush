@@ -1,0 +1,13 @@
+<ng-container *ngIf="status$ | async as s">
+  <div class="ob-banner"
+       *ngIf="s.status === 'pending_w9' && !dismissedThisSession">
+    <mat-icon class="ob-icon">assignment</mat-icon>
+    <div class="ob-text">
+      <strong>Please upload your W-9 form</strong> to complete your profile.
+    </div>
+    <a class="ob-cta" routerLink="/app/profile/w9">Upload W-9</a>
+    <button mat-icon-button class="ob-dismiss" (click)="dismiss()" aria-label="Dismiss">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</ng-container>

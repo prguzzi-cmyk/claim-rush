@@ -337,6 +337,117 @@ def mark_w9_received(
     return {"user_id": str(user.id), "status": user.status}
 
 
+# ─── W-9 + status (R3) ───────────────────────────────────────────────────
+
+
+class MemberStatusDTO(BaseModel):
+    user_id: str
+    status: str
+    full_name: str
+    w9_uploaded: bool
+
+
+@router.get("/{user_id}/status", response_model=MemberStatusDTO)
+def get_member_status(
+    user_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+):
+    """Lightweight status lookup used by the portal banner. Returns
+    the current onboarding status + W-9 state — banner shows when
+    status='pending_w9'."""
+    user = db_session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+    profile = db_session.execute(
+        select(AgentProfile).where(AgentProfile.user_id == user.id)
+    ).scalar_one_or_none()
+    return MemberStatusDTO(
+        user_id=str(user.id),
+        status=user.status,
+        full_name=f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email,
+        w9_uploaded=(profile is not None and profile.w9_file_id is not None),
+    )
+
+
+@router.post("/{user_id}/w9")
+async def upload_w9(
+    user_id: UUID,
+    db_session: Annotated[Session, Depends(get_db_session)],
+    _auth=Depends(commission_auth),
+    file: UploadFile = File(...),
+):
+    """Upload the member's W-9 PDF. Stores the file via the existing S3
+    helper, creates a UserPersonalFile row tagged 'W-9', points
+    agent_profile.w9_file_id at it, and flips user.status from
+    pending_w9 → active.
+
+    Uses UserPersonalFile (joined-inheritance subclass of File) — File
+    itself has a polymorphic discriminator on `related_type` and only
+    accepts known identities. UserPersonalFile is the registered
+    identity for member-personal documents like W-9 / non-compete /
+    license scans.
+
+    Auto-creates a minimal agent_profile row if none exists yet (some
+    legacy users may not have one)."""
+    from io import BytesIO
+    from app.models.user_personal_file import UserPersonalFile
+
+    user = db_session.get(User, user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+    if not file.filename or not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
+
+    contents = await file.read()
+    file_key = f"agent-w9/{user.id}/{file.filename}"
+    S3.upload_file_obj(BytesIO(contents), file_key, content_type="application/pdf")
+
+    file_row = UserPersonalFile(
+        name=file.filename,
+        type="application/pdf",
+        size=len(contents),
+        path=file_key,
+        visibility="private",
+        state="W-9",
+        expiration_date="",  # NOT NULL on the legacy schema; W-9s don't expire here
+        owner_id=user.id,
+    )
+    db_session.add(file_row)
+    db_session.flush()
+
+    profile = db_session.execute(
+        select(AgentProfile).where(AgentProfile.user_id == user.id)
+    ).scalar_one_or_none()
+    if profile is None:
+        # Generate an agent_number on the fly via the agent_service
+        # convention (used by B1's create-with-user endpoint).
+        from app.services.agent_service import agent_service
+        role = db_session.get(Role, user.role_id) if user.role_id else None
+        agent_number = agent_service._generate_agent_number(db_session, role.name if role else None)
+        profile = AgentProfile(
+            user_id=user.id,
+            agent_number=agent_number,
+            w9_file_id=file_row.id,
+        )
+        db_session.add(profile)
+    else:
+        profile.w9_file_id = file_row.id
+        db_session.add(profile)
+
+    if user.status == "pending_w9":
+        user.status = "active"
+        db_session.add(user)
+
+    db_session.commit()
+    return {
+        "user_id": str(user.id),
+        "status": user.status,
+        "w9_file_id": str(file_row.id),
+        "file_key": file_key,
+    }
+
+
 # ─── Templates (R2) ───────────────────────────────────────────────────────
 
 

@@ -42,6 +42,7 @@ import { AgentDashboardComponent } from "./components/sections/agent-dashboard/a
 import { CommissionsAdminViewComponent } from "./components/sections/commissions-admin-view/commissions-admin-view.component";
 import { AdminMembersComponent } from "./components/sections/admin-members/admin-members.component";
 import { AdminMemberTemplatesComponent } from "./components/sections/admin-members/templates/admin-member-templates.component";
+import { W9UploadComponent } from "./components/sections/w9-upload/w9-upload.component";
 import { SidebarComponent } from "./components/layout/sidebar/sidebar.component";
 import { NewslettersComponent } from "./components/sections/newsletters/newsletters.component";
 import { AnnouncementsComponent } from "./components/sections/announcements/announcements.component";
@@ -233,6 +234,10 @@ const routes: Routes = [
       {
         path: "admin/members/templates",
         component: AdminMemberTemplatesComponent,
+      },
+      {
+        path: "profile/w9",
+        component: W9UploadComponent,
       },
       {
         path: "customer-dashboard",

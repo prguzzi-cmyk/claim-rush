@@ -19,6 +19,10 @@
         <app-topbar></app-topbar>
       </div>
 
+      <!-- R3: site-wide onboarding banner. Renders only when the
+           current user.status === 'pending_w9'. -->
+      <app-onboarding-banner *ngIf="role != 'customer' && role != null"></app-onboarding-banner>
+
       <app-command-bar *ngIf="role != 'customer' && role != null"></app-command-bar>
 
       <mat-tab-group #tabGroup color="primary" [(selectedIndex)]="selectedIndex" id= "main-tab">
