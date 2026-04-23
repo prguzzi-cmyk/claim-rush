@@ -115,7 +115,10 @@ export const ROLE_HIDDEN_ROUTES: Record<AppRole, readonly string[]> = {
 export const ROLE_LANDING: Record<AppRole, string> = {
   'super-admin': '/app/agent-dashboard',
   'admin':       '/app/agent-dashboard',
-  'cp':          '/app/global-command-center',
+  // CP's primary UI is ClaimRush at aciunited.com. RIN is backend only.
+  // Full URL triggers an external navigation in login.component.ts (user
+  // will re-auth on the ClaimRush origin since localStorage is per-origin).
+  'cp':          'https://aciunited.com/portal',
   'rvp':         '/app/agent-dashboard',   // TODO: /app/rvp-dashboard when built
   'agent':       '/app/agent-dashboard',
   'adjuster':    '/app/agent-dashboard',   // TODO: /app/adjuster-workspace when built

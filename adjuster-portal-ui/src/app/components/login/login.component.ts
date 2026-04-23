@@ -117,7 +117,13 @@ export class LoginComponent implements OnInit {
               } else {
                 const role = (response?.role?.name || '') as AppRole;
                 const target = ROLE_LANDING[role] ?? DEFAULT_LANDING;
-                this.router.navigate([target]);
+                // External URL → cross-origin navigation (e.g. CP users go
+                // to ClaimRush at aciunited.com, not the RIN Angular app).
+                if (/^https?:\/\//.test(target)) {
+                  window.location.href = target;
+                } else {
+                  this.router.navigate([target]);
+                }
               }
               this.maybeOfferPasskeySetup();
             }
