@@ -1,8 +1,7 @@
 export const environment = {
   production: true,
   name: "Prod",
-  // TEMPORARY: devAutoLogin in prod for deploy verification only. REVERT before real users.
-  devAutoLogin: true,
+  devAutoLogin: false,
   server: "https://accurate-warmth-production-4f18.up.railway.app/v1",
   mlmServer: "https://api.mlm.upaportal.org/",
   checkVersion: true,
