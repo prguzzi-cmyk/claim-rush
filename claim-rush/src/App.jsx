@@ -15,6 +15,7 @@ import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
 import LeadsBoard from "./portal/LeadsBoard";
 import ClientsBoard from "./portal/ClientsBoard";
+import CommissionBoard from "./portal/CommissionBoard";
 import PitchMode from "./portal/PitchMode";
 import SeminarTraining from "./portal/SeminarTraining";
 import MySeminars from "./portal/MySeminars";
@@ -171,7 +172,9 @@ export default function App() {
 
         {/* Phase 5: RIN iframe features — RECRUITING + EARNINGS */}
         <Route path="rin/recruits"      element={<IframeFeature rinRoute="/app/my-recruits" title="My Recruits" />} />
-        <Route path="rin/commission"    element={<IframeFeature rinRoute="/app/basic-commission-calculator" title="Commission" />} />
+        {/* Commission — real native component, backed by /v1/dashboard/cp-commission */}
+        <Route path="commission"        element={<CommissionBoard />} />
+        <Route path="rin/commission"    element={<CommissionBoard />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/portal" replace />} />

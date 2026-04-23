@@ -46,7 +46,7 @@ const items = {
   myRecruits:      { to: "/portal/rin/recruits",         label: "My Recruits",         icon: "\u{1F465}", rinRoute: "/app/my-recruits" },
 
   // ── EARNINGS ──
-  commission:      { to: "/portal/rin/commission",       label: "Commission",          icon: "\u{1F4B5}", rinRoute: "/app/basic-commission-calculator" },
+  commission:      { to: "/portal/commission",           label: "Commission",          icon: "\u{1F4B5}" },
 
   // ── SEMINARS ──
   seminarTraining: { to: "/portal/seminar-training",     label: "Training Center",     icon: "\u{1F393}" },

@@ -10,9 +10,26 @@ const PURPLE = "#A855F7";
 
 // ── SHARED COMPONENTS ───────────────────────────────────────────────────────
 
-function KPI({ label, value, color, alert }) {
+function KPI({ label, value, color, alert, to }) {
+  const navigate = useNavigate();
+  const clickable = !!to;
   return (
-    <div style={{ background: "#162238", border: `1px solid ${alert ? "#E0505030" : "rgba(255,255,255,0.12)"}`, borderRadius: 8, padding: "16px 18px" }}>
+    <div
+      onClick={clickable ? () => navigate(to) : undefined}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") navigate(to); } : undefined}
+      style={{
+        background: "#162238",
+        border: `1px solid ${alert ? "#E0505030" : "rgba(255,255,255,0.12)"}`,
+        borderRadius: 8,
+        padding: "16px 18px",
+        cursor: clickable ? "pointer" : "default",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={clickable ? (e) => { e.currentTarget.style.borderColor = `${color}80`; e.currentTarget.style.background = "#1A2844"; } : undefined}
+      onMouseLeave={clickable ? (e) => { e.currentTarget.style.borderColor = alert ? "#E0505030" : "rgba(255,255,255,0.12)"; e.currentTarget.style.background = "#162238"; } : undefined}
+    >
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", ...mono, fontWeight: 600 }}>{label}</div>
       <div style={{ fontSize: 26, color: "#FFFFFF", fontWeight: 700, ...mono, marginTop: 6, textShadow: `0 0 10px ${color}40` }}>{value}</div>
     </div>
@@ -445,7 +462,7 @@ function CPDash({ navigate }) {
 
       {/* KPI row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <KPI label="Territory Revenue (MTD)" value={fmtCurrency(d.revenue.mtd_total)} color="#FFFFFF" />
+        <KPI label="Territory Revenue (MTD)" value={fmtCurrency(d.revenue.mtd_total)} color="#00E6A8" to="/portal/commission" />
         <KPI label="Active RVPs" value={String(d.downline.rvp_count)} color={C.gold} />
         <KPI label="Active Agents" value={String(d.downline.agent_count)} color="#00E6A8" />
         <KPI label="Total Leads" value={String(d.total_leads)} color={C.blue} />
