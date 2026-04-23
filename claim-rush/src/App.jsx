@@ -14,6 +14,7 @@ import PortalLayout from "./portal/PortalLayout";
 import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
 import LeadsBoard from "./portal/LeadsBoard";
+import ClientsBoard from "./portal/ClientsBoard";
 import PitchMode from "./portal/PitchMode";
 import SeminarTraining from "./portal/SeminarTraining";
 import MySeminars from "./portal/MySeminars";
@@ -159,7 +160,9 @@ export default function App() {
         <Route path="rin/ai-voice" element={<Navigate to="/portal/rin/marcus" replace />} />
         <Route path="rin/ai-sales" element={<Navigate to="/portal/rin/victoria" replace />} />
         <Route path="rin/ai-intake" element={<Navigate to="/portal/rin/sophia" replace />} />
-        <Route path="rin/clients"       element={<IframeFeature rinRoute="/app/clients" title="My Clients" readonly />} />
+        {/* My Clients — real native component, backed by /v1/dashboard/cp-clients */}
+        <Route path="my-clients"        element={<ClientsBoard />} />
+        <Route path="rin/clients"       element={<ClientsBoard />} />
 
         {/* Phase 5: RIN iframe features — TEAM/TERRITORY (read-only) */}
         <Route path="rin/agent-perf"    element={<IframeFeature rinRoute="/app/agent-performance" title="Agent Performance" readonly />} />

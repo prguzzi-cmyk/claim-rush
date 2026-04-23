@@ -37,7 +37,7 @@ const items = {
   signClient:      { to: "/portal/rin/sign",             label: "Sign Client",         icon: "\u{270D}\uFE0F", rinRoute: "/app/agreements" },
 
   // ── MY CLIENTS (read-only — scoped by territory/ownership in backend) ──
-  myClients:       { to: "/portal/rin/clients",          label: "My Clients",          icon: "\u{1F465}", rinRoute: "/app/clients", readonly: true },
+  myClients:       { to: "/portal/my-clients",           label: "My Clients",          icon: "\u{1F465}" },
 
   // ── TEAM / TERRITORY (read-only for leadership) ──
   agentPerf:       { to: "/portal/rin/agent-perf",       label: "Agent Performance",   icon: "\u{1F4C8}", rinRoute: "/app/agent-performance", readonly: true },
