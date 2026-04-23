@@ -38,8 +38,9 @@ export const ROLE_SIDEBAR_SECTIONS: Record<AppRole, readonly string[]> = {
 
   // CP: leadership + growth. Sees admin section for recruiting/territory
   // controls; route-level blacklist below hides the system-admin items
-  // within it.
-  'cp':          ['leads', 'perf', 'resources', 'admin'],
+  // within it. Intel section included so CP can navigate back to the
+  // Global Command Center (their landing page — see ROLE_LANDING.cp).
+  'cp':          ['intel', 'leads', 'perf', 'resources', 'admin'],
 
   // RVP: their agents + pipeline + performance. No admin section.
   'rvp':         ['leads', 'claims', 'perf', 'resources'],
@@ -114,7 +115,7 @@ export const ROLE_HIDDEN_ROUTES: Record<AppRole, readonly string[]> = {
 export const ROLE_LANDING: Record<AppRole, string> = {
   'super-admin': '/app/agent-dashboard',
   'admin':       '/app/agent-dashboard',
-  'cp':          '/app/agent-dashboard',   // TODO: /app/cp-dashboard when built
+  'cp':          '/app/global-command-center',
   'rvp':         '/app/agent-dashboard',   // TODO: /app/rvp-dashboard when built
   'agent':       '/app/agent-dashboard',
   'adjuster':    '/app/agent-dashboard',   // TODO: /app/adjuster-workspace when built
