@@ -14,6 +14,11 @@ import { Subscription } from "rxjs";
 import { filter } from "rxjs/operators";
 import packageJson from '../../../../../package.json';
 import { LeadNotificationService } from "src/app/shared/services/lead-notification.service";
+import {
+  ROLE_SIDEBAR_SECTIONS,
+  ROLE_HIDDEN_ROUTES,
+  AppRole,
+} from "src/app/config/role-visibility";
 
 export interface NavSection {
   key: string;
@@ -236,6 +241,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   isSectionOpen(key: string): boolean {
     return this.sections[key] && !this.sections[key].collapsed;
+  }
+
+  /** Role-driven section visibility — see src/app/config/role-visibility.ts */
+  showSection(key: string): boolean {
+    const allowed = ROLE_SIDEBAR_SECTIONS[this.roleName as AppRole];
+    return !!allowed && allowed.includes(key);
+  }
+
+  /** True when the grouped nav (intel/leads/…/admin) should render at all.
+   *  Customer / client / sales-rep have their own dedicated navs above. */
+  get isGroupedNavVisible(): boolean {
+    return this.roleName !== 'customer'
+      && this.roleName !== 'client'
+      && this.roleName !== 'sales-rep';
+  }
+
+  /** Route-level visibility — used inside otherwise-visible sections (e.g.
+   *  CP sees the admin section but not the system-management items). */
+  canShowRoute(path: string): boolean {
+    const hidden = ROLE_HIDDEN_ROUTES[this.roleName as AppRole] ?? [];
+    return !hidden.includes(path);
   }
 
   private saveSectionState(): void {

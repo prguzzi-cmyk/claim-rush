@@ -14,8 +14,8 @@
 </div>
 
 <main>
-  <!-- ==================== CUSTOMER NAV ==================== -->
-  <nav *ngIf="roleName == 'customer'">
+  <!-- ==================== CUSTOMER / CLIENT NAV ==================== -->
+  <nav *ngIf="roleName == 'customer' || roleName == 'client'">
     <a mat-button routerLink="/app/customer-dashboard" routerLinkActive="active">
       <mat-icon>space_dashboard</mat-icon><span class="label">Dashboard</span>
     </a>
@@ -37,13 +37,13 @@
     </a>
   </nav>
 
-  <!-- ==================== AGENT / ADMIN NAV ==================== -->
-  <nav *ngIf="roleName != 'customer' && roleName != 'sales-rep'" class="grouped-nav">
+  <!-- ==================== GROUPED NAV (admin / cp / rvp / agent / adjuster) ==================== -->
+  <nav *ngIf="isGroupedNavVisible" class="grouped-nav">
 
     <!-- ─────────────────────────────────────────────────────
          INTELLIGENCE
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('intel')">
       <button class="section-header" (click)="toggleSection('intel')">
         <mat-icon class="section-icon">{{ sections.intel.icon }}</mat-icon>
         <span class="section-label">{{ sections.intel.label }}</span>
@@ -92,7 +92,7 @@
     <!-- ─────────────────────────────────────────────────────
          LEADS & SALES
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('leads')">
       <button class="section-header" (click)="toggleSection('leads')">
         <mat-icon class="section-icon">{{ sections.leads.icon }}</mat-icon>
         <span class="section-label">{{ sections.leads.label }}</span>
@@ -127,7 +127,7 @@
     <!-- ─────────────────────────────────────────────────────
          COMMUNICATIONS
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('comms')">
       <button class="section-header" (click)="toggleSection('comms')">
         <mat-icon class="section-icon">{{ sections.comms.icon }}</mat-icon>
         <span class="section-label">{{ sections.comms.label }}</span>
@@ -167,7 +167,7 @@
     <!-- ─────────────────────────────────────────────────────
          OPERATIONS
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('ops')">
       <button class="section-header" (click)="toggleSection('ops')">
         <mat-icon class="section-icon">{{ sections.ops.icon }}</mat-icon>
         <span class="section-label">{{ sections.ops.label }}</span>
@@ -211,7 +211,7 @@
     <!-- ─────────────────────────────────────────────────────
          CLAIMS
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('claims')">
       <button class="section-header" (click)="toggleSection('claims')">
         <mat-icon class="section-icon">{{ sections.claims.icon }}</mat-icon>
         <span class="section-label">{{ sections.claims.label }}</span>
@@ -247,7 +247,7 @@
     <!-- ─────────────────────────────────────────────────────
          PERFORMANCE
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('perf')">
       <button class="section-header" (click)="toggleSection('perf')">
         <mat-icon class="section-icon">{{ sections.perf.icon }}</mat-icon>
         <span class="section-label">{{ sections.perf.label }}</span>
@@ -291,7 +291,7 @@
     <!-- ─────────────────────────────────────────────────────
          RESOURCES
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section">
+    <div class="nav-section" *ngIf="showSection('resources')">
       <button class="section-header" (click)="toggleSection('resources')">
         <mat-icon class="section-icon">{{ sections.resources.icon }}</mat-icon>
         <span class="section-label">{{ sections.resources.label }}</span>
@@ -350,9 +350,10 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────
-         ADMIN (super-admin only)
+         ADMIN — visible to super-admin, admin, and cp (with CP-specific
+         item-level filtering via canShowRoute — see role-visibility.ts).
          ───────────────────────────────────────────────────── -->
-    <div class="nav-section" *ngxPermissionsOnly="['super-admin']">
+    <div class="nav-section" *ngIf="showSection('admin')">
       <button class="section-header" (click)="toggleSection('admin')">
         <mat-icon class="section-icon">{{ sections.admin.icon }}</mat-icon>
         <span class="section-label">{{ sections.admin.label }}</span>
@@ -360,79 +361,104 @@
       </button>
 
       <div class="section-items" [class.collapsed]="!isSectionOpen('admin')">
-        <a mat-button routerLink="/app/revenue-dashboard" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/revenue-dashboard')"
+           mat-button routerLink="/app/revenue-dashboard" routerLinkActive="active">
           <mat-icon>monetization_on</mat-icon><span class="label">Revenue Dashboard</span>
         </a>
-        <a mat-button routerLink="/app/administration/users" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/users')"
+           mat-button routerLink="/app/administration/users" routerLinkActive="active">
           <mat-icon>manage_accounts</mat-icon><span class="label">Users</span>
         </a>
-        <a mat-button routerLink="/app/administration/agents" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/agents')"
+           mat-button routerLink="/app/administration/agents" routerLinkActive="active">
           <mat-icon>support_agent</mat-icon><span class="label">Agents</span>
         </a>
-        <a mat-button routerLink="/app/administration/roles" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/roles')"
+           mat-button routerLink="/app/administration/roles" routerLinkActive="active">
           <mat-icon>badge</mat-icon><span class="label">Roles</span>
         </a>
-        <a mat-button routerLink="/app/administration/permissions" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/permissions')"
+           mat-button routerLink="/app/administration/permissions" routerLinkActive="active">
           <mat-icon>admin_panel_settings</mat-icon><span class="label">Permissions</span>
         </a>
-        <a mat-button routerLink="/app/administration/territories" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/territories')"
+           mat-button routerLink="/app/administration/territories" routerLinkActive="active">
           <mat-icon>map</mat-icon><span class="label">Territories</span>
         </a>
-        <a mat-button routerLink="/app/administration/territory-control" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/territory-control')"
+           mat-button routerLink="/app/administration/territory-control" routerLinkActive="active">
           <mat-icon>tune</mat-icon><span class="label">Territory Control</span>
         </a>
-        <a mat-button routerLink="/app/administration/lead-distribution" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/lead-distribution')"
+           mat-button routerLink="/app/administration/lead-distribution" routerLinkActive="active">
           <mat-icon>share</mat-icon><span class="label">Lead Distribution</span>
         </a>
-        <a mat-button routerLink="/app/administration/lead-intake" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/lead-intake')"
+           mat-button routerLink="/app/administration/lead-intake" routerLinkActive="active">
           <mat-icon>input</mat-icon><span class="label">Lead Intake</span>
         </a>
-        <a mat-button routerLink="/app/administration/escalation-admin" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/escalation-admin')"
+           mat-button routerLink="/app/administration/escalation-admin" routerLinkActive="active">
           <mat-icon>escalator_warning</mat-icon><span class="label">Escalations</span>
         </a>
-        <a mat-button routerLink="/app/administration/pricing-admin" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/pricing-admin')"
+           mat-button routerLink="/app/administration/pricing-admin" routerLinkActive="active">
           <mat-icon>price_change</mat-icon><span class="label">Pricing</span>
         </a>
-        <a mat-button routerLink="/app/administration/rotation-config" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/rotation-config')"
+           mat-button routerLink="/app/administration/rotation-config" routerLinkActive="active">
           <mat-icon>settings_suggest</mat-icon><span class="label">Rotation Config</span>
         </a>
-        <a mat-button routerLink="/app/administration/intake-control" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/intake-control')"
+           mat-button routerLink="/app/administration/intake-control" routerLinkActive="active">
           <mat-icon>settings_input_component</mat-icon><span class="label">Intake Control</span>
         </a>
-        <a mat-button routerLink="/app/administration/outreach-compliance" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/outreach-compliance')"
+           mat-button routerLink="/app/administration/outreach-compliance" routerLinkActive="active">
           <mat-icon>gavel</mat-icon><span class="label">Outreach Compliance</span>
         </a>
-        <a mat-button routerLink="/app/administration/agent-setup" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/agent-setup')"
+           mat-button routerLink="/app/administration/agent-setup" routerLinkActive="active">
           <mat-icon>person_add</mat-icon><span class="label">Agent Setup Wizard</span>
         </a>
-        <a mat-button routerLink="/app/administration/recruits-admin" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/recruits-admin')"
+           mat-button routerLink="/app/administration/recruits-admin" routerLinkActive="active">
           <mat-icon>group_add</mat-icon><span class="label">Recruits Admin</span>
         </a>
-        <a mat-button routerLink="/app/administration/title-change" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/title-change')"
+           mat-button routerLink="/app/administration/title-change" routerLinkActive="active">
           <mat-icon>swap_horiz</mat-icon><span class="label">Title Change</span>
         </a>
-        <a mat-button routerLink="/app/admin/commissions" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/admin/commissions')"
+           mat-button routerLink="/app/admin/commissions" routerLinkActive="active">
           <mat-icon>attach_money</mat-icon><span class="label">Commission Admin</span>
         </a>
-        <a mat-button routerLink="/app/administration/policies" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/policies')"
+           mat-button routerLink="/app/administration/policies" routerLinkActive="active">
           <mat-icon>policy</mat-icon><span class="label">Policies</span>
         </a>
-        <a mat-button routerLink="/app/tags" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/tags')"
+           mat-button routerLink="/app/tags" routerLinkActive="active">
           <mat-icon>sell</mat-icon><span class="label">Tags</span>
         </a>
-        <a mat-button routerLink="/app/administration/tasks/task-list" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/tasks/task-list')"
+           mat-button routerLink="/app/administration/tasks/task-list" routerLinkActive="active">
           <mat-icon>task</mat-icon><span class="label">Admin Tasks</span>
         </a>
-        <a mat-button routerLink="/app/administration/schedules/schedule-list" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/schedules/schedule-list')"
+           mat-button routerLink="/app/administration/schedules/schedule-list" routerLinkActive="active">
           <mat-icon>schedule</mat-icon><span class="label">Schedules</span>
         </a>
-        <a mat-button routerLink="/app/administration/announcements" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/announcements')"
+           mat-button routerLink="/app/administration/announcements" routerLinkActive="active">
           <mat-icon>campaign</mat-icon><span class="label">Announcements</span>
         </a>
-        <a mat-button routerLink="/app/administration/newsletters" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/newsletters')"
+           mat-button routerLink="/app/administration/newsletters" routerLinkActive="active">
           <mat-icon>newspaper</mat-icon><span class="label">Newsletters</span>
         </a>
-        <a mat-button routerLink="/app/administration/release-notes" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/administration/release-notes')"
+           mat-button routerLink="/app/administration/release-notes" routerLinkActive="active">
           <mat-icon>new_releases</mat-icon><span class="label">Release Notes</span>
         </a>
       </div>

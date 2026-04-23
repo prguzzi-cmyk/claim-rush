@@ -9,6 +9,7 @@ import { TabService } from 'src/app/services/tab.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PasskeyRegisterDialogComponent } from '../dialogs/passkey-register-dialog/passkey-register-dialog.component';
 import { environment } from 'src/environments/environment';
+import { ROLE_LANDING, DEFAULT_LANDING, AppRole } from 'src/app/config/role-visibility';
 
 export type LoginMode = 'main' | 'password' | 'magic-link' | 'magic-link-sent';
 
@@ -113,17 +114,10 @@ export class LoginComponent implements OnInit {
               if (redirectUrl) {
                 localStorage.removeItem('redirectUrl');
                 this.router.navigateByUrl(redirectUrl);
-              } else if (
-                response?.role?.name == 'super-admin' ||
-                response?.role?.name == 'admin'
-              ) {
-                this.router.navigate(['/app/agent-dashboard']);
-              } else if (response?.role?.name == 'customer') {
-                this.router.navigate(['/app/customer-dashboard']);
-              } else if (response?.role?.name == 'sales-rep') {
-                this.router.navigate(['/app/sales-dashboard']);
               } else {
-                this.router.navigate(['/app/agent-dashboard']);
+                const role = (response?.role?.name || '') as AppRole;
+                const target = ROLE_LANDING[role] ?? DEFAULT_LANDING;
+                this.router.navigate([target]);
               }
               this.maybeOfferPasskeySetup();
             }
