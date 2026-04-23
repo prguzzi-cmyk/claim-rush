@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch as rawApiFetch } from "../lib/api";
 
 /**
  * Phase 17c — My Seminars page.
@@ -17,24 +18,15 @@ const TYPES = [
   { value: "custom", label: "Custom" },
 ];
 
-function getToken() {
-  const raw = localStorage.getItem("access_token");
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return raw; }
-}
-
+// Delegates to the shared apiFetch so requests reach VITE_API_URL with
+// the bearer token attached, instead of the Vercel origin.
 function apiFetch(path) {
-  const token = getToken();
-  return fetch(`/v1/seminars${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  }).then(r => r.ok ? r.json() : []);
+  return rawApiFetch(`/seminars${path}`).then(r => r.ok ? r.json() : []);
 }
 
 function apiPost(path, body) {
-  const token = getToken();
-  return fetch(`/v1/seminars${path}`, {
+  return rawApiFetch(`/seminars${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).then(r => r.json());
 }

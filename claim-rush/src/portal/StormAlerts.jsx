@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch } from "../lib/api";
 
 /**
  * Phase 17e — Storm Alerts for CP/RVP/Agent.
@@ -13,12 +14,6 @@ const mono = { fontFamily: "'Courier New', monospace" };
 const EVENT_ICONS = { tornado: "🌪️", hail: "🧊", hurricane: "🌀", flooding: "💧", fire: "🔥", wind: "💨" };
 const SEVERITY_COLORS = { extreme: RED, severe: RED, high: "#E08050", moderate: GOLD, low: "rgba(255,255,255,0.4)" };
 
-function getToken() {
-  const raw = localStorage.getItem("access_token");
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return raw; }
-}
-
 export default function StormAlerts() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,10 +23,7 @@ export default function StormAlerts() {
 
   function load() {
     setLoading(true);
-    const token = getToken();
-    fetch("/v1/seminars/storm-triggers/alerts/me", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    apiFetch("/seminars/storm-triggers/alerts/me")
       .then(r => r.ok ? r.json() : [])
       .then(d => { setAlerts(Array.isArray(d) ? d : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -39,11 +31,7 @@ export default function StormAlerts() {
 
   function scheduleSeminar(triggerId) {
     setScheduling(triggerId);
-    const token = getToken();
-    fetch(`/v1/seminars/storm-triggers/${triggerId}/schedule-seminar`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    })
+    apiFetch(`/seminars/storm-triggers/${triggerId}/schedule-seminar`, { method: "POST" })
       .then(r => r.json())
       .then(() => { setScheduling(null); load(); })
       .catch(() => setScheduling(null));

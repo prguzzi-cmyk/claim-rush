@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { apiFetch as rawApiFetch } from "../lib/api";
 
 /**
  * Phase 17b — Seminar Training Center.
@@ -10,24 +11,17 @@ const GOLD = "#C9A84C";
 const GREEN = "#00E6A8";
 const mono = { fontFamily: "'Courier New', monospace" };
 
-function getToken() {
-  const raw = localStorage.getItem("access_token");
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return raw; }
-}
-
+// Local `apiFetch`/`apiPost` delegate to the shared apiFetch helper so all
+// requests get the VITE_API_URL prefix + bearer token. Kept as scoped
+// helpers to preserve the "/seminars" prefix convention used throughout
+// this file.
 function apiFetch(path) {
-  const token = getToken();
-  return fetch(`/v1/seminars${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : {},
-  }).then(r => r.ok ? r.json() : null);
+  return rawApiFetch(`/seminars${path}`).then(r => r.ok ? r.json() : null);
 }
 
 function apiPost(path, body) {
-  const token = getToken();
-  return fetch(`/v1/seminars${path}`, {
+  return rawApiFetch(`/seminars${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   }).then(r => r.json());
 }
