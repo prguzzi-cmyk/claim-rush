@@ -777,7 +777,7 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         {[
-          { label: "🔥 Find Leads", to: "/portal/rin/fire-leads", color: "#00E6A8" },
+          { label: "🔥 Find Leads", to: "/portal/fire-leads", color: "#00E6A8" },
           { label: "📞 Call with Marcus", to: "/portal/rin/marcus", color: "#3B82F6" },
           { label: "✍️ Sign Client", to: "/portal/rin/sign", color: C.gold },
         ].map(a => (

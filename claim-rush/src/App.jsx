@@ -13,6 +13,7 @@ import CommunityLocal from "./pages/CommunityLocal";
 import PortalLayout from "./portal/PortalLayout";
 import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
+import LeadsBoard from "./portal/LeadsBoard";
 import PitchMode from "./portal/PitchMode";
 import SeminarTraining from "./portal/SeminarTraining";
 import MySeminars from "./portal/MySeminars";
@@ -125,7 +126,9 @@ export default function App() {
         <Route path="settings" element={<SettingsPage />} />
 
         {/* Phase 5+6: RIN iframe features — FIND/WORK LEADS */}
-        <Route path="rin/fire-leads"    element={<IframeFeature rinRoute="/app/fire-leads" title="Fire Leads" />} />
+        {/* Fire Leads — real native component, backed by /v1/dashboard/cp-leads */}
+        <Route path="fire-leads"        element={<LeadsBoard />} />
+        <Route path="rin/fire-leads"    element={<LeadsBoard />} />
         <Route path="rin/water-leads"   element={<IframeFeature rinRoute="/app/fire-leads" title="Water Damage Leads" rinQuery="peril=flood" />} />
         <Route path="rin/claims"        element={<IframeFeature rinRoute="/app/claims" title="Claims" />} />
         <Route path="rin/claim-files"   element={<IframeFeature rinRoute="/app/claim-file-manager" title="Claim File Manager" />} />

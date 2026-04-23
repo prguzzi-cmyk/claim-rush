@@ -17,7 +17,7 @@ const items = {
   pitchMode:       { to: "/portal/pitch",               label: "Pitch Mode",          icon: "\u{1F3AF}" },
 
   // ── FIND LEADS ──
-  fireLeads:       { to: "/portal/rin/fire-leads",       label: "Fire Leads",          icon: "\u{1F525}", rinRoute: "/app/fire-leads" },
+  fireLeads:       { to: "/portal/fire-leads",           label: "Fire Leads",          icon: "\u{1F525}" },
   waterLeads:      { to: "/portal/rin/water-leads",      label: "Water Leads",         icon: "\u{1F4A7}", rinRoute: "/app/fire-leads", rinQuery: "peril=flood" },
   stormIntel:      { to: "/portal/rin/storm-intel",      label: "Storm Intel",         icon: "\u26C8\uFE0F", rinRoute: "/app/storm-intelligence" },
   roofIntel:       { to: "/portal/rin/roof-intel",       label: "Roof Intel",          icon: "\u{1F3E0}", rinRoute: "/app/roof-intelligence" },
