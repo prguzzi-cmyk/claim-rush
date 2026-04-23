@@ -209,6 +209,7 @@ export class LoginComponent implements OnInit {
           this.dialog.open(PasskeyRegisterDialogComponent, {
             width: '420px',
             disableClose: false,
+            panelClass: 'dark-dialog-panel',
           });
         }
       },
