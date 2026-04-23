@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { apiFetch } from "../lib/api";
 
 /**
  * Phase 16b — Finalized franchise-style CP/RVP/Agent website templates.
@@ -475,17 +476,13 @@ export default function SitePreview() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    function getToken() { const r = localStorage.getItem("access_token"); if (!r) return null; try { return JSON.parse(r); } catch { return r; } }
-
-    fetch(`/v1/website-manager/resolve?host=claimrush.com&path=/${role}/${slug}`)
+    apiFetch(`/website-manager/resolve?host=claimrush.com&path=/${role}/${slug}`)
       .then(r => {
         if (r.ok) return r.json();
-        const token = getToken();
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        return fetch(`/v1/website-manager/sites`, { headers }).then(r2 => r2.json()).then(sites => {
+        return apiFetch(`/website-manager/sites`).then(r2 => r2.json()).then(sites => {
           const m = sites.find(s => s.subdomain === slug);
           if (!m) throw new Error("Site not found");
-          return fetch(`/v1/website-manager/sites/${m.id}/content`, { headers }).then(r3 => r3.json()).then(c => {
+          return apiFetch(`/website-manager/sites/${m.id}/content`).then(r3 => r3.json()).then(c => {
             let f = {}; try { f = typeof c[0]?.fields === "string" ? JSON.parse(c[0].fields) : (c[0]?.fields || {}); } catch {}
             return { site: m, content: c[0], fields: f };
           });

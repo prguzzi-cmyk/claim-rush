@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { apiFetch } from "../lib/api";
 
 /**
  * Page 3: Chapter President local /community page (template).
@@ -23,7 +24,7 @@ export default function CommunityLocal() {
 
   useEffect(() => {
     // Try to load from resolver
-    fetch(`/v1/website-manager/resolve?host=claimrush.com&path=/cp/${slug}`)
+    apiFetch(`/website-manager/resolve?host=claimrush.com&path=/cp/${slug}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.content?.fields) {

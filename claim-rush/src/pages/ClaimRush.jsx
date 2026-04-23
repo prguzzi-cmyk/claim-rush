@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { apiFetch } from "../lib/api";
 
 const C = {
   black: "#060810",
@@ -218,8 +219,8 @@ function ApplicationForm() {
   async function handleSubmit() {
     setSubmitting(true); setError("");
     try {
-      const res = await fetch("/v1/applications", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+      const res = await apiFetch("/applications", {
+        method: "POST",
         body: JSON.stringify({ ...data, years_in_insurance: parseInt(data.years_in_insurance) || 0, years_in_sales: parseInt(data.years_in_sales) || 0 }),
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || `Error ${res.status}`); }
