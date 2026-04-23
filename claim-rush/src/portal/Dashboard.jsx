@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { C } from "./theme";
 import { useAxisContext } from "./AxisContext";
 import RetentionWidgets from "./RetentionWidgets";
+import { apiJson, apiFetch } from "../lib/api";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 const PURPLE = "#A855F7";
@@ -133,14 +134,9 @@ function AgentDash({ navigate }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
-    fetch("/v1/dashboard/agent-summary", {
-      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
-    })
-      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+    apiJson("/dashboard/agent-summary")
       .then(d => { setData(d); setLoading(false); })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch(e => { setError(String(e?.status ?? e?.detail ?? e)); setLoading(false); });
   }, []);
 
   if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
@@ -261,14 +257,9 @@ function RVPDash({ navigate }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
-    fetch("/v1/dashboard/rvp-summary", {
-      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
-    })
-      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+    apiJson("/dashboard/rvp-summary")
       .then(d => { setData(d); setLoading(false); })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch(e => { setError(String(e?.status ?? e?.detail ?? e)); setLoading(false); });
   }, []);
 
   if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
@@ -399,14 +390,9 @@ function CPDash({ navigate }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
-    fetch("/v1/dashboard/cp-summary", {
-      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
-    })
-      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); })
+    apiJson("/dashboard/cp-summary")
       .then(d => { setData(d); setLoading(false); })
-      .catch(e => { setError(e.message); setLoading(false); });
+      .catch(e => { setError(String(e?.status ?? e?.detail ?? e)); setLoading(false); });
   }, []);
 
   if (loading) return <div style={{ color: C.muted, ...mono, padding: 40 }}>Loading dashboard...</div>;
@@ -556,11 +542,7 @@ function GrowthPathPanel() {
   const [expressing, setExpressing] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
-    fetch("/v1/cp/growth-path", {
-      headers: parsed ? { Authorization: `Bearer ${parsed}` } : {},
-    })
+    apiFetch("/cp/growth-path")
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setGp(d); setLoading(false); })
       .catch(() => setLoading(false));
@@ -568,12 +550,7 @@ function GrowthPathPanel() {
 
   function expressInterest() {
     setExpressing(true);
-    const token = localStorage.getItem("access_token");
-    const parsed = token ? (token.startsWith('"') ? JSON.parse(token) : token) : null;
-    fetch("/v1/cp/express-interest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(parsed ? { Authorization: `Bearer ${parsed}` } : {}) },
-    })
+    apiFetch("/cp/express-interest", { method: "POST" })
       .then(r => r.json())
       .then(() => {
         setGp(prev => ({ ...prev, adjusting_track_status: "interested" }));
