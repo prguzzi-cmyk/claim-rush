@@ -6,18 +6,12 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
+from pydantic import BaseModel, EmailStr, root_validator
 
 
 # ── Lead Schemas ──────────────────────────────────────────────────
 
 class ClientPortalLeadCreate(BaseModel):
-    # Tolerate extra attribution fields (cp_id, rvp_id, agent_id, territory_id,
-    # campaign_id, referral_code, raw_payload, etc.) without 422 — they're
-    # ignored at this layer and can be picked up by a later attribution pass
-    # once the central API DTO is expanded.
-    model_config = ConfigDict(extra="ignore")
-
     name: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -32,19 +26,27 @@ class ClientPortalLeadCreate(BaseModel):
     source_site: Optional[str] = None
     message: Optional[str] = None
 
-    @model_validator(mode="after")
-    def _combine_first_last_into_name(self) -> "ClientPortalLeadCreate":
+    class Config:
+        # Tolerate extra attribution fields (cp_id, rvp_id, agent_id, territory_id,
+        # campaign_id, referral_code, raw_payload, etc.) without 422 — they're
+        # ignored at this layer and can be picked up by a later attribution pass
+        # once the central API DTO is expanded.
+        extra = "ignore"
+
+    @root_validator(pre=False)
+    def _combine_first_last_into_name(cls, values: dict) -> dict:
         # If callers send first_name/last_name (as upaclaim.org does today)
         # and don't send name, build name from those parts. If name is already
         # set, leave it. If neither is provided, raise a clear error rather
         # than letting the DB NOT NULL constraint surface the failure.
-        if not self.name:
-            parts = [p for p in (self.first_name, self.last_name) if p and p.strip()]
+        name = values.get("name")
+        if not name:
+            parts = [p for p in (values.get("first_name"), values.get("last_name")) if p and p.strip()]
             if parts:
-                object.__setattr__(self, "name", " ".join(parts).strip())
-        if not self.name:
+                values["name"] = " ".join(parts).strip()
+        if not values.get("name"):
             raise ValueError("name (or first_name + last_name) is required")
-        return self
+        return values
 
 
 class ClientPortalLeadUpdate(BaseModel):
