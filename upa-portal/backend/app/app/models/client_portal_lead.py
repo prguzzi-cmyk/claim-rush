@@ -36,7 +36,11 @@ class ClientPortalLead(SoftDeleteMixin, TimestampMixin, Base):
     qualification_status: Mapped[str] = mapped_column(String(30), default="pending")
     # pending → qualified → not_qualified
     source: Mapped[str] = mapped_column(String(50), default="client_portal")
-    # client_portal, fire, storm, manual, referral, etc.
+    # client_portal, upa-main, cp-site, agent-page, campaign, fire, storm, etc.
+    source_site: Mapped[str | None] = mapped_column(String(200))
+    # Originating domain, e.g. upaclaim.org, aciunited.com, a CP subdomain.
+    message: Mapped[str | None] = mapped_column(Text())
+    # Free-form intake message from the homeowner (when provided by the form).
 
     # Engagement tracking
     last_contact_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True))

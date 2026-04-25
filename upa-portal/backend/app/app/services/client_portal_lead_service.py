@@ -61,6 +61,8 @@ class ClientPortalLeadService:
             photo_count=data.photo_count,
             has_3d_scan=data.has_3d_scan,
             source=data.source,
+            source_site=data.source_site,
+            message=data.message,
             status="new",
             qualification_status="pending",
         )
