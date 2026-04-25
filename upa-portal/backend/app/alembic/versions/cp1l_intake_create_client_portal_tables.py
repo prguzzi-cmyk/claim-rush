@@ -14,8 +14,17 @@ combines first_name + last_name into name before persisting, so the DB
 constraint stays strict regardless of which payload shape callers send.
 
 Revision ID: cp1l_intake01
-Revises: r0le_d3m001
+Revises: 8ecbe7dc5d52
 Create Date: 2026-04-25 15:55:00.000000
+
+Note on down_revision: this migration is set to depend directly on
+8ecbe7dc5d52, the alembic head currently applied to the production
+database (and thus also to the staging DB restored from a production
+snapshot). The local source has additional migrations between
+8ecbe7dc5d52 and r0le_d3m001 that have never been applied to production
+and would not deploy cleanly without unrelated cleanup. Pinning the
+down_revision here keeps this migration as a clean append on top of
+the production schema, independent of that unreleased branch.
 """
 from alembic import op
 import sqlalchemy as sa
@@ -23,7 +32,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 
 revision = "cp1l_intake01"
-down_revision = "r0le_d3m001"
+down_revision = "8ecbe7dc5d52"
 branch_labels = None
 depends_on = None
 
