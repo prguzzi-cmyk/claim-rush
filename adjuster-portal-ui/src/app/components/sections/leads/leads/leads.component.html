@@ -25,29 +25,34 @@
 
     <!-- CRM Dashboard KPIs -->
     <div class="crm-kpi-row">
-      <div class="crm-kpi crm-kpi-total">
+      <div class="crm-kpi crm-kpi-total"
+           matTooltip="All non-removed leads matching the active search/filter (server-side total, not page-scoped).">
         <div class="crm-kpi-val">{{ totalRecords }}</div>
-        <div class="crm-kpi-label">Total Leads</div>
+        <div class="crm-kpi-label">Total Leads <span class="crm-kpi-scope">(all)</span></div>
         <mat-icon class="crm-kpi-icon" style="color:#00C2FF;">people</mat-icon>
       </div>
-      <div class="crm-kpi">
+      <div class="crm-kpi"
+           matTooltip="Count of leads with status = callback (queued for callback) on the rows currently visible. Change page size to scope.">
         <div class="crm-kpi-val">{{ kpiNew }}</div>
-        <div class="crm-kpi-label">New Status Leads</div>
+        <div class="crm-kpi-label">New Status <span class="crm-kpi-scope">(this page)</span></div>
         <mat-icon class="crm-kpi-icon" style="color:#3b82f6;">fiber_new</mat-icon>
       </div>
-      <div class="crm-kpi">
+      <div class="crm-kpi"
+           matTooltip="Count of leads with status = interested / text-sent / responded-yes on the rows currently visible.">
         <div class="crm-kpi-val">{{ kpiContacted }}</div>
-        <div class="crm-kpi-label">Contacted</div>
+        <div class="crm-kpi-label">Contacted <span class="crm-kpi-scope">(this page)</span></div>
         <mat-icon class="crm-kpi-icon" style="color:#8b5cf6;">phone_callback</mat-icon>
       </div>
-      <div class="crm-kpi">
+      <div class="crm-kpi"
+           matTooltip="Count of leads with status = pending-sign on the rows currently visible.">
         <div class="crm-kpi-val">{{ kpiAppointments }}</div>
-        <div class="crm-kpi-label">Appointments</div>
+        <div class="crm-kpi-label">Appointments <span class="crm-kpi-scope">(this page)</span></div>
         <mat-icon class="crm-kpi-icon" style="color:#f59e0b;">event</mat-icon>
       </div>
-      <div class="crm-kpi">
+      <div class="crm-kpi"
+           matTooltip="Count of leads with status = signed / signed-approved on the rows currently visible.">
         <div class="crm-kpi-val" style="color:#10b981;">{{ kpiSigned }}</div>
-        <div class="crm-kpi-label">Signed Deals</div>
+        <div class="crm-kpi-label">Signed Deals <span class="crm-kpi-scope">(this page)</span></div>
         <mat-icon class="crm-kpi-icon" style="color:#10b981;">handshake</mat-icon>
       </div>
     </div>

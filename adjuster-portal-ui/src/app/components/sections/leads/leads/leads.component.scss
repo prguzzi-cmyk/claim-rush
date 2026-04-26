@@ -213,8 +213,8 @@
 
 .crm-kpi {
   position: relative;
-  background: #111820 !important;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #1A2332 !important;
+  border: 1px solid rgba(255, 255, 255, 0.20);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
@@ -240,8 +240,8 @@
 // First KPI = "Total Leads" — featured with a cyan accent edge so it
 // reads as the headline number, not just one of five equals.
 .crm-kpi-total {
-  background: linear-gradient(180deg, #131C28 0%, #111820 100%) !important;
-  border-color: rgba(0, 194, 255, 0.35);
+  background: linear-gradient(180deg, #1F2B3F 0%, #1A2332 100%) !important;
+  border-color: rgba(0, 194, 255, 0.45);
 
   .crm-kpi-val {
     color: #00C2FF !important;
@@ -263,16 +263,26 @@
   margin-top: 2px;
 }
 
+.crm-kpi-scope {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #6B7A8D;
+  text-transform: lowercase;
+  letter-spacing: 0;
+}
+
 // ── Pipeline ──────────────────────────────────────────────────
 .crm-pipeline {
   display: flex;
   gap: 0;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.20);
   border-radius: 10px;
   overflow: hidden;
-  background: #111820 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  background: #1A2332 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .pipeline-stage {
@@ -282,7 +292,7 @@
   cursor: pointer;
   border-top: 3px solid transparent;
   transition: background 0.15s;
-  background: #111820 !important;
+  background: #1A2332 !important;
   border-right: 1px solid rgba(255, 255, 255, 0.10);
   color: #E8ECF1;
 
@@ -291,7 +301,7 @@
   }
 
   &:hover {
-    background: #1A2332 !important;
+    background: #21304D !important;
   }
 
   &.pipeline-active {

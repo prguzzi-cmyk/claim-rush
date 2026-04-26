@@ -719,6 +719,33 @@
   tr:hover td { background: rgba(99, 102, 241, 0.04); }
 }
 
+// ── KPI tile: offline state (e.g. AI Calls while voice is disabled) ──
+// Muted fill + lower opacity on the value, tiny "offline" tag next to
+// the label so the user understands the 0 isn't a system failure —
+// the feature is intentionally not running.
+.kpi-tile-offline {
+  opacity: 0.7;
+
+  .kpi-tile-value {
+    color: #6B7A8D !important;
+  }
+}
+
+.kpi-tile-offline-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: #8899AA;
+  font-size: 0.55rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+
 // ═══════════════════════════════════════════════════════
 // RESPONSIVE
 // ═══════════════════════════════════════════════════════

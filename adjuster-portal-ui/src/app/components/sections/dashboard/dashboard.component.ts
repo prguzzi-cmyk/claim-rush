@@ -40,8 +40,9 @@ const MARKER_COLORS: Record<string, string> = {
 
 const WILDLAND_TYPES = ['VEG', 'WVEG', 'GF', 'OF', 'FF', 'WF', 'CB', 'IF'];
 const SATELLITE_TYPES = ['SAT'];
-const PROPERTY_DAMAGE_CALL_TYPES = 'SF,CF,RF,WSF,WCF,WRF,FIRE,FULL,FA,EXP,GL,VEH';
-const PROPERTY_DAMAGE_KEYWORDS = ['structure fire', 'commercial fire', 'vehicle fire', 'fire alarm', 'explosion', 'gas leak', 'residential fire', 'building fire'];
+// Removed: PROPERTY_DAMAGE_CALL_TYPES + PROPERTY_DAMAGE_KEYWORDS hard-coded
+// whitelists. Backend's call_type_config.is_enabled is now the canonical
+// filter (see loadIncidents and isPropertyDamageIncident below).
 
 const REFRESH_INTERVAL_MS = 30000;
 const NEW_INDICATOR_DURATION_MS = 300000;
@@ -355,13 +356,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const today = this.getTodayMidnight();
     const t0 = performance.now();
 
-    this.dashboardService.getRecentFireIncidents(1, 500, today, PROPERTY_DAMAGE_CALL_TYPES).pipe(
+    // No call_type whitelist — the backend auto-filters to
+    // call_type_config.is_enabled codes which is the canonical, admin-
+    // editable source of truth. The previous hard-coded
+    // PROPERTY_DAMAGE_CALL_TYPES list excluded every active ingestion
+    // source's actual codes (socrata=911, NIFC=WF) → 0 results.
+    this.dashboardService.getRecentFireIncidents(1, 500, today).pipe(
       catchError(err => {
-        // Primary query failed — try without call_type filter
-        console.warn('[CC] fire-incidents (filtered) FAILED:', err?.status, '— retrying without call_type filter');
+        console.warn('[CC] fire-incidents FAILED:', err?.status, '— retry once');
         return this.dashboardService.getRecentFireIncidents(1, 200, today).pipe(
           catchError(err2 => {
-            console.warn('[CC] fire-incidents (unfiltered) also FAILED:', err2?.status);
+            console.warn('[CC] fire-incidents retry also FAILED:', err2?.status);
             return of({ items: [], total: 0 });
           })
         );
@@ -460,11 +465,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private isPropertyDamageIncident(incident: FireIncident): boolean {
+    // Backend already auto-filters to call_type_config.is_enabled codes.
+    // We just exclude the known wildland/satellite types so the dashboard
+    // map keeps its "property fires" focus distinct from satellite/forest.
     const code = (incident.call_type || '').toUpperCase();
-    const allowedCodes = PROPERTY_DAMAGE_CALL_TYPES.split(',');
-    if (allowedCodes.includes(code)) return true;
-    const desc = (incident.call_type_description || '').toLowerCase();
-    return PROPERTY_DAMAGE_KEYWORDS.some(kw => desc.includes(kw));
+    if (WILDLAND_TYPES.includes(code) || SATELLITE_TYPES.includes(code)) {
+      return false;
+    }
+    return true;
   }
 
   private clearExpiredNewIndicators(incidents: FireIncident[]): void {
