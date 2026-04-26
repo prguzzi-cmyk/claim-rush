@@ -160,9 +160,9 @@ function getOutreachSms(lead) {
   const firstName = lead.name.split(" ")[0];
   const damageLC = lead.damage.toLowerCase();
   const messages = {
-    Homeowner: `Hi ${firstName}, we noticed your property at ${lead.address} may have experienced ${damageLC}. We help homeowners protect their claims and avoid underpayments. Would you like a quick review? — Claim Rush`,
-    Landlord: `Hi ${firstName}, we saw the ${damageLC} report for your property at ${lead.address}. We help landlords file tenant damage claims and recover lost rent. Can we set up a quick call? — Claim Rush`,
-    Business: `Hi ${firstName}, we flagged ${damageLC} at ${lead.address}. Business claims are time-sensitive — we help protect against co-insurance penalties and interruption losses. Want a free review? — Claim Rush`,
+    Homeowner: `Hi ${firstName}, we noticed your property at ${lead.address} may have experienced ${damageLC}. We help homeowners protect their claims and avoid underpayments. Would you like a quick review? — Unified Public Advocacy`,
+    Landlord: `Hi ${firstName}, we saw the ${damageLC} report for your property at ${lead.address}. We help landlords file tenant damage claims and recover lost rent. Can we set up a quick call? — Unified Public Advocacy`,
+    Business: `Hi ${firstName}, we flagged ${damageLC} at ${lead.address}. Business claims are time-sensitive — we help protect against co-insurance penalties and interruption losses. Want a free review? — Unified Public Advocacy`,
   };
   return messages[lead.type] || messages.Homeowner;
 }
@@ -171,7 +171,7 @@ function getOutreachEmail(lead) {
   const firstName = lead.name.split(" ")[0];
   const damageLC = lead.damage.toLowerCase();
   const rec = getAiRecommendation(lead);
-  return `Subject: Protecting your property after ${damageLC}\n\nHi ${firstName},\n\nWe recently identified ${damageLC} affecting your property at ${lead.address}, ${lead.state}. Based on our analysis, properties like yours face a high risk of underpaid claims and coverage disputes.\n\nOur ${rec.program} plan is designed specifically for ${lead.type.toLowerCase()}s in this situation — giving you access to claim review support, policy guidance, and protection from contractor fraud.\n\nWould you be open to a quick 10-minute call this week?\n\nBest,\nClaim Rush Team`;
+  return `Subject: Protecting your property after ${damageLC}\n\nHi ${firstName},\n\nWe recently identified ${damageLC} affecting your property at ${lead.address}, ${lead.state}. Based on our analysis, properties like yours face a high risk of underpaid claims and coverage disputes.\n\nOur ${rec.program} plan is designed specifically for ${lead.type.toLowerCase()}s in this situation — giving you access to claim review support, policy guidance, and protection from contractor fraud.\n\nWould you be open to a quick 10-minute call this week?\n\nBest,\nUnified Public Advocacy`;
 }
 
 // ── KPI DATA ─────────────────────────────────────────────────────────────────
@@ -1186,7 +1186,7 @@ const CALL_OUTCOMES = [
 ];
 
 const AI_TRANSCRIPT_LINES = [
-  { speaker: "ai", text: "Hi, this is LEX calling on behalf of Claim Rush about the damage report at your property.", delay: 0 },
+  { speaker: "ai", text: "Hi, this is LEX calling on behalf of Unified Public Advocacy about the damage report at your property.", delay: 0 },
   { speaker: "ai", text: "We help property owners make sure their insurance claims aren't underpaid.", delay: 3000 },
   { speaker: "client", text: "Oh, okay. Yeah we had some damage from the storm.", delay: 6000 },
   { speaker: "ai", text: "I understand. Most claims in your area get underpaid by 30-40%. Our team can do a free review.", delay: 9000 },
@@ -1336,7 +1336,7 @@ function AICallPanel({ lead, onClose, onOutcome, onTakeOver }) {
               }}>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", letterSpacing: 1, textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>CALL SCRIPT</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, fontWeight: 500 }}>
-                  ✦ Introduce as LEX from Claim Rush<br />
+                  ✦ Introduce as LEX from Unified Public Advocacy<br />
                   ✦ Reference damage: {lead.damage}<br />
                   ✦ Mention 30-40% underpayment stat<br />
                   ✦ Offer free review + enrollment link

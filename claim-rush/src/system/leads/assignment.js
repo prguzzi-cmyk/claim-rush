@@ -62,10 +62,10 @@ export function sendLeadToAgent(lead) {
   if (lead.phone) lines.push(`Phone: ${lead.phone}`);
   if (lead.incident_type) lines.push(`Incident: ${lead.incident_type}`);
 
-  const body = `New fire lead assigned to you.\n\n${lines.join('\n')}\n\n⚠️ FORWARD TO: makmin@upaclaim.org`;
+  const body = `New fire lead assigned to you.\n\n${lines.join('\n')}\n\n⚠️ FORWARD TO: makmin@upaclaim.org\n\n—\nHandled by ACI Adjustment Group, Licensed Public Adjuster\non behalf of Unified Public Advocacy`;
 
   resend.emails.send({
-    from: 'ClaimRush <onboarding@resend.dev>',
+    from: 'Unified Public Advocacy <onboarding@resend.dev>',
     to: 'prguzzi@gmail.com',
     subject: '🔥 New Fire Lead - Immediate Action',
     text: body,
