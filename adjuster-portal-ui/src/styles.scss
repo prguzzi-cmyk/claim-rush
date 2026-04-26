@@ -177,3 +177,49 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+
+/* ─────────────────────────────────────────────────────────────────────
+ * GLOBAL — Solid premium-dark KPI/stat cards
+ * ----------------------------------------------------------------------
+ * 21+ components define .kpi-card / .kpi-tile / .crm-kpi / .stat-card
+ * each with their own per-component SCSS, many of which fall back to
+ * `background: var(--surface-card, #fff)` (light-theme white). This
+ * global pass forces every KPI-pattern surface to a solid #1A2332 so
+ * the user never sees a faded panel regardless of which page they
+ * land on. !important wins over component-scoped rules; this also
+ * preserves layout (no width/padding/grid changes).
+ * ─────────────────────────────────────────────────────────────────── */
+.kpi-card,
+.kpi-tile,
+.crm-kpi,
+.stat-card,
+.stats-card,
+.metric-card {
+  background: #1A2332 !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Numeric values inside any KPI-style card render bright white for
+ * max legibility. Per-component rules can still override the color
+ * (e.g. Total Leads featured cyan) by raising specificity. */
+.kpi-card .kpi-value,
+.kpi-tile .kpi-tile-value,
+.crm-kpi .crm-kpi-val,
+.stat-card .stat-value,
+.metric-card .metric-value {
+  color: #FFFFFF !important;
+}
+
+/* Labels render in a strong slate (was muted gray on some pages). */
+.kpi-card .kpi-label,
+.kpi-tile .kpi-tile-label,
+.crm-kpi .crm-kpi-label,
+.stat-card .stat-label,
+.metric-card .metric-label {
+  color: #C8D1DC !important;
+}
