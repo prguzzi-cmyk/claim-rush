@@ -25,9 +25,14 @@
 
     <!-- CRM Dashboard KPIs -->
     <div class="crm-kpi-row">
+      <div class="crm-kpi crm-kpi-total">
+        <div class="crm-kpi-val">{{ totalRecords }}</div>
+        <div class="crm-kpi-label">Total Leads</div>
+        <mat-icon class="crm-kpi-icon" style="color:#00C2FF;">people</mat-icon>
+      </div>
       <div class="crm-kpi">
         <div class="crm-kpi-val">{{ kpiNew }}</div>
-        <div class="crm-kpi-label">New Leads</div>
+        <div class="crm-kpi-label">New Status Leads</div>
         <mat-icon class="crm-kpi-icon" style="color:#3b82f6;">fiber_new</mat-icon>
       </div>
       <div class="crm-kpi">

@@ -196,30 +196,34 @@
   font-size: 0.75rem;
 }
 
-// ── CRM Dashboard KPIs ──
-// Aligned to the platform dark theme (page bg #0B0F14, card #111820,
-// text #E8ECF1). Was previously hard-coded to background:#fff which
-// rendered as pale "translucent-looking" cards on the dark page and
-// made labels low-contrast.
+// ═══════════════════════════════════════════════════════════════
+// LEADS PAGE — solid-dark surfaces (premium RIN theme)
+// Hardcoded hex values + !important to win Material specificity battles
+// and to avoid relying on token cascade reaching nested MDC internals.
+// Verified against: page #0B0F14, surface-card #111820, text #E8ECF1.
+// ═══════════════════════════════════════════════════════════════
+
+// ── KPI cards ──────────────────────────────────────────────────
 .crm-kpi-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
 
 .crm-kpi {
   position: relative;
-  background: var(--surface-card, #111820);
-  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  background: #111820 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
   transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    border-color: rgba(0, 194, 255, 0.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+    border-color: rgba(0, 194, 255, 0.5);
   }
 
   .crm-kpi-icon {
@@ -229,34 +233,46 @@
     font-size: 22px;
     width: 22px;
     height: 22px;
-    opacity: 0.7;
+    opacity: 0.85;
+  }
+}
+
+// First KPI = "Total Leads" — featured with a cyan accent edge so it
+// reads as the headline number, not just one of five equals.
+.crm-kpi-total {
+  background: linear-gradient(180deg, #131C28 0%, #111820 100%) !important;
+  border-color: rgba(0, 194, 255, 0.35);
+
+  .crm-kpi-val {
+    color: #00C2FF !important;
   }
 }
 
 .crm-kpi-val {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--text-primary, #E8ECF1);
+  color: #E8ECF1 !important;
   font-family: 'SF Mono', 'Roboto Mono', monospace;
 }
 
 .crm-kpi-label {
   font-size: 0.72rem;
-  color: var(--text-secondary, #8899AA);
+  color: #AAB8C8 !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
-// ── Pipeline View ──
+// ── Pipeline ──────────────────────────────────────────────────
 .crm-pipeline {
   display: flex;
   gap: 0;
   margin-bottom: 20px;
-  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   overflow: hidden;
-  background: var(--surface-card, #111820);
+  background: #111820 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .pipeline-stage {
@@ -266,21 +282,21 @@
   cursor: pointer;
   border-top: 3px solid transparent;
   transition: background 0.15s;
-  background: var(--surface-card, #111820);
-  border-right: 1px solid var(--border-muted, rgba(255, 255, 255, 0.04));
-  color: var(--text-primary, #E8ECF1);
+  background: #111820 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.10);
+  color: #E8ECF1;
 
   &:last-child {
     border-right: none;
   }
 
   &:hover {
-    background: var(--surface-elevated, #1A2332);
+    background: #1A2332 !important;
   }
 
   &.pipeline-active {
-    background: rgba(0, 194, 255, 0.10);
-    border-top-color: var(--color-primary-500, #00C2FF);
+    background: rgba(0, 194, 255, 0.14) !important;
+    border-top-color: #00C2FF;
   }
 }
 
@@ -289,24 +305,26 @@
   font-size: 1.4rem;
   font-weight: 800;
   font-family: 'SF Mono', 'Roboto Mono', monospace;
-  color: var(--text-primary, #E8ECF1);
+  color: #E8ECF1;
 }
 
 .pipeline-label {
   display: block;
   font-size: 0.65rem;
-  color: var(--text-secondary, #8899AA);
+  color: #AAB8C8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
+@media (max-width: 1100px) {
+  .crm-kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 768px) {
   .crm-kpi-row { grid-template-columns: repeat(2, 1fr); }
   .crm-pipeline { flex-wrap: wrap; }
   .pipeline-stage { flex-basis: 33.33%; }
 }
-
 @media (max-width: 480px) {
   .crm-kpi-row { grid-template-columns: 1fr; }
   .pipeline-stage { flex-basis: 50%; }
@@ -314,55 +332,139 @@
 
 .mat-mdc-table-scroll-container {
   overflow-x: auto;
-  max-width: 100%; /* Adjust the max-width as needed */
+  max-width: 100%;
+  background: #111820 !important;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-// ── Defensive contrast: in-row pickers were hard-coded to light bg/border
-//    and looked washed out on dark table rows. Switch to dark surfaces.
+// In-row selects/pickers — solid dark, readable.
 .compact-select {
-  background: var(--surface-muted, #0F1520);
-  border-color: var(--border-default, rgba(255, 255, 255, 0.15));
-  color: var(--text-primary, #E8ECF1);
+  background: #0F1520 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #E8ECF1 !important;
 
   option {
-    background: var(--surface-card, #111820);
-    color: var(--text-primary, #E8ECF1);
+    background: #111820;
+    color: #E8ECF1;
   }
 }
 
-// ── Defensive contrast: ensure the search/filter mat-form-field input
-//    text and label are readable. The theme already sets these via CSS
-//    custom properties, but specificity battles can leave them at the
-//    inherited near-white-on-near-white state seen elsewhere.
+// ═══════════════════════════════════════════════════════════════
+// Material Component Overrides — solid surfaces, !important to win
+// over Material's CSS-variable-based theming when token cascade
+// doesn't reach (the actual symptom users were seeing as washed-out).
+// All hex values are duplicated from _tokens.scss so this file is
+// self-contained.
+// ═══════════════════════════════════════════════════════════════
 :host {
-  .mat-mdc-form-field {
+  // ── Outer container for the whole leads panel ──
+  // The mat-card with appearance="outlined" can render with subtle
+  // surface tint — force the same solid surface as the cards inside.
+  ::ng-deep .mat-mdc-card.mat-mdc-card-outlined,
+  ::ng-deep > mat-card.mat-mdc-card {
+    background: #0B0F14 !important;   // page surface; cards inside pop above this
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  ::ng-deep .mat-mdc-card-content {
+    background: transparent !important;
+    color: #E8ECF1;
+  }
+
+  // ── Search / Filter mat-form-field (Material outlined) ──
+  // The outlined variant can leave its inner wrapper transparent
+  // unless we explicitly fill it. Turn it into a solid pill.
+  ::ng-deep .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper,
+    .mdc-text-field--outlined,
+    .mdc-text-field {
+      background: #0F1520 !important;
+      border-radius: 8px !important;
+    }
+
+    // The notched-outline overlay floats above the wrapper; tint to match.
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.18) !important;
+    }
+
     .mat-mdc-input-element,
     input.mat-mdc-input-element {
-      color: var(--text-primary, #E8ECF1);
-      caret-color: var(--text-primary, #E8ECF1);
+      color: #E8ECF1 !important;
+      caret-color: #00C2FF !important;
     }
+
     .mat-mdc-form-field-label,
     .mdc-floating-label {
-      color: var(--text-secondary, #8899AA);
+      color: #AAB8C8 !important;
+    }
+
+    // Focus state — subtle cyan glow, no washed-out hover overlay.
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #00C2FF !important;
+      }
     }
   }
 
-  // Mat-table headers + cells — make sure rows aren't faded into the bg.
-  .mat-mdc-table {
-    background: transparent;
+  // ── Mat-tab body (Leads / Approvals / etc.) ──
+  // The tab body wrapper inherits from theme but can render
+  // semi-transparent during tab transitions. Force solid.
+  ::ng-deep .mat-mdc-tab-body-content {
+    background: transparent !important;
+  }
+  ::ng-deep .mat-mdc-tab-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-    .mat-mdc-header-row {
-      background: var(--table-header-bg, #0F1520);
-    }
-    .mat-mdc-header-cell {
-      color: var(--table-header-color, #AAB8C8);
-    }
-    .mat-mdc-cell {
-      color: var(--text-primary, #E8ECF1);
-    }
-    .mat-mdc-row:hover {
-      background: var(--table-row-hover, rgba(0, 194, 255, 0.06));
-    }
+  // ── Table — solid header band, alternating row contrast, sturdy hover ──
+  ::ng-deep .mat-mdc-table {
+    background: #111820 !important;
+  }
+
+  ::ng-deep .mat-mdc-header-row {
+    background: #0F1520 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  ::ng-deep .mat-mdc-header-cell {
+    color: #C8D1DC !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px;
+    border-bottom: none;
+  }
+
+  ::ng-deep .mat-mdc-row {
+    background: #111820 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.12s;
+  }
+
+  // Zebra striping for stronger row separation
+  ::ng-deep .mat-mdc-row:nth-child(even) {
+    background: #0D1219 !important;
+  }
+
+  ::ng-deep .mat-mdc-row:hover {
+    background: rgba(0, 194, 255, 0.08) !important;
+  }
+
+  ::ng-deep .mat-mdc-cell {
+    color: #E8ECF1 !important;
+    border-bottom: none;
+  }
+
+  // ── Paginator (sits below table; was also fading) ──
+  ::ng-deep .mat-mdc-paginator {
+    background: #0F1520 !important;
+    color: #AAB8C8;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 }
 
