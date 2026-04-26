@@ -1,6 +1,6 @@
 // Bootstrapping
 import { BrowserModule } from "@angular/platform-browser";
-import { LOCALE_ID, NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
+import { APP_INITIALIZER, LOCALE_ID, NgModule, CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { AppRoutingModule } from "./app-routing.module";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { AppComponent } from "./app.component";
@@ -15,7 +15,7 @@ import { NgxMaskModule, IConfig } from "ngx-mask";
 import { MatTableExporterModule } from "mat-table-exporter";
 
 // Third party dependencies
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { JwtModule } from "@auth0/angular-jwt";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
@@ -869,10 +869,64 @@ export function tokenGetter() {
       AuthGuard,
       UpdateService,
       provideHttpClient(withInterceptorsFromDi()),
+      // Dev-only: when devAutoLogin is on and the localStorage access_token
+      // is missing or expired, fetch a fresh one from the staging API at app
+      // startup. Resolves the bootstrap promise either way (success or
+      // failure) so the app still boots if staging is unreachable.
+      {
+        provide: APP_INITIALIZER,
+        useFactory: devAutoLoginInitializer,
+        deps: [HttpClient],
+        multi: true,
+      },
     ]
 })
 export class AppModule { }
 
 export function jwtTokenGetter() {
   return localStorage.getItem("access_token");
+}
+
+export function devAutoLoginInitializer(http: HttpClient): () => Promise<void> {
+  return () => new Promise<void>((resolve) => {
+    const env = environment as any;
+    if (!env.devAutoLogin || !env.devAutoLoginCredentials) {
+      resolve();
+      return;
+    }
+
+    // Skip if a non-expired token is already in localStorage.
+    const existing = localStorage.getItem("access_token");
+    if (existing) {
+      try {
+        const tok = JSON.parse(existing);
+        const payload = JSON.parse(atob(tok.split(".")[1]));
+        if (payload && payload.exp && payload.exp * 1000 > Date.now() + 60_000) {
+          resolve();
+          return;
+        }
+      } catch {
+        // Malformed; fall through and re-fetch.
+      }
+    }
+
+    // 5-second timeout so a slow/unreachable staging API doesn't hang the app.
+    const timer = setTimeout(() => resolve(), 5000);
+
+    // Note: passes through ApiInterceptor, which prepends environment.server.
+    // So this becomes POST {server}/auth/login.
+    http.post<any>("auth/login", env.devAutoLoginCredentials).subscribe({
+      next: (auth) => {
+        clearTimeout(timer);
+        if (auth && auth.access_token) {
+          localStorage.setItem("access_token", JSON.stringify(auth.access_token));
+        }
+        resolve();
+      },
+      error: () => {
+        clearTimeout(timer);
+        resolve();
+      },
+    });
+  });
 }

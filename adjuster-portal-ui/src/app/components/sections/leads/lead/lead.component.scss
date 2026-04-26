@@ -2,6 +2,29 @@
   color: green;
 }
 
+// Lead detail header/title text was inheriting a near-white body color and
+// rendering invisibly on the .bg-light (#f8f9fa) card. Force readable
+// dark text inside the breadcrumb and the .bg-light contact summary.
+:host {
+  .breadcrumb-item:last-child a {
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .bg-light {
+    color: #1f2937;
+
+    .mat-h4 {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    a {
+      color: #0d6efd;
+    }
+  }
+}
+
 .owner-intel-card {
   border: 1px solid #dee2e6;
   border-radius: 6px;
