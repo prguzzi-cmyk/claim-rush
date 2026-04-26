@@ -22,3 +22,11 @@ celerybeat-schedule.db
 
 # Local Celery logs and PID files
 logs/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local media uploads (user files live on S3/disk in prod)
+app/media/

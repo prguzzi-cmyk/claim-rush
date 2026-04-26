@@ -43,6 +43,7 @@ from app.api.api_v1.endpoints import (
     partnerships,
     networking,
     dashboard,
+    claimrush_dashboards,
     newsletters,
     newsletter_files,
     announcements,
@@ -171,6 +172,14 @@ api_router.include_router(
 # Dashboard Router
 api_router.include_router(
     dashboard.router,
+    prefix=f"/{slugify(Tags.dashboard.value)}",
+    tags=[Tags.dashboard],
+)
+
+# ClaimRush role-specific dashboard summaries
+# (GET /v1/dashboard/{agent,rvp,cp,adjuster}-summary)
+api_router.include_router(
+    claimrush_dashboards.router,
     prefix=f"/{slugify(Tags.dashboard.value)}",
     tags=[Tags.dashboard],
 )

@@ -228,6 +228,93 @@ class RolePermissions:
         }
         cls._customize_permissions(RoleEnum.CLIENT, client_custom_permissions)
 
+        # Set permissions for Chapter President (leadership + growth; NOT
+        # system admin). Excludes system-config modules but keeps broad read
+        # access for territory / recruiting oversight.
+        cp_excluded_modules = [
+            ModuleEnum.UTIL,
+            ModuleEnum.PERMISSION,
+            ModuleEnum.ROLE,
+            ModuleEnum.USER_POLICY,
+            ModuleEnum.SHOP,
+            ModuleEnum.SHOP_MANAGEMENT,
+            ModuleEnum.CRIME_DATA_SOURCE_CONFIG,
+            ModuleEnum.FIRE_DATA_SOURCE_CONFIG,
+        ]
+        cls._set_role_permissions(role=RoleEnum.CP, excluded_modules=cp_excluded_modules)
+
+        cp_custom_permissions = {
+            **profile_permissions,
+            **lead_permissions,
+            **communication_log_permissions,
+            ModuleEnum.USER: cls._get_readonly_operations(),
+            ModuleEnum.TASK: cls._get_readonly_operations(),
+            ModuleEnum.SCHEDULE: cls._get_readonly_operations(),
+            **crime_incident_readonly,
+            **roof_analysis_full,
+        }
+        cls._customize_permissions(RoleEnum.CP, cp_custom_permissions)
+
+        # Set permissions for Regional VP (downstream team + pipeline).
+        # Similar envelope to CP but no USER-management breadth — RVPs see
+        # their agents but don't manage org-wide user concerns.
+        rvp_excluded_modules = [
+            ModuleEnum.UTIL,
+            ModuleEnum.PERMISSION,
+            ModuleEnum.ROLE,
+            ModuleEnum.USER_POLICY,
+            ModuleEnum.SHOP,
+            ModuleEnum.SHOP_MANAGEMENT,
+            ModuleEnum.CRIME_DATA_SOURCE_CONFIG,
+            ModuleEnum.FIRE_DATA_SOURCE_CONFIG,
+        ]
+        cls._set_role_permissions(role=RoleEnum.RVP, excluded_modules=rvp_excluded_modules)
+
+        rvp_custom_permissions = {
+            **profile_permissions,
+            **lead_permissions,
+            **communication_log_permissions,
+            ModuleEnum.USER: cls._get_readonly_operations(),
+            ModuleEnum.TAG: cls._get_readonly_operations(),
+            ModuleEnum.FILE: cls._get_readonly_operations(),
+            ModuleEnum.NPO_INITIATIVE: cls._get_readonly_operations(),
+            ModuleEnum.PARTNERSHIP: cls._get_readonly_operations(),
+            ModuleEnum.NETWORK: cls._get_readonly_operations(),
+            ModuleEnum.NEWSLETTER: cls._get_readonly_operations(),
+            ModuleEnum.NEWSLETTER_FILE: cls._get_readonly_operations(),
+            ModuleEnum.ANNOUNCEMENT: cls._get_readonly_operations(),
+            ModuleEnum.ANNOUNCEMENT_FILE: cls._get_readonly_operations(),
+            ModuleEnum.ANNOUNCEMENT_ACTIVITY: cls._get_readonly_operations(),
+            **crime_incident_readonly,
+            ModuleEnum.ROOF_ANALYSIS: cls._get_readonly_operations(),
+        }
+        cls._customize_permissions(RoleEnum.RVP, rvp_custom_permissions)
+
+        # Set permissions for Adjuster (narrow claims workspace).
+        # Start from empty and include only claim-related + profile + tools.
+        # No leads, no recruiting, no admin, no communications broadcasting.
+        cls.role_permissions[RoleEnum.ADJUSTER] = {}
+        adjuster_custom_permissions = {
+            **profile_permissions,
+            **communication_log_permissions,
+            ModuleEnum.CLAIM: [*OperationEnum],
+            ModuleEnum.CLAIM_COMMENT: [*OperationEnum],
+            ModuleEnum.CLAIM_FILE: [*OperationEnum],
+            ModuleEnum.CLAIM_FILE_SHARE: [*OperationEnum],
+            ModuleEnum.CLAIM_ACTIVITY: cls._get_readonly_operations(),
+            ModuleEnum.CLAIM_TASK: [*OperationEnum],
+            ModuleEnum.CLAIM_PAYMENT: cls._get_readonly_operations(),
+            ModuleEnum.CLAIM_PAYMENT_FILE: cls._get_readonly_operations(),
+            ModuleEnum.CLIENT: cls._get_readonly_operations(),
+            ModuleEnum.FILE: cls._get_readonly_operations(),
+            ModuleEnum.USER_PERSONAL_FILE: [*OperationEnum],
+            ModuleEnum.TEMPLATE_FILE: cls._get_readonly_operations(),
+            ModuleEnum.TAG: cls._get_readonly_operations(),
+            ModuleEnum.ESTIMATE_PROJECT: [*OperationEnum],
+            ModuleEnum.ROOF_ANALYSIS: [*OperationEnum],
+        }
+        cls._customize_permissions(RoleEnum.ADJUSTER, adjuster_custom_permissions)
+
     @classmethod
     def get_permissions_for_role(
         cls, role: RoleEnum

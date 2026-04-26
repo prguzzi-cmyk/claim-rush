@@ -101,7 +101,7 @@ class ClientPortalLeadRead(BaseModel):
     updated_at: Optional[datetime]
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # ── Follow-Up Schemas ─────────────────────────────────────────────
@@ -130,7 +130,7 @@ class FollowUpRead(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 # ── Qualification ─────────────────────────────────────────────────

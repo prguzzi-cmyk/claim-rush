@@ -13,6 +13,11 @@ class RoleEnum(Enum):
     LEAD: str = "lead"
     CLIENT: str = "client"
     SALES_REP: str = "sales-rep"
+    # Public-adjusting hierarchy roles (commission engine domain).
+    # Lowercase slugs, consistent with the rest of the enum.
+    CP: str = "cp"            # Chapter President
+    RVP: str = "rvp"           # Regional Vice President
+    ADJUSTER: str = "adjuster"
 
 
 class OperationEnum(Enum):

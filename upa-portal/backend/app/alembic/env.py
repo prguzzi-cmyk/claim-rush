@@ -30,9 +30,23 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
+    # 1. Railway/Render inject DATABASE_URL
+    database_url = os.getenv("DATABASE_URL", "")
+    if database_url:
+        # Railway uses postgres:// but SQLAlchemy needs postgresql://
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        return database_url
+
+    # 2. Explicit full URI
+    explicit = os.getenv("SQLALCHEMY_DATABASE_URI", "")
+    if explicit:
+        return explicit
+
+    # 3. Assemble from individual vars (Docker Compose / local dev)
     user = os.getenv("POSTGRES_USER", "postgres")
     password = os.getenv("POSTGRES_PASSWORD", "")
-    server = os.getenv("POSTGRES_SERVER", "db")
+    server = os.getenv("POSTGRES_SERVER", "localhost")
     db = os.getenv("POSTGRES_DB", "app")
     return f"postgresql://{user}:{password}@{server}/{db}"
 
