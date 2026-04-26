@@ -372,9 +372,9 @@ export default function ClaimRush({ lang, onSetLang }) {
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
       el.setAttribute("content", content);
     };
-    setMeta("description", "Claim Rush — Secure your position, capture real property-loss leads, and build your empire. Limited positions available.");
+    setMeta("description", "Unified Public Advocacy — Secure your position, capture real property-loss leads, and build your empire. Limited positions available.");
     setMeta("og:title", "Secure Territory. Capture Leads. Build Your Empire | ACI United", "property");
-    setMeta("og:description", "Claim Rush — Limited-time territory opportunity. $339K conservative Year 1 projections.", "property");
+    setMeta("og:description", "Unified Public Advocacy — Limited-time territory opportunity. $339K conservative Year 1 projections.", "property");
     const addLink = (rel, attrs) => {
       let el = document.querySelector(`link[rel="${rel}"][hreflang="${attrs.hreflang || ""}"]`) || document.querySelector(`link[rel="${rel}"]:not([hreflang])`);
       if (!el) { el = document.createElement("link"); document.head.appendChild(el); }
@@ -387,7 +387,7 @@ export default function ClaimRush({ lang, onSetLang }) {
   }, []);
 
   const emailSeq = [
-    { day: "DAY 1", subject: "Claim Rush started. 3 territories locked today.", preview: "Oregon, Nevada and Washington secured in the first 24 hours..." },
+    { day: "DAY 1", subject: "Territory program launched. 3 territories locked today.", preview: "Oregon, Nevada and Washington secured in the first 24 hours..." },
     { day: "DAY 3", subject: "Your county still open — for now.", preview: "We're seeing significant interest in your state. Here's what's left..." },
     { day: "DAY 5", subject: "X agents already positioned. Yours next?", preview: "The operators who moved early are already receiving lead flow..." },
   ];
@@ -408,7 +408,10 @@ export default function ClaimRush({ lang, onSetLang }) {
 
       {/* STICKY NAV */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: scrolled ? `${C.black}ee` : "transparent", borderBottom: scrolled ? `1px solid ${C.border}` : "none", padding: "14px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: scrolled ? "blur(10px)" : "none", transition: "all 0.3s" }}>
-        <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 16, fontFamily: "'Courier New',monospace", letterSpacing: 3 }}>CLAIM RUSH™</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 14, fontFamily: "'Courier New',monospace", letterSpacing: 2.5 }}>UNIFIED PUBLIC ADVOCACY</div>
+          <div style={{ color: "rgba(255,255,255,0.55)", fontWeight: 600, fontSize: 9, fontFamily: "'Courier New',monospace", letterSpacing: 1.5 }}>Powered by ACI Adjustment Group</div>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 0, fontFamily: "'Courier New',monospace", fontSize: 10, letterSpacing: 1 }}>
             <span style={{ color: "#F4F0E8", fontWeight: 900, padding: "4px 8px", background: `${C.gold}22`, borderRadius: "3px 0 0 3px", border: `1px solid ${C.gold}66` }}>EN</span>
@@ -425,7 +428,7 @@ export default function ClaimRush({ lang, onSetLang }) {
       <div style={{ minHeight: "92vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 40px 60px", textAlign: "center", position: "relative", animation: "slideDown 0.8s ease" }}>
         <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse at 50% 40%, ${C.gold}08 0%, transparent 65%)`, pointerEvents: "none" }} />
 
-        <div className="pulse" style={{ color: "#E03030", fontSize: 10, letterSpacing: 5, fontFamily: "'Courier New',monospace", marginBottom: 24, fontWeight: 700 }}>● CLAIM RUSH IS LIVE — TERRITORIES BEING ASSIGNED NOW</div>
+        <div className="pulse" style={{ color: "#E03030", fontSize: 10, letterSpacing: 5, fontFamily: "'Courier New',monospace", marginBottom: 24, fontWeight: 700 }}>● UNIFIED PUBLIC ADVOCACY — TERRITORIES BEING ASSIGNED NOW</div>
 
         <div style={{ fontSize: "clamp(42px, 7vw, 86px)", fontWeight: 900, lineHeight: 1.0, fontFamily: "'Courier New',monospace", letterSpacing: -1, marginBottom: 8 }}>
           <div style={{ color: "#F4F0E8" }}>SECURE TERRITORY.</div>
@@ -436,11 +439,11 @@ export default function ClaimRush({ lang, onSetLang }) {
         <div style={{ color: "#FFFFFF", fontSize: 12, letterSpacing: 4, fontFamily: "'Courier New',monospace", marginBottom: 40 }}>BEFORE IT'S CLAIMED.</div>
 
         <div style={{ maxWidth: 580, color: "#FFFFFF", fontSize: 18, lineHeight: 1.85, marginBottom: 16, fontFamily: "Georgia,serif" }}>
-          Claim Rush is a limited-time opportunity to secure territory inside a system built to generate, distribute, and convert real property-loss opportunities into signed claims. Once territories are assigned and teams are built, entry becomes restricted.
+          Unified Public Advocacy is opening a limited-time territory program built to generate, distribute, and convert real property-loss opportunities into signed claims. Once territories are assigned and teams are built, entry becomes restricted.
         </div>
 
         <div style={{ maxWidth: 660, color: "#FFFFFF", fontSize: 13, lineHeight: 1.9, marginBottom: 48, fontFamily: "'Courier New',monospace", letterSpacing: 0.5, borderLeft: "2px solid #8A6E2A", paddingLeft: 16 }}>
-          Backed by Unified Public Advocacy · 501(c)(3) Nonprofit · Powered by RIN™ · Executed through ACI · Expanded through Maximus.software · Strengthened by Academy of Adjusters
+          Unified Public Advocacy · 501(c)(3) Nonprofit · Powered by ACI Adjustment Group · Built on a proprietary Advanced Claims Intelligence Platform · Expanded through Maximus.software · Strengthened by Academy of Adjusters
         </div>
 
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
@@ -470,7 +473,7 @@ export default function ClaimRush({ lang, onSetLang }) {
               {[
                 { icon: "🏛", label: "UPA", sub: "TRUST LAYER", color: "#4A6CF7", points: ["501(c)(3) nonprofit", "Advocacy and education", "Public-facing credibility", "Outreach legitimacy"] },
                 { icon: "📋", label: "ACI", sub: "REVENUE LAYER", color: "#C9A84C", points: ["Licensed claim execution", "Backend revenue participation", "Adjusting infrastructure", "State-licensed operations"] },
-                { icon: "⚡", label: "RIN™", sub: "OPERATIONS LAYER", color: "#E03030", points: ["Live incident detection", "Lead routing and automation", "AI outreach and intake", "Territory-based distribution"] },
+                { icon: "⚡", label: "Claims Intelligence Platform", sub: "OPERATIONS LAYER", color: "#E03030", points: ["Live incident detection", "Lead routing and automation", "AI outreach and intake", "Territory-based distribution"] },
                 { icon: "🚀", label: "MAXIMUS", sub: "GROWTH LAYER", color: "#A855F7", points: ["Marketing engine", "Recruiting system", "Landing pages", "Digital presence"] },
                 { icon: "🎓", label: "ACADEMY", sub: "WORKFORCE LAYER", color: "#22C55E", points: ["Licensing support", "Training programs", "Apprenticeship pipeline", "Future agent development"] },
               ].map(item => (
@@ -688,7 +691,7 @@ export default function ClaimRush({ lang, onSetLang }) {
               This Is a Business.<br /><span style={{ color: "#C9A84C" }}>Not a Subscription.</span>
             </div>
             <div style={{ color: "#FFFFFF", fontSize: 16, textAlign: "center", maxWidth: 560, margin: "0 auto 48px", lineHeight: 1.7 }}>
-              Claim Rush Chapter President positions are reserved for serious operators. The investment structure is designed to filter for commitment — and to deliver outsized returns to those who execute.
+              Unified Public Advocacy Chapter President positions are reserved for serious operators. The investment structure is designed to filter for commitment — and to deliver outsized returns to those who execute.
             </div>
 
             <div style={{ border: `1px solid ${C.gold}`, borderRadius: 4, padding: "36px 32px", marginBottom: 24 }}>
@@ -762,7 +765,7 @@ export default function ClaimRush({ lang, onSetLang }) {
               {[
                 { title: "Market promotion", desc: "Dedicated campaigns driving awareness and leads in your specific geography." },
                 { title: "Digital marketing", desc: "Social, search, and content marketing handled by a professional team." },
-                { title: "Brand support", desc: "UPA and RIN brand assets, campaigns, and messaging — ready to deploy." },
+                { title: "Brand support", desc: "UPA brand assets, campaigns, and messaging — ready to deploy." },
               ].map(item => (
                 <div key={item.title} style={{ background: C.black, border: `1px solid ${C.border}`, padding: "20px 18px" }}>
                   <div style={{ color: "#F4F0E8", fontWeight: 700, fontSize: 13, fontFamily: "'Courier New',monospace", marginBottom: 6 }}>{item.title}</div>
@@ -847,7 +850,7 @@ export default function ClaimRush({ lang, onSetLang }) {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
               <div style={{ background: C.black, border: `1px solid ${C.border}`, padding: "36px 32px" }}>
-                <div style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 15, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 22 }}>⚡ RIN™ PORTAL — OPERATIONS</div>
+                <div style={{ color: "#FFFFFF", fontWeight: 900, fontSize: 15, letterSpacing: 2, fontFamily: "'Courier New',monospace", marginBottom: 22 }}>⚡ OPERATIONS PLATFORM</div>
                 {["Live lead generation from real incidents", "AI outreach and intake automation", "Territory management and rotation", "Claim pipeline tracking", "Team operations and oversight"].map(i => (
                   <div key={i} style={{ color: "#FFFFFF", fontSize: 15, padding: "11px 0", borderBottom: `1px solid ${C.border}`, display: "flex", gap: 10 }}><span style={{ color: "#2A70D0" }}>·</span>{i}</div>
                 ))}
@@ -956,8 +959,11 @@ export default function ClaimRush({ lang, onSetLang }) {
 
       {/* ── FOOTER ── */}
       <div style={{ borderTop: `1px solid ${C.border}`, padding: "32px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-        <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 14, fontFamily: "'Courier New',monospace", letterSpacing: 3 }}>CLAIM RUSH™</div>
-        <div style={{ color: "#FFFFFF", fontSize: 13, fontFamily: "'Courier New',monospace" }}>Powered by RIN™ · ACI · Unified Public Advocacy · Maximus.software</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ color: "#C9A84C", fontWeight: 900, fontSize: 13, fontFamily: "'Courier New',monospace", letterSpacing: 2.5 }}>UNIFIED PUBLIC ADVOCACY</div>
+          <div style={{ color: "rgba(255,255,255,0.55)", fontWeight: 600, fontSize: 9, fontFamily: "'Courier New',monospace", letterSpacing: 1.5 }}>Powered by ACI Adjustment Group</div>
+        </div>
+        <div style={{ color: "#FFFFFF", fontSize: 12, fontFamily: "'Courier New',monospace" }}>Unified Public Advocacy · Powered by ACI Adjustment Group · Built on a proprietary Claims Intelligence Platform</div>
         <div style={{ color: "#FFFFFF", fontSize: 12, fontFamily: "'Courier New',monospace" }}>Secure Territory. Capture Leads. Build Empire.</div>
       </div>
     </div>

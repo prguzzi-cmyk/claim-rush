@@ -37,7 +37,7 @@ export default function Login() {
       const mapping = ROLE_ROUTES[roleName];
 
       if (!mapping) {
-        setError(`Role "${roleName}" does not have access to ClaimRush. ClaimRush is for the field network (CP, RVP, Agency, Agent).`);
+        setError(`Role "${roleName}" does not have access to this portal. The UPA network portal is for field roles (CP, RVP, Agency, Agent).`);
         localStorage.removeItem("access_token");
         setLoading(false);
         return;
@@ -78,12 +78,12 @@ export default function Login() {
       }}>
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <img src={logoIcon} alt="" style={{ width: 48, height: 48, marginBottom: 12 }} />
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: 1 }}>
-            CLAIM RUSH
+          <img src={logoIcon} alt="" style={{ width: 48, height: 48, marginBottom: 14 }} />
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: 1.2, lineHeight: 1.25, textTransform: "uppercase" }}>
+            Unified Public Advocacy<br />Portal
           </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 2, marginTop: 4 }}>
-            FIELD NETWORK PORTAL
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", letterSpacing: 0.5, marginTop: 10, fontWeight: 500 }}>
+            Access your claims, clients, and advocacy tools
           </div>
         </div>
 
@@ -170,7 +170,7 @@ export default function Login() {
         </form>
 
         <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-          Use your RIN portal credentials
+          Use your UPA network credentials
         </div>
       </div>
     </div>

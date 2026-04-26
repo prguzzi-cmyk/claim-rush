@@ -212,9 +212,9 @@ function AgentDash({ navigate }) {
           </Panel>
 
           {/* Lead pipeline */}
-          <Panel title="MY LEAD PIPELINE" color="#00E6A8" action={d.leads.total > 0 ? "VIEW ALL →" : undefined} onAction={() => navigate("/portal/fire-leads")}>
+          <Panel title="MY ADVOCACY PIPELINE" color="#00E6A8" action={d.leads.total > 0 ? "VIEW ALL →" : undefined} onAction={() => navigate("/portal/fire-leads")}>
             {d.leads.pipeline.length === 0 && (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in pipeline yet.</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No homeowner cases in your advocacy pipeline yet.</div>
             )}
             {d.leads.pipeline
               .sort((a, b) => b.count - a.count)
@@ -368,9 +368,9 @@ function RVPDash({ navigate }) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Own book pipeline */}
-          <Panel title="MY LEAD PIPELINE" color={C.gold}>
+          <Panel title="MY ADVOCACY PIPELINE" color={C.gold}>
             {d.own_book.pipeline.length === 0 && (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in your personal pipeline yet.</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No homeowner cases in your advocacy pipeline yet.</div>
             )}
             {d.own_book.pipeline
               .sort((a, b) => b.count - a.count)
@@ -529,9 +529,9 @@ function CPDash({ navigate }) {
           </Panel>
 
           {/* Lead pipeline */}
-          <Panel title="LEAD PIPELINE" color={C.blue}>
+          <Panel title="ADVOCACY PIPELINE" color={C.blue}>
             {d.lead_pipeline.length === 0 && (
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No leads in pipeline yet.</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", ...mono, padding: "8px 0" }}>No homeowner cases in your advocacy pipeline yet.</div>
             )}
             {d.lead_pipeline
               .sort((a, b) => b.count - a.count)
@@ -783,6 +783,35 @@ export default function Dashboard() {
 
   return (
     <div style={{ maxWidth: 1100, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
+      {/* UPA advocacy hero — branding layer, no logic */}
+      <div style={{
+        marginBottom: 22,
+        padding: "18px 22px",
+        background: "linear-gradient(135deg, rgba(168,85,247,0.10) 0%, rgba(168,85,247,0.03) 100%)",
+        border: "1px solid rgba(168,85,247,0.22)",
+        borderRadius: 10,
+        fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+      }}>
+        <div style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: 2.5,
+          textTransform: "uppercase",
+          color: "#A855F7",
+          marginBottom: 6,
+        }}>
+          Unified Public Advocacy Network
+        </div>
+        <div style={{
+          fontSize: 14,
+          fontWeight: 500,
+          color: "rgba(255,255,255,0.85)",
+          lineHeight: 1.55,
+        }}>
+          You're managing claims through the <span style={{ color: "#fff", fontWeight: 700 }}>Unified Public Advocacy</span> network — advocating for homeowners and maximizing recovery outcomes.
+        </div>
+      </div>
+
       {/* Page header — hidden for CP/RVP/agent (identity header replaces it) */}
       {userRole !== "CP" && userRole !== "RVP" && userRole !== "agent" && (
         <div style={{ marginBottom: 24 }}>

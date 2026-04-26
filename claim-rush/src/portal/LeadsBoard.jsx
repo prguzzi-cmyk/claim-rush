@@ -113,6 +113,16 @@ export default function LeadsBoard() {
         <div style={{ color: C.muted, fontSize: 13, ...mono }}>
           {leads.length} lead{leads.length === 1 ? "" : "s"} across your downline.
         </div>
+        <div style={{
+          marginTop: 10,
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: 0.5,
+          color: "rgba(168,85,247,0.85)",
+        }}>
+          Leads sourced and monitored through the <span style={{ color: "#fff", fontWeight: 700 }}>UPA Response Intelligence Network</span>
+        </div>
       </div>
 
       {/* Filter chips */}
@@ -260,7 +270,7 @@ function EmptyState() {
     }}>
       <div style={{ fontSize: 36, marginBottom: 12 }}>🌥️</div>
       <div style={{ ...mono, fontSize: 14, color: "rgba(255,255,255,0.55)" }}>
-        No leads match this filter.
+        No homeowner cases match your current filter.
       </div>
     </div>
   );

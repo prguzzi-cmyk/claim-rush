@@ -7,10 +7,23 @@ export const environment = {
   name: "Dev",
   // Dev-only: skip login and stub the current user so :4200 lands straight in the authenticated shell.
   devAutoLogin: true,
+  // Dev-only: credentials used by the APP_INITIALIZER auto-login to fetch a real
+  // staging access_token at boot when devAutoLogin is on. This is the same
+  // staging-only test account whose password was reset directly on the staging
+  // RDS — never the real production password. environment.prod.ts does NOT
+  // include this field, so the auto-login is a dev-build behaviour only.
+  devAutoLoginCredentials: {
+    username: "admin@upaportal.org",
+    password: "StagingTest!2026-Auth",
+  },
   // Relative base so the ApiInterceptor produces /v1/... paths — the ng-serve
   // proxy (proxy.conf.json) catches those and forwards to localhost:8888.
   // Point this at a full URL when you need to hit a remote dev API instead.
-  server: "/v1",
+  // server: "/v1",
+  // Temporary override: hit the AWS staging API directly so localhost:4200
+  // uses real data (production-snapshot restored to staging RDS).
+  // Revert to "/v1" when you want the local Docker FastAPI on :8888 back.
+  server: "http://api.staging.upaportal.org/v1",
   // mlmServer:'http://localhost:8080',
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env
   checkVersion: false,
@@ -21,6 +34,7 @@ export const environment = {
     "127.0.0.1:8000",
     "localhost:8888",
     "localhost:4200",
+    "api.staging.upaportal.org",
   ],
   featureFlags: {
     chatgptEnabled: true,

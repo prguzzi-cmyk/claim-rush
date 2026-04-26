@@ -73,7 +73,7 @@ export default function IframeFeature({ title = "" }) {
           margin: "0 auto 28px",
           fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
         }}>
-          This ClaimRush module is being finalized for production. You'll see it here in the command center when it's ready.
+          This UPA Platform module is being finalized for production. You'll see it here in the command center when it's ready.
         </div>
 
         {/* Back to Dashboard */}

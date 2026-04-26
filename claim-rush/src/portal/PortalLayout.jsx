@@ -132,16 +132,18 @@ function PortalInner() {
           <div style={{ lineHeight: 1.2 }}>
             <div style={{
               fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-              fontSize: 17, color: "#FFFFFF", letterSpacing: 1,
+              fontSize: 14, color: "#FFFFFF", letterSpacing: 1.5,
               fontWeight: 700,
+              textTransform: "uppercase",
             }}>
-              CLAIM RUSH<span style={{ fontSize: 11, fontWeight: 500, verticalAlign: "super", marginLeft: 2, color: "rgba(255,255,255,0.85)" }}>TM</span>
+              Unified Public<br />Advocacy
             </div>
             <div style={{
-              fontSize: 11, color: "rgba(255,255,255,0.65)", letterSpacing: 2.5, marginTop: 4,
+              fontSize: 10, color: "rgba(255,255,255,0.6)", letterSpacing: 2, marginTop: 6,
               fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500,
+              textTransform: "uppercase",
             }}>
-              CLAIM INTELLIGENCE ENGINE
+              Claims Intelligence Platform
             </div>
           </div>
         </div>
@@ -326,16 +328,42 @@ function PortalInner() {
         display: "flex",
         flexDirection: "column",
       }}>
-        {/* Top bar with user menu */}
+        {/* Top bar with UPA branding + user menu */}
         <div style={{
-          display: "flex", justifyContent: "flex-end", alignItems: "center",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "8px 24px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
           background: "rgba(10,16,32,0.8)",
           backdropFilter: "blur(8px)",
           position: "sticky", top: 0, zIndex: 40,
         }}>
-          <UserMenu />
+          <span style={{
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}>
+            Powered by <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>Unified Public Advocacy</span>
+          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <span style={{
+              fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              padding: "4px 10px",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 4,
+              whiteSpace: "nowrap",
+            }}>
+              ACI Adjustment Group · Licensed Operator
+            </span>
+            <UserMenu />
+          </div>
         </div>
         {/* Live ticker bar */}
         <LiveTicker />

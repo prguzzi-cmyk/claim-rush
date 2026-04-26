@@ -239,63 +239,92 @@ tags_metadata = [
 
 class Settings(BaseSettings):
     # General Settings
-    ENV: str
-    PROJECT_NAME: str
+    ENV: str = "production"
+    PROJECT_NAME: str = "UPA Adjuster Portal"
     PROJECT_DESCRIPTION: str = project_description
     API_VERSION: str = "0.0.1"
     API_V1_STR: str = "/v1"
-    PROJECT_URL: str
-    CONTACT_ADDRESS: str
-    CONTACT_PHONE: str
-    CONTACT_EMAIL: str
-    ADMIN_NAME: str
-    ADMIN_EMAIL: EmailStr
+    PROJECT_URL: str = "https://aciadjustment.com"
+    CONTACT_ADDRESS: str = "803 Park Avenue, Newtown, PA 18940"
+    CONTACT_PHONE: str = "1-800-809-4302"
+    CONTACT_EMAIL: str = "claims@aciadjustment.com"
+    ADMIN_NAME: str = "ACI Admin"
+    ADMIN_EMAIL: EmailStr = "admin@aciadjustment.com"
     API_TAGS: list[Any] = tags_metadata
-    SERVER_HOST: AnyHttpUrl
+    SERVER_HOST: AnyHttpUrl = "https://aciadjustment.com"
 
     # 60 minutes * 24 hours * 2 days = 2 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 2
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    FERNET_KEY: str
+    FERNET_KEY: str = ""
 
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
-    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: list[AnyHttpUrl] = [
+        "https://www.aciunited.com",
+        "https://aciunited.com",
+        "https://aciadjustment.com",
+        "https://www.aciadjustment.com",
+        "https://rin.aciunited.com",
+        "http://localhost:4200",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
+
+    # Regex that permits every Vercel preview URL under this account for the
+    # rin-aciunited, rin-commission, and claim-rush projects. Keeps preview
+    # testing working across deploys without editing BACKEND_CORS_ORIGINS.
+    # Example match: https://rin-commission-6paswop1w-prguzzi-9624s-projects.vercel.app
+    BACKEND_CORS_ORIGIN_REGEX: str = (
+        r"^https://(rin-aciunited|rin-commission|claim-rush)"
+        r"(-[a-z0-9]+)+"
+        r"\.vercel\.app$"
+    )
 
     # Allow open user registration
     USERS_OPEN_REGISTRATION = True
 
     # System Super User details
-    SYS_SU_FIRST_NAME: str
-    SYS_SU_LAST_NAME: str
-    SYS_SU_EMAIL: EmailStr
-    SYS_SU_PASSWORD: str
+    SYS_SU_FIRST_NAME: str = "System"
+    SYS_SU_LAST_NAME: str = "Admin"
+    SYS_SU_EMAIL: EmailStr = "su@aciadjustment.com"
+    SYS_SU_PASSWORD: str = secrets.token_urlsafe(24)
 
     # System Admin User details
-    SYS_AD_FIRST_NAME: str
-    SYS_AD_LAST_NAME: str
-    SYS_AD_EMAIL: EmailStr
-    SYS_AD_PASSWORD: str
+    SYS_AD_FIRST_NAME: str = "Admin"
+    SYS_AD_LAST_NAME: str = "User"
+    SYS_AD_EMAIL: EmailStr = "admin@aciadjustment.com"
+    SYS_AD_PASSWORD: str = secrets.token_urlsafe(24)
 
     # System Agent User details
-    SYS_AG_FIRST_NAME: str
-    SYS_AG_LAST_NAME: str
-    SYS_AG_EMAIL: EmailStr
-    SYS_AG_PASSWORD: str
+    SYS_AG_FIRST_NAME: str = "Agent"
+    SYS_AG_LAST_NAME: str = "User"
+    SYS_AG_EMAIL: EmailStr = "agent@aciadjustment.com"
+    SYS_AG_PASSWORD: str = secrets.token_urlsafe(24)
 
     # Postgres Server details
-    POSTGRES_SERVER: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    SQLALCHEMY_DATABASE_URI: PostgresDsn | str
+    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = "app"
+    SQLALCHEMY_DATABASE_URI: PostgresDsn | str = ""
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(
         cls, v: PostgresDsn | str, values: dict[str, Any]
     ) -> Any:
+        # 1. Explicit SQLALCHEMY_DATABASE_URI takes priority
         if v and v.strip():
             return v
 
+        # 2. Railway injects DATABASE_URL — use it if available
+        database_url = os.environ.get("DATABASE_URL", "")
+        if database_url:
+            # Railway uses postgres:// but SQLAlchemy needs postgresql://
+            if database_url.startswith("postgres://"):
+                database_url = database_url.replace("postgres://", "postgresql://", 1)
+            return database_url
+
+        # 3. Fall back to assembling from individual POSTGRES_* vars
         return PostgresDsn.build(
             scheme="postgresql",
             user=values.get("POSTGRES_USER"),
@@ -305,17 +334,17 @@ class Settings(BaseSettings):
         )
 
     # AWS
-    AWS_REGION: str
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    S3_BUCKET_NAME: str
+    AWS_REGION: str = "us-east-1"
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    S3_BUCKET_NAME: str = "upa-portal-files"
 
     # AI Estimate
-    AI_ESTIMATE_BUCKET: str
-    AI_ESTIMATE_PREFIX: str
+    AI_ESTIMATE_BUCKET: str = ""
+    AI_ESTIMATE_PREFIX: str = ""
     AI_ESTIMATE_REVIEW_PERIOD: int = 15  # 15 seconds
-    AI_ESTIMATE_OPENAI_KEY: str
-    AI_ESTIMATE_OPENAI_MODEL: str
+    AI_ESTIMATE_OPENAI_KEY: str = ""
+    AI_ESTIMATE_OPENAI_MODEL: str = "gpt-4o"
     AI_ESTIMATE_HOST_NAME: str = "https://need-to-change-in-env-AI-ESTIMATE-HOST-NAME"
 
     # Anthropic Claude (policy extraction + intelligence)
@@ -437,13 +466,13 @@ class Settings(BaseSettings):
 
     # Email
     SMTP_TLS: bool = True
-    SMTP_PORT: int
-    SMTP_HOST: str
-    SMTP_USER: str
-    SMTP_PASSWORD: str
+    SMTP_PORT: int = 587
+    SMTP_HOST: str = ""
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 1
     EMAIL_TEMPLATES_DIR: str = "/app/app/email-templates/build"
-    EMAILS_FROM_EMAIL: EmailStr | str
+    EMAILS_FROM_EMAIL: EmailStr | str = "noreply@aciadjustment.com"
     EMAILS_FROM_NAME: str | None = None
     EMAILS_ENABLED: bool = False
 
@@ -456,12 +485,12 @@ class Settings(BaseSettings):
         )
 
     # cPanel
-    CPANEL_DOMAIN_NAME: str
-    CPANEL_API_URL: str
-    CPANEL_USERNAME: str
-    CPANEL_TOKEN: str
+    CPANEL_DOMAIN_NAME: str = ""
+    CPANEL_API_URL: str = ""
+    CPANEL_USERNAME: str = ""
+    CPANEL_TOKEN: str = ""
     MAILBOX_QUOTA: int = 100  # 100MB
-    CPANEL_EMAIL_PIPE_PATH: str
+    CPANEL_EMAIL_PIPE_PATH: str = ""
 
     # Satellite Imagery — Mapbox
     MAPBOX_ACCESS_TOKEN: str = ""

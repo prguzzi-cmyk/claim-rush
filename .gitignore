@@ -42,3 +42,8 @@ screenshots/
 
 # Claim Rush nested git
 claim-rush/.git/
+
+# Local resume / handoff notes — may contain plaintext credentials,
+# rotation history, or other operator-only context. Never commit.
+RESUME_HERE.md
+**/RESUME_HERE.md
