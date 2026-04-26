@@ -243,7 +243,9 @@ export class IncidentIntelligenceComponent implements OnInit, OnDestroy, AfterVi
     low: 'Data Only',
   };
 
-  private readonly PROPERTY_CALL_TYPES = 'SF,CF,RF,WSF,WCF,WRF,FIRE,FULL,FA,EXP,GL,ELF';
+  // Removed PROPERTY_CALL_TYPES — see loadData(). The backend's
+  // call_type_config.is_enabled whitelist is the canonical filter; the
+  // frontend no longer overrides it with a hard-coded PulsePoint list.
 
   private readonly EXCLUDED_CALL_TYPES = new Set([
     'VF', 'VEH',
@@ -336,9 +338,12 @@ export class IncidentIntelligenceComponent implements OnInit, OnDestroy, AfterVi
     // Always fetch max window (30d) — time filtering is done client-side only
     const maxWindow = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // Fire API — requests ALL property call types, max date window
+    // Fire API — let the backend auto-filter to call_type_config.is_enabled
+    // codes. Hard-coding PROPERTY_CALL_TYPES used to ship only PulsePoint
+    // codes (SF/CF/RF/...) which excluded every socrata (`911`) and NIFC
+    // (`WF`) row that the active ingestion sources actually produce.
+    // Omitting the param triggers the backend's enabled-codes whitelist.
     const fireParams: any = {
-      call_type: this.PROPERTY_CALL_TYPES,
       date_from: maxWindow,
     };
 
