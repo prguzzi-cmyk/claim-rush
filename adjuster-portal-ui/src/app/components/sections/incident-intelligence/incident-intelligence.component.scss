@@ -187,11 +187,15 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: var(--surface-card, #fff);
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
-  transition: all 0.25s ease;
+  background: #1A2332 !important;
+  // No transparency, no glass, no backdrop-filter on KPI cards.
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.25s ease;
   position: relative;
   overflow: hidden;
 
@@ -202,18 +206,14 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--color-primary-500, #800020), var(--color-primary-300, #A3334D));
+    background: linear-gradient(90deg, #00C2FF, #80DFFF);
     transform: scaleX(0);
     transition: transform 0.3s;
   }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.1));
-
-    &::after {
-      transform: scaleX(1);
-    }
+    border-color: rgba(0, 194, 255, 0.4);
+    &::after { transform: scaleX(1); }
   }
 }
 
@@ -248,15 +248,27 @@
 
 .kpi-value {
   font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
+  font-weight: 800;
+  color: #FFFFFF !important;
   line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
 .kpi-label {
   font-size: 0.8125rem;
-  color: var(--text-secondary, #6b7280);
+  color: #C8D1DC !important;
   margin-top: 2px;
+  font-weight: 600;
+}
+
+.kpi-scope {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #8899AA;
+  text-transform: none;
+  letter-spacing: 0.2px;
 }
 
 // --- Filter Bar ---

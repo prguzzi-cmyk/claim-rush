@@ -214,16 +214,19 @@
 .crm-kpi {
   position: relative;
   background: #1A2332 !important;
-  border: 1px solid rgba(255, 255, 255, 0.20);
+  // No transparency, no backdrop-filter, no glass, no opacity on card.
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  transition: box-shadow 0.2s, border-color 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 
   &:hover {
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
-    border-color: rgba(0, 194, 255, 0.5);
+    border-color: rgba(0, 194, 255, 0.45);
   }
 
   .crm-kpi-icon {
@@ -233,44 +236,46 @@
     font-size: 22px;
     width: 22px;
     height: 22px;
-    opacity: 0.85;
+    opacity: 1;
   }
 }
 
-// First KPI = "Total Leads" — featured with a cyan accent edge so it
-// reads as the headline number, not just one of five equals.
+// "Total Leads" featured card — solid (no gradient), cyan-accent border.
 .crm-kpi-total {
-  background: linear-gradient(180deg, #1F2B3F 0%, #1A2332 100%) !important;
-  border-color: rgba(0, 194, 255, 0.45);
+  background: #1A2332 !important;
+  border-color: rgba(0, 194, 255, 0.55);
 
   .crm-kpi-val {
-    color: #00C2FF !important;
+    color: #00E0FF !important;
   }
 }
 
 .crm-kpi-val {
   font-size: 2rem;
   font-weight: 800;
-  color: #E8ECF1 !important;
+  color: #FFFFFF !important;
   font-family: 'SF Mono', 'Roboto Mono', monospace;
+  letter-spacing: -0.5px;
 }
 
 .crm-kpi-label {
-  font-size: 0.72rem;
-  color: #AAB8C8 !important;
+  font-size: 0.75rem;
+  color: #C8D1DC !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 2px;
+  margin-top: 4px;
+  font-weight: 600;
 }
 
 .crm-kpi-scope {
-  display: inline-block;
-  margin-left: 4px;
-  font-size: 0.6rem;
+  display: block;
+  margin-top: 2px;
+  font-size: 0.62rem;
   font-weight: 500;
-  color: #6B7A8D;
-  text-transform: lowercase;
-  letter-spacing: 0;
+  color: #8899AA;
+  text-transform: none;
+  letter-spacing: 0.2px;
+  font-style: normal;
 }
 
 // ── Pipeline ──────────────────────────────────────────────────

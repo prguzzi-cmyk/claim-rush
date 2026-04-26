@@ -60,6 +60,7 @@
           <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ firesToday }}</span>
           <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
           <span class="kpi-tile-label">Incidents Today</span>
+          <span class="kpi-tile-scope">Today's Activity</span>
         </div>
       </div>
 
@@ -69,6 +70,7 @@
           <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ newLeads }}</span>
           <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
           <span class="kpi-tile-label">Leads Created</span>
+          <span class="kpi-tile-scope">Derived Metric · Year to Date</span>
         </div>
       </div>
 
@@ -78,6 +80,7 @@
         <div class="kpi-tile-body">
           <span class="kpi-tile-value">{{ aiCallsRunning }}</span>
           <span class="kpi-tile-label">AI Calls Running <span class="kpi-tile-offline-tag">offline</span></span>
+          <span class="kpi-tile-scope">Voice Service Disabled</span>
         </div>
       </div>
 
@@ -87,6 +90,7 @@
           <span class="kpi-tile-value" *ngIf="!kpisLoading">{{ activeClaims }}</span>
           <span class="kpi-tile-value kpi-loading" *ngIf="kpisLoading">--</span>
           <span class="kpi-tile-label">Active Claims</span>
+          <span class="kpi-tile-scope">Derived Metric · Year to Date</span>
         </div>
       </div>
 
@@ -95,6 +99,7 @@
         <div class="kpi-tile-body">
           <span class="kpi-tile-value">{{ fmtCurrency(recoveryValue) }}</span>
           <span class="kpi-tile-label">Recovery Value</span>
+          <span class="kpi-tile-scope">Derived Metric · Estimating</span>
         </div>
       </div>
     </div>
