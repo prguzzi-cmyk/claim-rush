@@ -197,6 +197,10 @@
 }
 
 // ── CRM Dashboard KPIs ──
+// Aligned to the platform dark theme (page bg #0B0F14, card #111820,
+// text #E8ECF1). Was previously hard-coded to background:#fff which
+// rendered as pale "translucent-looking" cards on the dark page and
+// made labels low-contrast.
 .crm-kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -206,15 +210,16 @@
 
 .crm-kpi {
   position: relative;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface-card, #111820);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
   border-radius: 12px;
   padding: 20px;
   text-align: center;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border-color: rgba(0, 194, 255, 0.25);
   }
 
   .crm-kpi-icon {
@@ -224,20 +229,20 @@
     font-size: 22px;
     width: 22px;
     height: 22px;
-    opacity: 0.5;
+    opacity: 0.7;
   }
 }
 
 .crm-kpi-val {
   font-size: 2rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary, #E8ECF1);
   font-family: 'SF Mono', 'Roboto Mono', monospace;
 }
 
 .crm-kpi-label {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--text-secondary, #8899AA);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
@@ -248,9 +253,10 @@
   display: flex;
   gap: 0;
   margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
   border-radius: 10px;
   overflow: hidden;
+  background: var(--surface-card, #111820);
 }
 
 .pipeline-stage {
@@ -260,19 +266,21 @@
   cursor: pointer;
   border-top: 3px solid transparent;
   transition: background 0.15s;
-  background: #fff;
-  border-right: 1px solid #f3f4f6;
+  background: var(--surface-card, #111820);
+  border-right: 1px solid var(--border-muted, rgba(255, 255, 255, 0.04));
+  color: var(--text-primary, #E8ECF1);
 
   &:last-child {
     border-right: none;
   }
 
   &:hover {
-    background: #f8fafc;
+    background: var(--surface-elevated, #1A2332);
   }
 
   &.pipeline-active {
-    background: #f0f9ff;
+    background: rgba(0, 194, 255, 0.10);
+    border-top-color: var(--color-primary-500, #00C2FF);
   }
 }
 
@@ -281,12 +289,13 @@
   font-size: 1.4rem;
   font-weight: 800;
   font-family: 'SF Mono', 'Roboto Mono', monospace;
+  color: var(--text-primary, #E8ECF1);
 }
 
 .pipeline-label {
   display: block;
   font-size: 0.65rem;
-  color: #64748b;
+  color: var(--text-secondary, #8899AA);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
@@ -306,6 +315,55 @@
 .mat-mdc-table-scroll-container {
   overflow-x: auto;
   max-width: 100%; /* Adjust the max-width as needed */
+}
+
+// ── Defensive contrast: in-row pickers were hard-coded to light bg/border
+//    and looked washed out on dark table rows. Switch to dark surfaces.
+.compact-select {
+  background: var(--surface-muted, #0F1520);
+  border-color: var(--border-default, rgba(255, 255, 255, 0.15));
+  color: var(--text-primary, #E8ECF1);
+
+  option {
+    background: var(--surface-card, #111820);
+    color: var(--text-primary, #E8ECF1);
+  }
+}
+
+// ── Defensive contrast: ensure the search/filter mat-form-field input
+//    text and label are readable. The theme already sets these via CSS
+//    custom properties, but specificity battles can leave them at the
+//    inherited near-white-on-near-white state seen elsewhere.
+:host {
+  .mat-mdc-form-field {
+    .mat-mdc-input-element,
+    input.mat-mdc-input-element {
+      color: var(--text-primary, #E8ECF1);
+      caret-color: var(--text-primary, #E8ECF1);
+    }
+    .mat-mdc-form-field-label,
+    .mdc-floating-label {
+      color: var(--text-secondary, #8899AA);
+    }
+  }
+
+  // Mat-table headers + cells — make sure rows aren't faded into the bg.
+  .mat-mdc-table {
+    background: transparent;
+
+    .mat-mdc-header-row {
+      background: var(--table-header-bg, #0F1520);
+    }
+    .mat-mdc-header-cell {
+      color: var(--table-header-color, #AAB8C8);
+    }
+    .mat-mdc-cell {
+      color: var(--text-primary, #E8ECF1);
+    }
+    .mat-mdc-row:hover {
+      background: var(--table-row-hover, rgba(0, 194, 255, 0.06));
+    }
+  }
 }
 
 // Rescue badge
