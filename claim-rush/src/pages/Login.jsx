@@ -80,7 +80,7 @@ export default function Login() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img src={logoIcon} alt="" style={{ width: 48, height: 48, marginBottom: 14 }} />
           <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: 1.2, lineHeight: 1.25, textTransform: "uppercase" }}>
-            Unified Public Advocacy<br />Portal
+            UPA Command Center
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", letterSpacing: 0.5, marginTop: 10, fontWeight: 500 }}>
             Access your claims, clients, and advocacy tools

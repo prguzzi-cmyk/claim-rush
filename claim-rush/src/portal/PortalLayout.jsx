@@ -370,6 +370,18 @@ function PortalInner() {
         <div style={{ padding: "36px 48px", flex: 1 }}>
           <Outlet />
         </div>
+        {/* Footer */}
+        <div style={{
+          padding: "12px 24px",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          textAlign: "center",
+          fontSize: 10,
+          color: "rgba(255,255,255,0.3)",
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          letterSpacing: 0.5,
+        }}>
+          Powered by <span style={{ fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Unified Public Advocacy</span> · ACI Adjustment Group™ Licensed Operator · &copy; {new Date().getFullYear()}
+        </div>
       </main>
 
       {/* Coach Live Overlay — hidden on iframe pages to avoid duplication */}

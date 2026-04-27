@@ -8,9 +8,9 @@ const PURPLE = "#A855F7";
 // ── SLIDE DECKS ─────────────────────────────────────────────────────────────
 
 const CP_SLIDES = [
-  { id: "vision", title: "THE VISION", subtitle: "Claim Rush", content: "A national platform where independent Channel Partners own exclusive territories, build teams, and earn recurring revenue from both licensing fees and production compensation.", accent: "#00E6A8", large: true },
+  { id: "vision", title: "THE VISION", subtitle: "UPA Command Center", content: "A national platform where independent Channel Partners own exclusive territories, build teams, and earn recurring revenue from both licensing fees and production compensation.", accent: "#00E6A8", large: true },
   { id: "problem", title: "THE PROBLEM", content: "Property owners lose billions every year to underpaid insurance claims. Adjusters work for the insurance company — not the homeowner. There is no scalable consumer protection layer between the policyholder and the insurer.", accent: "#E05050" },
-  { id: "solution", title: "THE SOLUTION", content: "Claim Rush gives property owners direct access to AI-powered claim review, policy guidance, and licensed adjuster support — delivered through a network of local agents managed by RVPs under your territory.", accent: "#00E6A8" },
+  { id: "solution", title: "THE SOLUTION", content: "UPA Command Center gives property owners direct access to AI-powered claim review, policy guidance, and licensed adjuster support — delivered through a network of local agents managed by RVPs under your territory.", accent: "#00E6A8" },
   { id: "model", title: "BUSINESS MODEL", content: "Two revenue streams. One platform.", blocks: [
     { label: "Platform Licensing", items: ["CP: $2,000/mo", "RVP: $1,000/mo", "Agent: $500/mo", "You earn overrides on every subscription in your territory"], color: PURPLE },
     { label: "Production Compensation", items: ["Protection plan enrollments", "Claim commissions", "Team override income", "Recurring revenue from renewals"], color: "#00E6A8" },
@@ -46,7 +46,7 @@ const RVP_SLIDES = [
 ];
 
 const INVESTOR_SLIDES = [
-  { id: "thesis", title: "INVESTMENT THESIS", subtitle: "Claim Rush", content: "A vertically integrated InsurTech platform combining AI-powered claims intelligence with a scalable agent network and recurring SaaS revenue.", accent: "#00E6A8", large: true },
+  { id: "thesis", title: "INVESTMENT THESIS", subtitle: "UPA Command Center", content: "A vertically integrated InsurTech platform combining AI-powered claims intelligence with a scalable agent network and recurring SaaS revenue.", accent: "#00E6A8", large: true },
   { id: "market", title: "MARKET OPPORTUNITY", content: "$3.2 trillion property insurance market. 73% of claims underpaid. No dominant consumer-side platform exists.", points: ["TAM: $3.2T property insurance", "SAM: $420B claims advocacy", "SOM: $12B protection plans", "18% annual market growth"], accent: C.gold },
   { id: "model", title: "REVENUE MODEL", blocks: [
     { label: "Platform Licensing (SaaS)", items: ["CP: $2,000/mo × territories", "RVP: $1,000/mo × regions", "Agent: $500/mo × field force", "85%+ gross margin on licensing"], color: PURPLE },
