@@ -1,0 +1,291 @@
+<div class="cl">
+
+  <!-- ─────────────────────────  STICKY NAV  ───────────────────────── -->
+  <header class="cl-nav">
+    <div class="cl-container nav-row">
+      <a class="brand"
+         href="javascript:void(0)"
+         (click)="$event.preventDefault(); scrollToTop()">
+        <span class="brand-mark">UPA</span>
+        <span class="brand-name">Unified Public Advocacy</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Section navigation">
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('how-we-help')">How We Help</a>
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('claims-we-handle')">Claims We Handle</a>
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('what-happens-next')">What Happens Next</a>
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('your-partner')">Your Local Partner</a>
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('faq')">FAQ</a>
+      </nav>
+
+      <div class="nav-cta">
+        <a [href]="clientLoginUrl"
+           class="btn btn-outline btn-sm nav-btn"
+           aria-label="Client Portal — homeowners checking claim status">
+          Client Portal
+        </a>
+        <a [href]="loginUrl"
+           class="btn btn-text btn-sm nav-btn nav-btn-partner"
+           aria-label="Partner Login — CP, RVP, and Agent access">
+          Partner Login
+        </a>
+        <a [href]="claimUrl" class="btn btn-primary btn-sm nav-btn-cta">
+          Submit a Claim
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ───── Loading / not-found ───── -->
+  <ng-container *ngIf="loading">
+    <div class="cl-container loading-block"><p class="muted">Loading…</p></div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && notFound">
+    <div class="cl-container loading-block">
+      <h1>Page not available</h1>
+      <p class="muted">This community link is no longer active. If you were given this URL, please contact your representative.</p>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && !notFound && intake">
+
+    <!-- ─────────────────────────  HERO  ───────────────────────── -->
+    <section id="top" class="hero">
+      <span class="hero-glow hero-glow-a" aria-hidden="true"></span>
+      <span class="hero-glow hero-glow-b" aria-hidden="true"></span>
+      <div class="cl-container hero-grid">
+
+        <div class="hero-copy">
+          <p class="eyebrow">Unified Public Advocacy — {{ stateName | uppercase }} Chapter</p>
+          <h1 class="hero-headline">
+            Your Insurance Company Has Adjusters.<br/>
+            <span class="accent-orange">Now You Have Yours.</span>
+          </h1>
+          <p class="hero-sub">{{ heroSubheadline }}</p>
+
+          <div class="hero-ctas">
+            <a [href]="claimUrl" class="btn btn-primary btn-lg">
+              <span>Submit a Claim</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </a>
+            <a href="javascript:void(0)"
+               (click)="$event.preventDefault(); scrollToSection('your-partner')"
+               class="btn btn-outline btn-lg">
+              Speak With a Community Partner
+            </a>
+          </div>
+
+          <ul class="trust-row" aria-label="Why homeowners trust UPA">
+            <li *ngFor="let t of heroTrust">
+              <span class="check" aria-hidden="true">
+                <svg viewBox="0 0 16 16" width="14" height="14"><path fill="currentColor" d="M6.4 11.2 3.2 8l-1.13 1.13L6.4 13.46l8-8L13.27 4.34Z"/></svg>
+              </span>{{ t }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- ───── Hero partner card ───── -->
+        <aside class="hero-card reveal" aria-label="Local UPA partner">
+          <div class="hero-photo" [class.has-image]="!!intake.owner_image_url">
+            <img *ngIf="intake.owner_image_url"
+                 [src]="intake.owner_image_url"
+                 [alt]="intake.owner_name || 'Partner photo'" />
+            <span *ngIf="!intake.owner_image_url" class="hero-photo-initials">{{ partnerInitials }}</span>
+          </div>
+          <span class="verified-badge" aria-label="Verified UPA Partner">
+            <span class="check" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="11" height="11"><path fill="currentColor" d="M6.4 11.2 3.2 8l-1.13 1.13L6.4 13.46l8-8L13.27 4.34Z"/></svg>
+            </span>
+            <span>Verified UPA Partner</span>
+          </span>
+          <h3 class="hero-card-name">{{ intake.owner_name }}</h3>
+          <p class="hero-card-role">{{ publicRoleTitle }}</p>
+          <p class="hero-card-internal-role" *ngIf="internalRoleTitle">{{ internalRoleTitle }}</p>
+          <p class="hero-card-territory">{{ servingHeadline }}</p>
+          <ul class="hero-card-bullets">
+            <li *ngFor="let b of partnerCardBullets">
+              <span class="dot" aria-hidden="true"></span>{{ b }}
+            </li>
+          </ul>
+          <p class="hero-card-foot">Replies within one business day.</p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ─────────────────────  SERVICE AREA / SEO  ───────────────────── -->
+    <section class="service-area">
+      <div class="cl-container service-area-row">
+        <p class="service-area-lead">Serving <strong>{{ stateName }}</strong> homeowners with:</p>
+        <ul class="pill-row">
+          <li *ngFor="let p of serviceAreaPills" class="pill">{{ p }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────  HOW WE HELP  ───────────────────── -->
+    <section id="how-we-help" class="section section-light">
+      <div class="cl-container">
+        <header class="section-head reveal">
+          <p class="section-eyebrow">How UPA helps homeowners</p>
+          <h2>Insurance is complicated. Your advocate isn't.</h2>
+          <p class="section-lede">Public advocacy is the homeowner's answer to the insurance-company adjuster. We translate policy language into plain English, document the damage rigorously, and negotiate the settlement on your behalf.</p>
+        </header>
+        <div class="four-grid">
+          <article class="feature-card reveal" *ngFor="let h of howWeHelp; let i = index" [style.transition-delay.ms]="i * 90">
+            <span class="feature-icon" aria-hidden="true">{{ h.icon }}</span>
+            <h3>{{ h.t }}</h3>
+            <p>{{ h.d }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────  CLAIMS WE HANDLE  ───────────────────── -->
+    <section id="claims-we-handle" class="section">
+      <div class="cl-container">
+        <header class="section-head reveal">
+          <p class="section-eyebrow">Claims we handle in {{ stateName }}</p>
+          <h2>Fire, water, storm, and property damage claim support.</h2>
+          <p class="section-lede">Whether the loss happened today or last month, your local UPA Community Partner can help review the policy, document the damage, and pursue a fair settlement.</p>
+        </header>
+        <div class="four-grid">
+          <article class="damage-card reveal" *ngFor="let d of damageTypes; let i = index" [style.transition-delay.ms]="i * 90">
+            <span class="damage-icon" aria-hidden="true">{{ d.icon }}</span>
+            <h3>{{ d.t }}</h3>
+            <p>{{ d.d }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────  ADVOCACY QUOTE  ───────────────── -->
+    <section class="section section-dark">
+      <div class="cl-container narrow center">
+        <p class="section-eyebrow on-dark">Why homeowners shouldn't face insurance companies alone</p>
+        <blockquote class="advocacy-quote reveal">
+          "The first phone call after a fire or storm shouldn't be to a stranger trained to minimize your claim. It should be to someone trained to advocate for you."
+        </blockquote>
+        <p class="quote-attribution">— Unified Public Advocacy</p>
+      </div>
+    </section>
+
+    <!-- ─────────────────────  WHAT HAPPENS NEXT  ─────────────────── -->
+    <section id="what-happens-next" class="section section-light">
+      <div class="cl-container">
+        <header class="section-head reveal">
+          <p class="section-eyebrow">What happens after you submit</p>
+          <h2>From submission to settlement, in five steps.</h2>
+        </header>
+        <ol class="process-grid">
+          <li class="process-step reveal" *ngFor="let s of processSteps; let i = index" [style.transition-delay.ms]="i * 80">
+            <span class="step-num">{{ s.n }}</span>
+            <div class="step-body">
+              <h3>{{ s.t }}</h3>
+              <p>{{ s.d }}</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ─────────────────────  YOUR LOCAL PARTNER  ────────────────── -->
+    <section id="your-partner" class="section">
+      <div class="cl-container partner-grid reveal">
+        <div class="partner-photo" [class.has-image]="!!intake.owner_image_url" aria-hidden="true">
+          <img *ngIf="intake.owner_image_url" [src]="intake.owner_image_url" [alt]="intake.owner_name || 'Partner photo'" />
+          <span *ngIf="!intake.owner_image_url" class="partner-initials">{{ partnerInitials }}</span>
+        </div>
+        <div class="partner-copy">
+          <p class="section-eyebrow">Your local Community Partner</p>
+          <h2>{{ intake.owner_name }}</h2>
+          <p class="partner-role">{{ publicRoleTitle }} · {{ servingHeadline }}</p>
+          <p class="partner-internal-role" *ngIf="internalRoleTitle">{{ internalRoleTitle }}</p>
+          <p class="partner-bio">UPA Community Partners are local public advocates serving a defined territory. {{ intake.owner_name }} is the {{ publicRoleTitle }} for {{ stateName }} homeowners — the single point of contact for property-damage claims in this area.</p>
+          <div class="partner-cta-row">
+            <a [href]="claimUrl" class="btn btn-primary">Submit a Claim</a>
+            <a [href]="clientLoginUrl" class="btn btn-outline">Check Your Claim</a>
+            <a [href]="loginUrl" class="btn btn-ghost">Partner Portal Login</a>
+          </div>
+          <p class="partner-disclaimer">Homeowners use "Check Your Claim" for status. Partner Portal Login is for CP / RVP / Agent team members only.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────  FAQ  ───────────────────────────── -->
+    <section id="faq" class="section section-light">
+      <div class="cl-container narrow">
+        <header class="section-head reveal">
+          <p class="section-eyebrow">Frequently asked questions</p>
+          <h2>Honest answers about working with a public advocate.</h2>
+        </header>
+        <div class="faq-list">
+          <details class="faq-item reveal" *ngFor="let f of faqs; let i = index" [style.transition-delay.ms]="i * 60">
+            <summary>
+              <span class="faq-q">{{ f.q }}</span>
+              <span class="faq-toggle" aria-hidden="true">+</span>
+            </summary>
+            <p class="faq-a">{{ f.a }}</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────  FINAL CTA  ─────────────────────── -->
+    <section class="section final-cta">
+      <div class="cl-container narrow center">
+        <h2>Ready to talk to a real person about your claim?</h2>
+        <p class="section-lede on-dark">{{ intake.owner_name }} is your local {{ publicRoleTitle }} for {{ stateName }}. Submit a claim and you'll be contacted within one business day.</p>
+        <div class="final-cta-row">
+          <a [href]="claimUrl" class="btn btn-primary btn-lg">Submit a Claim</a>
+          <a href="javascript:void(0)"
+             (click)="$event.preventDefault(); scrollToSection('your-partner')"
+             class="btn btn-outline-light btn-lg">
+            Speak With a Partner
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────  FOOTER  ────────────────────────── -->
+    <footer class="cl-footer">
+      <div class="cl-container footer-grid">
+        <div>
+          <p class="footer-brand">
+            <span class="brand-mark">UPA</span>
+            <span class="brand-name">Unified Public Advocacy</span>
+          </p>
+          <p class="footer-tag">Public advocacy for homeowners — every claim, every state.</p>
+        </div>
+        <div>
+          <h4>Homeowners</h4>
+          <ul>
+            <li><a [href]="claimUrl">Submit a Claim</a></li>
+            <li><a [href]="clientLoginUrl">Check Your Claim</a></li>
+            <li><a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('how-we-help')">How We Help</a></li>
+            <li><a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('claims-we-handle')">Claims We Handle</a></li>
+            <li><a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('faq')">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Team Members</h4>
+          <ul>
+            <li><a [href]="loginUrl">Partner Portal Login</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Local Chapter</h4>
+          <ul>
+            <li>{{ intake.owner_name }}</li>
+            <li>{{ publicRoleTitle }}</li>
+            <li>{{ stateName }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-fineprint cl-container">
+        <p>© Unified Public Advocacy. Submitted requests go directly to {{ intake.owner_name }} and the UPA team. Public advocacy services are provided by licensed public adjusters where required by state law.</p>
+      </div>
+    </footer>
+
+  </ng-container>
+</div>

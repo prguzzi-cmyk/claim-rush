@@ -1,0 +1,371 @@
+<div class="launch-control">
+
+  <!-- ───────── Header ───────── -->
+  <header class="page-header">
+    <div class="title-block">
+      <h1>Launch Control</h1>
+      <p class="subtitle">Enroll, deploy, and manage every CP, RVP, and Agent — one screen.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-stroked-button class="refresh" (click)="load()">
+        <mat-icon>refresh</mat-icon>&nbsp;Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- ───────── Auth-required notice ─────────
+       Shown when /v1/launch-control/users returns 401 (no session) or
+       403 (signed in but not admin). Replaces the empty state so the
+       operator sees a clear reason instead of a blank grid. -->
+  <section class="auth-required" *ngIf="authError">
+    <mat-icon>lock</mat-icon>
+    <div>
+      <h2>Admin login required to manage deployments.</h2>
+      <p *ngIf="authError === 'unauthenticated'">
+        You're not signed in. Sign in with an admin account to manage Launch Control.
+      </p>
+      <p *ngIf="authError === 'forbidden'">
+        Your account doesn't have admin permissions for Launch Control. Ask a super-admin to grant access or sign in with an admin account.
+      </p>
+      <a class="auth-cta" href="/#/login" target="_blank" rel="noopener">
+        <mat-icon>open_in_new</mat-icon>&nbsp;Open admin login
+      </a>
+    </div>
+  </section>
+
+  <!-- ───────── KPI strip ───────── -->
+  <section class="kpi-grid" *ngIf="rows.length">
+    <div class="kpi-card kpi-cp">
+      <div class="kpi-label">CP</div>
+      <div class="kpi-value">{{ kpi('cp') }}</div>
+    </div>
+    <div class="kpi-card kpi-rvp">
+      <div class="kpi-label">RVP</div>
+      <div class="kpi-value">{{ kpi('rvp') }}</div>
+    </div>
+    <div class="kpi-card kpi-agent">
+      <div class="kpi-label">Agent</div>
+      <div class="kpi-value">{{ kpi('agent') }}</div>
+    </div>
+    <div class="kpi-card kpi-ready">
+      <div class="kpi-label">Ready</div>
+      <div class="kpi-value">{{ readinessKpi('ready') }}</div>
+    </div>
+    <div class="kpi-card kpi-missing">
+      <div class="kpi-label">Missing Setup</div>
+      <div class="kpi-value">{{ readinessKpi('missing_setup') }}</div>
+    </div>
+    <div class="kpi-card kpi-broken">
+      <div class="kpi-label">Broken</div>
+      <div class="kpi-value">{{ readinessKpi('broken') }}</div>
+    </div>
+  </section>
+
+  <!-- ───────── Two-column body ───────── -->
+  <div class="lc-body">
+
+    <!-- LEFT — Enrollment panel ────────────────────────── -->
+    <aside class="card enroll-card">
+      <header class="card-header">
+        <h2>Enroll &amp; Deploy User</h2>
+        <p class="card-sub">Create the user, assign territories, generate an intake slug, and deploy the portal.</p>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="enroll()" class="enroll-form">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Full name</mat-label>
+          <input matInput formControlName="full_name" autocomplete="name" placeholder="Tim Clauss" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" autocomplete="off" placeholder="tclauss@upaclaim.org" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="role">
+            <mat-option *ngFor="let r of roles" [value]="r">{{ r | uppercase }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half">
+          <mat-label>Upline</mat-label>
+          <mat-select formControlName="manager_email">
+            <mat-option [value]="''">— None —</mat-option>
+            <mat-option *ngFor="let u of uplineCandidates" [value]="u.email">
+              {{ u.name }} · {{ u.role | uppercase }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Territories list -->
+        <section class="territories full" formArrayName="territories">
+          <div class="territory-header">
+            <span class="territory-title">Territories</span>
+            <button mat-stroked-button type="button" color="primary" class="add-btn" (click)="addTerritory()">
+              <mat-icon>add</mat-icon>&nbsp;Add Territory
+            </button>
+          </div>
+
+          <div class="territory-row" *ngFor="let _ of territories.controls; let i = index" [formGroupName]="i">
+            <mat-form-field appearance="outline" class="terr-type">
+              <mat-label>Type</mat-label>
+              <mat-select formControlName="territory_type">
+                <mat-option *ngFor="let t of territoryTypes" [value]="t">{{ t | uppercase }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="terr-value">
+              <mat-label>Value</mat-label>
+              <input matInput formControlName="value"
+                     [placeholder]="territoryGroupAt(i).get('territory_type')?.value === 'state' ? 'PA' :
+                                    territoryGroupAt(i).get('territory_type')?.value === 'county' ? 'PA · Bucks' :
+                                    '18901'" />
+            </mat-form-field>
+            <button mat-icon-button type="button"
+                    class="terr-remove"
+                    (click)="removeTerritory(i)"
+                    [disabled]="territories.length <= 1"
+                    aria-label="Remove territory">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+        </section>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Temporary password (leave blank to auto-generate)</mat-label>
+          <input matInput formControlName="password" autocomplete="new-password" />
+        </mat-form-field>
+
+        <p class="form-error full" *ngIf="enrollError">{{ enrollError }}</p>
+
+        <button mat-raised-button color="primary"
+                type="submit"
+                class="submit-btn full"
+                [disabled]="saving">
+          <mat-icon>rocket_launch</mat-icon>&nbsp;{{ saving ? 'Deploying…' : 'Create User & Deploy' }}
+        </button>
+      </form>
+    </aside>
+
+    <!-- RIGHT — stacked deployment + table ────────────── -->
+    <div class="right-col">
+
+      <!-- RIGHT TOP: Deployment Result ─────────────────── -->
+      <section class="card result-card" *ngIf="result; else noResult">
+        <div class="success-banner">
+          <mat-icon>check_circle</mat-icon>
+          <div class="banner-text">
+            <span class="banner-title">Deployment Complete</span>
+            <span class="banner-help">Send this login information to the new CP / RVP / Agent.</span>
+          </div>
+        </div>
+
+        <div class="result-summary">
+          <div class="kv"><span class="k">Name</span><span class="v">{{ result.name }}</span></div>
+          <div class="kv">
+            <span class="k">Role</span>
+            <span class="v">
+              <span class="role-tag" [ngClass]="'role-' + result.role">{{ result.role | uppercase }}</span>
+              <span class="muted" *ngIf="result.role_display">&nbsp;· {{ result.role_display }}</span>
+            </span>
+          </div>
+          <div class="kv"><span class="k">Territory</span><span class="v">{{ resultTerritoryList(result) }}</span></div>
+
+          <!-- Credentials block — visually solid + prominent so an
+               operator can read and relay them without squinting. -->
+          <div class="credentials-block" aria-label="Login credentials">
+            <div class="credentials-head">Login Credentials</div>
+            <div class="cred-row">
+              <span class="cred-k">Login email</span>
+              <span class="cred-v">{{ result.login_email }}</span>
+            </div>
+            <div class="cred-row" *ngIf="result.temporary_password; else noPass">
+              <span class="cred-k">Temporary password</span>
+              <span class="cred-v mono">{{ result.temporary_password }}</span>
+            </div>
+            <ng-template #noPass>
+              <div class="cred-row cred-warn">
+                <span class="cred-k">Temporary password</span>
+                <span class="cred-v">Temporary password not returned — reset password required.</span>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="link-list">
+            <div class="kv"><span class="k">Website URL</span>
+              <span class="v link"><a [href]="websiteUrlFromResult(result)" target="_blank" rel="noopener">{{ websiteUrlFromResult(result) }}</a></span>
+            </div>
+            <div class="kv" *ngIf="intakeUrlForResult(result) as intakeUrl"><span class="k">Intake URL</span>
+              <span class="v link"><a [href]="intakeUrl" target="_blank" rel="noopener">{{ intakeUrl }}</a></span>
+            </div>
+            <div class="kv"><span class="k">Partner Portal URL</span>
+              <span class="v link"><a [href]="result.login_url" target="_blank" rel="noopener">{{ result.login_url }}</a></span>
+            </div>
+            <div class="kv" *ngIf="result.portal_url"><span class="k">ClaimRush portal</span>
+              <span class="v link"><a [href]="result.portal_url" target="_blank" rel="noopener">{{ result.portal_url }}</a></span>
+            </div>
+            <div class="kv"><span class="k">Client Portal URL</span>
+              <span class="v link"><a [href]="clientLoginUrlFromResult(result)" target="_blank" rel="noopener">{{ clientLoginUrlFromResult(result) }}</a></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <button mat-raised-button color="primary" (click)="openWebsite()">
+            <mat-icon>language</mat-icon>&nbsp;Open Website
+          </button>
+          <button mat-stroked-button (click)="openIntake()" [disabled]="!result.intake_slug">
+            <mat-icon>description</mat-icon>&nbsp;Open Intake
+          </button>
+          <button mat-stroked-button (click)="openPartnerPortal()">
+            <mat-icon>open_in_new</mat-icon>&nbsp;Open Partner Portal
+          </button>
+          <button mat-stroked-button (click)="copyLoginInfo()">
+            <mat-icon>content_copy</mat-icon>&nbsp;Copy Login Info
+          </button>
+        </div>
+
+        <button mat-button class="result-reset" (click)="resetForAnother()">
+          <mat-icon>person_add</mat-icon>&nbsp;Enroll another user
+        </button>
+      </section>
+
+      <ng-template #noResult>
+        <section class="card placeholder-card">
+          <mat-icon class="placeholder-icon">rocket_launch</mat-icon>
+          <h3>Deployment Result</h3>
+          <p class="muted">After you submit the form, the new user's links and credentials will appear here.</p>
+        </section>
+      </ng-template>
+
+      <!-- RIGHT BOTTOM: Existing Users Table ────────────── -->
+      <section class="card table-card">
+        <header class="card-header table-header">
+          <div>
+            <h2>Existing Users</h2>
+            <p class="card-sub">Live readiness across every CP / RVP / Agent.</p>
+          </div>
+          <div class="filters">
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Role</mat-label>
+              <mat-select [(value)]="roleFilter">
+                <mat-option *ngFor="let r of roleFilters" [value]="r">{{ r === 'all' ? 'All' : (r | uppercase) }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Readiness</mat-label>
+              <mat-select [(value)]="readinessFilter">
+                <mat-option *ngFor="let r of readinessFilters" [value]="r">
+                  {{ r === 'all' ? 'All' : (r === 'ready' ? 'Ready' : (r === 'missing_setup' ? 'Missing Setup' : 'Broken')) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <span class="result-count">{{ filteredRows.length }} of {{ rows.length }}</span>
+          </div>
+        </header>
+
+        <div class="table-wrap">
+          <table class="lc-table" *ngIf="!loading && filteredRows.length">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Territory</th>
+                <th>Onboarding</th>
+                <th>Website</th>
+                <th class="actions-col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of filteredRows" class="data-row">
+                <td class="name-cell">
+                  <div class="name-row">
+                    <span class="avatar" [class.has-image]="!!r.profile_image_url" [attr.aria-hidden]="true">
+                      <img *ngIf="r.profile_image_url" [src]="r.profile_image_url" [alt]="r.name" />
+                      <span *ngIf="!r.profile_image_url" class="avatar-initials">{{ (r.name || '??').slice(0,2).toUpperCase() }}</span>
+                    </span>
+                    <span class="name-stack">
+                      <div class="name">{{ r.name }}</div>
+                      <div class="email">{{ r.email }}</div>
+                      <div class="upline" *ngIf="r.upline_name">↑ {{ r.upline_name }}</div>
+                    </span>
+                  </div>
+                </td>
+                <td><span class="role-tag" [ngClass]="'role-' + r.role">{{ r.role | uppercase }}</span></td>
+                <td>{{ territorySummary(r) }}</td>
+                <td class="onboarding-col">
+                  <div class="onboarding-stack">
+                    <span class="activation-badge" [ngClass]="r.is_activated ? 'is-activated' : 'is-pending'">
+                      <mat-icon>{{ r.is_activated ? 'verified' : 'hourglass_empty' }}</mat-icon>
+                      {{ r.is_activated ? 'Activated' : 'Pending' }}
+                    </span>
+                    <div class="agreement-row">
+                      <span class="agreement-chip" [class.signed]="r.upa_agreement_signed">
+                        UPA <mat-icon>{{ r.upa_agreement_signed ? 'check' : 'close' }}</mat-icon>
+                      </span>
+                      <span class="agreement-chip" [class.signed]="r.aci_agreement_signed">
+                        ACI <mat-icon>{{ r.aci_agreement_signed ? 'check' : 'close' }}</mat-icon>
+                      </span>
+                    </div>
+                    <div class="agent-number" *ngIf="r.agent_number">{{ r.agent_number }}</div>
+                    <div class="signed-at" *ngIf="r.agreement_signed_at">
+                      Signed {{ r.agreement_signed_at | date:'MMM d, y' }}
+                    </div>
+                  </div>
+                </td>
+                <td class="website-col">
+                  <ng-container *ngIf="websiteUrlFor(r) as url; else noUrl">
+                    <a [href]="url" class="link website-link" target="_blank" rel="noopener" [title]="url">Open site</a>
+                  </ng-container>
+                  <ng-template #noUrl><span class="muted">—</span></ng-template>
+                </td>
+                <td class="actions-col">
+                  <!-- Always-visible Actions menu so Delete + the four
+                       link-actions are never hidden behind table width. -->
+                  <button mat-stroked-button
+                          class="actions-trigger"
+                          [matMenuTriggerFor]="rowMenu"
+                          [disabled]="deleting[r.user_id]">
+                    <mat-icon>{{ deleting[r.user_id] ? 'hourglass_empty' : 'more_horiz' }}</mat-icon>
+                    <span>Actions</span>
+                  </button>
+                  <mat-menu #rowMenu="matMenu" xPosition="before" class="lc-actions-menu" backdropClass="lc-actions-backdrop">
+                    <button mat-menu-item (click)="openWebsiteFor(r)" [disabled]="!websiteUrlFor(r)">
+                      <mat-icon>language</mat-icon>
+                      <span>Open Website</span>
+                    </button>
+                    <button mat-menu-item (click)="openIntakeFor(r)" [disabled]="!r.personal_landing_slug">
+                      <mat-icon>description</mat-icon>
+                      <span>Open Intake</span>
+                    </button>
+                    <button mat-menu-item (click)="openPartnerPortalFor(r)" [disabled]="!r.login_url">
+                      <mat-icon>open_in_new</mat-icon>
+                      <span>Open Partner Portal</span>
+                    </button>
+                    <button mat-menu-item (click)="copyLoginInfoForRow(r)">
+                      <mat-icon>content_copy</mat-icon>
+                      <span>Copy Login Info</span>
+                    </button>
+                    <hr class="menu-sep" />
+                    <button mat-menu-item class="menu-delete" (click)="deleteUser(r)">
+                      <mat-icon>delete_outline</mat-icon>
+                      <span>Delete</span>
+                    </button>
+                  </mat-menu>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="muted" *ngIf="loading">Loading…</p>
+          <p class="muted" *ngIf="!loading && !filteredRows.length && rows.length">
+            No users match the current filters.
+          </p>
+          <p class="muted" *ngIf="!loading && !rows.length">
+            No active CP / RVP / Agent users in the system.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

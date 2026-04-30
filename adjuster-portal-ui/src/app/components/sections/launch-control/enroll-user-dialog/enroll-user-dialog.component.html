@@ -1,0 +1,129 @@
+<div class="enroll-dialog">
+
+  <!-- ───── Form step ───── -->
+  <ng-container *ngIf="step === 'form'">
+    <header class="dialog-header">
+      <h2>Enroll User</h2>
+      <p class="muted">Creates the user, assigns territories, generates an intake slug, and deploys the portal in one step.</p>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Full name</mat-label>
+        <input matInput formControlName="full_name" autocomplete="name" placeholder="Tim Clauss" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" autocomplete="off" placeholder="tclauss@upaclaim.org" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option *ngFor="let r of roles" [value]="r">{{ r | uppercase }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Manager / upline email (optional)</mat-label>
+        <input matInput formControlName="manager_email" placeholder="cp@example.com" />
+      </mat-form-field>
+
+      <!-- ───── Territories (FormArray) ───── -->
+      <section class="territories span-2" formArrayName="territories">
+        <header class="terr-header">
+          <h3>Territories</h3>
+          <button mat-stroked-button type="button" color="primary" (click)="addTerritory()">
+            <mat-icon>add</mat-icon>&nbsp;Add Territory
+          </button>
+        </header>
+
+        <div class="terr-row" *ngFor="let _ of territories.controls; let i = index" [formGroupName]="i">
+          <span class="terr-index">#{{ i + 1 }}</span>
+
+          <mat-form-field appearance="outline" class="terr-field-type">
+            <mat-label>Type</mat-label>
+            <mat-select formControlName="territory_type">
+              <mat-option *ngFor="let t of territoryTypes" [value]="t">{{ t | uppercase }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="terr-field-state">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" maxlength="2" placeholder="PA" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="terr-field-county">
+            <mat-label>County</mat-label>
+            <input matInput formControlName="county" placeholder="Bucks" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="terr-field-zip">
+            <mat-label>ZIP</mat-label>
+            <input matInput formControlName="zip_code" maxlength="10" placeholder="18901" />
+          </mat-form-field>
+
+          <button mat-icon-button type="button"
+                  class="terr-remove"
+                  (click)="removeTerritory(i)"
+                  [disabled]="territories.length <= 1"
+                  aria-label="Remove territory">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      </section>
+
+      <mat-form-field appearance="outline" class="span-2">
+        <mat-label>Temporary password (leave blank to auto-generate)</mat-label>
+        <input matInput formControlName="password" autocomplete="new-password" />
+      </mat-form-field>
+
+      <p class="error span-2" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <div class="actions span-2">
+        <button mat-stroked-button type="button" (click)="close(false)">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Enrolling…' : 'Enroll' }}
+        </button>
+      </div>
+    </form>
+  </ng-container>
+
+  <!-- ───── Success step ───── -->
+  <ng-container *ngIf="step === 'success' && result">
+    <header class="dialog-header">
+      <h2>Enrolled</h2>
+      <p class="muted">{{ result.name }} is set up and deployed.</p>
+    </header>
+
+    <section class="result-grid">
+      <div class="kv"><span class="k">Name</span><span class="v">{{ result.name }}</span></div>
+      <div class="kv"><span class="k">Role</span><span class="v">{{ result.role | uppercase }}<span class="muted" *ngIf="result.role_display"> · {{ result.role_display }}</span></span></div>
+      <div class="kv"><span class="k">Territories</span><span class="v">{{ territorySummary(result) }}</span></div>
+      <div class="kv" *ngIf="result.upline_name"><span class="k">Upline</span><span class="v">{{ result.upline_name }}</span></div>
+      <div class="kv"><span class="k">Login email</span><span class="v">{{ result.login_email }}</span></div>
+      <div class="kv"><span class="k">Temporary password</span><span class="v mono">{{ result.temporary_password }}</span></div>
+      <div class="kv"><span class="k">Login URL</span><span class="v"><a [href]="result.login_url" target="_blank" rel="noopener">{{ result.login_url }}</a></span></div>
+      <div class="kv"><span class="k">Portal URL</span><span class="v"><a [href]="result.portal_url" target="_blank" rel="noopener">{{ result.portal_url }}</a></span></div>
+      <div class="kv" *ngIf="result.intake_url"><span class="k">Intake URL</span><span class="v"><a [href]="result.intake_url" target="_blank" rel="noopener">{{ result.intake_url }}</a></span></div>
+    </section>
+
+    <div class="actions">
+      <button mat-stroked-button (click)="copyLogin()">
+        <mat-icon>content_copy</mat-icon>&nbsp;Copy Login Info
+      </button>
+      <button mat-stroked-button (click)="openIntake()" [disabled]="!result.intake_url">
+        <mat-icon>description</mat-icon>&nbsp;Open Intake Page
+      </button>
+      <button mat-raised-button color="primary" (click)="openPortal()">
+        <mat-icon>open_in_new</mat-icon>&nbsp;Open Portal
+      </button>
+    </div>
+
+    <div class="actions secondary-actions">
+      <button mat-button (click)="resetForAnother()">Enroll another</button>
+      <button mat-raised-button (click)="close(true)">Done</button>
+    </div>
+  </ng-container>
+</div>

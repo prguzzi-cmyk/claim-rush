@@ -1,0 +1,123 @@
+$bg:        #0d1320;
+$surface:   #161e2f;
+$surface-2: #1d2740;
+$border:    #2b3450;
+$text:      #e7ebf5;
+$text-dim:  #aab2cc;
+$text-mute: #6f7997;
+$primary:   #5b8cff;
+$success:   #34d399;
+$danger:    #f87171;
+
+:host {
+  display: block;
+  background: $bg;
+  color: $text;
+  min-width: 560px;
+  max-width: 720px;
+  padding: 24px 26px;
+}
+
+.muted { color: $text-mute; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+.dialog-header {
+  margin-bottom: 14px;
+  h2 { margin: 0 0 4px 0; font-size: 22px; letter-spacing: 0.2px; }
+  p  { margin: 0; font-size: 13px; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+  align-items: start;
+  .span-2 { grid-column: 1 / -1; }
+  mat-form-field { width: 100%; }
+}
+
+.territories {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 12px 14px;
+
+  .terr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      color: $text-dim;
+      text-transform: uppercase;
+    }
+  }
+
+  .terr-row {
+    display: grid;
+    grid-template-columns: 32px 110px 80px 1fr 110px 36px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 4px;
+    .terr-index {
+      font-size: 12px;
+      color: $text-mute;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    mat-form-field { width: 100%; }
+    .terr-remove { color: $text-mute; }
+    .terr-remove:hover:not([disabled]) { color: $danger; }
+  }
+}
+
+.error {
+  background: rgba($danger, 0.12);
+  color: $danger;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+  &.secondary-actions { margin-top: 4px; }
+}
+
+.result-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.kv {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  font-size: 13px;
+  .k { color: $text-mute; }
+  .v { color: $text; word-break: break-all; }
+  .v a { color: $primary; text-decoration: none; }
+  .v a:hover { text-decoration: underline; }
+}
+
+::ng-deep .mat-mdc-form-field {
+  --mdc-outlined-text-field-outline-color: #{$border};
+  --mdc-outlined-text-field-focus-outline-color: #{$primary};
+  --mdc-outlined-text-field-hover-outline-color: #{lighten($border, 8%)};
+  --mdc-outlined-text-field-input-text-color: #{$text};
+  --mdc-outlined-text-field-label-text-color: #{$text-dim};
+  .mdc-text-field--outlined { background: $surface-2; border-radius: 8px; }
+}
+::ng-deep .mat-mdc-select-value, ::ng-deep .mat-mdc-input-element { color: $text !important; }
+::ng-deep .mat-mdc-select-arrow { color: $text-dim; }

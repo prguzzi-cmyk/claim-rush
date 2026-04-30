@@ -1,0 +1,777 @@
+// Launch Control — denser admin dashboard. Shares the dark surface vocabulary
+// with the Territory Command Center but flatter (this is a read screen, not
+// an operations console) so the dense table doesn't feel cramped.
+
+$bg:        #0d1320;
+$surface:   #161e2f;
+$surface-2: #1d2740;
+$border:    #2b3450;
+$text:      #e7ebf5;
+$text-dim:  #aab2cc;
+$text-mute: #6f7997;
+
+$primary:   #5b8cff;
+$secondary: #c084fc;
+$tertiary:  #38d39f;
+$warn:      #f59e0b;
+$danger:    #f87171;
+$success:   #34d399;
+
+.launch-control {
+  background: $bg;
+  color: $text;
+  // Larger top padding so the page header isn't clipped by the dev/live
+  // banner above. Was 24px → 32px gives "Launch Control" the breathing
+  // room the user reported as missing.
+  padding: 32px 32px 64px;
+  min-height: 100%;
+
+  // ── Force the dark theme to win against Bootstrap-style global rules
+  //    that leak `color: #212529` (near-black) into anything matching
+  //    `.card`. Without this every card header reads as invisible dark
+  //    text on the dark surface — the "translucent" symptom the user
+  //    reported. Locking it down inside this scope only.
+  .card,
+  .card * {
+    color: $text;
+  }
+  .card h2,
+  .card h3,
+  .card h4 {
+    color: $text;
+  }
+  // Restore the muted treatments that intentionally use $text-dim/$text-mute.
+  .card .card-sub,
+  .card .muted,
+  .card .filters .result-count,
+  .card .name-cell .email,
+  .card .name-cell .upline,
+  .card .data-row .muted,
+  .card .lc-table th { color: $text-dim; }
+  .card .lc-table .muted,
+  .card .name-cell .email { color: $text-mute; }
+
+  ::ng-deep .mat-mdc-form-field {
+    --mdc-outlined-text-field-outline-color: #{$border};
+    --mdc-outlined-text-field-focus-outline-color: #{$primary};
+    --mdc-outlined-text-field-hover-outline-color: #{lighten($border, 8%)};
+    --mdc-outlined-text-field-input-text-color: #{$text};
+    --mdc-outlined-text-field-label-text-color: #{$text-dim};
+  }
+  ::ng-deep .mat-mdc-select-value, ::ng-deep .mat-mdc-input-element { color: $text !important; }
+  ::ng-deep .mat-mdc-select-arrow { color: $text-dim; }
+  ::ng-deep .mat-mdc-stroked-button { color: $text; border-color: $border; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid $border;
+    .title-block h1 { font-size: 24px; margin: 0 0 4px 0; letter-spacing: 0.2px; }
+    .title-block .subtitle { color: $text-dim; font-size: 13px; margin: 0; }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .enroll-btn mat-icon {
+      font-size: 18px; width: 18px; height: 18px;
+    }
+  }
+
+  // KPI strip ───────────────────────────────────────────
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+    @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 600px)  { grid-template-columns: repeat(2, 1fr); }
+  }
+  .kpi-card {
+    background: linear-gradient(180deg, $surface 0%, $surface-2 100%);
+    border: 1px solid $border;
+    border-radius: 10px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    .kpi-label {
+      color: $text-dim;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+    .kpi-value { font-size: 24px; font-weight: 600; line-height: 1.1; }
+    &::before {
+      content: ''; position: absolute; left: 0; top: 0; width: 3px; height: 100%;
+    }
+    &.kpi-cp::before     { background: $primary; }
+    &.kpi-rvp::before    { background: $secondary; }
+    &.kpi-agent::before  { background: $tertiary; }
+    &.kpi-ready::before  { background: $success; }
+    &.kpi-missing::before{ background: $warn; }
+    &.kpi-broken::before { background: $danger; }
+  }
+
+  // Two-column body ─────────────────────────────────────
+  .lc-body {
+    display: grid;
+    grid-template-columns: minmax(380px, 460px) 1fr;
+    gap: 18px;
+    align-items: start;
+    @media (max-width: 1100px) { grid-template-columns: 1fr; }
+  }
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+  }
+
+  // Card shell ───────────────────────────────────────────
+  .card {
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 12px;
+    padding: 20px 22px;
+  }
+  .card-header {
+    margin-bottom: 14px;
+    h2 { margin: 0 0 4px 0; font-size: 16px; letter-spacing: 0.2px; }
+    .card-sub { margin: 0; color: $text-dim; font-size: 12px; }
+  }
+
+  // Enrollment form ──────────────────────────────────────
+  .enroll-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 12px;
+    .full { grid-column: 1 / -1; }
+    .half { grid-column: span 1; }
+    mat-form-field { width: 100%; }
+
+    .submit-btn {
+      margin-top: 4px;
+      height: 44px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .form-error {
+    background: rgba($danger, 0.12);
+    color: $danger;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin: 0;
+  }
+
+  .territories {
+    background: $surface-2;
+    border: 1px solid $border;
+    border-radius: 10px;
+    padding: 12px 14px;
+
+    .territory-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      .territory-title {
+        font-size: 11px;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: $text-dim;
+      }
+      .add-btn mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    }
+
+    .territory-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 36px;
+      gap: 8px;
+      align-items: center;
+      mat-form-field { width: 100%; }
+      .terr-remove { color: $text-mute; }
+      .terr-remove:hover:not([disabled]) { color: $danger; }
+    }
+  }
+
+  // Deployment result ────────────────────────────────────
+  .result-card {
+    // Solid, non-translucent surface. The card was visually competing
+    // with the dashboard backdrop — locking background and border down
+    // here so it always reads as a confirmed-action panel.
+    background: $surface;
+    border: 1px solid $border;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.20), 0 18px 40px rgba(0, 0, 0, 0.24);
+
+    .success-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba($success, 0.20) 0%, rgba($success, 0.12) 100%);
+      border: 1px solid rgba($success, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      color: $success;
+      mat-icon {
+        font-size: 22px; width: 22px; height: 22px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .banner-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .banner-title {
+        font-size: 14.5px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        color: lighten($success, 8%);
+      }
+      .banner-help {
+        font-size: 12.5px;
+        font-weight: 500;
+        color: rgba($text, 0.85);
+      }
+    }
+
+    .result-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      .link-list {
+        margin-top: 10px;
+        padding-top: 12px;
+        border-top: 1px solid $border;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+    .kv {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 12px;
+      font-size: 13.5px;
+      .k {
+        color: $text-dim;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        align-self: center;
+      }
+      .v { color: $text; word-break: break-all; font-weight: 500; }
+      .v.link a { color: $primary; text-decoration: none; font-weight: 500; }
+      .v.link a:hover { text-decoration: underline; }
+      .v.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .muted { color: $text-mute; padding: 0; font-size: 12px; }
+    }
+
+    // Credentials block — high-contrast panel inside the card so the
+    // operator can find the email + password at a glance.
+    .credentials-block {
+      background: linear-gradient(180deg, lighten($surface-2, 2%) 0%, $surface-2 100%);
+      border: 1px solid lighten($border, 6%);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 4px 0 4px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+
+      .credentials-head {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: $text-dim;
+        margin-bottom: 10px;
+      }
+      .cred-row {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 0;
+        & + .cred-row { border-top: 1px dashed $border; }
+      }
+      .cred-k {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: $text-mute;
+      }
+      .cred-v {
+        color: $text;
+        font-size: 14px;
+        font-weight: 600;
+        word-break: break-all;
+        &.mono {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+          background: rgba(0, 0, 0, 0.28);
+          border: 1px solid $border;
+          padding: 4px 8px;
+          border-radius: 6px;
+          letter-spacing: 0.04em;
+        }
+      }
+      .cred-warn .cred-v {
+        color: $warn;
+        font-weight: 600;
+        font-size: 12.5px;
+      }
+    }
+    .role-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      &.role-cp     { background: rgba($primary, 0.15);   color: $primary; }
+      &.role-rvp    { background: rgba($secondary, 0.18); color: $secondary; }
+      &.role-agent  { background: rgba($tertiary, 0.18);  color: $tertiary; }
+    }
+
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      // Outline buttons inherit the global Bootstrap-ish `color: #212529`
+      // by default — force the text + icon back to the light theme so
+      // "Open Intake / Open Partner Portal / Copy Login Info" don't read
+      // as ghosted-out dark labels on the dark card.
+      ::ng-deep .mat-mdc-button-base {
+        font-size: 12px;
+        color: $text;
+        .mat-icon, .mdc-button__label { color: inherit; }
+      }
+      ::ng-deep .mat-mdc-outlined-button {
+        --mdc-outlined-button-label-text-color: #{$text};
+        border-color: $border;
+      }
+      ::ng-deep .mat-mdc-outlined-button:hover {
+        background: rgba($primary, 0.08);
+        border-color: rgba($primary, 0.55);
+      }
+    }
+    .result-reset {
+      margin-top: 10px;
+      color: $text-dim;
+      ::ng-deep .mat-mdc-button-base { color: $text-dim; }
+    }
+  }
+
+  .placeholder-card {
+    text-align: center;
+    padding: 28px 22px;
+    .placeholder-icon { font-size: 40px; width: 40px; height: 40px; color: $text-mute; }
+    h3 { margin: 8px 0 4px 0; font-weight: 600; }
+    .muted { padding: 0; font-size: 13px; }
+  }
+
+  // Filters (used inside table card) ────────────────────
+  .filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .filter-field { width: 160px; }
+    .result-count { color: $text-mute; font-size: 12px; margin-left: 8px; }
+  }
+  .table-card .table-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  // Table ───────────────────────────────────────────────
+  .table-wrap {
+    background: $surface-2;
+    border: 1px solid $border;
+    border-radius: 10px;
+    // Compact 5-column table fits inside its container without horizontal
+    // scrolling. Low-priority columns (Portal Active / Last Login / Status)
+    // were dropped — their data still lives in the Actions menu via
+    // Open Partner Portal, Copy Login Info, and the readiness KPIs above.
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .muted { color: $text-mute; padding: 16px 20px; margin: 0; }
+
+  .actions-col {
+    // Reserved right-edge column for the row-level Actions menu. The
+    // column is *not* sticky — we removed the floating treatment that
+    // was casting a fuzzy shadow over the Website URL cell to its left.
+    // Instead it occupies its own dedicated width at the end of every
+    // row so it never visually overlaps another column.
+    width: 132px;
+    min-width: 132px;
+    text-align: right;
+    white-space: nowrap;
+    // Crisp 1-px divider in lieu of the blurry shadow.
+    border-left: 1px solid $border;
+    background: $surface;
+  }
+
+  // Onboarding column — surfaces UPA/ACI signed status, agreement_signed_at,
+  // and the agent_number stamped by activation. Read-only; pure visibility.
+  .onboarding-col {
+    width: 200px;
+    min-width: 180px;
+  }
+  .onboarding-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  .activation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    line-height: 1.6;
+
+    mat-icon {
+      font-size: 14px; width: 14px; height: 14px;
+    }
+
+    &.is-activated {
+      background: rgba(34, 197, 94, 0.14);
+      color: #16a34a;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+    }
+    &.is-pending {
+      background: rgba(234, 179, 8, 0.14);
+      color: #b8860b;
+      border: 1px solid rgba(234, 179, 8, 0.35);
+    }
+  }
+  .agreement-row {
+    display: flex;
+    gap: 6px;
+  }
+  .agreement-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba($text-mute, 0.10);
+    color: $text-dim;
+    border: 1px solid rgba($text-mute, 0.25);
+
+    mat-icon {
+      font-size: 13px; width: 13px; height: 13px;
+      color: inherit;
+    }
+
+    &.signed {
+      background: rgba(34, 197, 94, 0.12);
+      color: #16a34a;
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+  }
+  .agent-number {
+    font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: $text;
+    background: rgba($primary, 0.08);
+    padding: 1px 8px;
+    border-radius: 4px;
+  }
+  .signed-at {
+    font-size: 11px;
+    color: $text-mute;
+  }
+
+  // Website column — short "Open site" link with a clean title-attr
+  // tooltip carrying the full URL. Width is compact so the 5-column
+  // table fits the card with no internal scroll.
+  .website-col {
+    width: 92px;
+    min-width: 80px;
+    white-space: nowrap;
+  }
+  .website-link {
+    color: $primary;
+    text-decoration: none;
+    font-weight: 500;
+    &:hover { text-decoration: underline; }
+
+    // Always-visible "Actions" trigger button — replaces the previous
+    // row of five icon-only buttons that were too easy to miss at
+    // narrow table widths.
+    .actions-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      ::ng-deep .mdc-button__label { color: $text; }
+      ::ng-deep mat-icon {
+        font-size: 16px; width: 16px; height: 16px;
+        margin-right: 0;
+        color: $text-dim;
+      }
+      &:hover {
+        background: rgba($primary, 0.08);
+        ::ng-deep .mdc-button__label { color: $primary; }
+        ::ng-deep mat-icon { color: $primary; }
+      }
+    }
+  }
+
+// NOTE: the row Actions menu (`<mat-menu class="lc-actions-menu">`)
+// is portaled by Angular CDK into `body.cdk-overlay-container`, so it
+// lives OUTSIDE this component's view-encapsulation scope. ::ng-deep
+// rules from here cannot reach it. Its styles live in src/styles.scss.
+
+  // Auth-required notice ────────────────────────────────
+  .auth-required {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: linear-gradient(180deg, rgba($warn, 0.14) 0%, rgba($warn, 0.07) 100%);
+    border: 1px solid rgba($warn, 0.35);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin: 4px 0 24px;        // a touch of breathing room above + clear separation below
+    color: $text;
+    width: 100%;
+    box-sizing: border-box;
+
+    mat-icon {
+      color: $warn;
+      font-size: 26px; width: 26px; height: 26px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    h2 {
+      margin: 0 0 6px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: $text;
+    }
+    p {
+      margin: 0 0 10px;
+      color: $text-dim;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .auth-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: $primary;
+      font-weight: 600;
+      font-size: 13px;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+      mat-icon { font-size: 16px; width: 16px; height: 16px; color: $primary; margin: 0; }
+    }
+  }
+
+  .lc-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    // Reserved column widths for the compact 5-column layout
+    // (Name | Role | Territory | Website | Actions). The first column
+    // soaks up whatever's left so the avatar + name always lead.
+    th:nth-child(1), td:nth-child(1) { width: auto;  }
+    th:nth-child(2), td:nth-child(2) { width: 70px;  }
+    th:nth-child(3), td:nth-child(3) { width: 110px; }
+    th:nth-child(4), td:nth-child(4) { width: 90px;  }
+    th:nth-child(5), td:nth-child(5) { width: 132px; }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid $border;
+      vertical-align: middle;
+    }
+    th {
+      color: $text-dim;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      background: $surface;
+      position: sticky; top: 0;
+    }
+    .data-row { cursor: pointer; }
+    .data-row:hover td { background: $surface-2; }
+    .data-row:hover td.actions-col { background: $surface-2; }
+
+    .chev {
+      width: 28px;
+      mat-icon {
+        color: $text-mute;
+        transition: transform 0.15s ease;
+        &.open { transform: rotate(90deg); }
+      }
+    }
+
+    .name-cell {
+      // Allow the Name column to shrink past content min-widths so
+      // table-layout: fixed can honor the 5-column layout. Truncates
+      // long email strings cleanly.
+      overflow: hidden;
+      .name-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+      }
+      .name-stack {
+        min-width: 0;
+        overflow: hidden;
+      }
+      .name, .email, .upline {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .avatar {
+        width: 36px; height: 36px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, $primary 0%, $secondary 100%);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        &.has-image { background: $surface-2; }
+        img {
+          width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+      }
+      .name-stack { min-width: 0; }
+      .name { font-weight: 600; color: $text; }
+      .email { color: $text-mute; font-size: 11px; }
+      .upline { color: $text-dim; font-size: 11px; margin-top: 2px; }
+    }
+
+    .role-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      &.role-cp     { background: rgba($primary, 0.15);   color: $primary; }
+      &.role-rvp    { background: rgba($secondary, 0.18); color: $secondary; }
+      &.role-agent  { background: rgba($tertiary, 0.18);  color: $tertiary; }
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px; height: 8px; border-radius: 50%;
+      margin-right: 6px;
+      &.on  { background: $success; }
+      &.off { background: $text-mute; }
+    }
+    .muted { padding: 0; color: $text-mute; font-size: 11px; }
+
+    .link {
+      color: $primary;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+    .copy mat-icon { font-size: 16px; width: 16px; height: 16px; color: $text-mute; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      &.r-ready          { background: rgba($success, 0.18); color: $success; }
+      &.r-missing_setup  { background: rgba($warn, 0.18);    color: $warn; }
+      &.r-broken         { background: rgba($danger, 0.18);  color: $danger; }
+      &.d-deployed       { background: rgba($primary, 0.20); color: $primary; }
+      &.d-ready          { background: rgba($success, 0.18); color: $success; }
+      &.d-not_ready      { background: rgba($warn, 0.18);    color: $warn; }
+      &.d-broken         { background: rgba($danger, 0.18);  color: $danger; }
+    }
+
+    // Expanded row ─────────────────────────────────────
+    .expanded-row td {
+      background: $surface-2;
+      border-top: 1px dashed $border;
+      padding: 14px 18px 18px;
+    }
+    .expand-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 18px;
+      @media (max-width: 1100px) { grid-template-columns: 1fr; }
+    }
+    .expand-block h4 {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: $text-dim;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-issue {
+      background: rgba($warn, 0.15);
+      color: $warn;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .chip-territory {
+      background: rgba($primary, 0.12);
+      color: $primary;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      ::ng-deep .mat-mdc-button-base { font-size: 12px; }
+    }
+  }
+}

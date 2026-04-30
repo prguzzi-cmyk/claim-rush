@@ -88,6 +88,13 @@ import {FireClaimListComponent} from "./components/sections/fire-claims/fire-cla
 import {FireClaimFormComponent} from "./components/sections/fire-claims/fire-claim-form/fire-claim-form.component";
 import {FireClaimSummaryComponent} from "./components/sections/fire-claims/fire-claim-summary/fire-claim-summary.component";
 import {TerritoryControlPanelComponent} from "./components/sections/territory-control-panel/territory-control-panel.component";
+import {LeadDeploymentSettingsComponent} from "./components/sections/lead-deployment-settings/lead-deployment-settings.component";
+import {TerritoryAssignmentsComponent} from "./components/sections/territory-assignments/territory-assignments.component";
+import {LaunchControlComponent} from "./components/sections/launch-control/launch-control.component";
+import {UserPortalComponent} from "./components/sections/user-portal/user-portal.component";
+import {PublicIntakeComponent} from "./components/public/public-intake/public-intake.component";
+import {CommunityLandingComponent} from "./components/public/community-landing/community-landing.component";
+import {ClientLoginComponent} from "./components/public/client-login/client-login.component";
 import {LeadDistributionComponent} from "./components/sections/lead-distribution/lead-distribution.component";
 import {LeadIntakeComponent} from "./components/sections/lead-intake/lead-intake.component";
 import {CrimeClaimsIntelligenceComponent} from "./components/sections/crime-claims-intelligence/crime-claims-intelligence.component";
@@ -196,6 +203,18 @@ import { MyClaimDashboardComponent } from "./components/my-claim/dashboard/my-cl
 import { ClientGuard } from "./guards/client.guard";
 
 const routes: Routes = [
+  // Public CP/RVP/Agent intake landing — declared FIRST so it is matched
+  // before any other route configuration. No auth, no guards, no parent
+  // layout — renders PublicIntakeComponent directly.
+  { path: "claim/:slug", component: PublicIntakeComponent },
+  // UPA-branded public community landing — same posture as /claim/:slug
+  // (no auth, no guards). Acts as the consumer entry point for a CP/RVP/Agent.
+  { path: "community/:slug", component: CommunityLandingComponent },
+  // Homeowner-only sign-in. Distinct from /login (Partner Portal → RIN).
+  // Placeholder while the self-serve claim status portal is built; never
+  // routes into the RIN dashboard.
+  { path: "client-login", component: ClientLoginComponent },
+
   // Public marketing pages
   {
     path: "",
@@ -222,6 +241,16 @@ const routes: Routes = [
       {
         path: "agent-dashboard",
         component: AgentDashboardComponent,
+      },
+      // Top-level alias for the Launch Control admin screen. The canonical
+      // route lives under /app/administration/launch-control; this alias
+      // exists so deep links like /app/launch-control resolve directly to
+      // the component instead of falling through the wildcard
+      // (** → /app/dashboard → DashboardComponent ctor → /app/agent-dashboard
+      // when the user's role is agent).
+      {
+        path: "launch-control",
+        component: LaunchControlComponent,
       },
       {
         path: "admin/commissions",
@@ -420,6 +449,24 @@ const routes: Routes = [
       },
 
       {
+        path: "operations",
+        children: [
+          {
+            path: "lead-deployment",
+            component: LeadDeploymentSettingsComponent,
+          },
+        ],
+      },
+
+      // Launch Control admin portal preview — /app/portal/:user_id renders
+      // the UserPortalComponent which fetches the per-user view from
+      // /v1/launch-control/users/{id}.
+      {
+        path: "portal/:user_id",
+        component: UserPortalComponent,
+      },
+
+      {
         path: "administration",
         children: [
           {
@@ -468,6 +515,14 @@ const routes: Routes = [
           {
             path: "lead-distribution",
             component: LeadDistributionComponent,
+          },
+          {
+            path: "territory-assignments",
+            component: TerritoryAssignmentsComponent,
+          },
+          {
+            path: "launch-control",
+            component: LaunchControlComponent,
           },
           {
             path: "lead-intake",
@@ -589,6 +644,7 @@ const routes: Routes = [
   { path: "login", component: LoginComponent, canActivate: [DevAutoLoginGuard] },
   { path: "auth/magic-link", component: MagicLinkCallbackComponent },
   { path: "forgot-password", component: ForgotPasswordComponent },
+  // (claim/:slug is declared at the very top of this routes array.)
   // User registration
   {
     path: "user",
