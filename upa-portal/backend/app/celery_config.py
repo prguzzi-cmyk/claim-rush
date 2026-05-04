@@ -4,6 +4,8 @@
 
 import os
 
+from celery.schedules import crontab
+
 broker_url = os.getenv("CELERY_BROKER_URL")
 broker_connection_retry_on_startup = True
 
@@ -73,6 +75,30 @@ beat_schedule = {
         "task": "process_client_portal_follow_ups",
         "schedule": 300.0,
     },
+    # Activation Phase 1 — populates outreach_queue from canonical fire-lead
+    # state. Fires at :MM:00 every 2 minutes (Celery crontab has no second-
+    # precision, so true :MM:50 stagger isn't expressible; this still gives
+    # a 25-second decoupling from PulsePoint's :MM:35 slot, which was the
+    # intent of the stagger).
+    "populate-fire-outreach-queue-every-2min": {
+        "task": "app.tasks.outreach_queue_populate.populate_fire_outreach_queue",
+        "schedule": crontab(minute="*/2"),
+    },
+    # Polls fire_agency_audit (written by trg_fire_agency_audit trigger);
+    # emails pguzzi@upaclaim.org for any agency deactivation or delete.
+    # Standalone monitor EC2 covers this until prod ECS picks up the task.
+    "fire-agency-audit-alert-every-60s": {
+        "task": "fire_agency_audit_alert.poll_audit_for_alerts",
+        "schedule": 60.0,
+    },
+    # Stage 6: hourly digest of leads that landed on the RIN Home Office
+    # user in the past hour, grouped by state. Fires at HH:05 to give
+    # ingestion a few minutes to settle from the top-of-hour PulsePoint
+    # poll cycle. Sends nothing when no uncovered-state leads landed.
+    "home-office-state-digest-hourly": {
+        "task": "home_office_state_digest.send_hourly_digest",
+        "schedule": crontab(minute=5),
+    },
 }
 
 task_routes = {
@@ -105,4 +131,6 @@ task_routes = {
     "app.tasks.voice_campaign.process_voice_campaign_calls": "main-queue",
     "app.tasks.voice_campaign.process_single_campaign_call": "main-queue",
     "process_client_portal_follow_ups": "main-queue",
+    "app.tasks.outreach_queue_populate.populate_fire_outreach_queue": "main-queue",
+    "home_office_state_digest.send_hourly_digest": "main-queue",
 }

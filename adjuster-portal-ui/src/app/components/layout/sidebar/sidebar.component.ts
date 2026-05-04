@@ -202,6 +202,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.userService.currentUser.subscribe(
       (result) => {
         this.user = result;
+        // React to the user arriving (fresh login / auto-login race).
+        // localStorage['role-name'] is written by application.component
+        // when this same BehaviorSubject emits, but the order of
+        // subscribers isn't guaranteed — so mirror it here too. Without
+        // this update the sidebar reads `null` once at mount and every
+        // showSection() returns false → empty nav.
+        const incomingRole = result?.role?.name;
+        if (incomingRole && incomingRole !== this.roleName) {
+          this.roleName = incomingRole;
+          try { localStorage.setItem('role-name', incomingRole); } catch {}
+          this.autoExpandActiveSection();
+        }
       },
       (error) => {
         if (error?.status == 403) {
@@ -213,7 +225,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
       }
     );
 
-    this.roleName = localStorage.getItem('role-name');
+    // Use the cached role-name when present; otherwise keep the field
+    // default ('agent') so we render *some* sidebar instead of going
+    // blank while /users/me is in flight.
+    const cachedRoleName = localStorage.getItem('role-name');
+    if (cachedRoleName) this.roleName = cachedRoleName;
     this.operatingMode = localStorage.getItem('operating-mode') || 'neutral';
 
     // Restore collapsed state from localStorage
@@ -285,7 +301,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
         '/app/dashboard/storm-impact',
       ],
       leads: [
-        '/app/leads', '/app/leads/', '/app/claim-intake', '/app/ai-intake',
+        '/app/leads', '/app/leads/', '/app/leads/master-watch', '/app/leads/home-office',
+        '/app/claim-intake', '/app/ai-intake',
         '/app/ai-sales-agent', '/app/voice-outreach-agent', '/app/voice-secretary',
       ],
       comms: [

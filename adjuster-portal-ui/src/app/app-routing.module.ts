@@ -334,6 +334,11 @@ const routes: Routes = [
       { path: "leads/create", component: CreateLeadComponent },
       { path: "leads/create/:id", component: CreateLeadComponent },
       { path: "leads/search", component: LeadSearchComponent },
+      // Stage 5: admin-only watch views. Reuse the Leads component;
+      // mode is read from this.router.url in ngOnInit. Component-level
+      // role check redirects non-admins back to /app/leads.
+      { path: "leads/master-watch", component: Leads },
+      { path: "leads/home-office", component: Leads },
       { path: "leads/:id", component: LeadComponent },
 
       { path: "claims/search", component: ClaimSearchComponent },

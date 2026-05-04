@@ -40,6 +40,14 @@
   <!-- ==================== GROUPED NAV (admin / cp / rvp / agent / adjuster) ==================== -->
   <nav *ngIf="isGroupedNavVisible" class="grouped-nav">
 
+    <!-- CP Portal — opens the local ClaimRush Vite portal. Dev-only: in
+         prod the link points at localhost:5175 which doesn't exist on the
+         user's machine, so it's hidden until a real prod CP portal URL
+         lands in environment.prod.ts. -->
+    <a *ngIf="!environment?.production" mat-button href="http://localhost:5175/portal" target="_blank" routerLinkActive="active">
+      <mat-icon>dashboard_customize</mat-icon><span class="label">CP Portal</span>
+    </a>
+
     <!-- ─────────────────────────────────────────────────────
          INTELLIGENCE
          ───────────────────────────────────────────────────── -->
@@ -102,9 +110,21 @@
       <div class="section-items" [class.collapsed]="!isSectionOpen('leads')">
         <a mat-button
            [hidden]="!userService.getUserPermissions('lead', 'read')"
-           routerLink="/app/leads" routerLinkActive="active">
+           routerLink="/app/leads" routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon>headset_mic</mat-icon><span class="label">Leads</span>
           <span class="notif-badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+        </a>
+        <!-- Stage 5: Pete's Master Watch + Home Office Queue. Admin-only. -->
+        <a *ngIf="roleName == 'admin' || roleName == 'super-admin'"
+           mat-button routerLink="/app/leads/master-watch" routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }">
+          <mat-icon>visibility</mat-icon><span class="label">Master Watch</span>
+        </a>
+        <a *ngIf="roleName == 'admin' || roleName == 'super-admin'"
+           mat-button routerLink="/app/leads/home-office" routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }">
+          <mat-icon>apartment</mat-icon><span class="label">Home Office Queue</span>
         </a>
         <a mat-button routerLink="/app/ai-intake" routerLinkActive="active">
           <mat-icon>smart_toy</mat-icon><span class="label">AI Lead Intake</span>
@@ -175,6 +195,14 @@
       </button>
 
       <div class="section-items" [class.collapsed]="!isSectionOpen('ops')">
+        <a *ngIf="canShowRoute('/app/operations/lead-deployment')"
+           mat-button routerLink="/app/operations/lead-deployment" routerLinkActive="active">
+          <mat-icon>settings_input_component</mat-icon><span class="label">Lead Deployment</span>
+        </a>
+        <a *ngIf="canShowRoute('/app/administration/territory-assignments')"
+           mat-button routerLink="/app/administration/territory-assignments" routerLinkActive="active">
+          <mat-icon>assignment_ind</mat-icon><span class="label">Territory Assignments</span>
+        </a>
         <a mat-button
            [hidden]="!userService.getUserPermissions('lead', 'read')"
            routerLink="/app/response-desk" routerLinkActive="active">
@@ -381,6 +409,10 @@
            mat-button routerLink="/app/administration/permissions" routerLinkActive="active">
           <mat-icon>admin_panel_settings</mat-icon><span class="label">Permissions</span>
         </a>
+        <a *ngIf="canShowRoute('/app/administration/launch-control')"
+           mat-button routerLink="/app/administration/launch-control" routerLinkActive="active">
+          <mat-icon>rocket_launch</mat-icon><span class="label">Launch Control</span>
+        </a>
         <a *ngIf="canShowRoute('/app/administration/territories')"
            mat-button routerLink="/app/administration/territories" routerLinkActive="active">
           <mat-icon>map</mat-icon><span class="label">Territories</span>
@@ -478,6 +510,21 @@
     </div>
     <span class="label">{{ user?.first_name }}</span>
     <mat-icon class="menu-arrow">unfold_more</mat-icon>
+  </button>
+
+  <!--
+    Top-level Sign Out button — visible and one-click, alongside the user
+    menu (which still carries Profile + the same logout). Belt-and-braces
+    so a logout is never hidden behind a menu trigger.
+  -->
+  <button
+    mat-stroked-button
+    color="warn"
+    class="sign-out-button"
+    (click)="logOut()"
+    title="Sign out (clears session)">
+    <mat-icon>logout</mat-icon>
+    <span>Sign Out</span>
   </button>
 
   <mat-menu #userMenu="matMenu">

@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTableDataSource } from "@angular/material/table";
@@ -121,16 +122,31 @@ export class Leads implements OnInit {
   pageIndexPendingLeads = 1;
 
   // ── CRM Dashboard KPIs + Pipeline ──
+  // Counts populated from GET /v1/leads-dashboard (server-side
+  // aggregation across the lead table, scoped by user role). The
+  // outreach-queue rows below feed the table only — no longer the
+  // counters.
   kpiNew = 0;
   kpiContacted = 0;
   kpiAppointments = 0;
   kpiSigned = 0;
+  kpiLost = 0;
+
+  // Stage 5: dashboard view mode. 'default' is the standard role-scoped
+  // view (existing behavior). 'master-watch' shows every lead system-wide
+  // (admin-only). 'home-office' shows only leads owned by RIN Home Office
+  // (admin-only). Mode is derived from the route path in ngOnInit.
+  watchMode: 'default' | 'master-watch' | 'home-office' = 'default';
   pipelineStages = [
-    { key: 'callback', label: 'New', count: 0, color: '#3b82f6' },
-    { key: 'interested', label: 'Contacted', count: 0, color: '#8b5cf6' },
-    { key: 'pending-sign', label: 'Appointment', count: 0, color: '#f59e0b' },
-    { key: 'signed', label: 'Signed', count: 0, color: '#10b981' },
-    { key: 'not-interested', label: 'Lost', count: 0, color: '#6b7280' },
+    // NEW currently has zero rows — no DB status writes "new". Reserved
+    // for a future rotation-engine change. The other four buckets are
+    // multi-status; click-to-filter is intentionally not wired in this
+    // stage.
+    { key: 'new',          label: 'New',         count: 0, color: '#3b82f6' },
+    { key: 'contacted',    label: 'Contacted',   count: 0, color: '#8b5cf6' },
+    { key: 'appointments', label: 'Appointment', count: 0, color: '#f59e0b' },
+    { key: 'signed',       label: 'Signed',      count: 0, color: '#10b981' },
+    { key: 'lost',         label: 'Lost',        count: 0, color: '#6b7280' },
   ];
   activePipelineFilter = '';
 
@@ -149,6 +165,7 @@ export class Leads implements OnInit {
     private tabService: TabService,
     private dialog: MatDialog,
     private leadIntelService: LeadIntelligenceService,
+    private http: HttpClient,
   ) { }
 
   initialized = false;
@@ -157,6 +174,26 @@ export class Leads implements OnInit {
     this.searchFormGroup = this._formBuilder.group({
       search_string: null
     });
+
+    // Stage 5: derive watch mode from the route. /app/leads/master-watch
+    // and /app/leads/home-office are admin-only views. Non-admins
+    // visiting these URLs directly are bounced back to /app/leads.
+    const url = this.router.url;
+    if (url.includes('/leads/master-watch')) {
+      this.watchMode = 'master-watch';
+    } else if (url.includes('/leads/home-office')) {
+      this.watchMode = 'home-office';
+    } else {
+      this.watchMode = 'default';
+    }
+    if (this.watchMode !== 'default') {
+      const role = localStorage.getItem('role-name');
+      if (role !== 'admin' && role !== 'super-admin') {
+        console.warn('[Leads] non-admin attempted watch mode "%s" — redirecting', this.watchMode);
+        this.router.navigate(['/app/leads']);
+        return;
+      }
+    }
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       this.queryParams = {
@@ -223,112 +260,183 @@ export class Leads implements OnInit {
 
   getLeads() {
     this.spinner.show();
-    const sortDirection = this.sort1?.direction || 'desc';
-    const sortActive = this.sort1?.active || 'created_at';
 
-    const apiParams: any = {
-      sort_by: sortActive,
-      order_by: sortDirection,
-    };
-    if (this.queryParams['search_field']) {
-      apiParams['search_field'] = this.queryParams['search_field'];
-      apiParams['search_value'] = this.queryParams['search_value'];
+    // Stage 4: dashboard counts come from a server-side aggregation
+    // (/v1/leads-dashboard) over the full lead table, role-scoped.
+    // Stage 5: in master-watch / home-office mode, append `?watch=...`
+    // (admin-only on the backend) to bypass the role-scope filter.
+    const watchParam =
+      this.watchMode === 'master-watch'  ? '?watch=master' :
+      this.watchMode === 'home-office'   ? '?watch=home_office' :
+      '';
+    this.http.get<any>('leads-dashboard' + watchParam).subscribe(
+      (counts) => {
+        if (!counts) return;
+        this.totalRecords    = counts.total ?? 0;
+        this.kpiNew          = counts.new ?? 0;
+        this.kpiContacted    = counts.contacted ?? 0;
+        this.kpiAppointments = counts.appointments ?? 0;
+        this.kpiSigned       = counts.signed ?? 0;
+        this.kpiLost         = counts.lost ?? 0;
+        this.pipelineStages[0].count = this.kpiNew;
+        this.pipelineStages[1].count = this.kpiContacted;
+        this.pipelineStages[2].count = this.kpiAppointments;
+        this.pipelineStages[3].count = this.kpiSigned;
+        this.pipelineStages[4].count = this.kpiLost;
+      },
+      (err) => {
+        console.error('[Leads] GET /v1/leads-dashboard FAILED:', err);
+      },
+    );
+
+    // Stage 5: in watch modes, the table is fed by /leads-dashboard/rows
+    // (every lead joined to assignee + state). In default mode, retain
+    // the existing outreach-queue source so the standard view's row set
+    // is unchanged.
+    if (this.watchMode !== 'default') {
+      const rowsUrl = 'leads-dashboard/rows' + watchParam + (watchParam ? '&' : '?') + 'limit=500';
+      console.log('[Leads] watch=%s -> GET %s', this.watchMode, rowsUrl);
+      this.http.get<any[]>(rowsUrl).subscribe(
+        (rows) => {
+          const items = (rows || []).map((r) => this.dashboardRowToLead(r));
+          this.leads = items as any;
+          this.dataSource.data = items as any;
+          this.leadsLoaded = true;
+          this.spinner.hide();
+        },
+        (error) => {
+          console.error('[Leads] GET /v1/leads-dashboard/rows FAILED:', error);
+          this.leadsLoaded = true;
+          this.spinner.hide();
+        },
+      );
+      return;
     }
 
-    console.log('[Leads] getLeads() called → page=%d size=%d params=%o', this.pageIndex, this.pageSize, apiParams);
+    // Default mode: data source for the table is /v1/outreach-queue
+    // (read-only staged-for-outreach view).
+    //
+    // No leading slash, no `v1/` prefix — ApiInterceptor prepends
+    // environment.server (= "/v1") before sending the request, and the
+    // bearer token is attached there too.
+    const url = 'outreach-queue?limit=500&queue_name=fire_lead_outreach';
+    console.log('[Leads] getLeads() → GET %s', url);
 
-    this.leadService.getLeads(this.pageIndex, this.pageSize, apiParams).subscribe(
-      (response) => {
-        console.log('[Leads] raw API response:', response);
+    this.http.get<any[]>(url).subscribe(
+      (rows) => {
+        const queueRows = rows || [];
+        const items = queueRows.map((r) => this.queueRowToLead(r));
 
-        const items: Lead[] = response?.items || [];
-
-        console.log('Leads loaded:', items.length);
-        console.log('[Leads] total=%d, items=%d', response?.total, items.length);
-
-        // Log each item's status for diagnosis
+        console.log('[Leads] outreach-queue rows=%d', items.length);
         if (items.length > 0) {
-          const statusCounts: Record<string, number> = {};
-          items.forEach((item: any) => {
-            const s = item.status || '(null)';
-            statusCounts[s] = (statusCounts[s] || 0) + 1;
-          });
-          console.log('[Leads] status breakdown:', statusCounts);
-          console.log('[Leads] first item sample:', JSON.stringify(items[0]).substring(0, 300));
+          console.log('[Leads] first mapped row:', JSON.stringify(items[0]).substring(0, 300));
         }
 
-        // Bind ALL items directly — no filtering
-        this.leads = items;
-        this.dataSource.data = items;
+        this.leads = items as any;
+        this.dataSource.data = items as any;
         this.leadsLoaded = true;
-
-        console.log('[Leads] dataSource.data.length after set:', this.dataSource.data.length);
-
-        this.totalRecords = response?.total ?? items.length;
-        this.pageIndex = response?.page ?? this.pageIndex;
-        this.pageSize = response?.size ?? this.pageSize;
-        this.computeCrmKpis(items);
         this.spinner.hide();
       },
       (error) => {
-        console.error('[Leads] GET /leads FAILED:', error);
+        console.error('[Leads] GET /v1/outreach-queue FAILED:', error);
         this.leadsLoaded = true;
         this.spinner.hide();
       }
     );
   }
 
-  getPendingForApprovalLeads() {
-    this.spinner.show();
-    const sortDirection = this.sort2?.direction || 'desc';
-    const sortActive = this.sort2?.active || 'created_at';
-
-    let params = {
-      'sort_by' : sortActive,
-      'order_by' : sortDirection,
-      'search_field' : 'status',
-      'search_value' : 'signed'
-    }
-
-    this.leadService.getLeads(this.pageIndexPendingLeads, this.pageSizePendingLeads, params).subscribe(
-      (leads) => {
-        setTimeout(() => {
-          this.spinner.hide();
-        }, 500);
-        if (leads !== undefined) {
-
-          this.dataSourcePending.data = leads.items.filter((row) => row.status === "signed");
-
-          this.dataSourcePending.filterPredicate = function (
-            data,
-            filter: string
-          ): boolean {
-            return (
-              data.contact.full_name?.toLowerCase().includes(filter) ||
-              data.source?.toLowerCase().includes(filter) ||
-              data.peril?.toLowerCase().includes(filter) ||
-              data.insurance_company?.toLowerCase().includes(filter) ||
-              data.policy_number?.toLowerCase().includes(filter) ||
-              data.claim_number?.toLowerCase().includes(filter) ||
-              data.loss_date?.toLowerCase().includes(filter) ||
-              data.ref_string?.toLowerCase().includes(filter) ||
-              data?.contact?.phone_number?.toLowerCase().includes(filter) ||
-              data?.contact?.email?.toLowerCase().includes(filter) ||
-              data?.status?.toString().includes(filter)
-            );
-          };
-
-          this.totalRecordsPendingLeads = leads.total;
-          this.pageIndexPendingLeads = leads.page;
-          this.pageSizePendingLeads = leads.size;
-          this.spinner.hide();
-
-        }
+  /**
+   * Map a dashboard-rows row → Lead-shaped object. Used in master-watch
+   * and home-office modes. The dashboard endpoint already joins the
+   * assignee and primary contact; we just shape the fields the template
+   * binds to.
+   */
+  private dashboardRowToLead(r: any): any {
+    const ref = (r.ref_number != null) ? String(r.ref_number) : (r.id || '').slice(0, 8).toUpperCase();
+    return {
+      id: r.id,
+      ref_string: ref,
+      ref_number: r.ref_number,
+      peril: 'fire',
+      status: r.status,
+      priority: 'normal',
+      distributed: r.assigned_to_id != null,
+      consent: null,
+      dnc: null,
+      assigned_to: r.assigned_to_id || null,
+      assigned_agent: r.assigned_to_name || null,
+      assigned_user: r.assigned_to_id
+        ? { id: r.assigned_to_id, first_name: r.assigned_to_name || '', last_name: '' }
+        : null,
+      contact: {
+        full_name: r.full_name || 'Property Owner',
+        phone_number: '',
+        address_loss: r.address_loss || '',
+        state_loss: r.state || null,
       },
-      (error) => {
-        this.spinner.hide();
-      }
-    );
+    };
+  }
+
+  /**
+   * Map an outreach_queue row → Lead-shaped object. Applies the transform
+   * the operator dictated (status → New/Pending, distributed flag, peril
+   * normalized to 'fire', name fallback to 'Property Owner', null
+   * consent/dnc), and surfaces the result under the field names the
+   * existing template binds to (`contact.full_name`, `contact.phone_number`,
+   * `assigned_user.first_name`, `ref_string`, …) so the layout renders
+   * unchanged.
+   */
+  private queueRowToLead(r: any): any {
+    const ref = (r.lead_id || '').slice(0, 8).toUpperCase();
+    const name = r.address || 'Property Owner';
+    const peril = r.incident_type?.toLowerCase().includes('fire')
+      ? 'fire'
+      : r.incident_type;
+    const status = r.contact_status === 'ready_to_contact' ? 'New' : 'Pending';
+    const distributed =
+      !!r.assignee &&
+      ['pending_outreach', 'ready_to_contact'].includes(r.contact_status);
+
+    const [first, ...rest] = (r.assignee || '').trim().split(/\s+/);
+    const last = rest.join(' ');
+    const stateMatch = (r.address || '').match(/,\s*([A-Z]{2})\s*$/);
+    const state = stateMatch ? stateMatch[1] : null;
+
+    return {
+      // lead_id is the canonical id used for selection / dialogs / nav.
+      id: r.lead_id,
+      ref_string: ref,
+      ref_number: ref,
+      peril,
+      status,
+      priority: r.priority || 'normal',
+      distributed,
+      consent: null,
+      dnc: null,
+      assigned_to: r.assignee_id || null,
+      assigned_agent: r.assignee || null,
+      assigned_user: r.assignee
+        ? { id: r.assignee_id, first_name: first || '', last_name: last || '' }
+        : null,
+      contact: {
+        full_name: name,
+        phone_number: r.phone || '',
+        address_loss: r.address || '',
+        state_loss: state,
+      },
+      created_at: r.created_at,
+      // Carried so flattenLead / exports stay sane.
+      source_info: 'fire_lead_outreach',
+    };
+  }
+
+  getPendingForApprovalLeads() {
+    // Phase 1: outreach_queue has no "signed pending approval" concept.
+    // Leave the second tab empty so the layout still renders without
+    // hitting the legacy /v1/leads endpoint.
+    this.dataSourcePending.data = [];
+    this.totalRecordsPendingLeads = 0;
+    this.spinner.hide();
   }
 
   ngAfterViewInit() {
@@ -539,8 +647,20 @@ export class Leads implements OnInit {
     this.excelService.exportAsExcelFile(flattenedLeads, "leads");
   }
 
-  onLeadDetail(id: string, name: string) {
-    this.tabService.addItem({ id, name, type: "lead" });
+  /**
+   * Open a lead detail tab. Passes the FULL row object through so
+   * the detail component can render without a second GET (the list
+   * runs against /v1/outreach-queue, which has no /:id endpoint).
+   */
+  onLeadDetail(lead: any) {
+    const ref = (lead?.ref_string || '').slice(-3);
+    const who = lead?.contact?.full_name || 'Lead';
+    this.tabService.addItem({
+      id: lead?.id,
+      name: `${who}-${ref}`,
+      type: "lead",
+      data: lead,
+    });
   }
 
   downloadCsv() {

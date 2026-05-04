@@ -77,6 +77,17 @@ from app.api.api_v1.endpoints import (
     territories,
     public_territories,
     lead_distribution,
+    lead_engagement,
+    lead_rotation,
+    lead_routing_settings,
+    lead_rotation_settings,
+    launch_control,
+    outreach_queue,
+    leads_dashboard,
+    agent_onboarding,
+    intake_public,
+    intake_submission,
+    territory_assignments,
     lead_outcomes,
     notifications,
     tracking,
@@ -664,6 +675,86 @@ api_router.include_router(
     lead_distribution.router,
     prefix="/lead-distribution",
     tags=[Tags.lead_distribution],
+)
+
+# Lead Routing Settings Router (admin control panel for unified routing engine)
+api_router.include_router(
+    lead_routing_settings.router,
+    prefix="/lead-routing-settings",
+    tags=[Tags.lead_routing_settings],
+)
+
+# Lead Rotation Settings Router (per-source rotation/inactivity config)
+api_router.include_router(
+    lead_rotation_settings.router,
+    prefix="/lead-rotation-settings",
+    tags=[Tags.lead_rotation_settings],
+)
+
+# Lead Rotation Trigger (admin-invoked rotation pass; dry_run default)
+api_router.include_router(
+    lead_rotation.router,
+    prefix="/lead-rotation",
+    tags=[Tags.lead_rotation],
+)
+
+# Launch Control (read-only aggregation across users / territories /
+# routing / rotation / intake configs)
+api_router.include_router(
+    launch_control.router,
+    prefix="/launch-control",
+    tags=[Tags.launch_control],
+)
+
+# Outreach Queue (read-only view of staged leads ready for outreach).
+api_router.include_router(
+    outreach_queue.router,
+    prefix="/outreach-queue",
+    tags=[Tags.outreach_queue],
+)
+
+# Leads Dashboard counts (read-only aggregation feeding the tiles).
+api_router.include_router(
+    leads_dashboard.router,
+    prefix="/leads-dashboard",
+    tags=[Tags.leads],
+)
+
+# Agent Onboarding (UPA + ACI agreement gate that mints agent_profile).
+api_router.include_router(
+    agent_onboarding.router,
+    prefix="/agent-onboarding",
+    tags=[Tags.agent_onboarding],
+)
+
+# Public intake lookup (no auth) — feeds CP / RVP / Agent personal landings.
+api_router.include_router(
+    intake_public.router,
+    prefix="/intake",
+    tags=[Tags.intake_public],
+)
+
+# Public intake submission (no auth) — POST /v1/leads/intake. Mounted under
+# /leads alongside lead_engagement so the consumer URL is /v1/leads/intake.
+api_router.include_router(
+    intake_submission.router,
+    prefix="/leads",
+    tags=[Tags.intake_submission],
+)
+
+# Lead Engagement Router (per-lead activity summary; rotation bridge read API)
+# Mounted at /leads so the URL is /v1/leads/{lead_id}/engagement.
+api_router.include_router(
+    lead_engagement.router,
+    prefix="/leads",
+    tags=[Tags.lead_engagement],
+)
+
+# Territory Assignment Control Panel Router (admin/CP/RVP hierarchy)
+api_router.include_router(
+    territory_assignments.router,
+    prefix="/territory-assignments",
+    tags=[Tags.territory_assignments],
 )
 
 # Notifications Router
