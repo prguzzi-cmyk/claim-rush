@@ -306,6 +306,21 @@ export class StormDataService {
     );
   }
 
+  /** POST /storm-events/{event_id}/convert-to-lead */
+  convertToLead(eventId: string, payload: {
+    full_name: string;
+    phone_number: string;
+    address_loss: string;
+    email?: string;
+    peril?: string;
+    loss_date?: string;
+    insurance_company?: string;
+    instructions_or_notes?: string;
+    assigned_to?: string;
+  }): Observable<any> {
+    return this.http.post<any>(`storm-events/${eventId}/convert-to-lead`, payload);
+  }
+
   /** POST /storm-events/outreach-batch */
   createOutreachBatch(payload: OutreachBatchPayload): Observable<{ success: boolean; batch_id: string }> {
     const body = {

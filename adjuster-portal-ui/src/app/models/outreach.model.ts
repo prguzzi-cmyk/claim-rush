@@ -39,6 +39,8 @@ export class OutreachCampaign {
   launched_at?: Date;
   completed_at?: Date;
   steps?: CampaignStep[];
+  // Set by GET /v1/outreach/campaigns: count of attached leads via outreach_campaign_lead.
+  lead_count?: number;
 }
 
 export class CampaignStep {

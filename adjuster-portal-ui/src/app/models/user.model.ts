@@ -27,6 +27,8 @@ export class User {
   ];
   is_active?: boolean;
   operating_mode?: 'neutral' | 'aci' | 'upa';
+  // Partner profile photo. Data: URL in dev, S3/Supabase URL in prod.
+  profile_image_url?: string | null;
   is_removed?: boolean;
   can_be_removed?: boolean = true;
   parent_id?: string;

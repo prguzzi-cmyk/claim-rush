@@ -82,10 +82,15 @@ export class UserService {
             return false;
         }
 
+        // Backend currently emits each permission with field-name echoes
+        // in `module` / `operation` ("module" / "operation") and the real
+        // value colon-joined in `name` (e.g. "lead:read"). Match either
+        // shape so we don't need a backend change to unblock the UI.
+        const colonName = `${module}:${operation}`;
         let permission = permissions.filter(
             (obj) =>
-                obj.module == module &&
-                obj.operation == operation &&
+                ((obj.module == module && obj.operation == operation) ||
+                    obj.name === colonName) &&
                 obj.effect != 'deny'
         )[0];
         if (permission) {
@@ -127,6 +132,18 @@ export class UserService {
         );
     }
 
+    /** Persist a partner profile photo for the current user.
+     *  Pass a data: URL in dev or any external image URL.
+     *  Refreshes `currentUser` so the avatar updates everywhere it is bound. */
+    updateProfileImage(profile_image_url: string | null) {
+        return this.http.put<User>('users/me/profile-image', { profile_image_url }).pipe(
+            map((user) => {
+                this.currentUserSubject.next(user);
+                return user;
+            })
+        );
+    }
+
     updateUserStatus(id: number, status: string) {
         return this.http.patch('users/' + id, { status: status }).pipe(
             map((response) => {
@@ -135,8 +152,11 @@ export class UserService {
         );
     }
 
-    changePassword(newPassword: string) {
-        return this.http.put('users/me', { password: newPassword }).pipe(
+    changePassword(newPassword: string, currentPassword: string) {
+        return this.http.put('users/me', {
+            password: newPassword,
+            current_password: currentPassword,
+        }).pipe(
             map((response) => {
                 return response;
             }),
