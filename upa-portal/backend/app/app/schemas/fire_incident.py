@@ -26,6 +26,12 @@ class FireIncidentBase(BaseModel):
     address: str | None = Field(
         default=None, description="Full display address of the incident."
     )
+    street_address: str | None = Field(default=None, max_length=255, description="Parsed street.")
+    city: str | None = Field(default=None, max_length=100, description="Parsed city.")
+    state: str | None = Field(default=None, max_length=50, description="Parsed state.")
+    zip_code: str | None = Field(default=None, max_length=20, description="Parsed ZIP.")
+    county: str | None = Field(default=None, max_length=100, description="County name (from reverse geocode).")
+    full_address: str | None = Field(default=None, max_length=500, description="Normalized full address.")
     latitude: float | None = Field(default=None, description="Incident latitude.")
     longitude: float | None = Field(default=None, description="Incident longitude.")
     received_at: datetime | None = Field(

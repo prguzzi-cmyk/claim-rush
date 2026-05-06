@@ -28,7 +28,9 @@ from app.models.fire_incident import (
     FireIncident,
 )
 from app.schemas.fire_incident import FireIncidentCreate, FireIncidentUpdate
+from app.utils.address_parser import parse_address
 from app.utils.pulsepoint import get_call_type_description
+from app.utils.reverse_geocoder import reverse_geocode
 from app.utils.source_router import get_source_id
 
 
@@ -257,10 +259,18 @@ class CRUDFireIncident(CRUDBase[FireIncident, FireIncidentCreate, FireIncidentUp
                 if received_at and hasattr(received_at, "tzinfo") and received_at.tzinfo is None:
                     received_at = received_at.replace(tzinfo=timezone.utc)
 
+                raw_address = item.get("address")
+                parts = parse_address(raw_address, fallback_state=item.get("state"))
+
                 update_data = {
                     "call_type": item.get("call_type", ""),
                     "call_type_description": item.get("call_type_description"),
-                    "address": item.get("address"),
+                    "address": raw_address,
+                    "street_address": item.get("street_address") or parts.street_address,
+                    "city": item.get("city") or parts.city,
+                    "state": item.get("state") or parts.state,
+                    "zip_code": item.get("zip_code") or parts.zip_code,
+                    "full_address": item.get("full_address") or parts.full_address or raw_address,
                     "latitude": item.get("latitude"),
                     "longitude": item.get("longitude"),
                     "received_at": received_at,
@@ -278,7 +288,12 @@ class CRUDFireIncident(CRUDBase[FireIncident, FireIncidentCreate, FireIncidentUp
                     create_data = FireIncidentCreate(
                         call_type=item.get("call_type", ""),
                         call_type_description=item.get("call_type_description"),
-                        address=item.get("address"),
+                        address=raw_address,
+                        street_address=update_data["street_address"],
+                        city=update_data["city"],
+                        state=update_data["state"],
+                        zip_code=update_data["zip_code"],
+                        full_address=update_data["full_address"],
                         latitude=item.get("latitude"),
                         longitude=item.get("longitude"),
                         received_at=received_at,
@@ -379,17 +394,46 @@ class CRUDFireIncident(CRUDBase[FireIncident, FireIncidentCreate, FireIncidentUp
 
                 pp_source_id = get_source_id("pulsepoint")
 
+                # Fallback state comes from the parent agency so addresses
+                # like "MAIN ST" still end up with a state set.
+                from app.models.fire_agency import FireAgency
+                agency_row = db_session.get(FireAgency, agency_uuid)
+                fallback_state = agency_row.state if agency_row is not None else None
+
+                parts = parse_address(address, fallback_state=fallback_state)
+
+                # Best-effort reverse geocode to fill ZIP / county when the
+                # parsed address didn't carry one. Failures are logged and
+                # ignored so a Census API hiccup never stops ingestion.
+                lat_f = float(lat) if lat is not None else None
+                lon_f = float(lon) if lon is not None else None
+                geo = reverse_geocode(lat_f, lon_f) if (lat_f and lon_f and not parts.zip_code) else None
+
+                resolved_zip = parts.zip_code or (geo.zip_code if geo else None)
+                resolved_county = geo.county if geo else None
+
                 update_data = {
                     "call_type": call_type,
                     "call_type_description": get_call_type_description(call_type),
                     "address": address,
-                    "latitude": float(lat) if lat is not None else None,
-                    "longitude": float(lon) if lon is not None else None,
+                    "street_address": parts.street_address,
+                    "city": parts.city,
+                    "state": parts.state,
+                    "full_address": parts.full_address or address,
+                    "latitude": lat_f,
+                    "longitude": lon_f,
                     "received_at": received_at,
                     "units": units_json,
                     "dispatch_status": DISPATCH_STATUS_ACTIVE,
                     "is_active": True,
                 }
+                # Only include zip_code/county when we have a value to write
+                # — otherwise the update would null-overwrite enrichment
+                # that an earlier poll or backfill produced.
+                if resolved_zip:
+                    update_data["zip_code"] = resolved_zip
+                if resolved_county:
+                    update_data["county"] = resolved_county
                 if pp_source_id:
                     update_data["source_id"] = pp_source_id
 
@@ -403,8 +447,14 @@ class CRUDFireIncident(CRUDBase[FireIncident, FireIncidentCreate, FireIncidentUp
                         call_type=call_type,
                         call_type_description=get_call_type_description(call_type),
                         address=address,
-                        latitude=float(lat) if lat is not None else None,
-                        longitude=float(lon) if lon is not None else None,
+                        street_address=parts.street_address,
+                        city=parts.city,
+                        state=parts.state,
+                        zip_code=resolved_zip,
+                        county=resolved_county,
+                        full_address=parts.full_address or address,
+                        latitude=lat_f,
+                        longitude=lon_f,
                         received_at=received_at,
                         units=units_json,
                         dispatch_status=DISPATCH_STATUS_ACTIVE,

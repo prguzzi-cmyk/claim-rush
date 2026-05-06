@@ -36,6 +36,7 @@ import app.tasks.outreach  # noqa — registers execute_outreach_task
 import app.tasks.voice_campaign  # noqa — registers process_voice_campaign_calls + process_single_campaign_call
 import app.tasks.inspection_scheduling  # noqa — registers send_inspection_reminder task
 import app.tasks.client_portal_follow_up  # noqa — registers process_client_portal_follow_ups task
+import app.tasks.zip_enrichment  # noqa — registers enrich_missing_zips task
 
 logger = get_task_logger(__name__)
 

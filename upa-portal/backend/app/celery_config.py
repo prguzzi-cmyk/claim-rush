@@ -73,6 +73,10 @@ beat_schedule = {
         "task": "process_client_portal_follow_ups",
         "schedule": 300.0,
     },
+    "enrich-missing-fire-incident-zips-every-10min": {
+        "task": "app.tasks.zip_enrichment.enrich_missing_zips",
+        "schedule": 600.0,
+    },
 }
 
 task_routes = {
@@ -105,4 +109,5 @@ task_routes = {
     "app.tasks.voice_campaign.process_voice_campaign_calls": "main-queue",
     "app.tasks.voice_campaign.process_single_campaign_call": "main-queue",
     "process_client_portal_follow_ups": "main-queue",
+    "app.tasks.zip_enrichment.enrich_missing_zips": "main-queue",
 }
