@@ -1,0 +1,170 @@
+// Public intake landing — clean, centered card on a light page. Intentionally
+// not the dark command-center theme; this is consumer-facing so it should
+// feel familiar and trustworthy, not "ops console".
+
+$ink:        #1a2230;
+$ink-2:      #2c3340;
+$muted:      #6b7689;
+$border:     #e1e6ef;
+$bg:         #f5f7fb;
+$primary:    #1e6fdb;
+$primary-2:  #1858b0;
+$danger:     #c2410c;
+$white:      #ffffff;
+
+:host {
+  display: block;
+  background: $bg;
+  color: $ink;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.intake-page {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.intake-card {
+  width: 100%;
+  max-width: 560px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px rgba(13, 32, 60, 0.08);
+}
+
+.muted { color: $muted; }
+.state-block { padding: 24px 0; text-align: center; }
+
+.intake-header {
+  margin-bottom: 18px;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    color: $ink;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+  }
+  .subtext {
+    margin: 0;
+    color: $muted;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+}
+
+.intake-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+
+  .label {
+    color: $ink-2;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .req { color: $primary; font-weight: 700; }
+  .muted { color: $muted; font-weight: 500; }
+
+  input, select, textarea {
+    background: $white;
+    border: 1px solid $border;
+    color: $ink;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14.5px;
+    font-family: inherit;
+    line-height: 1.45;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  input::placeholder, textarea::placeholder { color: lighten($muted, 10%); }
+  input:focus, select:focus, textarea:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.16);
+  }
+
+  textarea { resize: vertical; min-height: 76px; }
+
+  .error {
+    color: $danger;
+    font-size: 12px;
+    font-weight: 500;
+    background: transparent;
+    padding: 0;
+  }
+}
+
+.error {
+  background: rgba($danger, 0.10);
+  color: $danger;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin: 0;
+}
+
+.submit-button {
+  margin-top: 4px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  color: $white;
+  background: $primary;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+
+  &:hover:not([disabled]) {
+    background: $primary-2;
+    box-shadow: 0 6px 14px rgba($primary, 0.30);
+    transform: translateY(-1px);
+  }
+  &:active:not([disabled]) { transform: translateY(0); }
+  &[disabled] { opacity: 0.62; cursor: not-allowed; }
+}
+
+.link-button {
+  margin: 12px auto 0;
+  display: block;
+  background: transparent;
+  border: 0;
+  color: $primary;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-family: inherit;
+  &:hover { text-decoration: underline; }
+}
+
+.footnote {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}

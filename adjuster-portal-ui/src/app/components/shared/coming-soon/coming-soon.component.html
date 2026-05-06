@@ -1,0 +1,14 @@
+<div class="coming-soon-shell">
+  <div class="coming-soon-card">
+    <div class="status-pill">{{ status$ | async }}</div>
+    <h1 class="title">{{ name$ | async }}</h1>
+    <p class="subtitle" *ngIf="note$ | async as note">{{ note }}</p>
+    <p class="subtitle" *ngIf="!(note$ | async)">
+      This module is being finalized for production. You'll see it here in
+      your command center when it's ready.
+    </p>
+    <div class="brand-line">
+      Unified Public Advocacy Network
+    </div>
+  </div>
+</div>

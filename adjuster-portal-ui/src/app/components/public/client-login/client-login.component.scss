@@ -1,0 +1,129 @@
+$bg:        #0d1320;
+$surface:   #161e2f;
+$surface-2: #1d2740;
+$border:    #2b3450;
+$text:      #e7ebf5;
+$text-dim:  #aab2cc;
+$text-mute: #6f7997;
+$primary:   #800020;
+$primary-2: #a3002a;
+$accent:    #5b8cff;
+
+:host {
+  display: block;
+  background: $bg;
+  color: $text;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.client-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 48px 20px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.35);
+}
+
+.muted { color: $text-mute; }
+
+header {
+  text-align: center;
+  margin-bottom: 22px;
+
+  .brand-mark {
+    display: inline-block;
+    background: $primary;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    letter-spacing: 0.2px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  a {
+    color: $accent;
+    text-decoration: none;
+  }
+  a:hover { text-decoration: underline; }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    color: $text-dim;
+  }
+
+  input {
+    background: $surface-2;
+    border: 1px solid $border;
+    color: $text;
+    border-radius: 8px;
+    padding: 11px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  input:focus { border-color: $accent; }
+
+  .primary {
+    margin-top: 6px;
+    background: $primary;
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+  }
+  .primary:hover { background: $primary-2; }
+
+  .notice {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: $text-dim;
+    background: $surface-2;
+    border: 1px solid $border;
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+}
+
+.footnote {
+  margin: 22px 0 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+}

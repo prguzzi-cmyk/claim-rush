@@ -1,0 +1,130 @@
+<div class="portal-page">
+  <div class="back-row">
+    <button mat-button (click)="back()">
+      <mat-icon>arrow_back</mat-icon>&nbsp;Back to Launch Control
+    </button>
+  </div>
+
+  <ng-container *ngIf="loading">
+    <p class="muted">Loading portal…</p>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && errorMessage">
+    <div class="error-card">
+      <h2>Could not load portal</h2>
+      <p class="muted">{{ errorMessage }}</p>
+    </div>
+  </ng-container>
+
+  <!-- Belt-and-braces fallback: if loading=false, errorMessage=null, AND
+       user=null all at once, none of the three normal blocks render.
+       This shows instead so the page is never visually empty. -->
+  <ng-container *ngIf="!loading && !errorMessage && !user">
+    <div class="error-card">
+      <h2>No portal data</h2>
+      <p class="muted">
+        Loading finished but no user object came back and no error fired.
+        See the diagnostic block at the bottom of the page or the browser
+        console.
+      </p>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && user">
+    <header class="portal-header">
+      <div class="role-line">{{ formatRoleHeader() }}</div>
+      <h1>{{ user.name }}</h1>
+      <p class="email">{{ user.email }}</p>
+      <span class="status-badge" [ngClass]="'d-' + user.deployment_status">
+        {{ user.deployment_status === 'deployed' ? 'Portal Deployed'
+            : (user.deployment_status === 'ready' ? 'Ready' : 'Not Deployed') }}
+      </span>
+    </header>
+
+    <section class="card">
+      <h3>Assigned Territory</h3>
+      <p class="muted" *ngIf="!user.territories.length">No active territory assignments.</p>
+      <ul *ngIf="user.territories.length">
+        <li *ngFor="let t of user.territories">
+          <strong>{{ t.name }}</strong>
+          <span class="meta">type={{ t.territory_type }}<span *ngIf="t.state"> · state={{ t.state }}</span><span *ngIf="t.county"> · county={{ t.county }}</span><span *ngIf="t.zip_code"> · ZIP={{ t.zip_code }}</span> · priority={{ t.priority }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3>Public Intake Link</h3>
+      <ng-container *ngIf="user.client_intake_url; else noIntake">
+        <a [href]="user.client_intake_url" class="link" target="_blank" rel="noopener">{{ user.client_intake_url }}</a>
+        <button mat-stroked-button class="copy-btn" (click)="copyIntake()">
+          <mat-icon>content_copy</mat-icon>&nbsp;Copy
+        </button>
+        <p class="muted" *ngIf="user.personal_landing_slug">Slug: <code>{{ user.personal_landing_slug }}</code></p>
+      </ng-container>
+      <ng-template #noIntake>
+        <p class="muted">No intake configured for this user yet.</p>
+      </ng-template>
+    </section>
+
+    <section class="card">
+      <h3>Routed Leads
+        <span class="muted">— {{ user.total_leads }} total</span>
+      </h3>
+      <p class="muted" *ngIf="!user.recent_leads.length">No leads routed to this user yet.</p>
+      <table *ngIf="user.recent_leads.length" class="leads-table">
+        <thead>
+          <tr>
+            <th>Ref #</th>
+            <th>Peril</th>
+            <th>Status</th>
+            <th>Rotation</th>
+            <th>Assigned</th>
+            <th>Match</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let l of user.recent_leads">
+            <td>{{ l.ref_number }}</td>
+            <td>{{ l.peril || '—' }}</td>
+            <td>{{ l.status || '—' }}</td>
+            <td>{{ l.rotation_status || '—' }}</td>
+            <td>{{ l.assigned_at || '—' }}</td>
+            <td>{{ l.matched_level }}<span *ngIf="l.matched_value"> · {{ l.matched_value }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h3>Routing &amp; Rotation</h3>
+      <ul class="kv">
+        <li><span class="k">Routing mode</span><span class="v">{{ user.routing_mode || '—' }}</span></li>
+        <li><span class="k">Rotation enabled</span><span class="v">{{ user.rotation_enabled ? 'yes' : 'no' }}</span></li>
+        <li><span class="k">Inactivity window</span><span class="v">{{ user.rotation_inactivity_minutes || '—' }} min</span></li>
+        <li><span class="k">Login URL</span><span class="v"><a [href]="user.login_url" target="_blank">{{ user.login_url }}</a></span></li>
+        <li *ngIf="user.upline_name"><span class="k">Upline</span><span class="v">{{ user.upline_name }}</span></li>
+      </ul>
+    </section>
+  </ng-container>
+
+  <!-- Always-on diagnostic footer — visible in every state. Lists current
+       component state + raw response/error JSON so a blank-screen report
+       is impossible: at minimum this block renders. -->
+  <details class="card" style="margin-top: 24px;">
+    <summary class="muted" style="cursor: pointer;">Diagnostic info</summary>
+    <ul class="kv" style="margin-top: 8px;">
+      <li><span class="k">route user_id</span><span class="v">{{ routeUserId || '(none)' }}</span></li>
+      <li><span class="k">loading</span><span class="v">{{ loading }}</span></li>
+      <li><span class="k">errorMessage</span><span class="v">{{ errorMessage || '(none)' }}</span></li>
+      <li><span class="k">user populated</span><span class="v">{{ !!user }}</span></li>
+    </ul>
+    <ng-container *ngIf="rawResponseJson">
+      <h3 style="margin-top: 16px;">Raw response</h3>
+      <pre style="white-space: pre-wrap; font-size: 11px; color: var(--text, #aab2cc);">{{ rawResponseJson }}</pre>
+    </ng-container>
+    <ng-container *ngIf="rawErrorJson">
+      <h3 style="margin-top: 16px;">Raw error</h3>
+      <pre style="white-space: pre-wrap; font-size: 11px; color: #f87171;">{{ rawErrorJson }}</pre>
+    </ng-container>
+  </details>
+</div>

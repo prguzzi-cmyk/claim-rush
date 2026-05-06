@@ -1,0 +1,35 @@
+<div class="client-login">
+  <div class="card">
+    <header>
+      <span class="brand-mark">UPA</span>
+      <h1>Client Claim Status</h1>
+      <p class="muted">Sign in to check the status of your claim. Homeowner-only — partners use the <a href="/#/login">Partner Portal</a>.</p>
+    </header>
+
+    <form (submit)="$event.preventDefault(); submit()" class="form">
+      <label>
+        <span>Email</span>
+        <input type="email"
+               name="email"
+               autocomplete="email"
+               placeholder="you@example.com"
+               [(ngModel)]="email" />
+      </label>
+
+      <label>
+        <span>Claim ID or password</span>
+        <input type="text"
+               name="credential"
+               autocomplete="off"
+               placeholder="Claim ID or password"
+               [(ngModel)]="credential" />
+      </label>
+
+      <button type="submit" class="primary">Sign In</button>
+
+      <p class="notice" *ngIf="notice">{{ notice }}</p>
+    </form>
+
+    <p class="footnote muted">A self-serve claim status portal is in development. For now, your Community Partner will provide updates by phone, email, or text.</p>
+  </div>
+</div>

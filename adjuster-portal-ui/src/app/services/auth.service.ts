@@ -17,14 +17,39 @@ export class AuthService {
     private router: Router,
   ) {}
 
+  // Sticky flag set on logout. Survives the localStorage wipe (it's the
+  // last thing logout() writes) and is cleared by any successful login. Lets
+  // the AuthGuard, devAutoLoginInitializer, and login page agree that "the
+  // user explicitly logged out" — so dev-auto-login can't silently
+  // resurrect a session.
+  private static readonly LOGGED_OUT_KEY = 'logged_out';
+
   isAuthenticated(): boolean {
-    if ((environment as any).devAutoLogin) return true;
+    if (this.isLoggedOut()) return false;
     const token = this.getToken();
-    return !this.jwtHelper.isTokenExpired(token);
+    if (!token) return false;
+    try {
+      return !this.jwtHelper.isTokenExpired(token);
+    } catch {
+      return false;
+    }
+  }
+
+  isLoggedOut(): boolean {
+    try {
+      return localStorage.getItem(AuthService.LOGGED_OUT_KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private clearLoggedOutFlag(): void {
+    try { localStorage.removeItem(AuthService.LOGGED_OUT_KEY); } catch {}
   }
 
   getToken(): string {
-    return JSON.parse(localStorage.getItem('access_token'));
+    const raw = localStorage.getItem('access_token');
+    return raw ? JSON.parse(raw) : null;
   }
 
   // ─── Password login ───
@@ -41,6 +66,7 @@ export class AuthService {
               'access_token',
               JSON.stringify(authentication.access_token),
             );
+            this.clearLoggedOutFlag();
           }
           return authentication;
         }),
@@ -70,6 +96,7 @@ export class AuthService {
       map((auth) => {
         if (auth && auth.access_token) {
           localStorage.setItem('access_token', JSON.stringify(auth.access_token));
+          this.clearLoggedOutFlag();
         }
         return auth;
       }),
@@ -86,6 +113,7 @@ export class AuthService {
       map((auth) => {
         if (auth && auth.access_token) {
           localStorage.setItem('access_token', JSON.stringify(auth.access_token));
+          this.clearLoggedOutFlag();
         }
         return auth;
       }),
@@ -116,6 +144,7 @@ export class AuthService {
         map((auth) => {
           if (auth && auth.access_token) {
             localStorage.setItem('access_token', JSON.stringify(auth.access_token));
+            this.clearLoggedOutFlag();
           }
           return auth;
         }),
@@ -187,8 +216,33 @@ export class AuthService {
   }
 
   logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('original_access_token');
+    // Wipe all client-side auth state. localStorage.clear() is intentional —
+    // we'd rather the user lose ephemeral UI prefs than have stale tokens
+    // survive logout (the bug we fixed earlier: stale staging tokens kept the
+    // app in a half-authenticated 401 loop).
+    try { localStorage.clear(); } catch { /* private mode */ }
+    try { sessionStorage.clear(); } catch { /* private mode */ }
+
+    // Sticky flag — written AFTER the wipe so it survives. Read by
+    // AuthGuard / isAuthenticated() / devAutoLoginInitializer / the login
+    // page so an explicit logout sticks even when devAutoLogin is on.
+    try { localStorage.setItem(AuthService.LOGGED_OUT_KEY, '1'); } catch {}
+
+    // Best-effort cookie wipe for the current origin + parent domain.
+    if (typeof document !== 'undefined') {
+      const host = location.hostname;
+      const baseDomain = host.includes('.') ? host.split('.').slice(-2).join('.') : host;
+      const expire = 'expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      for (const c of document.cookie.split(';')) {
+        const name = c.split('=')[0].trim();
+        if (!name) continue;
+        document.cookie = `${name}=; path=/; ${expire}`;
+        document.cookie = `${name}=; path=/; domain=${host}; ${expire}`;
+        document.cookie = `${name}=; path=/; domain=.${baseDomain}; ${expire}`;
+      }
+    }
+
+    console.log('[REDIRECT-TRACE] auth.service.ts logout() pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'destination= /login', new Error().stack);
     this.router.navigate(['/login']);
   }
 }
