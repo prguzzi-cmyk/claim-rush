@@ -4,6 +4,7 @@ import { Routes, RouterModule } from "@angular/router";
 import { LoginComponent } from "./components/login/login.component";
 import { AuthGuard } from "./guards/auth.guard";
 import { DevAutoLoginGuard } from "./guards/dev-auto-login.guard";
+import { RoleGuard } from "./guards/role.guard";
 import { ApplicationComponent } from "./components/application.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
 import { UsersComponent } from "./components/sections/users/users.component";
@@ -61,6 +62,7 @@ import {RecruitsAdminComponent} from "./components/sections/recruits-admin/recru
 import { SharedFilesComponent } from "./components/shared-files/shared-files.component";
 import {BasicCommissionCalculatorComponent} from "./components/sections/basic-commission-calculator/basic-commission-calculator.component";
 import {MyCommissionComponent} from "./components/sections/claims/my-commission/my-commission.component";
+import {ComingSoonComponent} from "./components/shared/coming-soon/coming-soon.component";
 import {TitleChangeComponent} from "./components/sections/title-change/title-change.component";
 import { OrderListComponent } from "./components/sections/shop-management/order-list/order-list.component";
 import { CategoryListComponent } from "./components/sections/shop-management/category-list/category-list.component";
@@ -251,18 +253,26 @@ const routes: Routes = [
       {
         path: "launch-control",
         component: LaunchControlComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
       },
       {
         path: "admin/commissions",
         component: CommissionsAdminViewComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
       },
       {
         path: "admin/members",
         component: AdminMembersComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
       },
       {
         path: "admin/members/templates",
         component: AdminMemberTemplatesComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
       },
       {
         path: "profile/w9",
@@ -339,6 +349,7 @@ const routes: Routes = [
       { path: "claims/search", component: ClaimSearchComponent },
       { path: "claims/basic-commission-calculator", component: BasicCommissionCalculatorComponent},
       { path: "commission/me", component: MyCommissionComponent },
+      { path: "coming-soon", component: ComingSoonComponent },
       { path: "claim/payments-ready", component: ClaimPaymentReportComponent },
       { path: "claim/:id", component: ClaimComponent },
       { path: "users/my-recruits", component: MyRecruitsComponent },
@@ -450,6 +461,8 @@ const routes: Routes = [
 
       {
         path: "operations",
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
         children: [
           {
             path: "lead-deployment",
@@ -468,6 +481,8 @@ const routes: Routes = [
 
       {
         path: "administration",
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
         children: [
           {
             path: "users",

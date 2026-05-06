@@ -274,6 +274,24 @@ class LeadService(BaseService[Lead, LeadRepository]):
         if lead_entity.assigned_to in subordinates_ids:
             return True
 
+        # Mirror the GET-path escape hatch (validate_lead_ownership):
+        # users with lead:assign_lead can claim/operate on leads in their
+        # pipeline pool — including unassigned leads surfaced by cp-leads.
+        from app import crud
+        from app.core.enums import PolicyEffect
+        from app.core.rbac import MiscOperations, Modules
+        from app.utils.common import generate_permission
+
+        lead_assign_permission = generate_permission(
+            Modules.LEAD.value, MiscOperations.ASSIGN_LEAD.value
+        )
+        for user_perm in crud.permission.get_user_permissions(user_entity):
+            if (
+                user_perm.name == lead_assign_permission
+                and user_perm.effect != PolicyEffect.DENY.value
+            ):
+                return True
+
         return False  # User is not authorized to view the lead
 
     def _can_assign_lead(self, assigned_to: UUID, current_user: User) -> bool:
@@ -519,14 +537,39 @@ class LeadService(BaseService[Lead, LeadRepository]):
         return self.repository.update(lead_entity, lead_schema)
 
     def _route_lead_by_state(self, lead_entity: Lead) -> Lead:
-        """
-        Round-robin state-based lead routing.
+        """Route a generically-created lead through the unified routing engine.
 
-        If the lead has no agent assigned yet, find ALL active agents whose
-        user_meta.state matches the lead contact's loss-location state,
-        pick the next one via a per-state rotation index stored in
-        ``StateRotation``, assign the lead, and advance the pointer.
+        Replaces the legacy state-only / StateRotation rotation. Reads the
+        admin-controlled `lead_routing_settings` row (per-source first,
+        then 'all' default) and dispatches to `route_lead()`, which picks a
+        Territory by mode (zip | county | state | custom | hybrid),
+        applies CP-priority + round-robin via `distribute_lead`, and
+        falls back to the configured fallback owner / 'house' queue.
         """
+        if lead_entity.assigned_to is not None:
+            return lead_entity
+
+        try:
+            from app.services.lead_routing_service import route_lead
+
+            source = (lead_entity.peril or "all").strip().lower()
+            with self.repository.db_session as session:
+                route_lead(
+                    session,
+                    lead=lead_entity,
+                    lead_source=source,
+                )
+                session.refresh(lead_entity)
+            return lead_entity
+        except Exception:
+            logger.exception(
+                "Unified routing failed for lead %s — leaving unassigned",
+                lead_entity.id,
+            )
+            return lead_entity
+
+    def _legacy_route_lead_by_state_unused(self, lead_entity: Lead) -> Lead:
+        """Original state-only rotation. Kept for reference; replaced above."""
         if lead_entity.assigned_to is not None:
             return lead_entity
 
@@ -535,9 +578,7 @@ class LeadService(BaseService[Lead, LeadRepository]):
             return lead_entity
         lead_state = contact.state_loss or contact.state
         if not lead_state:
-            logger.info("Lead %s has no state — skipping state routing", lead_entity.id)
             return lead_entity
-
         lead_state_lower = lead_state.strip().lower()
 
         try:

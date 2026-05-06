@@ -1,0 +1,52 @@
+.campaign-form {
+  margin-bottom: 8px;
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+
+    .flex-1 { flex: 1; }
+    .flex-2 { flex: 2; }
+  }
+}
+
+.full-width { width: 100%; }
+
+.lead-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .selection-count {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.lead-table-scroll {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+
+  table { width: 100%; }
+}
+
+.lead-empty,
+.lead-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+}

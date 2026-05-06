@@ -1,0 +1,110 @@
+<div class="lead-deployment-settings">
+  <header class="page-header">
+    <h2>Lead Deployment Settings</h2>
+    <p class="subtitle">
+      Centralized routing engine. One row per lead source. The
+      <code>all</code> row is the global default.
+      Changes apply to NEW leads only — existing assignments are not retroactively changed.
+    </p>
+  </header>
+
+  <section class="settings-table">
+    <h3>Current Routing Configuration</h3>
+    <table mat-table *ngIf="!loading && rows.length" [dataSource]="rows" class="mat-elevation-z1 full-width">
+      <ng-container matColumnDef="lead_source">
+        <th mat-header-cell *matHeaderCellDef>Lead Source</th>
+        <td mat-cell *matCellDef="let r"><strong>{{ r.lead_source }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="routing_mode">
+        <th mat-header-cell *matHeaderCellDef>Mode</th>
+        <td mat-cell *matCellDef="let r">{{ r.routing_mode }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="fallback">
+        <th mat-header-cell *matHeaderCellDef>Fallback</th>
+        <td mat-cell *matCellDef="let r">
+          <span *ngIf="r.fallback_owner_id">owner: {{ r.fallback_owner_id }}</span>
+          <span *ngIf="!r.fallback_owner_id">queue: {{ r.fallback_queue }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="is_active">
+        <th mat-header-cell *matHeaderCellDef>Active</th>
+        <td mat-cell *matCellDef="let r">{{ r.is_active ? 'yes' : 'no' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let r">
+          <button mat-button color="primary" (click)="edit(r)">Edit</button>
+          <button
+            mat-button
+            color="warn"
+            (click)="deactivate(r)"
+            [disabled]="r.lead_source === 'all'"
+          >
+            Deactivate
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="['lead_source', 'routing_mode', 'fallback', 'is_active', 'actions']"></tr>
+      <tr mat-row *matRowDef="let r; columns: ['lead_source', 'routing_mode', 'fallback', 'is_active', 'actions']"></tr>
+    </table>
+    <p *ngIf="loading">Loading…</p>
+    <p *ngIf="!loading && !rows.length">No routing settings configured.</p>
+  </section>
+
+  <section class="edit-form">
+    <h3>Create / Update</h3>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>Lead Source</mat-label>
+          <input
+            matInput
+            formControlName="lead_source"
+            list="lead-source-suggestions"
+            placeholder="all, fire, storm, crime, water, roof, manual, ..."
+          />
+          <datalist id="lead-source-suggestions">
+            <option *ngFor="let s of leadSources" [value]="s"></option>
+          </datalist>
+          <mat-hint>Free-form so future sources don't require a code change.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Routing Mode</mat-label>
+          <mat-select formControlName="routing_mode">
+            <mat-option *ngFor="let m of routingModes" [value]="m">{{ m }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-form-field appearance="outline" class="grow">
+          <mat-label>Fallback Owner User ID (optional)</mat-label>
+          <input matInput formControlName="fallback_owner_id" placeholder="UUID — paste from user admin" />
+          <mat-hint>Leave blank to fall back to the house queue.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fallback Queue</mat-label>
+          <input matInput formControlName="fallback_queue" placeholder="house" />
+        </mat-form-field>
+      </div>
+
+      <div class="row">
+        <mat-slide-toggle formControlName="is_active">Active</mat-slide-toggle>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="reset()">Reset</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

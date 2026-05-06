@@ -18,14 +18,16 @@
   --color-primary-900: #003D54;
 
   // ── Cool Dark Neutrals ──
+  // Slate-400/500 brightened (was #5A6F83 / #8899AA — failed AA on dark
+  // surfaces). Now meet WCAG AA for body text against --surface-page.
   --color-slate-50: #E8ECF1;
   --color-slate-100: #1A2332;
   --color-slate-200: #151D2A;
   --color-slate-300: #3A4A5C;
-  --color-slate-400: #5A6F83;
-  --color-slate-500: #8899AA;
-  --color-slate-600: #AAB8C8;
-  --color-slate-700: #CBD5E1;
+  --color-slate-400: #7B8A9C;
+  --color-slate-500: #B0BAC8;
+  --color-slate-600: #C2CBD8;
+  --color-slate-700: #D6DDE5;
   --color-slate-800: #E2E8F0;
   --color-slate-900: #E8ECF1;
 
@@ -49,24 +51,32 @@
   --sidebar-active-bg: rgba(0, 194, 255, 0.14);
   --sidebar-active-text: #ffffff;
   --sidebar-active-accent: #00C2FF;
-  --sidebar-text: #C8D1DC;
-  --sidebar-text-muted: #6B7A8D;
-  --sidebar-icon: #8899AA;
+  --sidebar-text: #D6DDE5;
+  --sidebar-text-muted: #8A98AB;
+  --sidebar-icon: #A0AFC2;
   --sidebar-glow: 1px 0 16px rgba(0, 0, 0, 0.5);
 
   // ── Text ──
+  // Secondary/tertiary brightened to clear WCAG AA on the dark page
+  // (#0B0F14). Was #8899AA / #5A6F83 — failed AA at body sizes, gave the
+  // portal a translucent / washed-out feel. Primary text unchanged.
   --text-primary: #E8ECF1;
-  --text-secondary: #8899AA;
-  --text-tertiary: #5A6F83;
+  --text-secondary: #B0BAC8;
+  --text-tertiary: #7B8A9C;
   --text-inverse: #0B0F14;
+  // Use this only for genuinely disabled text. Helps reviewers spot
+  // accidental misuse of low-contrast color on important content.
+  --text-disabled: #5A6F83;
 
   // ── Borders ──
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-muted: rgba(255, 255, 255, 0.04);
+  // Bumped from 0.08/0.04 — borders below ~0.10 disappear on dark
+  // surfaces and make cards feel like they're floating/translucent.
+  --border-default: rgba(255, 255, 255, 0.14);
+  --border-muted: rgba(255, 255, 255, 0.08);
 
   // ── Tables ──
   --table-header-bg: #0F1520;
-  --table-header-color: #AAB8C8;
+  --table-header-color: #C2CBD8;
   --table-row-hover: rgba(0, 194, 255, 0.06);
   --table-row-alt: #0D1219;
 

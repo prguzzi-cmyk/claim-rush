@@ -24,6 +24,7 @@ from app.models.lead import Lead
 from app.models.lead_contact import LeadContact
 from app.models.territory import Territory, UserTerritory
 from app.services.lead_distribution_service import distribute_fire_lead
+from app.utils.address_parser import parse_address
 
 logger = logging.getLogger(__name__)
 
@@ -219,15 +220,26 @@ class FireLeadRotationService:
         session.add(lead)
         session.flush()  # get lead.id
 
-        # Derive state from agency for loss address
+        # Prefer structured fields populated at ingestion time; fall back to
+        # parsing the flat address string so older incidents still benefit.
         agency_state = incident.agency.state if incident.agency else None
+        parts = parse_address(
+            incident.full_address or incident.address,
+            fallback_state=incident.state or agency_state,
+        )
+        city = incident.city or parts.city
+        state = incident.state or parts.state or agency_state
+        zip_code = incident.zip_code or parts.zip_code
+        full = incident.full_address or incident.address or parts.full_address
 
         contact = LeadContact(
             lead_id=lead.id,
             full_name="Property Owner",
             phone_number="N/A",
-            address_loss=incident.address,
-            state_loss=agency_state,
+            address_loss=full,
+            city_loss=city,
+            state_loss=state,
+            zip_code_loss=zip_code,
         )
         session.add(contact)
         session.commit()

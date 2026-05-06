@@ -41,7 +41,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
 
   // Notifications
   notifications: AppNotification[] = [];
-  showNotificationPanel = false;
   unreadCount = 0;
   private unreadCountSub: Subscription;
 
@@ -69,7 +68,15 @@ export class TopbarComponent implements OnInit, OnDestroy {
         this.role = user.role?.name;
 
         if(this.role != 'customer') {
-          this.getPendingForApprovalLeadsCount();
+          // Only fire after auth/token is ready. userService.getUser()
+          // hits /v1/users/me — it only resolves with a non-null user
+          // when the bearer token is valid, so any race against
+          // auto-login is gated cleanly without a separate token check.
+          this.userService.getUser().subscribe((u) => {
+            if (u) {
+              this.getPendingForApprovalLeadsCount();
+            }
+          });
         }
 
         // Start notification polling once user is loaded
@@ -197,13 +204,6 @@ export class TopbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleNotificationPanel() {
-    this.showNotificationPanel = !this.showNotificationPanel;
-    if (this.showNotificationPanel) {
-      this.loadNotifications();
-    }
-  }
-
   loadNotifications() {
     this.inAppNotificationService.getNotifications(false, 0, 20).subscribe({
       next: (notifications) => this.notifications = notifications,
@@ -219,9 +219,15 @@ export class TopbarComponent implements OnInit, OnDestroy {
       });
     }
     if (notification.link) {
-      this.router.navigateByUrl(notification.link);
+      // Normalize browser-bar links written by older backend writers
+      // (e.g. "/#/app/fire-incidents" — router parses that as path="/"
+      // + fragment, redirecting to the wrong landing).
+      const url = notification.link.replace(/^\/?#\/?/, '/');
+      if (url.startsWith('/app/')) {
+        this.router.navigateByUrl(url);
+      }
     }
-    this.showNotificationPanel = false;
+    // mat-menu closes itself after the (click) on a mat-menu-item.
   }
 
   getNotificationIcon(type: string): string {

@@ -60,10 +60,32 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    if ((environment as any).devAutoLogin) {
+    // HARD GUARD: never redirect a user who is on /claim/<slug>. Even if
+    // some upstream code path activated LoginComponent on a public intake
+    // URL, return immediately so this ngOnInit cannot navigate the browser
+    // away from the consumer-facing form. This is belt-and-braces — the
+    // route + DevAutoLoginGuard already protect /claim/*, but we want a
+    // last-mile guarantee.
+    try {
+      const path = (typeof window !== 'undefined' && window.location?.pathname) || '';
+      if (path.startsWith('/claim/')) return;
+    } catch {}
+
+    // After an explicit logout the sticky flag is set; show the login form
+    // even when devAutoLogin is on so the user can sign in as someone else.
+    const loggedOut = this.authService.isLoggedOut();
+
+    if ((environment as any).devAutoLogin && !loggedOut) {
+      // Fresh dev boot — auto-login already ran in APP_INITIALIZER, so
+      // skip the login UI and land on the dashboard.
+      console.log('[REDIRECT-TRACE] login.component.ts ngOnInit(devAutoLogin) pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'destination= /app/agent-dashboard');
       this.router.navigateByUrl('/app/agent-dashboard');
       return;
     }
+
+    // Wipe any leftover token before showing the form (defensive — covers
+    // the path where the user lands on /login without going through the
+    // sidebar's logout button).
     this.authService.logout();
     this.loadCapabilities();
   }
@@ -110,21 +132,7 @@ export class LoginComponent implements OnInit {
           this.userService.getUser().subscribe((response) => {
             if (response) {
               this.tabService.setSideTitle('Dashboard');
-              const redirectUrl = localStorage.getItem('redirectUrl');
-              if (redirectUrl) {
-                localStorage.removeItem('redirectUrl');
-                this.router.navigateByUrl(redirectUrl);
-              } else {
-                const role = (response?.role?.name || '') as AppRole;
-                const target = ROLE_LANDING[role] ?? DEFAULT_LANDING;
-                // External URL → cross-origin navigation (e.g. CP users go
-                // to ClaimRush at aciunited.com, not the RIN Angular app).
-                if (/^https?:\/\//.test(target)) {
-                  window.location.href = target;
-                } else {
-                  this.router.navigate([target]);
-                }
-              }
+              this.redirectAfterLogin(response);
               this.maybeOfferPasskeySetup();
             }
           });
@@ -151,22 +159,7 @@ export class LoginComponent implements OnInit {
         this.userService.getUser().subscribe((response) => {
           if (response) {
             this.tabService.setSideTitle('Dashboard');
-            const redirectUrl = localStorage.getItem('redirectUrl');
-            if (redirectUrl) {
-              localStorage.removeItem('redirectUrl');
-              this.router.navigateByUrl(redirectUrl);
-            } else if (
-              response?.role?.name == 'super-admin' ||
-              response?.role?.name == 'admin'
-            ) {
-              this.router.navigate(['/app/agent-dashboard']);
-            } else if (response?.role?.name == 'customer') {
-              this.router.navigate(['/app/customer-dashboard']);
-            } else if (response?.role?.name == 'sales-rep') {
-              this.router.navigate(['/app/sales-dashboard']);
-            } else {
-              this.router.navigate(['/app/agent-dashboard']);
-            }
+            this.redirectAfterLogin(response);
           }
         });
       },
@@ -178,6 +171,55 @@ export class LoginComponent implements OnInit {
         this.passkeyDisabled = false;
       },
     });
+  }
+
+  /**
+   * Post-login redirect logic shared across password + passkey flows.
+   *
+   * Architecture: RIN is internal command-and-control for HOME_OFFICE/admin
+   * roles only. CP / RVP / Agent / Adjuster all belong in ClaimRush — RIN
+   * should never be the post-login destination for an external role.
+   *
+   *   - explicit redirectUrl in localStorage  → honor it (deep-link case)
+   *   - cp / rvp / agent                      → /app/portal/<id>
+   *   - adjuster                              → ClaimRush /portal
+   *   - admin / super-admin / sales-rep / client → ROLE_LANDING fallback
+   */
+  private redirectAfterLogin(response: any): void {
+    const redirectUrl = localStorage.getItem('redirectUrl');
+    if (redirectUrl) {
+      localStorage.removeItem('redirectUrl');
+      this.router.navigateByUrl(redirectUrl);
+      return;
+    }
+
+    const roleSlug = (response?.role?.name || '').toLowerCase() as AppRole;
+    const isPortalRole = roleSlug === 'cp' || roleSlug === 'rvp' || roleSlug === 'agent';
+
+    if (isPortalRole && response?.id) {
+      this.router.navigate(['/app/portal', response.id]);
+      return;
+    }
+
+    if (roleSlug === 'adjuster') {
+      window.location.href = `${this.resolveClaimrushOrigin()}/portal`;
+      return;
+    }
+
+    const target = ROLE_LANDING[roleSlug] ?? DEFAULT_LANDING;
+    if (/^https?:\/\//.test(target)) {
+      window.location.href = target;
+    } else {
+      this.router.navigate([target]);
+    }
+  }
+
+  private resolveClaimrushOrigin(): string {
+    const w: any = window as any;
+    if (w?.CLAIMRUSH_URL) return w.CLAIMRUSH_URL;
+    const host = window.location.hostname || '';
+    if (host.endsWith('aciunited.com')) return 'https://aciunited.com';
+    return 'http://localhost:5175';
   }
 
   requestMagicLink() {

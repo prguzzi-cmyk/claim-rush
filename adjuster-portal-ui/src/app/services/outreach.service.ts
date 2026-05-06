@@ -30,6 +30,29 @@ export class OutreachService {
     );
   }
 
+  createCampaignFromLeads(payload: {
+    name: string;
+    contact_method: string;
+    description?: string;
+    campaign_type?: string;
+    template_id?: string;
+    trigger_on?: string;
+    incident_type?: string;
+    lead_ids: string[];
+  }) {
+    return this.http.post<{
+      campaign: OutreachCampaign;
+      lead_count: number;
+      skipped_lead_ids: string[];
+    }>(`${this.base}/campaigns/from-leads`, payload);
+  }
+
+  getCampaignLeads(campaignId: string) {
+    return this.http.get<{ campaign_id: string; lead_count: number; lead_ids: string[] }>(
+      `${this.base}/campaigns/${campaignId}/leads`
+    );
+  }
+
   createCampaign(campaign: Partial<OutreachCampaign>) {
     return this.http.post<OutreachCampaign>(`${this.base}/campaigns`, campaign).pipe(
       map((response) => response)

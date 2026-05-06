@@ -34,7 +34,6 @@ export async function apiFetch(path, options = {}) {
   });
 
   if (res.status === 401 || res.status === 403) {
-    // Token expired or invalid — clear and redirect to login
     if (path !== '/auth/login') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('cr_role');
@@ -56,16 +55,19 @@ export async function apiJson(path, options = {}) {
 }
 
 export async function login(email, password) {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: email, password }),
-  });
+  const url = `${API_BASE}/auth/login`;
+  const headers = { 'Content-Type': 'application/json' };
+  // Backend schema (app.schemas.Login) requires field name `username`
+  // (NOT `email`). The username value here IS the email address —
+  // that's the contract the FastAPI endpoint expects.
+  const body = JSON.stringify({ username: email, password });
+  const res = await fetch(url, { method: 'POST', headers, body });
+  const responseText = await res.text();
+  let data;
+  try { data = JSON.parse(responseText); } catch { data = {}; }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw { status: res.status, detail: err.detail || 'Login failed' };
+    throw { status: res.status, detail: data.detail || 'Login failed' };
   }
-  const data = await res.json();
   localStorage.setItem('access_token', JSON.stringify(data.access_token));
   return data;
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { EMPTY, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -13,6 +13,15 @@ export class ErrorInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Silent guard: notification-poll abort during backend reloads.
+        // Must come BEFORE any toast/console path so we never surface it.
+        if (
+          request.url.includes('/v1/notifications/unread-count') &&
+          error.status === 0
+        ) {
+          return EMPTY;
+        }
+
         // intake-config handles ALL errors locally — pass raw HttpErrorResponse through
         if (request.url.includes('intake-config/') || request.url.endsWith('intake-config')) {
           console.warn('[ErrorInterceptor] intake-config error passed through:', error.status, error.error?.detail || '');
@@ -59,6 +68,7 @@ export class ErrorInterceptor implements HttpInterceptor {
             }
             errorMessage = `${error.statusText}` + ' : ' + error.error?.detail;
             if (error.error?.detail === 'Could not validate credentials.') {
+              console.log('[REDIRECT-TRACE] error.interceptor.ts intercept(403) pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'request.url=', request.url, 'destination= login');
               this.router.navigate(['login']);
             }
           } else if (error.status === 404) {
@@ -125,6 +135,9 @@ export class ErrorInterceptor implements HttpInterceptor {
             errorMessage = detail || 'Service temporarily unavailable';
             console.warn('[ErrorInterceptor] 503 on', request.method, request.url);
           } else if (error.status === 0) {
+            // Notifications-poll case is short-circuited by the silent
+            // guard at the top of this catchError. Anything else with
+            // status=0 still surfaces the normal toast.
             errorMessage = 'Network error — check your connection';
             console.warn('[ErrorInterceptor] Network error on', request.method, request.url);
           } else {

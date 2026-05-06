@@ -204,7 +204,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.colorScheme = GlobalVariable.CHART_SCHEME;
     this.role = localStorage.getItem('role-name');
 
-    if (this.role === 'agent' || this.role === 'call-center-agent') {
+    // HARD GUARD: never auto-redirect to agent-dashboard if the browser is
+    // sitting on a public /claim/<slug> URL. Defends against the chain
+    // wildcard → /app/dashboard → DashboardComponent ctor → /app/agent-dashboard.
+    let pathIsPublicClaim = false;
+    try {
+      pathIsPublicClaim = ((typeof window !== 'undefined' && window.location?.pathname) || '')
+        .startsWith('/claim/');
+    } catch {}
+
+    if (!pathIsPublicClaim && (this.role === 'agent' || this.role === 'call-center-agent')) {
+      console.log('[REDIRECT-TRACE] dashboard.component.ts ctor pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'role=', this.role, 'destination= /app/agent-dashboard');
       this.router.navigate(['/app/agent-dashboard']);
     }
   }
@@ -377,10 +387,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.totalPropertyIncidents = res?.total || 0;
         const filtered = items.filter(i => this.isPropertyDamageIncident(i));
 
-        // If API returned zero incidents, populate the map from the live
-        // activity feed so every panel stays consistent.
+        // If the API returned zero incidents, render an honest empty
+        // state instead of synthesizing fake markers from the activity
+        // feed (the previous behavior fabricated FireIncident rows with
+        // manufactured call_types — operators saw a populated map and a
+        // KPI count for incidents that did not exist).
         if (filtered.length === 0) {
-          this.populateMapFromActivityFeed();
+          this.allMapIncidents = [];
+          this.recentIncidents = [];
+          this.syncKpiFromIncidents(0);
+          this.computeHotspots();
+          if (this.mapReady) this.renderMarkers();
           this.incidentsLoading = false;
           this.lastRefreshTime = new Date();
           this.isFirstLoad = false;
@@ -428,40 +445,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.log('[CC] Incidents loaded in %dms — %d total, %d on map, %d new', Math.round(performance.now() - t0), filtered.length, this.allMapIncidents.length, brandNewIds.length);
       },
     });
-  }
-
-  /**
-   * When the fire-incidents API returns nothing, derive map markers
-   * from the activity feed so all Dashboard panels show the same data.
-   */
-  private populateMapFromActivityFeed(): void {
-    const feedItems = this.activityFeed.length > 0
-      ? this.activityFeed
-      : this.liveActivityService.activities$.getValue();
-
-    const synthIncidents: FireIncident[] = feedItems
-      .filter(a => a.latitude != null && a.longitude != null)
-      .map(a => ({
-        id: a.id,
-        call_type: a.eventType === 'fire_incident' ? 'SF' : a.eventType === 'storm_alert' || a.eventType === 'hail_alert' || a.eventType === 'wind_alert' || a.eventType === 'lightning_alert' ? 'WF' : 'FA',
-        call_type_description: a.label?.split(' — ')[0] || a.eventType,
-        address: a.label?.split(' — ')[1] || '',
-        latitude: a.latitude,
-        longitude: a.longitude,
-        received_at: a.timestamp instanceof Date ? a.timestamp.toISOString() : a.timestamp,
-        lead_id: null,
-        is_active: true,
-      } as any));
-
-    this.allMapIncidents = synthIncidents;
-    this.recentIncidents = synthIncidents.slice(0, 20);
-    this.totalPropertyIncidents = synthIncidents.length;
-
-    // Update KPI to match
-    this.firesToday = synthIncidents.filter(i => !WILDLAND_TYPES.includes(i.call_type)).length;
-
-    this.computeHotspots();
-    if (this.mapReady) this.renderMarkers();
   }
 
   private isPropertyDamageIncident(incident: FireIncident): boolean {

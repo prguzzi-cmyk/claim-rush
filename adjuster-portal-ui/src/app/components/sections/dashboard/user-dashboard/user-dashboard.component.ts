@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormControl } from '@angular/forms';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -165,7 +166,8 @@ export class UserDashboardComponent implements OnInit {
         private leadService: LeadService,
         private claimService: ClaimService,
         private spinner: NgxSpinnerService,
-        private excelService: ExcelService
+        private excelService: ExcelService,
+        private http: HttpClient,
     ) {
         this.role = localStorage.getItem('role-name');
 
@@ -324,32 +326,77 @@ export class UserDashboardComponent implements OnInit {
 
             this.searchField = 'assigned_to';
 
-            this.leadService
-                .getLeadsByUserId(
-                    this.userId,
-                    this.searchField,
-                    this.leadPaginationData.pageIndex,
-                    this.leadPaginationData.pageSize
-                )
-                .pipe(delay(500))
-                .subscribe((leads) => {
+            // Activation Phase 1: initial dashboard table now reads from
+            // /v1/outreach-queue (the same source the live lead tabs use)
+            // and maps each row into the Lead-shaped object the existing
+            // template binds to. Search path (do-not-touch-yet per spec)
+            // still goes through legacy LeadService elsewhere.
+            const url = 'outreach-queue?limit=100&queue_name=fire_lead_outreach';
+            this.http.get<any[]>(url).subscribe(
+                (rows) => {
                     this.spinner.hide();
-                    if (leads !== undefined) {
-                        this.leads = leads;
+                    const queueRows = rows || [];
+                    const items = queueRows.map((r) => this.outreachRowToLead(r));
 
-                        // filter deleted leads
-                        this.dataSourceLeads = new MatTableDataSource(
-                            leads.items
-                        );
+                    this.leads = items as any;
+                    this.dataSourceLeads = new MatTableDataSource(items as any);
 
-                        this.leadPaginationData = {
-                            totalRecords: leads?.total,
-                            pageIndex: leads?.page,
-                            pageSize: leads?.size,
-                        };
-                    }
-                });
+                    this.leadPaginationData = {
+                        totalRecords: items.length,
+                        pageIndex: 1,
+                        pageSize: items.length || this.leadPaginationData.pageSize,
+                    };
+                },
+                () => {
+                    this.spinner.hide();
+                },
+            );
         }
+    }
+
+    /** Map an outreach_queue row → Lead-shaped object for the dashboard
+     *  table. Mirrors the mapper in leads.component (so the row click can
+     *  be threaded into <app-lead [lead_data]> and skip GET /v1/leads/:id).
+     */
+    private outreachRowToLead(r: any): any {
+        const ref = (r.lead_id || '').slice(0, 8).toUpperCase();
+        const name = r.address || 'Property Owner';
+        const peril = r.incident_type?.toLowerCase().includes('fire')
+            ? 'fire'
+            : r.incident_type;
+        const status = r.contact_status === 'ready_to_contact' ? 'New' : 'Pending';
+        const distributed =
+            !!r.assignee &&
+            ['pending_outreach', 'ready_to_contact'].includes(r.contact_status);
+        const [first, ...rest] = (r.assignee || '').trim().split(/\s+/);
+        const last = rest.join(' ');
+        const stateMatch = (r.address || '').match(/,\s*([A-Z]{2})\s*$/);
+        const state = stateMatch ? stateMatch[1] : null;
+
+        return {
+            id: r.lead_id,
+            ref_string: ref,
+            ref_number: ref,
+            peril,
+            status,
+            priority: r.priority || 'normal',
+            distributed,
+            consent: null,
+            dnc: null,
+            assigned_to: r.assignee_id || null,
+            assigned_agent: r.assignee || null,
+            assigned_user: r.assignee
+                ? { id: r.assignee_id, first_name: first || '', last_name: last || '' }
+                : null,
+            contact: {
+                full_name: name,
+                phone_number: r.phone || '',
+                address_loss: r.address || '',
+                state_loss: state,
+            },
+            created_at: r.created_at,
+            source_info: 'fire_lead_outreach',
+        };
     }
 
     searchLeadsBySource() {
@@ -595,6 +642,23 @@ export class UserDashboardComponent implements OnInit {
 
     onClaimDetail(id: string, name: string) {
         this.tabService.addItem({ id, name, type: 'claim' });
+    }
+
+    /** Outreach-queue path: open the lead detail tab with the row already
+     *  in memory so <app-lead [lead_data]> renders without a /v1/leads/:id
+     *  call. Used by the first (assigned-to) table only; the legacy
+     *  onLeadDetail(id, name) is preserved for the second (by-source) table
+     *  which still loads via LeadService.
+     */
+    onLeadDetailWithData(lead: any) {
+        const ref = (lead?.ref_string || '').slice(-3);
+        const who = lead?.contact?.full_name || 'Lead';
+        this.tabService.addItem({
+            id: lead?.id,
+            name: `${who}-${ref}`,
+            type: 'lead',
+            data: lead,
+        });
     }
 
     onLeadDetail(id: string, name: string) {

@@ -95,6 +95,15 @@ export class ClaimsComponent implements OnInit {
 
     user: User;
 
+    // Trust-state flags for the dashboard. `hasLoaded` flips true after
+    // the first getClaims() resolution so the empty-state UI doesn't
+    // flash "No claims" before the network call finishes. `loadError`
+    // surfaces backend failures (e.g. the current 409 from
+    // /v1/reports/claims/advanced-search) instead of silently rendering
+    // an empty table — empty + error look identical otherwise.
+    hasLoaded: boolean = false;
+    loadError: string | null = null;
+
     period_type: string = 'current-year';
     null_anticipated_amount: any = null;
     phase: any = null;
@@ -253,6 +262,7 @@ export class ClaimsComponent implements OnInit {
 
     getClaims() {
         this.spinner.show();
+        this.loadError = null;
 
         const sortDirection = this.sort?.direction || 'desc';
         const sortActive = this.sort?.active || 'created_at';
@@ -262,6 +272,7 @@ export class ClaimsComponent implements OnInit {
         this.claimService.getClaimsReport(this.pageIndex, this.pageSize, this.queryParams).subscribe(
             (claims) => {
                 this.spinner.hide();
+                this.hasLoaded = true;
                 if (claims !== undefined) {
 
                     this.claims = claims?.items;
@@ -312,10 +323,21 @@ export class ClaimsComponent implements OnInit {
                     this.totalRecords = claims.total;
                     this.pageIndex = claims.page;
                     this.pageSize = claims.size;
+                } else {
+                    // Defensive: API returned undefined — treat as empty.
+                    this.dataSourceClaims = new MatTableDataSource([]);
+                    this.totalRecords = 0;
                 }
             },
             (error) => {
                 this.spinner.hide();
+                this.hasLoaded = true;
+                this.dataSourceClaims = new MatTableDataSource([]);
+                this.totalRecords = 0;
+                const status = error?.status;
+                this.loadError = status
+                    ? `We couldn't load claims (HTTP ${status}). Please retry or contact support.`
+                    : `We couldn't load claims. Please retry or contact support.`;
             }
         );
     }

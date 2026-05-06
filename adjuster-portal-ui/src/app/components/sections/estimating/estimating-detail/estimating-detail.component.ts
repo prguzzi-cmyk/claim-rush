@@ -1955,10 +1955,18 @@ export class EstimatingDetailComponent implements OnInit, OnDestroy {
         next: () => {
           this.snackBar.open("Estimate updated.", "Close", { duration: 3000 });
           this.saving = false;
+          // Reload from backend so the form (and the totals derived from it)
+          // reflect what was actually persisted, including any server-side
+          // total_cost recompute. Without this the displayed total can
+          // diverge from the list view after subsequent navigation.
+          if (this.estimateId) {
+            this.loadEstimate(this.estimateId);
+          }
         },
-        error: () => {
-          this.snackBar.open("Failed to update estimate.", "Close", {
-            duration: 3000,
+        error: (err) => {
+          console.error("[Estimating] updateEstimate failed", err);
+          this.snackBar.open(this.formatSaveError("update", err), "Close", {
+            duration: 7000,
           });
           this.saving = false;
         },
@@ -1970,14 +1978,43 @@ export class EstimatingDetailComponent implements OnInit, OnDestroy {
           this.saving = false;
           this.router.navigate(["/app/estimating"]);
         },
-        error: () => {
-          this.snackBar.open("Failed to create estimate.", "Close", {
-            duration: 3000,
+        error: (err) => {
+          console.error("[Estimating] createEstimate failed", err);
+          this.snackBar.open(this.formatSaveError("create", err), "Close", {
+            duration: 7000,
           });
           this.saving = false;
         },
       });
     }
+  }
+
+  /**
+   * Build a human-readable error message from a failed save HTTP response.
+   * Surfaces the backend's actual reason (FastAPI `detail` field, validation
+   * errors, or generic message) instead of a static "Failed to save" string,
+   * so the user can see what went wrong without opening devtools.
+   */
+  private formatSaveError(verb: "create" | "update", err: any): string {
+    const status = err?.status ?? "?";
+    const raw = err?.error?.detail;
+    let detail: string;
+    if (typeof raw === "string") {
+      detail = raw;
+    } else if (Array.isArray(raw) && raw.length > 0) {
+      detail = raw
+        .map((d: any) => {
+          const loc = Array.isArray(d?.loc) ? d.loc.join(".") : "";
+          const msg = d?.msg || JSON.stringify(d);
+          return loc ? `${loc}: ${msg}` : msg;
+        })
+        .join("; ");
+    } else if (raw) {
+      detail = JSON.stringify(raw);
+    } else {
+      detail = err?.message || "unknown error";
+    }
+    return `Failed to ${verb} estimate (HTTP ${status}): ${detail}`;
   }
 
   // --- Carrier Comparison ---

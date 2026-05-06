@@ -116,6 +116,12 @@ export class LeadComponent implements OnInit {
     pageSizeOptions = [10, 25, 100, 500];
 
     @Input() lead_id: string;
+    /**
+     * Optional pre-loaded row from the list view (Activation Phase 1:
+     * outreach-queue swap). When provided, we render the row directly
+     * and skip GET /v1/leads/:id — the row is already in memory.
+     */
+    @Input() lead_data: any = null;
     lead: Lead;
     leadTask: LeadTask;
     leadFiles: [LeadFile] = null;
@@ -165,7 +171,13 @@ export class LeadComponent implements OnInit {
             text: new FormControl('', [Validators.required]),
         });
 
-        if (this.lead_id) {
+        if (this.lead_data) {
+            // Inline path: row already loaded by the list (outreach-queue
+            // swap). Render directly, no extra API call. Caller can fall
+            // back to the legacy path by simply not passing lead_data.
+            this.lead = this.lead_data as Lead;
+            this.spinner.hide();
+        } else if (this.lead_id) {
             this.getLead();
             this.loadSkipTrace();
             this.loadRescueStatus();

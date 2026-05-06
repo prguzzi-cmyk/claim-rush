@@ -42,15 +42,28 @@ export class MagicLinkCallbackComponent implements OnInit {
               if (redirectUrl) {
                 localStorage.removeItem('redirectUrl');
                 this.router.navigateByUrl(redirectUrl);
-              } else if (
-                response?.role?.name == 'super-admin' ||
-                response?.role?.name == 'admin'
-              ) {
-                this.router.navigate(['/app/agent-dashboard']);
-              } else if (response?.role?.name == 'customer') {
-                this.router.navigate(['/app/customer-dashboard']);
               } else {
-                this.router.navigate(['/app/agent-dashboard']);
+                const roleName = (response?.role?.name || '').toLowerCase();
+                const isPortalRole = roleName === 'cp' || roleName === 'rvp' || roleName === 'agent';
+                if (roleName === 'super-admin' || roleName === 'admin') {
+                  this.router.navigate(['/app/agent-dashboard']);
+                } else if (roleName === 'customer') {
+                  this.router.navigate(['/app/customer-dashboard']);
+                } else if (isPortalRole && response?.id) {
+                  this.router.navigate(['/app/portal', response.id]);
+                } else if (roleName === 'adjuster') {
+                  // Adjusters live in ClaimRush — RIN is admin-only.
+                  const w: any = window as any;
+                  const claimrushUrl =
+                    w?.CLAIMRUSH_URL
+                      ? w.CLAIMRUSH_URL
+                      : (window.location.hostname || '').endsWith('aciunited.com')
+                        ? 'https://aciunited.com'
+                        : 'http://localhost:5175';
+                  window.location.href = `${claimrushUrl}/portal`;
+                } else {
+                  this.router.navigate(['/app/agent-dashboard']);
+                }
               }
             }
           });

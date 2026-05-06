@@ -36,16 +36,28 @@ export const ROLE_SIDEBAR_SECTIONS: Record<AppRole, readonly string[]> = {
   'super-admin': ['intel', 'leads', 'comms', 'ops', 'claims', 'perf', 'resources', 'admin'],
   'admin':       ['intel', 'leads', 'comms', 'ops', 'claims', 'perf', 'resources', 'admin'],
 
-  // CP: leadership + growth. Sees admin section for recruiting/territory
-  // controls; route-level blacklist below hides the system-admin items
-  // within it. Intel section included so CP can navigate back to the
-  // Global Command Center (their landing page — see ROLE_LANDING.cp).
-  'cp':          ['intel', 'leads', 'perf', 'resources', 'admin'],
+  // CP: leadership + growth. Sees claims section (Claims / Clients /
+  // Estimating / ACI Adjuster / Policy Vault — all consistent with the
+  // launch matrix). Admin section dropped — RIN admin is HOME_OFFICE-only.
+  // CP recruiting/territory controls are surfaced through ClaimRush
+  // (Manager Oversight, Agent Performance, My Recruits) instead of the
+  // RIN admin section. Lead Deployment + Territory Assignments remain
+  // RIN-admin-only — ClaimRush CP dashboards consume the data via the
+  // read APIs but do not mutate routing config. Intel section is included
+  // so CP can navigate back to the Global Command Center (see
+  // ROLE_LANDING.cp).
+  'cp':          ['intel', 'leads', 'claims', 'perf', 'resources'],
 
-  // RVP: their agents + pipeline + performance. No admin section.
+  // RVP: their agents + pipeline + performance. No admin / ops sections in
+  // this iteration — RVP read-only access to assignment pages is deferred.
+  // Estimating is hidden via ROLE_HIDDEN_ROUTES below (Estimating Engine
+  // is restricted to Admin / CP / Adjuster).
   'rvp':         ['leads', 'claims', 'perf', 'resources'],
 
-  // Agent: narrow — leads, own claims, resources.
+  // Agent: narrow — leads, own claims (status only), resources. Within the
+  // claims section, agent retains Claims Search + Clients Search (which
+  // permission-gate via getUserPermissions); Estimating, ACI Adjuster,
+  // Policy Vault, Claim File Manager are blacklisted below.
   'agent':       ['leads', 'claims', 'resources'],
 
   // Adjuster: claims workspace + resources (policy docs, estimating templates).
@@ -74,19 +86,94 @@ export const ROLE_SIDEBAR_SECTIONS: Record<AppRole, readonly string[]> = {
 export const ROLE_HIDDEN_ROUTES: Record<AppRole, readonly string[]> = {
   'super-admin': [],
   'admin':       [],
-  'rvp':         [],
-  'agent':       [],
-  'adjuster':    [],
+
+  // System-level intelligence routes — admin-only. Every non-admin role
+  // gets these in its blacklist as defense-in-depth so an accidental
+  // section-list change can never re-leak Incident Intel / Crime Claims /
+  // Global Intelligence / Storm Impact Targeting / Potential Claims /
+  // Opportunity Scoring / Lead Intelligence to field roles.
+  // (Storm Intel + Roof Intel are NOT in this list — they remain visible
+  // because they're field-facing intel surfaces.)
+
+  // RVP: Estimating Engine is Admin / CP / Adjuster only. RVP keeps the
+  // rest of the claims section. System intel admin-only.
+  // Demo-hardening (Portal 1): hide mock-data trust-breakers from CP/RVP/Agent
+  // sidebars — My Recruits, My Commission, Assistant render hardcoded demo
+  // data and would mislead during a live demo. Admin keeps them for debug.
+  'rvp': [
+    '/app/estimating',
+    '/app/incident-intelligence',
+    '/app/crime-claims-intelligence',
+    '/app/dashboard/intelligence',
+    '/app/dashboard/storm-impact',
+    '/app/potential-claims',
+    '/app/claim-opportunity-dashboard',
+    '/app/lead-intelligence',
+    '/app/users/my-recruits',
+    '/app/commission/me',
+    '/app/resources/assistant',
+  ],
+
+  // Agent: claim status only. Keep Claims Search + Clients Search (those
+  // permission-gate independently via getUserPermissions); hide the deep
+  // adjuster tools. System intel admin-only.
+  // Demo-hardening (Portal 1): same mock-data blacklist as RVP.
+  'agent': [
+    '/app/estimating',
+    '/app/adjuster-assistant',
+    '/app/policy-vault',
+    '/app/claim-file-manager',
+    '/app/incident-intelligence',
+    '/app/crime-claims-intelligence',
+    '/app/dashboard/intelligence',
+    '/app/dashboard/storm-impact',
+    '/app/potential-claims',
+    '/app/claim-opportunity-dashboard',
+    '/app/lead-intelligence',
+    '/app/users/my-recruits',
+    '/app/commission/me',
+    '/app/resources/assistant',
+  ],
+
+  'adjuster': [
+    '/app/incident-intelligence',
+    '/app/crime-claims-intelligence',
+    '/app/dashboard/intelligence',
+    '/app/dashboard/storm-impact',
+    '/app/potential-claims',
+    '/app/claim-opportunity-dashboard',
+    '/app/lead-intelligence',
+  ],
   'sales-rep':   [],
   'client':      [],
   'customer':    [],
 
   'cp': [
+    // System-level intelligence — admin-only. CP keeps Storm Intel + Roof
+    // Intel within the intel section, but the system-intel pages below
+    // are blacklisted so they don't leak into the field-leadership UI.
+    '/app/incident-intelligence',
+    '/app/crime-claims-intelligence',
+    '/app/dashboard/intelligence',
+    '/app/dashboard/storm-impact',
+    '/app/potential-claims',
+    '/app/claim-opportunity-dashboard',
+    '/app/lead-intelligence',
+    // Demo-hardening (Portal 1): hide mock-data trust-breakers — these
+    // render hardcoded demo content that would mislead during a live
+    // demo. Admin keeps them for debug; ecosystem ecosystem links are
+    // re-routed to Coming Soon (sidebar template) so visibility is
+    // preserved without showing fake metrics.
+    '/app/users/my-recruits',
+    '/app/commission/me',
+    '/app/resources/assistant',
     // System / user management — hide from CP
     '/app/administration/users',
     '/app/administration/agents',
     '/app/administration/roles',
     '/app/administration/permissions',
+    // Launch Control is the admin-org-readiness dashboard — admin-only.
+    '/app/administration/launch-control',
     // System operational config — hide from CP
     '/app/administration/pricing-admin',
     '/app/administration/rotation-config',
@@ -104,24 +191,47 @@ export const ROLE_HIDDEN_ROUTES: Record<AppRole, readonly string[]> = {
     '/app/administration/tasks/task-list',
     '/app/administration/schedules/schedule-list',
     '/app/administration/release-notes',
+    // Lead Deployment + Territory Assignments are RIN-admin-only controls.
+    // CP role consumes the resulting territory/lead data via ClaimRush
+    // dashboards; the RIN-admin pages below are blacklisted so the CP
+    // sidebar does not surface the mutate-side tools.
+    '/app/operations/lead-deployment',
+    '/app/administration/territory-assignments',
   ],
 };
 
 /**
- * Post-login landing route per role. All non-role-specific roles fall back
- * to `/app/agent-dashboard` TODAY; update these when role-specific
- * dashboards are built.
+ * Post-login landing route per role.
+ *
+ * Login flow in `login.component.ts` short-circuits CP / RVP / Agent to
+ * `/app/portal/<id>` (their personal portal) before consulting this
+ * table — that's the temporary destination until role-specific
+ * dashboards exist. The entries below are the fallbacks any *other*
+ * caller (or future role) reads, and they match the spec:
+ *
+ *   CP    → /app/cp-dashboard   (route TBD; falls back to portal in login)
+ *   RVP   → /app/rvp-dashboard  (route TBD; falls back to portal in login)
+ *   Agent → /app/agent-dashboard
+ *
+ * If a future code path reads ROLE_LANDING directly and a TBD route
+ * isn't built yet, Angular will navigate to the missing path; gate
+ * those callers with the same `isPortalRole` short-circuit used in
+ * login.component.ts.
+ */
+/**
+ * CP / RVP / Agent are routed to their personal portal at
+ * /app/portal/<user_id> by the `isPortalRole` short-circuit in
+ * login.component.ts; the table entries here are fallbacks for any
+ * other caller. Admin / super-admin keep the RIN agent-dashboard
+ * (the existing command-center landing).
  */
 export const ROLE_LANDING: Record<AppRole, string> = {
   'super-admin': '/app/agent-dashboard',
   'admin':       '/app/agent-dashboard',
-  // CP's primary UI is ClaimRush at aciunited.com. RIN is backend only.
-  // Full URL triggers an external navigation in login.component.ts (user
-  // will re-auth on the ClaimRush origin since localStorage is per-origin).
-  'cp':          'https://aciunited.com/portal',
-  'rvp':         '/app/agent-dashboard',   // TODO: /app/rvp-dashboard when built
+  'cp':          '/app/agent-dashboard',
+  'rvp':         '/app/agent-dashboard',
   'agent':       '/app/agent-dashboard',
-  'adjuster':    '/app/agent-dashboard',   // TODO: /app/adjuster-workspace when built
+  'adjuster':    '/app/agent-dashboard',
   'sales-rep':   '/app/sales-dashboard',
   'client':      '/app/customer-dashboard',
   'customer':    '/app/customer-dashboard',

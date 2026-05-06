@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
@@ -12,6 +13,7 @@ import { FireIncidentService } from '../../../services/fire-incident.service';
 import { StormDataService } from '../../../services/storm-data.service';
 import { ExcelService } from '../../../services/excel.service';
 import { EVENT_COLORS, SEVERITY_COLORS, SEVERITY_COLOR_DEFAULT } from '../../../config/event-colors';
+import { ConvertStormToLeadDialogComponent } from './convert-storm-to-lead-dialog/convert-storm-to-lead-dialog.component';
 
 /**
  * Unified incident record — normalises fire incidents and storm events
@@ -214,6 +216,7 @@ export class IncidentIntelligenceComponent implements OnInit, OnDestroy, AfterVi
     'source',
     'severity',
     'priority',
+    'actions',
   ];
 
   // ── UI Filters ────────────────────────────────────────────────
@@ -270,7 +273,32 @@ export class IncidentIntelligenceComponent implements OnInit, OnDestroy, AfterVi
     private stormService: StormDataService,
     private excelService: ExcelService,
     private snackBar: MatSnackBar,
+    private dialog: MatDialog,
   ) {}
+
+  isStormConverted(row: UnifiedIncident): boolean {
+    return row.type === 'storm' && !!(row.raw as any)?.lead_id;
+  }
+
+  onConvertStormToLead(row: UnifiedIncident): void {
+    if (row.type !== 'storm') return;
+    if (this.isStormConverted(row)) {
+      this.snackBar.open('This storm event has already been converted to a lead.', 'Close', { duration: 4000 });
+      return;
+    }
+
+    const ref = this.dialog.open(ConvertStormToLeadDialogComponent, {
+      data: { event: row.raw as StormEvent },
+      width: '560px',
+      autoFocus: false,
+    });
+
+    ref.afterClosed().subscribe((result?: { converted?: boolean; lead?: any }) => {
+      if (result?.converted && result.lead) {
+        (row.raw as any).lead_id = result.lead.id;
+      }
+    });
+  }
 
   private debugKeyHandler = (e: KeyboardEvent) => {
     // Ctrl+Shift+D toggles debug panel visibility

@@ -1,0 +1,114 @@
+<h2 mat-dialog-title>Create Campaign from Selected Leads</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="campaign-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="flex-2">
+        <mat-label>Campaign Name *</mat-label>
+        <input matInput formControlName="name" placeholder="e.g., Hail Storm — Wichita 04/26">
+        <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="flex-1">
+        <mat-label>Contact Method *</mat-label>
+        <mat-select formControlName="contact_method">
+          <mat-option value="sms">SMS</mat-option>
+          <mat-option value="email">Email</mat-option>
+          <mat-option value="voice">Voice (AI)</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="2"
+        placeholder="Optional — purpose, talking points, etc."></textarea>
+    </mat-form-field>
+  </form>
+
+  <div class="lead-picker-header">
+    <h3>Select Leads</h3>
+    <span class="selection-count">
+      {{ selection.selected.length }} selected
+    </span>
+  </div>
+
+  <div class="lead-table-scroll">
+    <table mat-table [dataSource]="dataSource" class="lead-picker-table">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            (change)="toggleAllOnPage()"
+            [checked]="isAllSelectedOnPage()"
+            [indeterminate]="selection.selected.length > 0 && !isAllSelectedOnPage()"
+          ></mat-checkbox>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox
+            [checked]="selection.isSelected(row.id)"
+            (change)="selection.toggle(row.id)"
+          ></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Phone</th>
+        <td mat-cell *matCellDef="let row">{{ row.phone }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="peril">
+        <th mat-header-cell *matHeaderCellDef>Peril</th>
+        <td mat-cell *matCellDef="let row">{{ row.peril }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="created_at">
+        <th mat-header-cell *matHeaderCellDef>Created</th>
+        <td mat-cell *matCellDef="let row">{{ row.created_at | date:'MM/dd/yyyy' }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <div *ngIf="!isLoading && dataSource.data.length === 0" class="lead-empty">
+      No leads available.
+    </div>
+    <div *ngIf="isLoading" class="lead-loading">
+      <mat-progress-spinner diameter="32" mode="indeterminate"></mat-progress-spinner>
+    </div>
+  </div>
+
+  <mat-paginator
+    [length]="totalLeads"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageChange($event)"
+  ></mat-paginator>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="form.invalid || selection.isEmpty() || isSubmitting"
+    (click)="onSubmit()"
+  >
+    <mat-icon *ngIf="!isSubmitting">campaign</mat-icon>
+    <mat-progress-spinner *ngIf="isSubmitting" diameter="18" mode="indeterminate"></mat-progress-spinner>
+    {{ isSubmitting ? 'Creating...' : 'Create Campaign' }}
+    <span *ngIf="selection.selected.length > 0 && !isSubmitting">
+      ({{ selection.selected.length }})
+    </span>
+  </button>
+</mat-dialog-actions>

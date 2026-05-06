@@ -216,6 +216,18 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.roleName = localStorage.getItem('role-name');
     this.operatingMode = localStorage.getItem('operating-mode') || 'neutral';
 
+    // ── TEMP DEBUG — surface the role + computed visible nav.
+    // Apply strict filtering BEFORE render so the log reflects what the
+    // user actually sees. REMOVE after verification.
+    const role = this.roleName;
+    const visibleSections = Object.keys(this.sections).filter(k => this.showSection(k));
+    const hiddenRoutes = (ROLE_HIDDEN_ROUTES as any)[role as string] ?? [];
+    // eslint-disable-next-line no-console
+    console.log('ROLE:', role, 'VISIBLE NAV:', {
+      sections: visibleSections,
+      hiddenRoutes,
+    });
+
     // Restore collapsed state from localStorage
     const saved = localStorage.getItem('sidebar-sections');
     if (saved) {

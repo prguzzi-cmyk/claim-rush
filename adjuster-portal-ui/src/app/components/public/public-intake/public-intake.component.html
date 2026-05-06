@@ -1,0 +1,74 @@
+<div class="intake-page">
+  <div class="intake-card">
+
+    <ng-container *ngIf="loading">
+      <div class="state-block muted">Loading…</div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && notFound">
+      <header class="intake-header">
+        <h1>Intake not available</h1>
+        <p class="muted">This link is no longer active. If you were given this URL, please contact your representative for the correct link.</p>
+      </header>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && !notFound && !submitted && intake">
+      <header class="intake-header">
+        <h1>{{ ownerHeader }}</h1>
+        <p class="subtext" *ngIf="subtext">{{ subtext }}</p>
+        <p class="subtext" *ngIf="!subtext && intake.intake_name">{{ intake.intake_name }}</p>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="intake-form" novalidate>
+        <label class="field">
+          <span class="label">Your name <span class="req">*</span></span>
+          <input type="text" formControlName="name" autocomplete="name" placeholder="Jane Doe" />
+          <span class="error" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">Required.</span>
+        </label>
+
+        <label class="field">
+          <span class="label">Phone <span class="req">*</span></span>
+          <input type="tel" formControlName="phone" autocomplete="tel" placeholder="(555) 555-1234" />
+          <span class="error" *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid">Enter a valid phone number.</span>
+        </label>
+
+        <label class="field">
+          <span class="label">Property address <span class="req">*</span></span>
+          <input type="text" formControlName="address" autocomplete="street-address" placeholder="123 Main St, City, State" />
+          <span class="error" *ngIf="form.get('address')?.touched && form.get('address')?.invalid">Required.</span>
+        </label>
+
+        <label class="field">
+          <span class="label">Damage type <span class="req">*</span></span>
+          <select formControlName="damage_type">
+            <option value="" disabled>Select one…</option>
+            <option *ngFor="let d of damageTypes" [value]="d">{{ d }}</option>
+          </select>
+          <span class="error" *ngIf="form.get('damage_type')?.touched && form.get('damage_type')?.invalid">Required.</span>
+        </label>
+
+        <label class="field">
+          <span class="label">Notes <span class="muted">(optional)</span></span>
+          <textarea formControlName="notes" rows="3" placeholder="Anything else we should know?"></textarea>
+        </label>
+
+        <p class="error" *ngIf="submitError">{{ submitError }}</p>
+        <button type="submit" class="submit-button" [disabled]="submitting">
+          {{ submitting ? 'Submitting…' : 'Submit' }}
+        </button>
+        <p class="footnote muted">Your information is reviewed by {{ intake.owner_name || 'your representative' }} and the UPA team.</p>
+      </form>
+    </ng-container>
+
+    <ng-container *ngIf="submitted">
+      <header class="intake-header">
+        <h1>Your request has been received.</h1>
+        <p class="subtext">{{ intake?.owner_name || 'Your representative' }} will be in touch shortly.</p>
+        <p class="subtext muted" *ngIf="submissionRefNumber !== null">
+          Reference #{{ submissionRefNumber }}
+        </p>
+      </header>
+      <button type="button" class="link-button" (click)="resetForm()">Submit another request</button>
+    </ng-container>
+  </div>
+</div>

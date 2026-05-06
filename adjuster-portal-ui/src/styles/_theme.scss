@@ -90,19 +90,23 @@ $my-theme: mat.m2-define-light-theme((
   --mat-form-field-focus-state-layer-opacity: 0;
 
   // ── Outlined Form Fields (dark mode) ──
+  // Label and placeholder colors aligned with --text-secondary so search
+  // boxes, filter inputs, and select labels read clearly on dark surfaces.
+  // Was #8899AA / #AAB8C8 — both borderline on the page background.
   --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.25);
   --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.5);
   --mdc-outlined-text-field-focus-outline-color: #00C2FF;
-  --mdc-outlined-text-field-label-text-color: #8899AA;
-  --mdc-outlined-text-field-hover-label-text-color: #AAB8C8;
+  --mdc-outlined-text-field-label-text-color: #B0BAC8;
+  --mdc-outlined-text-field-hover-label-text-color: #E8ECF1;
   --mdc-outlined-text-field-focus-label-text-color: #00C2FF;
   --mdc-outlined-text-field-input-text-color: #E8ECF1;
+  --mdc-outlined-text-field-input-text-placeholder-color: #B0BAC8;
 
   // ── Select (dark mode) ──
   --mat-select-trigger-text-color: #E8ECF1;
-  --mat-select-enabled-arrow-color: #8899AA;
+  --mat-select-enabled-arrow-color: #B0BAC8;
   --mat-select-focused-arrow-color: #00C2FF;
-  --mat-select-placeholder-text-color: #8899AA;
+  --mat-select-placeholder-text-color: #B0BAC8;
 
   // ── Option text ──
   --mat-option-label-text-color: #E8ECF1;
@@ -215,6 +219,19 @@ $my-theme: mat.m2-define-light-theme((
 .mat-sidenav-container,
 .mat-drawer-container {
   color: var(--text-primary) !important;
+}
+
+// ── Native input placeholders (dark theme readability) ──
+// Browsers default ::placeholder to a low-contrast gray that reads as
+// faded on dark surfaces. Our forms use Material's mat-form-field which
+// renders a floating label, but the underlying <input placeholder="…">
+// is still visible (e.g., the Claims Dashboard "Enter search keyword"
+// and "Filter claims" inputs). Aligning the native placeholder with
+// --text-secondary makes them readable without a layout change.
+.mat-mdc-form-field input.mat-mdc-input-element::placeholder,
+.mat-mdc-form-field textarea.mat-mdc-input-element::placeholder {
+  color: var(--text-secondary, #B0BAC8) !important;
+  opacity: 1; // Firefox lowers ::placeholder opacity by default
 }
 
 .mat-sidenav,

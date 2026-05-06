@@ -142,6 +142,7 @@ export class ApplicationComponent implements OnInit {
       },
       error => {
         if (error?.status == 403 && !(environment as any).devAutoLogin) {
+          console.log('[REDIRECT-TRACE] application.component.ts getUser(403) pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'destination= login');
           this.router.navigate(['login']);
         }
       },

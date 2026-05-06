@@ -74,15 +74,10 @@
         </div>
       </div>
 
-      <div class="kpi-tile kpi-tile-offline"
-           matTooltip="Voice/AI campaign system temporarily disabled. This counter is held at 0 until the voice service is reactivated.">
-        <div class="kpi-tile-icon kpi-icon-calls"><mat-icon>phone_in_talk</mat-icon></div>
-        <div class="kpi-tile-body">
-          <span class="kpi-tile-value">{{ aiCallsRunning }}</span>
-          <span class="kpi-tile-label">AI Calls Running <span class="kpi-tile-offline-tag">offline</span></span>
-          <span class="kpi-tile-scope">Voice Service Disabled</span>
-        </div>
-      </div>
+      <!-- "AI Calls Running" KPI removed while the voice service is offline.
+           The dashboard.component.ts `aiCallsRunning` field is preserved
+           so the tile can be re-added unchanged once the voice service
+           is reactivated. -->
 
       <div class="kpi-tile">
         <div class="kpi-tile-icon kpi-icon-claims"><mat-icon>description</mat-icon></div>
