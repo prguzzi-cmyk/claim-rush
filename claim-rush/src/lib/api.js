@@ -33,7 +33,15 @@ export async function apiFetch(path, options = {}) {
     headers,
   });
 
-  if (res.status === 401 || res.status === 403) {
+  // Session-wipe is reserved for 401 ONLY. 401 = no/invalid/expired token,
+  // i.e. the JWT is no longer trustworthy and must be discarded. 403 means
+  // the token is fine but the caller doesn't have permission for THIS
+  // resource — wiping the session on a per-route forbidden response would
+  // bounce the user to /login any time a single sub-component fetches a
+  // resource its role can't see (root cause of the adjuster fire-incidents
+  // bounce diagnosed 2026-05-06). 403s now propagate to the caller via
+  // apiJson() so individual screens can render a controlled error.
+  if (res.status === 401) {
     if (path !== '/auth/login') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('cr_role');
