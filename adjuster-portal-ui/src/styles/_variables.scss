@@ -21,8 +21,11 @@ $black: #000;
 $bg-color: #0B0F14;
 $bg-alternative-color: #111820;
 
-$copy-color: rgba(255, 255, 255, 0.7);
-$highlight-color: rgba(255, 255, 255, 1);
+// Body copy — solid, NOT translucent. Translucent text on dark surfaces
+// compounds with low-opacity borders and washes out the whole portal.
+// Use opacity only for genuinely disabled UI.
+$copy-color: #B0BAC8;
+$highlight-color: #FFFFFF;
 
 $color-1: #349d9f;
 $color-2: #00b2a9;

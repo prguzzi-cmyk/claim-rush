@@ -14,6 +14,8 @@ import PortalLayout from "./portal/PortalLayout";
 import Dashboard from "./portal/Dashboard";
 import IframeFeature from "./portal/IframeFeature";
 import LeadsBoard from "./portal/LeadsBoard";
+import ManagerOversight from "./portal/ManagerOversight";
+import MyCasesBoard from "./portal/MyCasesBoard";
 import ClientsBoard from "./portal/ClientsBoard";
 import CommissionBoard from "./portal/CommissionBoard";
 import PitchMode from "./portal/PitchMode";
@@ -130,6 +132,8 @@ export default function App() {
         {/* Phase 5+6: RIN iframe features — FIND/WORK LEADS */}
         {/* Fire Leads — real native component, backed by /v1/dashboard/cp-leads */}
         <Route path="fire-leads"        element={<LeadsBoard />} />
+        <Route path="oversight"         element={<ManagerOversight />} />
+        <Route path="my-cases"          element={<MyCasesBoard />} />
         <Route path="rin/fire-leads"    element={<LeadsBoard />} />
         <Route path="rin/water-leads"   element={<IframeFeature rinRoute="/app/fire-leads" title="Water Damage Leads" rinQuery="peril=flood" />} />
         <Route path="rin/claims"        element={<IframeFeature rinRoute="/app/claims" title="Claims" />} />

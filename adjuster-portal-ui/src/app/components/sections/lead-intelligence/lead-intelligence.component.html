@@ -80,6 +80,17 @@
       </div>
     </div>
 
+    <!-- 2-mode quick toggle. Composes with the Type/State/Status/Date
+         filters via applyFilters(); does not replace them. -->
+    <div class="lead-view-toggle">
+      <mat-button-toggle-group
+        [value]="leadViewMode"
+        (change)="onLeadViewChange($event.value)">
+        <mat-button-toggle value="fire">🔥 Fire Leads</mat-button-toggle>
+        <mat-button-toggle value="all">All Leads</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
     <!-- ══════ LEADS TABLE ══════ -->
     <div class="dark-panel table-panel">
       <div class="dark-panel-header">
@@ -189,7 +200,7 @@
       </div>
       <div class="table-empty" *ngIf="allLeads.length === 0">
         <mat-icon>assignment</mat-icon>
-        <span>No leads yet. Use "Assign Agent" in Opportunity Scoring to create leads.</span>
+        <span>No leads in this view yet. Fire incidents auto-populate within 60 seconds of dispatch — the feed will refresh automatically.</span>
       </div>
     </div>
 

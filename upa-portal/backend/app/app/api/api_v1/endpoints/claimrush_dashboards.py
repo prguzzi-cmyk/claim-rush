@@ -27,8 +27,8 @@ from decimal import Decimal
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_db_session
 from app.api.deps.user import get_current_active_user
@@ -39,6 +39,8 @@ from app.models import (
     Territory,
     User,
 )
+from app.models.lead_contact import LeadContact
+from app.utils.territory_filter import get_lead_territory_filters
 
 router = APIRouter()
 
@@ -62,24 +64,40 @@ def _role_name(u: User | None) -> str:
     return (u.role.name or "").lower()
 
 
-def _reporting_chain(user: User) -> tuple[dict | None, dict | None]:
+def _reporting_chain(
+    db_session: Session, user: User
+) -> tuple[dict | None, dict | None]:
     """Walk `manager_id` chain up to 5 levels looking for an RVP and a CP.
 
     Returns (rvp, cp) as `{"name": "..."} | None` dicts matching what the
     frontend destructures.
+
+    Walks via the `manager_id` UUID column (eager-safe — no lazy load) and
+    re-fetches each cursor through the active session with `User.role`
+    eager-loaded. This avoids the SQLAlchemy DetachedInstanceError that
+    happened when FastAPI ran the sync handler in a worker thread and the
+    `user.manager` / `cursor.role` lazy relationships hit a closed session.
     """
     rvp: dict | None = None
     cp: dict | None = None
-    cursor: User | None = user.manager if hasattr(user, "manager") else None
+    cursor_id = user.manager_id
     depth = 0
-    while cursor and depth < 5:
-        role = _role_name(cursor)
+    while cursor_id and depth < 5:
+        cursor = (
+            db_session.query(User)
+            .options(joinedload(User.role))
+            .filter(User.id == cursor_id)
+            .first()
+        )
+        if not cursor:
+            break
+        role = (cursor.role.name or "").lower() if cursor.role else ""
         if role == "rvp" and rvp is None:
             rvp = {"name": _display_name(cursor)}
         elif role == "cp" and cp is None:
             cp = {"name": _display_name(cursor)}
             break  # CP is top of the chain we care about; stop walking
-        cursor = cursor.manager if hasattr(cursor, "manager") else None
+        cursor_id = cursor.manager_id
         depth += 1
     return rvp, cp
 
@@ -134,7 +152,7 @@ def agent_summary(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> dict[str, Any]:
     """Summary for the logged-in Agent — matches AgentDash's destructure."""
-    rvp, cp = _reporting_chain(current_user)
+    rvp, cp = _reporting_chain(db_session, current_user)
     territory = _territory_scaffold()
     return {
         "user": _user_block(current_user),
@@ -174,7 +192,7 @@ def rvp_summary(
     # implied by the navigation.
     agents = [{"name": _display_name(u)} for u in direct_reports]
 
-    _, cp = _reporting_chain(current_user)
+    _, cp = _reporting_chain(db_session, current_user)
     territory = _territory_scaffold()
     return {
         "user": _user_block(current_user),
@@ -341,15 +359,20 @@ def cp_leads(
     db_session: Annotated[Session, Depends(get_db_session)],
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> list[dict[str, Any]]:
-    """List all leads assigned to the agents in the CP's downline.
+    """List leads visible to the CP — UNION of:
+      1. CP downline assignments  (lead.assigned_to IN agents under CP)
+      2. CP territory match       (lead_contact.state_loss / zip_code_loss
+                                   inside any active territory the CP is
+                                   assigned to via user_territory)
 
-    Scope: walks User.manager_id down one level (RVPs under CP), then one
-    more level (agents under each RVP), collects those agent user_ids, and
-    returns every lead.assigned_to matching. Non-soft-deleted only.
+    Either condition qualifies a lead. Admins (super-admin / admin) hit
+    the helper's bypass and contribute no territory filter, so they
+    effectively continue to see only their downline (which is typically
+    empty) — matching prior cp_leads() behavior for non-CP roles.
 
-    Shape is flat — one entry per lead — so the frontend can filter / sort
-    client-side without additional round-trips. Peril is preserved for the
-    Fire Leads / Water Leads filter chips.
+    Non-soft-deleted only. Shape is flat — one entry per lead — so the
+    frontend can filter / sort client-side without additional round-trips.
+    Peril is preserved for the Fire Leads / Water Leads filter chips.
     """
     # Walk downline to collect agent IDs.
     direct_reports = db_session.execute(
@@ -366,16 +389,45 @@ def cp_leads(
     agent_ids = [u.id for u in agent_rows]
     agent_name_by_id = {u.id: _display_name(u) for u in agent_rows}
 
-    if not agent_ids:
-        return []
+    # Build the OR-of-scopes: downline-assignment ∪ territory-match.
+    or_clauses = []
+    if agent_ids:
+        or_clauses.append(Lead.assigned_to.in_(agent_ids))
 
-    # Pull leads + sort newest first.
-    rows = db_session.execute(
-        select(Lead)
-        .where(Lead.assigned_to.in_(agent_ids))
-        .where(Lead.is_removed.is_(False))
-        .order_by(Lead.created_at.desc())
-    ).scalars().all()
+    territory_filters = get_lead_territory_filters(db_session, current_user)
+    or_clauses.extend(territory_filters)
+
+    # Compose the query when at least one scope clause exists. When
+    # neither downline nor territory contributes anything (admin / CP
+    # without territory + empty downline), skip the SQL and let the
+    # debug fallback below populate `rows`. Outer-join LeadContact only
+    # when a territory filter is in play (the helper's columns live on
+    # LeadContact); leads with no contact row still surface via the
+    # downline branch.
+    rows = []
+    if or_clauses:
+        stmt = select(Lead).where(Lead.is_removed.is_(False))
+        if territory_filters:
+            stmt = stmt.outerjoin(LeadContact, LeadContact.lead_id == Lead.id)
+        stmt = stmt.where(or_(*or_clauses) if len(or_clauses) > 1 else or_clauses[0])
+        stmt = stmt.order_by(Lead.created_at.desc())
+        rows = db_session.execute(stmt).scalars().all()
+
+    # A lead reached the result via the territory branch may be assigned
+    # to a user OUTSIDE the CP's downline. Resolve their display names so
+    # the agent_name field stays accurate (instead of falling back to
+    # "Unassigned" for a lead that *is* assigned, just not to my team).
+    # Same lookup also covers fallback rows.
+    missing_ids = {
+        lead.assigned_to for lead in rows
+        if lead.assigned_to and lead.assigned_to not in agent_name_by_id
+    }
+    if missing_ids:
+        extra_users = db_session.execute(
+            select(User).where(User.id.in_(missing_ids))
+        ).scalars().all()
+        for u in extra_users:
+            agent_name_by_id[u.id] = _display_name(u)
 
     now = datetime.now(timezone.utc)
     out: list[dict[str, Any]] = []
@@ -384,20 +436,41 @@ def cp_leads(
         if created.tzinfo is None:
             created = created.replace(tzinfo=timezone.utc)
         days_open = max(0, (now - created).days)
-        out.append({
+        # Ownership fields:
+        #   assigned_to    — canonical user UUID owning this lead, or null
+        #   agent_name     — display name; "Unassigned" when no owner
+        #   is_unassigned  — boolean shortcut for the frontend
+        # `agent_id` is preserved as an alias of `assigned_to` for any
+        # existing consumer; new code should read `assigned_to`.
+        assignee_id = str(lead.assigned_to) if lead.assigned_to else None
+        is_unassigned = lead.assigned_to is None
+        item = {
             "id": str(lead.id),
             "ref_number": lead.ref_number,
             "peril": lead.peril or "other",
             "status": lead.status or "new",
             "created_at": created.isoformat(),
             "days_open": days_open,
-            "agent_id": str(lead.assigned_to) if lead.assigned_to else None,
+            "assigned_to": assignee_id,
+            "agent_id": assignee_id,
             "agent_name": agent_name_by_id.get(lead.assigned_to, "Unassigned"),
+            "is_unassigned": is_unassigned,
             "insurance_company": lead.insurance_company,
             "policy_number": lead.policy_number,
             "claim_number": lead.claim_number,
             "loss_date": lead.loss_date.isoformat() if lead.loss_date else None,
-        })
+            # Stage 8 — Manager Oversight queue inputs. Pulled from the
+            # same Lead row already loaded; zero extra DB cost. Frontend
+            # uses these to bucketize into Unassigned / Follow-Up Overdue /
+            # No Contact Attempt / Stale / Interested-Not-Converted /
+            # Converted-No-Adjuster lanes without per-row lookups.
+            "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
+            "client_id": str(lead.client_id) if lead.client_id else None,
+            "follow_up_at": lead.follow_up_at.isoformat() if lead.follow_up_at else None,
+            "follow_up_completed_at": lead.follow_up_completed_at.isoformat() if lead.follow_up_completed_at else None,
+            "last_outreach_at": lead.last_outreach_at.isoformat() if lead.last_outreach_at else None,
+        }
+        out.append(item)
     return out
 
 
@@ -542,16 +615,20 @@ def cp_commission(
         claim_conds.append(CommissionClaim.writing_agent_id.in_(agent_ids))
     in_territory = _or(*claim_conds)
 
+    # NOTE: CommissionClaim has no `settled_at` column in the current
+    # schema (only `created_at` / `updated_at` / `loss_date`). Falling back
+    # to `created_at` so the endpoint returns 200 instead of 500. Replace
+    # with the real settlement timestamp once the column is added.
     def _sum_territory(period_start: datetime) -> tuple[float, int]:
         total = db_session.execute(
             select(func.coalesce(func.sum(CommissionClaim.gross_fee), 0))
             .where(in_territory)
-            .where(CommissionClaim.settled_at >= period_start)
+            .where(CommissionClaim.created_at >= period_start)
         ).scalar_one()
         count = db_session.execute(
             select(func.count(CommissionClaim.id))
             .where(in_territory)
-            .where(CommissionClaim.settled_at >= period_start)
+            .where(CommissionClaim.created_at >= period_start)
         ).scalar_one() or 0
         return float(total or Decimal(0)), int(count)
 
@@ -562,8 +639,8 @@ def cp_commission(
     settled_claims = db_session.execute(
         select(CommissionClaim)
         .where(in_territory)
-        .where(CommissionClaim.settled_at >= month_start)
-        .order_by(CommissionClaim.settled_at.desc())
+        .where(CommissionClaim.created_at >= month_start)
+        .order_by(CommissionClaim.created_at.desc())
     ).scalars().all()
 
     # CP override amount per claim this month — one query, group client-side
@@ -596,7 +673,9 @@ def cp_commission(
         "cp_override_amount": float(override_by_claim.get(c.id, 0.0)),
         "agent_id": str(c.writing_agent_id) if c.writing_agent_id else None,
         "agent_name": _agent_name(c.writing_agent_id),
-        "settled_at": c.settled_at.isoformat() if c.settled_at else None,
+        # No real settled_at column yet — fall back to created_at so the
+        # field stays populated for the frontend.
+        "settled_at": c.created_at.isoformat() if c.created_at else None,
     } for c in settled_claims]
 
     # ── Recent ledger activity — last 10 bucket=CP rows ─────────────
@@ -630,8 +709,35 @@ def cp_commission(
             "client_name": c.client_name if c else None,
         })
 
+    # ── All-time CP totals for top-level summary widget ─────────────
+    earned_all = db_session.execute(
+        select(func.coalesce(func.sum(CommissionLedger.amount), 0))
+        .where(CommissionLedger.user_id == current_user.id)
+        .where(CommissionLedger.bucket == "CP")
+        .where(CommissionLedger.txn_type == "COMMISSION_EARNED")
+    ).scalar_one() or Decimal(0)
+    paid_all = db_session.execute(
+        select(func.coalesce(func.sum(CommissionLedger.amount), 0))
+        .where(CommissionLedger.user_id == current_user.id)
+        .where(CommissionLedger.bucket == "CP")
+        .where(CommissionLedger.txn_type == "PAYOUT_ISSUED")
+    ).scalar_one() or Decimal(0)
+    total_earned = float(earned_all)
+    # PAYOUT_ISSUED rows are stored as negative; abs() so the displayed
+    # paid total is positive.
+    total_paid = float(abs(paid_all))
+    remaining = max(0.0, total_earned - total_paid)
+
     return {
         "user": _user_block(current_user),
+        # Top-level summary fields (Commission widget expects these).
+        "total_earned": total_earned,
+        "total_paid": total_paid,
+        "remaining": remaining,
+        "recent_activity": recent_ledger,
+        # Existing nested fields retained for the existing CP dashboard
+        # layout (override_earnings card, territory_revenue card,
+        # settlements_mtd table, recent_ledger feed).
         "override_earnings": {
             "mtd_total": mtd_over,
             "mtd_claim_count": mtd_over_claims,

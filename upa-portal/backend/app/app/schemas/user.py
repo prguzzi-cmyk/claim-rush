@@ -2,6 +2,7 @@
 
 """Schema for User"""
 
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -24,7 +25,17 @@ class UserMinimal(BaseModel):
     last_name: str | None = Field(
         default=None, max_length=50, description="Last name of the user."
     )
-    email: EmailStr | None = Field(
+    # Was `EmailStr | None`, but UserMinimal is the response-embed base
+    # class used inside Claim.signed_by_user / Claim.assigned_user /
+    # Claim.collaborators[*] / Lead.assigned_user / etc. Pydantic v1's
+    # EmailStr (via `email_validator>=2.x`) rejects reserved-TLD addresses
+    # like `admin@rin.local` — which causes serialization to fail with a
+    # ValidationError, surfaced by the global error handler as HTTP 409.
+    # The result was: any list endpoint touching a user with a non-RFC-
+    # deliverable address would 409 silently. Strict input validation
+    # is preserved on the `UserCreate` path (explicitly redefines
+    # `email: EmailStr`), so new users still need a deliverable address.
+    email: str | None = Field(
         default=None, description="Email address of the user."
     )
 
@@ -90,6 +101,16 @@ class UserUpdate(UserBase):
 # Properties to receive via API on own user update
 class UserUpdateMe(UserBase):
     password: str | None = Field(description="Login password for the user.")
+    # Required by the PUT /users/me handler when `password` is being changed.
+    # Verified against the caller's stored hash before the new password is
+    # accepted. Ignored when `password` is absent.
+    current_password: str | None = Field(
+        default=None,
+        description=(
+            "Caller's current password. Required when changing `password`; "
+            "rejected with 400 if missing or incorrect."
+        ),
+    )
 
 
 # Properties to return via API on user fetch from DB
@@ -107,6 +128,28 @@ class UserInDBBase(UserBase):
     )
     daily_lead_limit: int | None = Field(
         default=None, description="Max leads per day. None means unlimited."
+    )
+
+    profile_image_url: str | None = Field(
+        default=None,
+        description="Partner profile photo URL (data: URL in dev, S3/Supabase in prod).",
+    )
+
+    # Onboarding gate (R-onb02). Read-only mirror of the user-table flags
+    # so the frontend can decide whether to render portal access without
+    # an extra round-trip. is_agent_activated is computed by
+    # agent_activation_service.is_agent_activated.
+    upa_agreement_signed: bool | None = Field(
+        default=False,
+        description="UPA agreement signed flag.",
+    )
+    aci_agreement_signed: bool | None = Field(
+        default=False,
+        description="ACI agreement signed flag.",
+    )
+    agreement_signed_at: datetime | None = Field(
+        default=None,
+        description="Timestamp when both agreements were first signed.",
     )
 
     parent: UserMinimal | None = Field(description="Parent detail.")

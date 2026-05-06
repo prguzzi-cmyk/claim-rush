@@ -382,8 +382,27 @@
 
             </div>
 
+            <!-- ── Trust states: error / empty ────────────────────────
+                 Without these, a backend failure or zero-row response
+                 renders as an empty table that looks broken. -->
+            <div *ngIf="loadError" class="claims-state claims-state-error">
+                <mat-icon>error_outline</mat-icon>
+                <div class="claims-state-title">We couldn't load your claims</div>
+                <div class="claims-state-msg">{{ loadError }}</div>
+                <button mat-stroked-button class="claims-state-retry" (click)="getClaims()">
+                    <mat-icon>refresh</mat-icon> Retry
+                </button>
+            </div>
+            <div *ngIf="!loadError && hasLoaded && dataSourceClaims?.data?.length === 0"
+                 class="claims-state claims-state-empty">
+                <mat-icon>folder_open</mat-icon>
+                <div class="claims-state-title">No claims available for this account yet.</div>
+                <div class="claims-state-msg">Once you have claims to track they'll appear here.</div>
+            </div>
+
             <mat-paginator [length]="totalRecords" #paginator showFirstLastButtons [pageSize]="pageSize"
-                [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)">
+                [pageSizeOptions]="pageSizeOptions" (page)="changePage($event)"
+                [hidden]="dataSourceClaims?.data?.length === 0">
             </mat-paginator>
             
             <div class="row" [style.visibility]="

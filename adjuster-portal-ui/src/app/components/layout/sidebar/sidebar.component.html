@@ -59,31 +59,40 @@
            mat-button routerLink="/app/agent-dashboard" routerLinkActive="active">
           <mat-icon>space_dashboard</mat-icon><span class="label">Dashboard</span>
         </a>
-        <a mat-button routerLink="/app/incident-intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/incident-intelligence')"
+           mat-button routerLink="/app/incident-intelligence" routerLinkActive="active">
           <mat-icon>radar</mat-icon><span class="label">Incident Intel</span>
         </a>
-        <a mat-button routerLink="/app/storm-intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/storm-intelligence')"
+           mat-button routerLink="/app/storm-intelligence" routerLinkActive="active">
           <mat-icon>thunderstorm</mat-icon><span class="label">Storm Intel</span>
         </a>
-        <a mat-button routerLink="/app/roof-intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/roof-intelligence')"
+           mat-button routerLink="/app/roof-intelligence" routerLinkActive="active">
           <mat-icon>roofing</mat-icon><span class="label">Roof Intel</span>
         </a>
-        <a mat-button routerLink="/app/potential-claims" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/potential-claims')"
+           mat-button routerLink="/app/potential-claims" routerLinkActive="active">
           <mat-icon>bolt</mat-icon><span class="label">Potential Claims</span>
         </a>
-        <a mat-button routerLink="/app/claim-opportunity-dashboard" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/claim-opportunity-dashboard')"
+           mat-button routerLink="/app/claim-opportunity-dashboard" routerLinkActive="active">
           <mat-icon>analytics</mat-icon><span class="label">Opportunity Scoring</span>
         </a>
-        <a mat-button routerLink="/app/lead-intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/lead-intelligence')"
+           mat-button routerLink="/app/lead-intelligence" routerLinkActive="active">
           <mat-icon>insights</mat-icon><span class="label">Lead Intelligence</span>
         </a>
-        <a mat-button routerLink="/app/crime-claims-intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/crime-claims-intelligence')"
+           mat-button routerLink="/app/crime-claims-intelligence" routerLinkActive="active">
           <mat-icon>policy</mat-icon><span class="label">Crime Claims Intel</span>
         </a>
-        <a mat-button routerLink="/app/dashboard/intelligence" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/dashboard/intelligence')"
+           mat-button routerLink="/app/dashboard/intelligence" routerLinkActive="active">
           <mat-icon>public</mat-icon><span class="label">Global Intelligence</span>
         </a>
-        <a mat-button routerLink="/app/dashboard/storm-impact" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/dashboard/storm-impact')"
+           mat-button routerLink="/app/dashboard/storm-impact" routerLinkActive="active">
           <mat-icon>gps_fixed</mat-icon><span class="label">Storm Impact Targeting</span>
         </a>
       </div>
@@ -229,16 +238,20 @@
            routerLink="/app/clients/search" routerLinkActive="active">
           <mat-icon>groups</mat-icon><span class="label">Clients</span>
         </a>
-        <a mat-button routerLink="/app/claim-file-manager" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/claim-file-manager')"
+           mat-button routerLink="/app/claim-file-manager" routerLinkActive="active">
           <mat-icon>folder_open</mat-icon><span class="label">Claim File Manager</span>
         </a>
-        <a mat-button routerLink="/app/estimating" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/estimating')"
+           mat-button routerLink="/app/estimating" routerLinkActive="active">
           <mat-icon>architecture</mat-icon><span class="label">Estimating</span>
         </a>
-        <a mat-button routerLink="/app/adjuster-assistant" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/adjuster-assistant')"
+           mat-button routerLink="/app/adjuster-assistant" routerLinkActive="active">
           <mat-icon>smart_toy</mat-icon><span class="label">ACI Adjuster</span>
         </a>
-        <a mat-button routerLink="/app/policy-vault" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/policy-vault')"
+           mat-button routerLink="/app/policy-vault" routerLinkActive="active">
           <mat-icon>verified_user</mat-icon><span class="label">Policy Vault</span>
         </a>
       </div>
@@ -261,12 +274,14 @@
         <a mat-button routerLink="/app/agent-performance" routerLinkActive="active">
           <mat-icon>emoji_events</mat-icon><span class="label">Agent Performance</span>
         </a>
-        <a mat-button
+        <a *ngIf="canShowRoute('/app/users/my-recruits')"
+           mat-button
            [hidden]="!userService.getUserPermissions('claim','read')"
            routerLink="/app/users/my-recruits" routerLinkActive="active">
           <mat-icon>people_outline</mat-icon><span class="label">My Recruits</span>
         </a>
-        <a mat-button
+        <a *ngIf="canShowRoute('/app/commission/me')"
+           mat-button
            [hidden]="!userService.getUserPermissions('claim','read')"
            routerLink="/app/commission/me" routerLinkActive="active">
           <mat-icon>paid</mat-icon><span class="label">My Commission</span>
@@ -316,7 +331,8 @@
         <a mat-button routerLink="/app/resources/sources" routerLinkActive="active">
           <mat-icon>source</mat-icon><span class="label">Sources</span>
         </a>
-        <a mat-button routerLink="/app/resources/assistant" routerLinkActive="active">
+        <a *ngIf="canShowRoute('/app/resources/assistant')"
+           mat-button routerLink="/app/resources/assistant" routerLinkActive="active">
           <mat-icon>support_agent</mat-icon><span class="label">Assistant</span>
         </a>
         <a mat-button href="https://www.office.com/" target="_blank">

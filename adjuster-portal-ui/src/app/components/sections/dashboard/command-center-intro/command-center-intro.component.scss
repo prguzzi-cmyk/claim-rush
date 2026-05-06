@@ -52,7 +52,7 @@
   border: 1px solid rgba(255, 255, 255, 0.10);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary, #B0BAC8);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
@@ -81,7 +81,7 @@
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary, #B0BAC8);
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
@@ -219,7 +219,7 @@
 .panel-desc {
   font-size: 1rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary, #B0BAC8);
   margin: 0;
   max-width: 380px;
 }
@@ -243,7 +243,7 @@
   .stat-label {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-secondary, #B0BAC8);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -512,7 +512,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--text-secondary, #B0BAC8);
     margin-bottom: 8px;
   }
 
@@ -561,7 +561,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.35);
+    color: var(--text-secondary, #B0BAC8);
     margin-bottom: 8px;
   }
 

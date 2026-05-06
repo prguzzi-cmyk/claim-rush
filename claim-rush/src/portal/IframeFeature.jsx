@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { ENGINE_LINKS, openEngine } from "../lib/engineLinks.js";
+import { useAxisContext } from "./AxisContext";
 
 /**
  * In-shell placeholder for /portal/rin/* routes.
@@ -13,14 +15,51 @@ import { useNavigate } from "react-router-dom";
  * readonly, rinQuery are still accepted) so App.jsx route declarations
  * don't need edits. The props are displayed/ignored as appropriate.
  *
+ * Top-right "Open in RIN ↗" link — additive only, does NOT change the
+ * placeholder behavior. Subtle pop-out for users who need the real
+ * engine before the in-shell version ships. Auth handoff is automatic
+ * (shared localStorage.access_token between ClaimRush and RIN).
+ *
  * When a given feature ships natively in ClaimRush, replace the specific
  * route's element in App.jsx with the real component.
  */
 
 const mono = { fontFamily: "'Courier New', monospace" };
 
-export default function IframeFeature({ title = "" }) {
+// Fallback for routes not in ENGINE_LINKS — same env-var convention as
+// the helper module, identical localhost:4200 default to keep dev paths
+// in sync.
+const RIN_URL = import.meta.env.VITE_RIN_URL || "http://localhost:4200";
+
+// Reverse lookup: RIN path (e.g. "/app/estimating") → engine key. Lets
+// us prefer openEngine() for the explicitly-named engines and fall back
+// to a direct URL build for everything else.
+const ROUTE_TO_ENGINE_KEY = Object.fromEntries(
+  Object.entries(ENGINE_LINKS).map(([key, url]) => [url.replace(RIN_URL, ""), key]),
+);
+
+export default function IframeFeature({ title = "", rinRoute = "", rinQuery = "" }) {
   const navigate = useNavigate();
+  const { userRole } = useAxisContext();
+
+  // RIN pop-out is admin-only. CP/RVP/Agent/Adjuster never see the link —
+  // RIN is internal command-and-control, not a destination external roles
+  // are supposed to reach.
+  const canSeeRinPopout = userRole === "home_office";
+
+  const engineKey = ROUTE_TO_ENGINE_KEY[rinRoute] || null;
+  const directUrl = rinRoute
+    ? `${RIN_URL}${rinRoute}${rinQuery ? `?${rinQuery}` : ""}`
+    : null;
+  const popoutHref = canSeeRinPopout ? (engineKey ? ENGINE_LINKS[engineKey] : directUrl) : null;
+  const handlePopout = (e) => {
+    e.preventDefault();
+    if (engineKey) {
+      openEngine(engineKey);
+    } else if (directUrl) {
+      window.location.href = directUrl;
+    }
+  };
 
   return (
     <div style={{
@@ -34,7 +73,47 @@ export default function IframeFeature({ title = "" }) {
         borderRadius: 14,
         padding: "48px 36px",
         textAlign: "center",
+        position: "relative",
       }}>
+        {/* Pop-out to RIN — top-right, subtle. Additive only; the rest of
+            the placeholder card is unchanged. Hidden when the route has
+            no RIN target (e.g. coming-soon stubs). */}
+        {popoutHref && (
+          <a
+            href={popoutHref}
+            onClick={handlePopout}
+            title={`Open ${title || "this engine"} in RIN`}
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 16,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 0.4,
+              color: "rgba(0,230,168,0.65)",
+              textDecoration: "none",
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid rgba(0,230,168,0.20)",
+              background: "rgba(0,230,168,0.04)",
+              transition: "all 0.15s",
+              ...mono,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#00E6A8";
+              e.currentTarget.style.borderColor = "rgba(0,230,168,0.50)";
+              e.currentTarget.style.background = "rgba(0,230,168,0.10)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "rgba(0,230,168,0.65)";
+              e.currentTarget.style.borderColor = "rgba(0,230,168,0.20)";
+              e.currentTarget.style.background = "rgba(0,230,168,0.04)";
+            }}
+          >
+            Open in RIN ↗
+          </a>
+        )}
+
         {/* Status pill */}
         <div style={{
           display: "inline-block",

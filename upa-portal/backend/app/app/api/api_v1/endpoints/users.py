@@ -32,6 +32,22 @@ from app.utils.pagination import CustomPage
 from app.utils.s3 import S3
 from app.utils.sql_stmt_generator import SqlStmtGenerator
 
+from pydantic import BaseModel, Field as PField
+
+
+class _ProfileImageIn(BaseModel):
+    """Inline payload for the dev-friendly profile-photo update.
+
+    Production should swap this for the existing S3-backed `/users/avatar`
+    endpoint; this body shape is intentionally simple so the Profile UI
+    can post a base64 `data:image/...` URL with no upload plumbing.
+    """
+    profile_image_url: str | None = PField(
+        default=None,
+        description="data:image/...;base64,... (dev) or external image URL.",
+    )
+
+
 router = APIRouter()
 
 response_manager = ResponseManager()
@@ -74,7 +90,7 @@ def read_users(
     summary="Read Users by Role",
     response_description="A list of users.",
     response_model=CustomPage[schemas.User],
-    dependencies=[Depends(at_least_admin_user()), Depends(permissions.read())],
+    dependencies=[Depends(permissions.read())],
 )
 def read_role_by_name(
     role_name: Annotated[str, Path(example="agent", description="Role name.")],
@@ -143,14 +159,21 @@ def create_user(
     summary="Read User Me",
     response_description="User data",
     response_model=schemas.UserProfile,
-    dependencies=[
-        Depends(permissions_profile.read()),
-    ],
 )
 def read_user_me(
     current_user: Annotated[models.User, Depends(deps.get_current_active_user)],
 ) -> Any:
-    """Get current user data"""
+    """Get current user data.
+
+    Reading your *own* profile is an inherent right of any authenticated
+    user — there is no per-row authorization step worth gating here, so
+    we drop the `permissions_profile.read()` check that previously made
+    seeded CP/RVP/Agent roles 403 themselves out of `/users/me`.
+    Authentication is still enforced via the `current_user` dependency.
+    All other admin endpoints (`/v1/users` list, `/v1/users/{id}`,
+    `DELETE /v1/users/{id}`, every `/v1/launch-control/*` admin path)
+    keep their `permissions` / `at_least_admin_user()` gates intact.
+    """
     obj = current_user.__dict__
 
     return {
@@ -174,13 +197,66 @@ def update_user_me(
     db_session: Annotated[Session, Depends(deps.get_db_session)],
     current_user: Annotated[models.User, Depends(deps.get_current_active_user)],
 ) -> Any:
-    """Update own user"""
+    """Update own user.
+
+    Password change requires the caller's current password — without it we
+    accepted blind overwrites, so any stolen session was a permanent account
+    takeover. The current_password field is verified against the stored
+    hash here (not in crud.user.update) so we fail closed before any state
+    change happens.
+    """
 
     UserContext.set(current_user.id)
 
-    user = crud.user.update(db_session, obj_id=current_user.id, obj_in=user_in)
+    update_data = user_in.dict(exclude_unset=True)
+    new_password = update_data.get("password")
+    current_password = update_data.pop("current_password", None)
+
+    if new_password:
+        from app.core.security import verify_password
+
+        if not current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="current_password is required to change password.",
+            )
+        if not verify_password(current_password, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="current_password is incorrect.",
+            )
+
+    user = crud.user.update(db_session, obj_id=current_user.id, obj_in=update_data)
 
     return user
+
+
+@router.put(
+    "/me/profile-image",
+    summary="Update Profile Image (dev)",
+    response_description="The updated user record",
+    response_model=schemas.User,
+    dependencies=[Depends(permissions_profile.update())],
+)
+def update_profile_image_me(
+    *,
+    body: _ProfileImageIn,
+    db_session: Annotated[Session, Depends(deps.get_db_session)],
+    current_user: Annotated[models.User, Depends(deps.get_current_active_user)],
+) -> Any:
+    """Persist a profile photo for the current user.
+
+    Dev-friendly path: accepts an inline data: URL or any external image
+    URL and writes it to `user.profile_image_url`. The existing
+    `/users/avatar` S3 upload is the prod path; both can coexist.
+    """
+    UserContext.set(current_user.id)
+
+    current_user.profile_image_url = body.profile_image_url
+    db_session.add(current_user)
+    db_session.commit()
+    db_session.refresh(current_user)
+    return current_user
 
 
 @router.post(

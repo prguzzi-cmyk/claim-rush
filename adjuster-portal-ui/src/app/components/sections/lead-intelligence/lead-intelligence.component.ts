@@ -29,8 +29,24 @@ export class LeadIntelligenceComponent implements OnInit, OnDestroy {
   allLeads: IntelligenceLead[] = [];
   filteredLeads: IntelligenceLead[] = [];
 
+  // Top-of-page quick toggle. Defaults to 'fire' so the page opens
+  // narrowed to fire-related leads (the most common workflow).
+  // Composes with the existing Type/State/Status/Date filters via
+  // applyFilters() — both sets of filters stack instead of fighting.
+  leadViewMode: 'all' | 'fire' = 'fire';
+
   incidentTypes = ['fire', 'hail', 'wind', 'tornado', 'lightning', 'crime', 'roof', 'flooding'];
-  statuses = ['new', 'contacted', 'in_progress', 'converted', 'dismissed'];
+  // Aligned with backend LeadStatus enum (app.core.enums.LeadStatus).
+  // Order matches the typical operator workflow so the dropdown reads
+  // top-to-bottom as a lifecycle. Legacy values (contacted, in_progress,
+  // dismissed) are still rendered correctly by getStatusLabel/Class as
+  // fallback safety net for any lead rows still carrying old strings.
+  statuses = [
+    'new', 'unassigned', 'callback', 'interested',
+    'skip-trace-pending', 'text-sent', 'responded-yes', 'awaiting-call',
+    'pending-sign', 'signed', 'signed-approved', 'converted',
+    'not-interested', 'not-qualified', 'transfer', 'closed',
+  ];
 
   private leadSub: Subscription;
 
@@ -89,19 +105,59 @@ export class LeadIntelligenceComponent implements OnInit, OnDestroy {
   }
 
   getStatusClass(status: string): string {
+    // Buckets backend statuses + legacy values into 5 visual treatments
+    // re-using the existing CSS classes (no new selectors needed).
     const map: Record<string, string> = {
-      new: 'status-new', contacted: 'status-contacted',
-      in_progress: 'status-in-progress', converted: 'status-converted',
-      dismissed: 'status-dismissed',
+      // Default / pre-touch
+      'new':                'status-new',
+      'unassigned':         'status-new',
+      // In-progress (working the lead)
+      'callback':           'status-in-progress',
+      'interested':         'status-in-progress',
+      'skip-trace-pending': 'status-in-progress',
+      'text-sent':          'status-in-progress',
+      'responded-yes':      'status-in-progress',
+      'awaiting-call':      'status-in-progress',
+      'pending-sign':       'status-in-progress',
+      'in_progress':        'status-in-progress',  // legacy
+      'contacted':          'status-contacted',    // legacy
+      // Converted / signed (positive terminal)
+      'signed':             'status-converted',
+      'signed-approved':    'status-converted',
+      'converted':          'status-converted',
+      // Closed / dropped (negative terminal)
+      'not-interested':     'status-dismissed',
+      'not-qualified':      'status-dismissed',
+      'transfer':           'status-dismissed',
+      'closed':             'status-dismissed',
+      'dismissed':          'status-dismissed',    // legacy
     };
     return map[status] || '';
   }
 
   getStatusLabel(status: string): string {
     const map: Record<string, string> = {
-      new: 'New', contacted: 'Contacted', callback: 'Callback',
-      in_progress: 'In Progress', converted: 'Converted',
-      dismissed: 'Dismissed',
+      // Backend LeadStatus
+      'new':                'New',
+      'unassigned':         'Unassigned',
+      'callback':           'Callback',
+      'interested':         'Interested',
+      'skip-trace-pending': 'Skip Trace Pending',
+      'text-sent':          'Text Sent',
+      'responded-yes':      'Responded Yes',
+      'awaiting-call':      'Awaiting Call',
+      'pending-sign':       'Pending Sign',
+      'signed':             'Signed',
+      'signed-approved':    'Signed & Approved',
+      'converted':          'Converted',
+      'not-interested':     'Not Interested',
+      'not-qualified':      'Not Qualified',
+      'transfer':           'Transferred',
+      'closed':             'Closed',
+      // Legacy fallback
+      'in_progress':        'In Progress',
+      'contacted':          'Contacted',
+      'dismissed':          'Dismissed',
     };
     return map[status] || status;
   }
@@ -114,13 +170,55 @@ export class LeadIntelligenceComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
+    // One-shot debug: log the first lead's shape so a reviewer can see
+    // exactly which type-bearing fields are populated at runtime.
+    if (!this._loggedSampleShape && this.allLeads.length > 0) {
+      this._loggedSampleShape = true;
+      const s: any = this.allLeads[0];
+      console.log(
+        '[LeadIntelUI] sample lead type fields:',
+        {
+          incidentType: s.incidentType,
+          incident_type: s.incident_type,
+          type: s.type,
+          lead_type: s.lead_type,
+          peril: s.peril,
+        },
+      );
+    }
+
     this.filteredLeads = this.allLeads.filter(l => {
+      // Top-of-page mode toggle (frontend-only narrowing).
+      //   'all'  → no narrowing on type at all (every lead passes).
+      //   'fire' → strict equality on incidentType === 'fire'.
+      if (this.leadViewMode === 'fire' && l.incidentType !== 'fire') {
+        return false;
+      }
       if (this.filterType && l.incidentType !== this.filterType) return false;
       if (this.filterState && l.state !== this.filterState) return false;
       if (this.filterStatus && l.leadStatus !== this.filterStatus) return false;
       if (this.filterDate && l.dateDetected !== this.filterDate) return false;
       return true;
     });
+  }
+
+  /** Debug badge counts. Pure derived getters — no extra state, no
+   *  re-render triggers. Used only by the temporary badge in the
+   *  template. Safe to remove later. */
+  get totalLeadsCount(): number {
+    return this.allLeads.length;
+  }
+  get fireLeadsCount(): number {
+    return this.allLeads.filter(l => l.incidentType === 'fire').length;
+  }
+
+  /** Internal: ensures we only log the sample shape once per session. */
+  private _loggedSampleShape = false;
+
+  /** All / Fire toggle handler. Frontend-only. */
+  onLeadViewChange(mode: 'all' | 'fire'): void {
+    this.leadViewMode = mode;
+    this.applyFilters();
   }
 
   resetFilters(): void {

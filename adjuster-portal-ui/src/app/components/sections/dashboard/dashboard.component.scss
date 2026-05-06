@@ -108,7 +108,10 @@
 // ═══════════════════════════════════════════════════════
 .kpi-bar {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  // Bumped from repeat(5, 1fr) when the AI Calls Running tile was
+  // removed (voice service offline). Keep at 4 until the tile is
+  // re-added.
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
@@ -196,7 +199,7 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
 
-  &.kpi-loading { color: #5A6F83; }
+  &.kpi-loading { color: var(--text-tertiary, #7B8A9C); }
 }
 
 .kpi-tile-label {
@@ -209,12 +212,14 @@
 }
 
 // Subtitle line under each Dashboard KPI label, e.g. "Today's Activity"
+// or "Derived Metric · Year to Date". Uses the shared --text-secondary
+// token so a single token bump propagates across every dashboard subtitle.
 .kpi-tile-scope {
   display: block;
   margin-top: 2px;
   font-size: 0.625rem;
   font-weight: 500;
-  color: #8899AA;
+  color: var(--text-secondary, #B0BAC8);
   text-transform: none;
   letter-spacing: 0.2px;
 }
@@ -305,7 +310,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #94a3b8;
+    color: var(--text-secondary, #B0BAC8);
     font-size: 0.875rem;
     z-index: 10;
   }
@@ -366,10 +371,10 @@
   justify-content: center;
   gap: 8px;
   padding: 48px 16px;
-  color: #94a3b8;
+  color: var(--text-secondary, #B0BAC8);
   font-size: 0.8125rem;
 
-  mat-icon { font-size: 32px; width: 32px; height: 32px; opacity: 0.4; }
+  mat-icon { font-size: 32px; width: 32px; height: 32px; opacity: 0.6; }
 }
 
 .cc-feed-item {
@@ -421,13 +426,13 @@
 
   .feed-meta {
     font-size: 0.6875rem;
-    color: #94a3b8;
+    color: var(--text-secondary, #B0BAC8);
     margin-top: 1px;
   }
 
   .feed-time {
     font-size: 0.6875rem;
-    color: #94a3b8;
+    color: var(--text-secondary, #B0BAC8);
     white-space: nowrap;
     flex-shrink: 0;
     margin-top: 2px;
@@ -479,7 +484,7 @@
     .ops-label {
       font-size: 0.625rem;
       font-weight: 600;
-      color: #94a3b8;
+      color: var(--text-secondary, #B0BAC8);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       margin-top: 6px;
@@ -499,7 +504,7 @@
   .hotspots-empty {
     padding: 24px;
     text-align: center;
-    color: #94a3b8;
+    color: var(--text-secondary, #B0BAC8);
     font-size: 0.8125rem;
   }
 
@@ -515,7 +520,7 @@
   .hotspot-rank {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--text-secondary, #B0BAC8);
     width: 24px;
     text-align: right;
     flex-shrink: 0;
@@ -622,7 +627,7 @@
 .incident-time {
   margin-left: auto;
   font-size: 0.6875rem;
-  color: #94a3b8;
+  color: var(--text-secondary, #B0BAC8);
   white-space: nowrap;
 }
 
@@ -709,7 +714,7 @@
     gap: 8px;
     font-weight: 700;
 
-    mat-icon { font-size: 18px; width: 18px; height: 18px; color: #64748b; }
+    mat-icon { font-size: 18px; width: 18px; height: 18px; color: var(--text-tertiary, #7B8A9C); }
   }
 }
 
@@ -722,7 +727,7 @@
     margin: 0 0 8px;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #64748b;
+    color: var(--text-secondary, #B0BAC8);
   }
 }
 
@@ -737,10 +742,13 @@
 // the label so the user understands the 0 isn't a system failure —
 // the feature is intentionally not running.
 .kpi-tile-offline {
-  opacity: 0.7;
+  // Bumped from 0.7 — at 0.7, the already-faded #6B7A8D value text below
+  // double-faded to ~unreadable. 0.85 keeps the "offline" cue without
+  // breaking legibility.
+  opacity: 0.85;
 
   .kpi-tile-value {
-    color: #6B7A8D !important;
+    color: var(--text-secondary, #B0BAC8) !important;
   }
 }
 
@@ -750,8 +758,8 @@
   padding: 1px 6px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: #8899AA;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-secondary, #B0BAC8);
   font-size: 0.55rem;
   font-weight: 600;
   text-transform: uppercase;
