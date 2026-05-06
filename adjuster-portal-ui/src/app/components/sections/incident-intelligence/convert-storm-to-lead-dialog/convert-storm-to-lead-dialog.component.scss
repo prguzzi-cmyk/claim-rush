@@ -1,0 +1,43 @@
+.incident-summary {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+
+  .summary-row {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+
+    .label {
+      min-width: 90px;
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 500;
+    }
+  }
+}
+
+.section-divider {
+  margin: 8px 0 16px;
+}
+
+.lead-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .section-title {
+    margin: 16px 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.full-width {
+  width: 100%;
+}

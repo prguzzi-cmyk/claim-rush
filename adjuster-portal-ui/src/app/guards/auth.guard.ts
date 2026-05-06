@@ -25,6 +25,7 @@ export class AuthGuard {
 
     // Store the intended URL for post-login redirect
     localStorage.setItem('redirectUrl', state.url);
+    console.log('[REDIRECT-TRACE] auth.guard.ts canActivate pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'state.url=', state.url, 'destination= login');
     this.router.navigate(['login']);
     return false;
   }

@@ -235,6 +235,7 @@ import { CommissionResultPanelComponent } from "./components/sections/commission
 import { TeamStructureDialogComponent } from "./components/sections/commission-simulator/team-structure-dialog/team-structure-dialog.component";
 import { BasicCommissionCalculatorComponent } from "./components/sections/basic-commission-calculator/basic-commission-calculator.component";
 import { MyCommissionComponent } from "./components/sections/claims/my-commission/my-commission.component";
+import { ComingSoonComponent } from "./components/shared/coming-soon/coming-soon.component";
 import { TitleChangeComponent } from "./components/sections/title-change/title-change.component";
 
 import { UserDashboardComponent } from "./components/sections/dashboard/user-dashboard/user-dashboard.component";
@@ -287,6 +288,7 @@ import { IntakeControlComponent } from './components/sections/intake-control/int
 import { AgentSetupWizardComponent } from './components/sections/agent-setup-wizard/agent-setup-wizard.component';
 import { IncidentIntelligenceComponent } from './components/sections/incident-intelligence/incident-intelligence.component';
 import { TimeFilterComponent } from './components/sections/incident-intelligence/time-filter.component';
+import { ConvertStormToLeadDialogComponent } from './components/sections/incident-intelligence/convert-storm-to-lead-dialog/convert-storm-to-lead-dialog.component';
 import { CallTypeConfigsComponent } from './components/sections/call-type-configs/call-type-configs.component';
 import { CommandPaletteComponent } from './components/command-palette/command-palette.component';
 import { EstimatingListComponent } from './components/sections/estimating/estimating-list/estimating-list.component';
@@ -339,6 +341,14 @@ import { TerritoryApplyDialogComponent } from './components/public/territory-app
 import { TerritoryControlPanelComponent } from './components/sections/territory-control-panel/territory-control-panel.component';
 import { TerritoryControlEditDialogComponent } from './components/dialogs/territory-control-edit-dialog/territory-control-edit-dialog.component';
 import { LeadDistributionComponent } from './components/sections/lead-distribution/lead-distribution.component';
+import { LeadDeploymentSettingsComponent } from './components/sections/lead-deployment-settings/lead-deployment-settings.component';
+import { TerritoryAssignmentsComponent } from './components/sections/territory-assignments/territory-assignments.component';
+import { LaunchControlComponent } from './components/sections/launch-control/launch-control.component';
+import { EnrollUserDialogComponent } from './components/sections/launch-control/enroll-user-dialog/enroll-user-dialog.component';
+import { UserPortalComponent } from './components/sections/user-portal/user-portal.component';
+import { PublicIntakeComponent } from './components/public/public-intake/public-intake.component';
+import { CommunityLandingComponent } from './components/public/community-landing/community-landing.component';
+import { ClientLoginComponent } from './components/public/client-login/client-login.component';
 import { LeadIntakeComponent } from './components/sections/lead-intake/lead-intake.component';
 import { DistributeLeadDialogComponent } from './components/dialogs/distribute-lead-dialog/distribute-lead-dialog.component';
 import { CommandBarComponent } from './components/layout/command-bar/command-bar.component';
@@ -376,6 +386,7 @@ import { OutreachCampaignsComponent as OutreachCampaignsEngineComponent } from '
 import { OutreachTemplatesComponent } from './components/sections/outreach/outreach-templates/outreach-templates.component';
 import { OutreachConversationsComponent } from './components/sections/outreach/outreach-conversations/outreach-conversations.component';
 import { CampaignBuilderComponent } from './components/sections/outreach/campaign-builder/campaign-builder.component';
+import { CreateCampaignFromLeadsDialogComponent } from './components/sections/outreach/create-campaign-from-leads-dialog/create-campaign-from-leads-dialog.component';
 
 // UPA → ACI Outreach Funnel
 import { OutreachProfilesComponent } from './components/sections/upa-outreach/outreach-profiles/outreach-profiles.component';
@@ -606,6 +617,7 @@ export function tokenGetter() {
     TeamStructureDialogComponent,
     BasicCommissionCalculatorComponent,
     MyCommissionComponent,
+    ComingSoonComponent,
     TitleChangeComponent,
     ClaimFilesShareDialogComponent,
     CustomerClaimComponent,
@@ -648,6 +660,7 @@ export function tokenGetter() {
     PotentialClaimsComponent,
     CrimeClaimsIntelligenceComponent,
     IncidentIntelligenceComponent,
+    ConvertStormToLeadDialogComponent,
     CallTypeConfigsComponent,
     CommandPaletteComponent,
     EstimatingListComponent,
@@ -671,6 +684,14 @@ export function tokenGetter() {
     TerritoryControlPanelComponent,
     TerritoryControlEditDialogComponent,
     LeadDistributionComponent,
+    LeadDeploymentSettingsComponent,
+    TerritoryAssignmentsComponent,
+    LaunchControlComponent,
+    EnrollUserDialogComponent,
+    UserPortalComponent,
+    PublicIntakeComponent,
+    CommunityLandingComponent,
+    ClientLoginComponent,
     LeadIntakeComponent,
     DistributeLeadDialogComponent,
     CommandBarComponent,
@@ -723,6 +744,7 @@ export function tokenGetter() {
     UpaCampaignManagerComponent,
     OutreachComplianceComponent,
     CampaignBuilderComponent,
+    CreateCampaignFromLeadsDialogComponent,
     InspectionCalendarComponent,
     InspectionPerformanceComponent,
     RevenueIntelligenceComponent,
@@ -891,6 +913,25 @@ export function devAutoLoginInitializer(http: HttpClient): () => Promise<void> {
   return () => new Promise<void>((resolve) => {
     const env = environment as any;
     if (!env.devAutoLogin || !env.devAutoLoginCredentials) {
+      resolve();
+      return;
+    }
+
+    // Public consumer pages must never trigger auto-login — clients hitting
+    // /claim/<slug> should see the intake form regardless of any dev shell
+    // machinery. Match against the live URL at boot time.
+    try {
+      const path = window.location.pathname || "";
+      if (path.startsWith("/claim/")) {
+        resolve();
+        return;
+      }
+    } catch { /* SSR or no window */ }
+
+    // Sticky logout flag — set by AuthService.logout(). If present, the
+    // user explicitly signed out and we MUST NOT silently re-auth. They'll
+    // type credentials on the login page; that login clears the flag.
+    if (localStorage.getItem("logged_out") === "1") {
       resolve();
       return;
     }

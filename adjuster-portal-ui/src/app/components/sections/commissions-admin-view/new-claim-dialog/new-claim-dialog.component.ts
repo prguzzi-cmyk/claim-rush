@@ -83,7 +83,7 @@ export class NewClaimDialogComponent implements OnInit {
       next: list => {
         const eligible = new Set(['AGENT', 'RVP', 'CP']);
         this.agents = list
-          .filter(a => eligible.has(a.user_role))
+          .filter(a => eligible.has(a.user_role?.toUpperCase()))
           .sort((a, b) => a.agent_number.localeCompare(b.agent_number));
         this.loading = false;
       },

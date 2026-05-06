@@ -26,9 +26,9 @@ export class PasswordChangeDialogComponent implements OnInit {
   };
 
   passwordForm = new FormGroup({
-    // currentPassword:    new FormControl('', [
-    //   Validators.required
-    // ]),
+    currentPassword:    new FormControl('', [
+      Validators.required,
+    ]),
     newPassword:        new FormControl('', [
       Validators.required,
       Validators.minLength(8)
@@ -52,7 +52,8 @@ export class PasswordChangeDialogComponent implements OnInit {
     this.changePasswordDisabled = true;
 
     this.userService.changePassword(
-      this.passwordForm.controls['newPassword'].value
+      this.passwordForm.controls['newPassword'].value,
+      this.passwordForm.controls['currentPassword'].value,
     )
     .subscribe(() => {
       this.changePasswordDisabled = false;
@@ -67,8 +68,11 @@ export class PasswordChangeDialogComponent implements OnInit {
     error => {
       this.changePasswordDisabled = false;
 
-      // Handle incorrect password
-      if(error.error.message == 'incorrect password') {
+      // Backend returns 400 with detail "current_password is incorrect." or
+      // "current_password is required to change password." — surface the
+      // current-password error inline so the user sees which field failed.
+      const detail: string = error?.error?.detail || error?.error?.message || '';
+      if (detail.toLowerCase().includes('current_password')) {
         this.passwordForm.controls['currentPassword'].setErrors({ IncorrectPassword: true });
       }
     });

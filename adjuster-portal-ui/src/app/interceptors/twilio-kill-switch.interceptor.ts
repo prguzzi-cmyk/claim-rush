@@ -18,7 +18,7 @@ import { Observable, of } from 'rxjs';
  * Everything else (email, templates, dashboards, claims, auth, statements, etc.)
  * passes through unchanged. Flip TWILIO_HALTED to false to resume.
  */
-export const TWILIO_HALTED = true;
+export const TWILIO_HALTED = false;
 
 /**
  * URL patterns that represent Twilio-routed traffic on the backend. Kept tight so

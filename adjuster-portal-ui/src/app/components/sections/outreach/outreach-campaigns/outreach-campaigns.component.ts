@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { OutreachService } from 'src/app/services/outreach.service';
 import {
   OutreachCampaign,
@@ -8,6 +9,7 @@ import {
 } from 'src/app/models/outreach.model';
 import { MatTableDataSource } from '@angular/material/table';
 import { NgxSpinnerService } from 'ngx-spinner';
+import { CreateCampaignFromLeadsDialogComponent } from '../create-campaign-from-leads-dialog/create-campaign-from-leads-dialog.component';
 
 @Component({
   selector: 'app-outreach-campaigns',
@@ -21,8 +23,7 @@ export class OutreachCampaignsComponent implements OnInit {
   statusOptions = CAMPAIGN_STATUS_OPTIONS;
 
   displayedColumns: string[] = [
-    'sn', 'name', 'campaign_type', 'status', 'incident_type', 'target_zip_code',
-    'total_targeted', 'total_sent', 'total_responded', 'actions',
+    'name', 'lead_count', 'status', 'created_at', 'actions',
   ];
   dataSource: MatTableDataSource<OutreachCampaign> = new MatTableDataSource([]);
 
@@ -30,7 +31,23 @@ export class OutreachCampaignsComponent implements OnInit {
     private outreachService: OutreachService,
     private spinner: NgxSpinnerService,
     private router: Router,
+    private dialog: MatDialog,
   ) {}
+
+  openCreateFromLeads() {
+    const ref = this.dialog.open(CreateCampaignFromLeadsDialogComponent, {
+      width: '900px',
+      maxWidth: '95vw',
+      panelClass: 'create-campaign-dialog',
+      autoFocus: false,
+    });
+    ref.afterClosed().subscribe((result?: { created?: boolean }) => {
+      if (result?.created) {
+        this.loadCampaigns();
+        this.loadMetrics();
+      }
+    });
+  }
 
   ngOnInit() {
     this.loadCampaigns();
@@ -81,13 +98,27 @@ export class OutreachCampaignsComponent implements OnInit {
   }
 
   launchCampaign(campaign: OutreachCampaign) {
-    if (confirm(`Launch campaign "${campaign.name}"? This will begin outreach to targeted leads.`)) {
-      this.spinner.show();
-      this.outreachService.launchCampaign(campaign.id).subscribe(() => {
+    // V1: temporary — flip the campaign state to active. No real send logic yet
+    // (Celery dispatch via the backend's /launch endpoint is intentionally
+    // bypassed). We use the plain update endpoint so no outreach is triggered.
+    if (!confirm(`Mark campaign "${campaign.name}" as active? (No outreach will be sent in V1.)`)) {
+      return;
+    }
+    console.log('[CampaignManager] Launch clicked — flipping status→active for', {
+      id: campaign.id, name: campaign.name, lead_count: campaign.lead_count,
+    });
+    this.spinner.show();
+    this.outreachService.updateCampaign(campaign.id, { status: 'active', is_active: true }).subscribe({
+      next: (updated) => {
+        console.log('[CampaignManager] Status updated', { id: updated.id, status: updated.status });
         this.loadCampaigns();
         this.loadMetrics();
-      });
-    }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        console.error('[CampaignManager] Launch failed', err);
+      },
+    });
   }
 
   pauseCampaign(campaign: OutreachCampaign) {

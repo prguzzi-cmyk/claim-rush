@@ -23,6 +23,26 @@ export class FireIncidentsComponent implements OnInit {
   customDateFrom: Date | null = null;
   customDateTo: Date | null = null;
 
+  // 3-mode quick toggle. Maps semantic modes onto the existing CSV
+  // call_type filter the backend already accepts:
+  //   'all'             → no call_type sent — shows ALL dispatch types
+  //                        (Medical, Traffic, EMS, alarms, fires, etc.).
+  //                        Labelled "All Incidents" in the UI.
+  //   'fire'            → structure-fire + outdoor/veg-fire union.
+  //                        Covers every category the ClaimRush Fire Leads
+  //                        whitelist uses (Structure / Fire / Working /
+  //                        Building / Outside / Grass / Brush / Vehicle /
+  //                        Commercial / Residential Fire) via the codes
+  //                        SF, CF, RF, WSF, WCF, WRF, WF, FF, GF, VEG,
+  //                        VF, IF, OF, CB, WVEG. Labelled "Fire Only".
+  //   'structure_fire'  → only the 7 auto_lead_enabled codes (single
+  //                        source of truth with the lead routing pool).
+  viewMode: 'all' | 'fire' | 'structure_fire' = 'all';
+  private static readonly _STRUCTURE_FIRE_CODES =
+    'SF,CF,RF,WSF,WCF,WRF,WF';
+  private static readonly _FIRE_CODES =
+    'SF,CF,RF,WSF,WCF,WRF,WF,FF,GF,VEG,VF,IF,OF,CB,WVEG';
+
   // Materialized filter object — only changes on explicit user action
   currentFilters: FireFilterState;
 
@@ -94,12 +114,31 @@ export class FireIncidentsComponent implements OnInit {
     this.currentFilters = this.buildFilters();
   }
 
+  /**
+   * 3-mode toggle handler. Maps the semantic mode to the existing
+   * `selectedCallType` CSV — the same field the Call Type dropdown
+   * writes to — and re-applies. Frontend-only; backend already supports
+   * comma-separated `call_type=A,B,C` (fire_incidents.py:68-73).
+   */
+  onViewModeChange(mode: 'all' | 'fire' | 'structure_fire'): void {
+    this.viewMode = mode;
+    if (mode === 'all') {
+      this.selectedCallType = '';
+    } else if (mode === 'fire') {
+      this.selectedCallType = FireIncidentsComponent._FIRE_CODES;
+    } else {
+      this.selectedCallType = FireIncidentsComponent._STRUCTURE_FIRE_CODES;
+    }
+    this.applyFilters();
+  }
+
   clearFilters(): void {
     this.selectedAgencyId = '';
     this.selectedCallType = '';
     this.selectedDateRange = '24h';
     this.customDateFrom = null;
     this.customDateTo = null;
+    this.viewMode = 'all';
     this.currentFilters = this.buildFilters();
   }
 

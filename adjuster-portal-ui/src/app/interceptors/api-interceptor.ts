@@ -37,6 +37,16 @@ export class ApiInterceptor implements HttpInterceptor {
               return throwError(error);
             }
 
+            // HARD GUARD: never log the user out (which navigates to /login
+            // and then dev-auto-login bounces to /app/agent-dashboard) if
+            // the browser is on a public /claim/<slug> URL. The intake page
+            // is consumer-facing and must not bounce.
+            let onPublicClaim = false;
+            try {
+              onPublicClaim = ((typeof window !== 'undefined' && window.location?.pathname) || '')
+                .startsWith('/claim/');
+            } catch {}
+
             switch ((<HttpErrorResponse>error).status) {
               case 401:
                 // Check if the refresh token has expired
@@ -44,10 +54,14 @@ export class ApiInterceptor implements HttpInterceptor {
                   error.error.message ==
                   "Token has expired and can no longer be refreshed"
                 ) {
+                  if (onPublicClaim) return throwError(error);
+                  console.log('[REDIRECT-TRACE] api-interceptor.ts 401-refresh-expired pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'request.url=', request.url, 'destination= logout()→/login');
                   // Log out if the refresh token has expired
                   return <any>this.authService.logout();
                 }
                 // Handle the unauthorised request
+                if (onPublicClaim) return throwError(error);
+                console.log('[REDIRECT-TRACE] api-interceptor.ts 401-handleUnauthorised pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'request.url=', request.url);
                 return this.handleUnautharisedRequest(
                   request,
                   next,
@@ -55,6 +69,8 @@ export class ApiInterceptor implements HttpInterceptor {
                 );
 
               case 400:
+                if (onPublicClaim) return throwError(error);
+                console.log('[REDIRECT-TRACE] api-interceptor.ts 400 pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'request.url=', request.url, 'destination= logout()→/login');
                 return <any>this.authService.logout();
 
               case 409:
@@ -90,6 +106,7 @@ export class ApiInterceptor implements HttpInterceptor {
           );
         }),
         catchError((err) => {
+          console.log('[REDIRECT-TRACE] api-interceptor.ts handleUnautharisedRequest-refresh-failed pathname=', (typeof window !== 'undefined' && window.location?.pathname), 'destination= logout()→/login');
           return <any>this.authService.logout();
         }),
         finalize(() => {

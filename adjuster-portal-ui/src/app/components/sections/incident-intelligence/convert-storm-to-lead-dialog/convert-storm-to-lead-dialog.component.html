@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>Convert Storm Event to Lead</h2>
+
+<mat-dialog-content>
+  <div class="incident-summary">
+    <div class="summary-row">
+      <span class="label">Event:</span>
+      <span>{{ data.event.title || data.event.event_type }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Severity:</span>
+      <span>{{ data.event.severity }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Location:</span>
+      <span>{{ data.event.county }}, {{ data.event.state }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Reported:</span>
+      <span>{{ data.event.reported_at ? (data.event.reported_at | date:'MM/dd/yyyy HH:mm') : '—' }}</span>
+    </div>
+    <div class="summary-row">
+      <span class="label">Source:</span>
+      <span>{{ data.event.source || 'NWS' }}</span>
+    </div>
+  </div>
+
+  <mat-divider class="section-divider"></mat-divider>
+
+  <form [formGroup]="form" class="lead-form">
+    <h3 class="section-title">Contact Information</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Full Name *</mat-label>
+      <input matInput formControlName="full_name" placeholder="Enter contact full name">
+      <mat-error *ngIf="form.get('full_name')?.hasError('required')">Full name is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone Number *</mat-label>
+      <input matInput formControlName="phone_number" placeholder="Enter phone number">
+      <mat-error *ngIf="form.get('phone_number')?.hasError('required')">Phone number is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" placeholder="Enter email address" type="email">
+    </mat-form-field>
+
+    <h3 class="section-title">Loss Address</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address *</mat-label>
+      <input matInput formControlName="address_loss" placeholder="Street, City, State ZIP">
+      <mat-hint>Storm events carry coordinates only — enter the property address.</mat-hint>
+      <mat-error *ngIf="form.get('address_loss')?.hasError('required')">Address is required</mat-error>
+    </mat-form-field>
+
+    <h3 class="section-title">Lead Details</h3>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Peril</mat-label>
+      <input matInput formControlName="peril" placeholder="e.g., Hail">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Loss Date</mat-label>
+      <input matInput [matDatepicker]="lossDatePicker" formControlName="loss_date">
+      <mat-datepicker-toggle matIconSuffix [for]="lossDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #lossDatePicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Insurance Company</mat-label>
+      <input matInput formControlName="insurance_company" placeholder="Enter insurance company name">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Notes / Instructions</mat-label>
+      <textarea matInput formControlName="instructions_or_notes" rows="3" placeholder="Any notes for the agent..."></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    [disabled]="form.invalid || isSubmitting"
+    (click)="onSubmit()"
+  >
+    <mat-icon *ngIf="!isSubmitting">person_add</mat-icon>
+    <mat-progress-spinner *ngIf="isSubmitting" diameter="18" mode="indeterminate"></mat-progress-spinner>
+    {{ isSubmitting ? 'Creating...' : 'Create Lead' }}
+  </button>
+</mat-dialog-actions>
