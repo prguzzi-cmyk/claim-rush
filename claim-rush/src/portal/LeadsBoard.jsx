@@ -156,6 +156,70 @@ function statusPill(status) {
   const meta = STATUS_META[status] || { label: (status || "NEW").toUpperCase(), color: C.muted };
   return meta;
 }
+
+// Outreach state UI metadata — color + label per state. Mirrors the
+// canonical OUTREACH_STATES tuple on the backend (app/services/outreach_state.py).
+const OUTREACH_STATE_META = {
+  READY_TO_CALL:          { label: "READY TO CALL",         color: "#00E6A8" },
+  READY_TO_TEXT:          { label: "READY TO TEXT",         color: "#60A5FA" },
+  NEEDS_REVIEW:           { label: "NEEDS REVIEW",          color: "#A855F7" },
+  CP_INTELLIGENCE_REVIEW: { label: "CP INTELLIGENCE REVIEW", color: "#94A3B8" },
+  ASSIGNED:               { label: "ASSIGNED",              color: "#F59E0B" },
+  CONTACT_ATTEMPTED:      { label: "CONTACT ATTEMPTED",     color: "#FB923C" },
+  CALLBACK:               { label: "CALLBACK",              color: "#EC4899" },
+  APPOINTMENT_SET:        { label: "APPOINTMENT SET",       color: "#22D3EE" },
+  SIGNED:                 { label: "SIGNED",                color: "#10B981" },
+  DEAD_LEAD:              { label: "DEAD LEAD",             color: "rgba(255,255,255,0.45)" },
+};
+
+// Allowed transitions per current state — drives the action-button
+// row in the lead detail panel. Mirrors ALLOWED_TRANSITIONS in
+// app/services/outreach_state.py but limited to user-facing actions
+// (terminal states show no buttons since SIGNED/DEAD_LEAD are sinks).
+const OUTREACH_TRANSITIONS = {
+  READY_TO_CALL: [
+    { to: "ASSIGNED",          label: "Take Ownership",      variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  READY_TO_TEXT: [
+    { to: "ASSIGNED",          label: "Take Ownership",      variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  NEEDS_REVIEW: [
+    { to: "READY_TO_CALL",     label: "Move to Call Queue" },
+    { to: "READY_TO_TEXT",     label: "Move to Text Queue" },
+    { to: "ASSIGNED",          label: "Take Ownership",      variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  CP_INTELLIGENCE_REVIEW: [
+    { to: "NEEDS_REVIEW",      label: "Restore to Active" },
+    { to: "ASSIGNED",          label: "Manual Pursuit",      variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Discard",             variant: "danger" },
+  ],
+  ASSIGNED: [
+    { to: "CONTACT_ATTEMPTED", label: "Mark Contact Attempted", variant: "primary" },
+    { to: "CALLBACK",          label: "Mark Callback Requested" },
+    { to: "APPOINTMENT_SET",   label: "Set Appointment" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  CONTACT_ATTEMPTED: [
+    { to: "CALLBACK",          label: "Mark Callback Requested" },
+    { to: "APPOINTMENT_SET",   label: "Set Appointment",     variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  CALLBACK: [
+    { to: "CONTACT_ATTEMPTED", label: "Mark Contact Attempted" },
+    { to: "APPOINTMENT_SET",   label: "Set Appointment",     variant: "primary" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  APPOINTMENT_SET: [
+    { to: "SIGNED",            label: "Mark Signed",         variant: "primary" },
+    { to: "CONTACT_ATTEMPTED", label: "Reschedule" },
+    { to: "DEAD_LEAD",         label: "Mark Dead Lead",      variant: "danger" },
+  ],
+  SIGNED: [],
+  DEAD_LEAD: [],
+};
 function perilMeta(p) {
   return PERIL_META[p] || PERIL_META.other;
 }
@@ -557,7 +621,24 @@ export default function LeadsBoard() {
         leadId={selectedLead?.id || null}
         onClose={() => setSelectedLead(null)}
       >
-        <LeadDetailPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
+        <LeadDetailPanel
+          lead={selectedLead}
+          onClose={() => setSelectedLead(null)}
+          onOutreachTransition={() => {
+            // Refresh tab badge counts so the queue UI reflects the
+            // state change immediately. Best-effort — silent on error.
+            if (queueUiEnabled) {
+              apiJson("/leads/outreach-queue/stats")
+                .then(r => setQueueCounts(r?.counts || {}))
+                .catch(() => {});
+              if (selectedQueueState !== "all") {
+                apiJson(`/leads/outreach-queue?state=${encodeURIComponent(selectedQueueState)}&limit=200`)
+                  .then(r => setQueueLeads(Array.isArray(r?.items) ? r.items.map(l => ({ ...l, type: l.type || "lead" })) : []))
+                  .catch(() => {});
+              }
+            }
+          }}
+        />
       </LeadDetailErrorBoundary>
 
       {/* New Lead modal — manual creation by CP/RVP/admin via POST /v1/leads. */}
@@ -802,7 +883,7 @@ function NewLeadSelect({ label, value, onChange, disabled, options }) {
 // Renders inside ClaimRush; never navigates away. Shows only the fields
 // already on the row (no extra backend round-trip — the row is the source
 // of truth). Click outside the card OR the × button to dismiss.
-function LeadDetailPanel({ lead, onClose }) {
+function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
   // Action state: { skip|sms|call : { state: 'idle'|'running'|'success'|'error', msg } }
   // Auto-resets to idle 4 seconds after success/error so the user can re-fire.
   const [actions, setActions] = useState({});
@@ -1421,6 +1502,36 @@ function LeadDetailPanel({ lead, onClose }) {
   // PUT /v1/leads/{id} with {status: <enum>} where enum is from
   // LeadStatus (app.core.enums.LeadStatus). All values below are
   // canonical backend enum strings — no invented statuses.
+  // Phase 3 — outreach-state transition. Hits POST /v1/leads/{id}/transition,
+  // refreshes the lead, and refreshes queue counts so tab badges
+  // shift in real time. Idempotent on the server side, so a
+  // double-click doesn't write a duplicate audit row.
+  const handleOutreachTransition = async (toState, prettyLabel) => {
+    if (!guardLeadRow("disposition")) return;
+    if (!window.confirm(`${prettyLabel} for Lead #${lead.ref_number || lead.id}?`)) return;
+    setAction("disposition", "running");
+    if (import.meta.env.DEV) console.info("[Phase 3][transition] POST", lead.id, "→", toState);
+    try {
+      await apiJson(`/leads/${lead.id}/transition`, {
+        method: "POST",
+        body: JSON.stringify({
+          to_state: toState,
+          reason: `manual: ${prettyLabel}`,
+        }),
+      });
+      setAction("disposition", "success", prettyLabel);
+      setTimeout(() => { refreshLead(); }, 400);
+      // Bubble up so the parent can refresh queue badges + the
+      // currently-selected queue list. Best-effort; safe if undefined.
+      if (typeof onOutreachTransition === "function") {
+        try { onOutreachTransition(); } catch (_) {}
+      }
+    } catch (err) {
+      console.error("[Phase 3][transition] error →", err);
+      setAction("disposition", "error", errMsg(err));
+    }
+  };
+
   const handleDisposition = async (status, prettyLabel) => {
     if (!guardLeadRow("disposition")) return;
     if (!window.confirm(`Mark Lead #${lead.ref_number || lead.id} as "${prettyLabel}"?`)) return;
@@ -1884,6 +1995,59 @@ function LeadDetailPanel({ lead, onClose }) {
             <DispositionButton label="Reset to Active"        onClick={() => handleDisposition("new",            "No Response (reset)")}   disabled={!isLeadRow} variant="muted" />
           </div>
         </div>
+
+        {/* Phase 3 — Outreach State (operational lifecycle).
+            Shown only for leads with an outreach_state set; the
+            Disposition section above continues to handle the legacy
+            Lead.status field (formal claim status) — they are
+            orthogonal concepts. */}
+        {lead.outreach_state && (
+          <div style={{
+            marginTop: 16,
+            padding: "12px 14px",
+            background: "rgba(15, 23, 42, 0.55)",
+            border: "1px solid rgba(148, 163, 184, 0.18)",
+            borderRadius: 8,
+          }}>
+            <div style={{
+              ...mono, fontSize: 10, letterSpacing: 1.5, color: "rgba(168, 85, 247, 0.85)",
+              textTransform: "uppercase", marginBottom: 8, paddingBottom: 6,
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+            }}>Outreach State</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+              <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Current:</span>
+              {(() => {
+                const meta = OUTREACH_STATE_META[lead.outreach_state] || { label: lead.outreach_state, color: C.muted };
+                return (
+                  <span style={{
+                    padding: "4px 10px",
+                    background: `${meta.color}1A`,
+                    border: `1px solid ${meta.color}66`,
+                    borderRadius: 4, color: meta.color,
+                    fontSize: 11, fontWeight: 700, letterSpacing: 1, ...mono,
+                  }}>{meta.label}</span>
+                );
+              })()}
+            </div>
+            {(OUTREACH_TRANSITIONS[lead.outreach_state] || []).length > 0 ? (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {OUTREACH_TRANSITIONS[lead.outreach_state].map(t => (
+                  <DispositionButton
+                    key={t.to}
+                    label={t.label}
+                    onClick={() => handleOutreachTransition(t.to, t.label)}
+                    disabled={!isLeadRow}
+                    variant={t.variant}
+                  />
+                ))}
+              </div>
+            ) : (
+              <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+                Terminal state — no further transitions.
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Stage 6 — Next Recommended Action */}
         <div style={{
