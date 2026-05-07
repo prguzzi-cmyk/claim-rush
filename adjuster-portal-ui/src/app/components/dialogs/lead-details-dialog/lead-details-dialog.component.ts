@@ -58,33 +58,45 @@ export class LeadDetailsDialogComponent implements OnInit {
     user: User;
     role: string;
 
+    // Stabilization fix (2026-05-07): Validators.required removed from
+    // sourceByControl + assignedToControl. The backend (LeadCreate) treats
+    // both `source` and `assigned_to` as optional UUID | None. The previous
+    // client-side gate blocked submit even though the request would have
+    // been accepted. uuidValidator stays so a non-UUID typed value still
+    // fails validation; empty values are now accepted.
     sourceByControl = new FormControl('', [
-        Validators.required,
         this.uuidValidator,
     ]);
     assignedToControl = new FormControl('', [
-        Validators.required,
         this.uuidValidator,
     ]);
 
     filteredSourceBy!: Observable<any[]>;
     filteredAssignedtoAgents!: Observable<any[]>;
 
+    // Stabilization fix (2026-05-07): client-side required-validators
+    // tightened to match the actual backend contract (LeadCreate +
+    // LeadContactCreate). Backend requires only contact.full_name and
+    // contact.phone_number; everything else is optional. Status defaults
+    // to 'callback' (matches LeadStatusCreate enum default) so the
+    // dropdown is pre-selected and submission isn't blocked when the
+    // user doesn't change it. Format validators (Validators.email,
+    // Validators.pattern) are preserved — those still flag bad input.
     public leadForm = new FormGroup({
         lossDate: new FormControl(''),
         peril: new FormControl(''),
         insuranceCompany: new FormControl(''),
         policyNumber: new FormControl(''),
         claimNumber: new FormControl(''),
-        status: new FormControl('', [Validators.required]),
-        source: new FormControl('', [Validators.required]),
+        status: new FormControl('callback'),
+        source: new FormControl(''),
         sourceInfo: new FormControl(''),
         instructionsOrNotes: new FormControl(''),
-        assignedTo: new FormControl('', [Validators.required]),
+        assignedTo: new FormControl(''),
 
         fullName: new FormControl('', [Validators.required]),
         fullNameAlt: new FormControl(''),
-        email: new FormControl('', [Validators.email, Validators.required]),
+        email: new FormControl('', [Validators.email]),
         emailAlt: new FormControl('', [Validators.email]),
         phoneNumber: new FormControl('', [Validators.required]),
         phoneNumberAlt: new FormControl(''),
@@ -246,27 +258,11 @@ export class LeadDetailsDialogComponent implements OnInit {
     saveLead() {
         this.leadForm.markAllAsTouched();
 
-        if (!this.sourceByControl.valid) {
-            this.snackBar.open("'Source by' field is required.", 'Close', {
-                duration: 10000,
-                horizontalPosition: 'end',
-                verticalPosition: 'bottom',
-                panelClass: ['snackbar-error'],
-            });
-            return;
-        }
-
-        if (!this.assignedToControl.valid) {
-            this.snackBar.open("'Assigned to' field is required.", 'Close', {
-                duration: 10000,
-                horizontalPosition: 'end',
-                verticalPosition: 'bottom',
-                panelClass: ['snackbar-error'],
-            });
-
-            return;
-        }
-
+        // Stabilization fix (2026-05-07): the previous "Source by" and
+        // "Assigned to" hard-stop snackbars are removed. Both controls
+        // still run their uuidValidator (so a non-UUID typed value still
+        // blocks submit by failing the .valid check below); empty values
+        // are accepted because the backend treats both as optional.
         if (
             this.leadForm.valid &&
             this.sourceByControl.valid &&
@@ -284,15 +280,17 @@ export class LeadDetailsDialogComponent implements OnInit {
             leadData.policy_number =
                 this.leadForm.controls['policyNumber'].value;
             leadData.claim_number = this.leadForm.controls['claimNumber'].value;
-            leadData.source = this.leadForm.controls['source'].value;
+            // Stabilization fix (2026-05-07): only assign UUID fields when
+            // non-empty. Backend treats source/assigned_to as `UUID | None`
+            // — sending "" instead of omitting fails Pydantic UUID parsing.
+            const sourceValue = this.leadForm.controls['source'].value;
+            if (sourceValue) leadData.source = sourceValue;
             leadData.source_info = this.leadForm.controls['sourceInfo'].value;
             leadData.status = this.leadForm.controls['status'].value;
             leadData.instructions_or_notes =
                 this.leadForm.controls['instructionsOrNotes'].value;
-            leadData.assigned_to =
-                this.role == 'agent'
-                    ? this.leadForm.controls['assignedTo'].value //this.user.id
-                    : this.leadForm.controls['assignedTo'].value;
+            const assignedToValue = this.leadForm.controls['assignedTo'].value;
+            if (assignedToValue) leadData.assigned_to = assignedToValue;
             leadData.can_be_removed = true;
             leadData.instructions_or_notes =
                 this.leadForm.controls['instructionsOrNotes'].value;

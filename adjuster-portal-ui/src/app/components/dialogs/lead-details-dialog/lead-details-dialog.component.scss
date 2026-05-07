@@ -4,4 +4,38 @@
 
 .mat-mdc-form-field {
     width: 100% !important;
+    // Stabilization (2026-05-07): give each field its own vertical room so
+    // floating labels of adjacent fields don't visually collide on the
+    // narrow column layout.
+    margin-bottom: 10px !important;
+}
+
+// Stabilization (2026-05-07): reset cramped internal padding on the
+// outlined text-field wrapper so the floating label floats into the
+// notch cleanly without overlapping the input value.
+.mat-mdc-text-field-wrapper {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+.mat-mdc-form-field-infix {
+    min-height: 44px !important;
+}
+
+// Stabilization (2026-05-07): the Source by / Assigned to autocomplete
+// panels portal out of the dialog into the global cdk-overlay-container,
+// so the dialog-scoped dark-mode rules in styles.scss don't reach them.
+// Force readable colors on those portaled panels via ::ng-deep so the
+// rule survives view-encapsulation when emitted into the global pane.
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel {
+    background-color: #1f2937 !important;
+    color: #F1F5F9 !important;
+}
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option,
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option .mdc-list-item__primary-text {
+    color: #F1F5F9 !important;
+}
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option:hover,
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active {
+    background-color: rgba(96, 165, 250, 0.12) !important;
 }
