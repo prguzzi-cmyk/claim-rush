@@ -13,6 +13,19 @@ import { C } from "./theme";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 
+// Initial state for the New Lead form. Listing here keeps useState reads
+// stable and lets handleCreateLead reset to the same shape on success.
+const NEW_LEAD_INITIAL = {
+  full_name: "",
+  phone_number: "",
+  email: "",
+  address_loss: "",
+  state_loss: "",
+  peril: "",
+  insurance_company: "",
+  instructions_or_notes: "",
+};
+
 // Peril display — icon + label + accent colour. Any peril not in the list
 // falls through to OTHER.
 const PERIL_META = {
@@ -90,34 +103,33 @@ export default function LeadsBoard() {
   // panel close clears it. No navigation away from /portal/fire-leads.
   const [selectedLead, setSelectedLead] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    Promise.allSettled([
+  // Manual lead creation (CP/RVP/admin). Modal state + form state. Talks
+  // to the existing POST /v1/leads endpoint — no schema or backend change.
+  const [newLeadOpen, setNewLeadOpen] = useState(false);
+  const [newLeadForm, setNewLeadForm] = useState(NEW_LEAD_INITIAL);
+  const [newLeadCreating, setNewLeadCreating] = useState(false);
+  const [newLeadError, setNewLeadError] = useState(null);
+
+  // Fetcher pulled out of the boot effect so handleCreateLead can re-run
+  // it after a successful create. Identical merge logic to the original
+  // boot path; preserved verbatim.
+  function fetchLeads() {
+    setLoading(true);
+    return Promise.allSettled([
       apiJson("/dashboard/cp-leads"),
       apiJson("/fire-incidents?size=50"),
     ]).then(([leadsRes, incRes]) => {
-      if (cancelled) return;
-
-      // Converted leads. Tag each row type:"lead".
       const leadRows = leadsRes.status === "fulfilled" && Array.isArray(leadsRes.value)
         ? leadsRes.value.map(l => ({ ...l, type: "lead" }))
         : [];
-
-      // Raw fire incidents (new source). Backend returns fastapi-pagination
-      // CustomPage{ items, total, ... }; tolerate a bare array too.
       const incBody = incRes.status === "fulfilled" ? incRes.value : null;
       const incItems = Array.isArray(incBody) ? incBody : (incBody?.items || []);
       const incRows = incItems.filter(isFireIncident).map(mapIncidentToBoardRow);
-
-      // Merge + sort newest first using created_at (loss_date as fallback).
       const merged = [...leadRows, ...incRows].sort((a, b) => {
         const ad = a.created_at || a.loss_date || "";
         const bd = b.created_at || b.loss_date || "";
         return bd.localeCompare(ad);
       });
-
-      // Surface an error only if BOTH sources failed; one-source success
-      // still lets the board render the half that loaded.
       if (leadsRes.status === "rejected" && incRes.status === "rejected") {
         const err = leadsRes.reason || incRes.reason;
         setError(String(err?.status ?? err?.detail ?? err));
@@ -127,8 +139,76 @@ export default function LeadsBoard() {
       setLeads(merged);
       setLoading(false);
     });
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLeads().then(() => { if (cancelled) return; });
     return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Lead-creation submit. Validates the two required fields, POSTs, and
+  // refreshes the list. All other fields are optional per the backend
+  // schema (LeadCreate / LeadContactCreate). Surfaces server validation
+  // errors verbatim so users see why a payload was rejected (e.g. invalid
+  // email format, peril over 100 chars).
+  async function handleCreateLead() {
+    setNewLeadError(null);
+    const fullName = (newLeadForm.full_name || "").trim();
+    const phone = (newLeadForm.phone_number || "").trim();
+    if (!fullName) {
+      setNewLeadError("Full name is required.");
+      return;
+    }
+    if (!phone) {
+      setNewLeadError("Phone number is required.");
+      return;
+    }
+
+    // Backend payload — only fields backed by LeadCreate / LeadContactCreate.
+    // Everything except full_name + phone_number is omitted when empty so
+    // we never send "" where the backend expects null.
+    const contact = { full_name: fullName, phone_number: phone };
+    const optStr = (k, v) => { const t = (v || "").trim(); if (t) contact[k] = t; };
+    optStr("email", newLeadForm.email);
+    optStr("address_loss", newLeadForm.address_loss);
+    optStr("state_loss", newLeadForm.state_loss);
+
+    const body = { contact };
+    const peril = (newLeadForm.peril || "").trim();
+    const insurance = (newLeadForm.insurance_company || "").trim();
+    const notes = (newLeadForm.instructions_or_notes || "").trim();
+    if (peril)     body.peril = peril;
+    if (insurance) body.insurance_company = insurance;
+    if (notes)     body.instructions_or_notes = notes;
+
+    setNewLeadCreating(true);
+    try {
+      await apiJson("/leads", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      // Success — close modal, reset form, re-fetch list.
+      setNewLeadForm(NEW_LEAD_INITIAL);
+      setNewLeadOpen(false);
+      await fetchLeads();
+    } catch (err) {
+      // FastAPI 422 → { detail: [{ loc, msg, type }, ...] }; other
+      // errors → { detail: "..." } or HTTP status string.
+      let msg = "Could not create lead.";
+      if (Array.isArray(err?.detail)) {
+        msg = err.detail.map(d => `${(d.loc || []).slice(-1)[0] || "field"}: ${d.msg}`).join("; ");
+      } else if (typeof err?.detail === "string") {
+        msg = err.detail;
+      } else if (err?.status) {
+        msg = `HTTP ${err.status}: ${msg}`;
+      }
+      setNewLeadError(msg);
+    } finally {
+      setNewLeadCreating(false);
+    }
+  }
 
   // Build filter chips from actual lead perils present (so CP never sees
   // a chip that filters to zero rows unless they ask for "All").
@@ -198,8 +278,8 @@ export default function LeadsBoard() {
         </div>
       </div>
 
-      {/* Filter chips */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+      {/* Filter chips + New Lead trigger */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 20 }}>
         <FilterChip
           label={`All · ${perilCounts.all || 0}`}
           active={filter === "all"}
@@ -219,6 +299,23 @@ export default function LeadsBoard() {
             />
           );
         })}
+        <div style={{ flex: 1 }} />
+        <button
+          type="button"
+          onClick={() => { setNewLeadError(null); setNewLeadOpen(true); }}
+          style={{
+            ...mono,
+            padding: "8px 14px",
+            background: "rgba(0,230,168,0.12)",
+            border: "1px solid rgba(0,230,168,0.45)",
+            borderRadius: 6,
+            color: "#00E6A8",
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 0.5,
+            cursor: "pointer",
+          }}
+        >+ New Lead</button>
       </div>
 
       {/* Leads list */}
@@ -245,7 +342,242 @@ export default function LeadsBoard() {
 
       {/* Selected-lead detail panel — shows ONLY the lead the user clicked */}
       <LeadDetailPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
+
+      {/* New Lead modal — manual creation by CP/RVP/admin via POST /v1/leads. */}
+      {newLeadOpen && (
+        <div
+          onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1100,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
+              border: "1px solid rgba(0,230,168,0.30)",
+              borderRadius: 12,
+              padding: "22px 26px",
+              width: 520,
+              maxWidth: "94vw",
+              maxHeight: "86vh",
+              overflow: "auto",
+              boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5 }}>
+                New Lead
+              </h4>
+              <button
+                type="button"
+                onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+                aria-label="Close"
+                disabled={newLeadCreating}
+                style={{
+                  background: "none", border: "none",
+                  color: "rgba(255,255,255,0.55)", fontSize: 20,
+                  cursor: newLeadCreating ? "not-allowed" : "pointer",
+                  lineHeight: 1, padding: 4,
+                }}
+              >×</button>
+            </div>
+            <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 14 }}>
+              Required: Full name, Phone
+            </div>
+
+            {/* Form */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <NewLeadField
+                label="Full name *"
+                value={newLeadForm.full_name}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, full_name: v }))}
+                disabled={newLeadCreating}
+                maxLength={100}
+              />
+              <NewLeadField
+                label="Phone *"
+                value={newLeadForm.phone_number}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, phone_number: v }))}
+                disabled={newLeadCreating}
+                maxLength={20}
+              />
+              <NewLeadField
+                label="Email"
+                value={newLeadForm.email}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, email: v }))}
+                disabled={newLeadCreating}
+                type="email"
+              />
+              <NewLeadField
+                label="Insurance company"
+                value={newLeadForm.insurance_company}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, insurance_company: v }))}
+                disabled={newLeadCreating}
+                maxLength={100}
+              />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <NewLeadField
+                  label="Loss address"
+                  value={newLeadForm.address_loss}
+                  onChange={(v) => setNewLeadForm(f => ({ ...f, address_loss: v }))}
+                  disabled={newLeadCreating}
+                  maxLength={255}
+                />
+              </div>
+              <NewLeadField
+                label="State (loss)"
+                value={newLeadForm.state_loss}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, state_loss: v.toUpperCase() }))}
+                disabled={newLeadCreating}
+                maxLength={50}
+              />
+              <NewLeadSelect
+                label="Peril"
+                value={newLeadForm.peril}
+                onChange={(v) => setNewLeadForm(f => ({ ...f, peril: v }))}
+                disabled={newLeadCreating}
+                options={[
+                  { value: "", label: "— Select —" },
+                  { value: "fire",   label: "🔥 Fire" },
+                  { value: "storm",  label: "⛈️ Storm" },
+                  { value: "flood",  label: "💧 Flood" },
+                  { value: "hail",   label: "🧊 Hail" },
+                  { value: "wind",   label: "💨 Wind" },
+                  { value: "theft",  label: "🔒 Theft" },
+                  { value: "other",  label: "📋 Other" },
+                ]}
+              />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <NewLeadField
+                  label="Notes"
+                  value={newLeadForm.instructions_or_notes}
+                  onChange={(v) => setNewLeadForm(f => ({ ...f, instructions_or_notes: v }))}
+                  disabled={newLeadCreating}
+                  multiline
+                />
+              </div>
+            </div>
+
+            {newLeadError && (
+              <div style={{
+                ...mono,
+                marginTop: 14,
+                padding: "10px 12px",
+                background: "rgba(224,80,80,0.10)",
+                border: "1px solid rgba(224,80,80,0.40)",
+                borderRadius: 6,
+                color: "#E05050",
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}>
+                {newLeadError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18 }}>
+              <button
+                type="button"
+                onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+                disabled={newLeadCreating}
+                style={{
+                  ...mono, padding: "8px 14px",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 6,
+                  color: "rgba(255,255,255,0.65)",
+                  fontSize: 12,
+                  cursor: newLeadCreating ? "not-allowed" : "pointer",
+                }}
+              >Cancel</button>
+              <button
+                type="button"
+                onClick={handleCreateLead}
+                disabled={newLeadCreating}
+                style={{
+                  ...mono, padding: "8px 14px",
+                  background: newLeadCreating ? "rgba(255,255,255,0.06)" : "rgba(0,230,168,0.12)",
+                  border: `1px solid ${newLeadCreating ? "rgba(255,255,255,0.18)" : "rgba(0,230,168,0.45)"}`,
+                  borderRadius: 6,
+                  color: newLeadCreating ? "rgba(255,255,255,0.4)" : "#00E6A8",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  cursor: newLeadCreating ? "not-allowed" : "pointer",
+                }}
+              >
+                {newLeadCreating ? "Creating…" : "Create Lead"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// ── New Lead form primitives ──────────────────────────────────────────
+// Tiny presentational helpers so the modal stays readable. Match the
+// existing assign-to-user modal's styling (dark glass + cyan accent).
+
+function NewLeadField({ label, value, onChange, disabled, type, maxLength, multiline }) {
+  const inputProps = {
+    value,
+    onChange: (e) => onChange(e.target.value),
+    disabled,
+    maxLength,
+    style: {
+      width: "100%",
+      padding: "8px 10px",
+      background: "rgba(255,255,255,0.04)",
+      border: "1px solid rgba(255,255,255,0.18)",
+      borderRadius: 6,
+      color: "#fff",
+      fontSize: 13,
+      ...mono,
+      boxSizing: "border-box",
+    },
+  };
+  return (
+    <label style={{ display: "block" }}>
+      <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 6, letterSpacing: 0.5 }}>
+        {label}
+      </div>
+      {multiline
+        ? <textarea rows={3} {...inputProps} />
+        : <input type={type || "text"} {...inputProps} />}
+    </label>
+  );
+}
+
+function NewLeadSelect({ label, value, onChange, disabled, options }) {
+  return (
+    <label style={{ display: "block" }}>
+      <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.55)", marginBottom: 6, letterSpacing: 0.5 }}>
+        {label}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        style={{
+          width: "100%",
+          padding: "8px 10px",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.18)",
+          borderRadius: 6,
+          color: "#fff",
+          fontSize: 13,
+          ...mono,
+          boxSizing: "border-box",
+        }}
+      >
+        {options.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 
