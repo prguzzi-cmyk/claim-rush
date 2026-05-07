@@ -1887,7 +1887,14 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          {/* Action row — defensive layout. position:relative +
+              zIndex + pointer-events:auto guard against any unforeseen
+              parent container introducing pointer-events:none or an
+              overlapping pseudo-element. No visual change today. */}
+          <div style={{
+            display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8,
+            position: "relative", zIndex: 2, pointerEvents: "auto",
+          }}>
             <DispositionButton label="Take Ownership"   onClick={handleTakeOwnership}      disabled={!isLeadRow || ownerInfo.isMe} />
             <DispositionButton label="Assign to User…"  onClick={openAssignToUserPicker}  disabled={!isLeadRow} variant="muted" />
             {detail?.assigned_to && (
@@ -2093,7 +2100,10 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
               })()}
             </div>
             {(OUTREACH_TRANSITIONS[lead.outreach_state] || []).length > 0 ? (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{
+                display: "flex", gap: 8, flexWrap: "wrap",
+                position: "relative", zIndex: 2, pointerEvents: "auto",
+              }}>
                 {OUTREACH_TRANSITIONS[lead.outreach_state].map(t => (
                   <DispositionButton
                     key={t.to}
