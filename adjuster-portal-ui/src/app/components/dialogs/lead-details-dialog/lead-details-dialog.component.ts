@@ -536,6 +536,15 @@ export class LeadDetailsDialogComponent implements OnInit {
     }
 
     uuidValidator(control: FormControl) {
+        // Stabilization fix (2026-05-07): empty values pass. Without this
+        // early-return, autocomplete fields (sourceByControl,
+        // assignedToControl) with no selection produce {invalidUuid:true}
+        // because an empty string has no `.id`, which silently blocks
+        // submit even when the field is meant to be optional. The strict
+        // UUID-on-`.id` check below still runs for non-empty values, so
+        // picking from the autocomplete still validates the same way and
+        // typing a non-UUID string still fails as before.
+        if (!control.value) return null;
         const uuidPattern =
             /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
         if (!control.value?.id || !uuidPattern.test(control.value.id)) {
