@@ -1,7 +1,109 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+
+// Local ErrorBoundary for the LeadDetailPanel. The panel renders a lot of
+// computed values from a freshly-fetched Lead row whose fields may be
+// null on manually-created leads (no peril, no loss_date, no contact
+// alt fields, etc.). A render-time TypeError inside the panel would
+// otherwise bubble to the top-level ErrorBoundary in main.jsx and
+// blank the entire page with "Something went wrong." Containing the
+// failure here keeps the Fire Leads list usable, gives the user a way
+// to close, and surfaces the actual error message + stack to DevTools.
+class LeadDetailErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    // eslint-disable-next-line no-console
+    console.error("[LeadDetailPanel render crash]", error, info);
+  }
+  componentDidUpdate(prevProps) {
+    // Reset the boundary when the user opens a different lead — without
+    // this, once the boundary fires, the panel stays in fallback mode
+    // for every subsequent click.
+    if (prevProps.leadId !== this.props.leadId && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+  render() {
+    if (this.state.error) {
+      const { onClose } = this.props;
+      const msg = (this.state.error && this.state.error.message) || String(this.state.error);
+      return (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={onClose}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
+              border: "1px solid rgba(224,80,80,0.45)",
+              borderRadius: 12, padding: "22px 26px",
+              width: 480, maxWidth: "92vw",
+              boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
+              fontFamily: "'Courier New', monospace",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <h4 style={{ color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5 }}>
+                Lead detail failed to render
+              </h4>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 22, cursor: "pointer", lineHeight: 1, padding: 4 }}
+              >×</button>
+            </div>
+            <div style={{
+              padding: "10px 12px",
+              background: "rgba(224,80,80,0.10)",
+              border: "1px solid rgba(224,80,80,0.30)",
+              borderRadius: 6,
+              color: "#E05050",
+              fontSize: 12,
+              lineHeight: 1.5,
+              wordBreak: "break-word",
+            }}>
+              <strong>Error:</strong> {msg}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 12, lineHeight: 1.5 }}>
+              The Fire Leads list is still usable — close this dialog to continue. The full stack
+              has been logged to the browser console (DevTools → Console).
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "8px 14px",
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 6,
+                  color: "rgba(255,255,255,0.85)",
+                  fontSize: 12,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >Close</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /**
  * Fire Leads — CP's downline lead board.
@@ -374,7 +476,12 @@ export default function LeadsBoard() {
       )}
 
       {/* Selected-lead detail panel — shows ONLY the lead the user clicked */}
-      <LeadDetailPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
+      <LeadDetailErrorBoundary
+        leadId={selectedLead?.id || null}
+        onClose={() => setSelectedLead(null)}
+      >
+        <LeadDetailPanel lead={selectedLead} onClose={() => setSelectedLead(null)} />
+      </LeadDetailErrorBoundary>
 
       {/* New Lead modal — manual creation by CP/RVP/admin via POST /v1/leads. */}
       {newLeadOpen && (
