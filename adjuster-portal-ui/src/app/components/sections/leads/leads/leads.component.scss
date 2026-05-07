@@ -397,20 +397,6 @@
     .mdc-text-field {
       background: #0F1520 !important;
       border-radius: 8px !important;
-      // Stabilization (2026-05-07): give the wrapper top-padding so the
-      // floating label has room to lift above the input value without
-      // overlapping the user's typed text or the placeholder.
-      padding-top: 8px !important;
-      padding-bottom: 6px !important;
-    }
-
-    // Stabilization (2026-05-07): bump infix top-padding so the floating
-    // label sits in the outline notch (Search claims / Filter table / etc.)
-    // instead of on top of the input value.
-    .mat-mdc-form-field-infix {
-      min-height: 48px !important;
-      padding-top: 20px !important;
-      padding-bottom: 6px !important;
     }
 
     // The notched-outline overlay floats above the wrapper; tint to match.
@@ -431,16 +417,13 @@
       color: #AAB8C8 !important;
     }
 
-    // Stabilization (2026-05-07): label transform — match the bumped
-    // infix padding so floated labels land in the notch (above the
-    // input), not on it. Without this, "Search claims" / "Filter table"
-    // float partially and overlap the placeholder text underneath.
-    .mdc-floating-label--float-above {
-      transform: translateY(-24px) scale(0.75) !important;
-    }
-
-    // Placeholder visibility — make sure placeholders don't blend into
-    // the floating label when the field is empty.
+    // Stabilization (2026-05-07 reverted): the previous translateY(-24px)
+    // and bumped infix padding-top assumed outline-appearance form-fields,
+    // but the leads-page fields use the default (fill) appearance. The
+    // override pushed the floated label OUT of the form-field box and
+    // visually onto the tab strip above (Leads / Pending approval),
+    // making the tabs appear unclickable. Reverted to Material defaults
+    // for layout. Placeholder color rule kept — color-only, no layout.
     .mat-mdc-input-element::placeholder,
     input.mat-mdc-input-element::placeholder {
       color: #6B7B8E !important;
