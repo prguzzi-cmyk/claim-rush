@@ -208,6 +208,16 @@ export default function LeadsBoard() {
   // unchanged. Phase 2 will wire counts + filter against backend.
   const queueUiEnabled = isOutreachQueueUiEnabled();
   const [selectedQueueState, setSelectedQueueState] = useState("all");
+  // Per-state counts for the tab strip badges. Populated from
+  // GET /v1/leads/outreach-queue/stats when the flag is on; empty
+  // {} when the flag is off so the tabs render "—" instead of "0".
+  const [queueCounts, setQueueCounts] = useState({});
+  // Filtered queue list. null = use the existing `leads` state (the
+  // "All" tab path). Array = use these as the leads for the table
+  // (a specific tab is selected). Repopulated whenever
+  // selectedQueueState changes.
+  const [queueLeads, setQueueLeads] = useState(null);
+  const [queueLoading, setQueueLoading] = useState(false);
   // Selected lead for the in-place detail panel. Click on a row sets it;
   // panel close clears it. No navigation away from /portal/fire-leads.
   const [selectedLead, setSelectedLead] = useState(null);
@@ -268,6 +278,47 @@ export default function LeadsBoard() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Phase 2: outreach queue stats — populate counts on the tab badges.
+  // Re-fetches when fetchLeads runs so badges stay in sync after
+  // create/refresh/disposition. No-op when the flag is off.
+  useEffect(() => {
+    if (!queueUiEnabled) return;
+    let cancelled = false;
+    apiJson("/leads/outreach-queue/stats")
+      .then(res => { if (!cancelled) setQueueCounts(res?.counts || {}); })
+      .catch(err => {
+        if (import.meta.env.DEV) console.warn("[OutreachQueue][stats] failed:", err);
+        if (!cancelled) setQueueCounts({});
+      });
+    return () => { cancelled = true; };
+  }, [queueUiEnabled, leads.length]);
+
+  // Phase 2: outreach queue list — when a specific state tab is
+  // selected, fetch only those leads and use them for the table.
+  // selectedQueueState === "all" reverts to the existing `leads` state.
+  useEffect(() => {
+    if (!queueUiEnabled || selectedQueueState === "all") {
+      setQueueLeads(null);
+      return;
+    }
+    let cancelled = false;
+    setQueueLoading(true);
+    apiJson(`/leads/outreach-queue?state=${encodeURIComponent(selectedQueueState)}&limit=200`)
+      .then(res => {
+        if (cancelled) return;
+        const items = Array.isArray(res?.items) ? res.items : [];
+        // Existing renderer expects `type: "lead"` for the action-button
+        // gate; the queue endpoint already sets it but normalize defensively.
+        setQueueLeads(items.map(l => ({ ...l, type: l.type || "lead" })));
+      })
+      .catch(err => {
+        if (import.meta.env.DEV) console.warn("[OutreachQueue][list] failed:", err);
+        if (!cancelled) setQueueLeads([]);
+      })
+      .finally(() => { if (!cancelled) setQueueLoading(false); });
+    return () => { cancelled = true; };
+  }, [queueUiEnabled, selectedQueueState]);
 
   // Lead-creation submit. Validates the two required fields, POSTs, and
   // refreshes the list. All other fields are optional per the backend
@@ -363,10 +414,15 @@ export default function LeadsBoard() {
     return counts;
   }, [leads]);
 
+  // When a specific outreach state tab is selected, the queue endpoint
+  // is the source of truth; otherwise fall back to the existing
+  // `leads` state (CP leads + fire incidents merged). Peril chips
+  // continue to filter on top of either source.
+  const effectiveLeads = queueLeads !== null ? queueLeads : leads;
   const visible = useMemo(() => {
-    if (filter === "all") return leads;
-    return leads.filter(l => (l.peril || "other") === filter);
-  }, [leads, filter]);
+    if (filter === "all") return effectiveLeads;
+    return effectiveLeads.filter(l => (l.peril || "other") === filter);
+  }, [effectiveLeads, filter]);
 
   if (loading) {
     return (
@@ -420,11 +476,16 @@ export default function LeadsBoard() {
         </div>
       </div>
 
-      {/* Outreach Queue tabs — Phase 1 stub, flag-gated */}
+      {/* Outreach Queue tabs — flag-gated. Counts come from
+          /v1/leads/outreach-queue/stats; selecting a state fetches
+          /v1/leads/outreach-queue?state=... and uses it as the table source. */}
       {queueUiEnabled && (
         <OutreachQueueTabs
           selected={selectedQueueState}
-          counts={{}}
+          counts={{
+            ALL: leads.length,
+            ...queueCounts,
+          }}
           onSelect={setSelectedQueueState}
         />
       )}

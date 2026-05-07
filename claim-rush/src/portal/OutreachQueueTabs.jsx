@@ -180,20 +180,6 @@ export default function OutreachQueueTabs({ selected, counts = {}, onSelect }) {
         )}
       </div>
 
-      {selected && selected !== "all" && (
-        <div
-          style={{
-            ...mono,
-            marginLeft: "auto",
-            fontSize: 10,
-            color: "rgba(251, 191, 36, 0.85)",
-            letterSpacing: 0.5,
-          }}
-          title="Phase 1 — backend endpoint /v1/leads/outreach-queue not wired yet"
-        >
-          Phase 1 stub · backend coming
-        </div>
-      )}
     </div>
   );
 }
