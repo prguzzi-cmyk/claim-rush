@@ -110,6 +110,18 @@ export default function LeadsBoard() {
   const [newLeadCreating, setNewLeadCreating] = useState(false);
   const [newLeadError, setNewLeadError] = useState(null);
 
+  // Centralised close so Cancel / × / backdrop / success-path all leave
+  // the modal in the same clean state on next open. Does NOT enforce the
+  // "no close while creating" guard — call sites (Cancel/×/backdrop)
+  // gate themselves on !newLeadCreating; the success path calls this
+  // unconditionally.
+  function closeNewLead() {
+    setNewLeadForm(NEW_LEAD_INITIAL);
+    setNewLeadError(null);
+    setNewLeadCreating(false);
+    setNewLeadOpen(false);
+  }
+
   // Fetcher pulled out of the boot effect so handleCreateLead can re-run
   // it after a successful create. Identical merge logic to the original
   // boot path; preserved verbatim.
@@ -189,9 +201,8 @@ export default function LeadsBoard() {
         method: "POST",
         body: JSON.stringify(body),
       });
-      // Success — close modal, reset form, re-fetch list.
-      setNewLeadForm(NEW_LEAD_INITIAL);
-      setNewLeadOpen(false);
+      // Success — close modal (resets form + clears error/loading), re-fetch.
+      closeNewLead();
       await fetchLeads();
     } catch (err) {
       // FastAPI 422 → { detail: [{ loc, msg, type }, ...] }; other
@@ -346,7 +357,7 @@ export default function LeadsBoard() {
       {/* New Lead modal — manual creation by CP/RVP/admin via POST /v1/leads. */}
       {newLeadOpen && (
         <div
-          onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+          onClick={() => { if (!newLeadCreating) closeNewLead(); }}
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1100,
             display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
@@ -372,7 +383,7 @@ export default function LeadsBoard() {
               </h4>
               <button
                 type="button"
-                onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+                onClick={() => { if (!newLeadCreating) closeNewLead(); }}
                 aria-label="Close"
                 disabled={newLeadCreating}
                 style={{
@@ -479,7 +490,7 @@ export default function LeadsBoard() {
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18 }}>
               <button
                 type="button"
-                onClick={() => { if (!newLeadCreating) setNewLeadOpen(false); }}
+                onClick={() => { if (!newLeadCreating) closeNewLead(); }}
                 disabled={newLeadCreating}
                 style={{
                   ...mono, padding: "8px 14px",
