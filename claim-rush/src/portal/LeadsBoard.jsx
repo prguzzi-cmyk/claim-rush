@@ -1204,18 +1204,50 @@ function LeadDetailPanel({ lead, onClose }) {
 
   const handleTakeOwnership = async () => {
     if (!guardLeadRow("ownership")) return;
-    if (!currentUserId) {
-      setAction("ownership", "error", "Login session missing user_id");
+
+    // Resolve user_id at click-time if the panel-mount-time useMemo
+    // returned null (localStorage.cr_user missing user_id, stale session
+    // after a 401 wipe + re-login that didn't repopulate cr_user, etc.).
+    // This used to silently bail because the ownership action state
+    // isn't rendered in any visible UI element — the user saw confirm OK
+    // followed by nothing, no network call, no error. Now we always
+    // attempt to resolve the user before erroring out.
+    let userId = currentUserId;
+    if (!userId) {
+      try {
+        const me = await apiJson("/users/me/permissions");
+        userId = me?.user_id || null;
+        // Also patch the localStorage cache so subsequent clicks are fast.
+        if (userId) {
+          try {
+            const raw = localStorage.getItem("cr_user") || "{}";
+            const parsed = JSON.parse(raw);
+            parsed.user_id = userId;
+            localStorage.setItem("cr_user", JSON.stringify(parsed));
+          } catch { /* cache is best-effort */ }
+        }
+      } catch (resolveErr) {
+        // eslint-disable-next-line no-console
+        console.error("[Stage 7][take-ownership] could not resolve user_id:", resolveErr);
+      }
+    }
+    if (!userId) {
+      // Surface a visible error since no UI element renders the ownership
+      // action state. window.alert is intentionally minimal — no UI redesign.
+      const msg = "Could not determine your user id (session may have expired). Try logging out and back in.";
+      setAction("ownership", "error", msg);
+      window.alert(msg);
       return;
     }
+
     if (!window.confirm(`Take ownership of Lead #${lead.ref_number || lead.id}?`)) return;
     setAction("ownership", "running");
     // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.info("[Stage 7][take-ownership] PUT /v1/leads/" + lead.id, { assigned_to: currentUserId });
+    if (import.meta.env.DEV) console.info("[Stage 7][take-ownership] PUT /v1/leads/" + lead.id, { assigned_to: userId });
     try {
       const res = await apiJson(`/leads/${lead.id}`, {
         method: "PUT",
-        body: JSON.stringify({ assigned_to: currentUserId }),
+        body: JSON.stringify({ assigned_to: userId }),
       });
       // eslint-disable-next-line no-console
       if (import.meta.env.DEV) console.info("[Stage 7][take-ownership] response →", res);
@@ -1224,7 +1256,13 @@ function LeadDetailPanel({ lead, onClose }) {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[Stage 7][take-ownership] error →", err);
-      setAction("ownership", "error", errMsg(err));
+      const msg = errMsg(err);
+      setAction("ownership", "error", msg);
+      // The ownership action state isn't currently rendered anywhere
+      // visible, so failed PUTs were also silently swallowed. Surface
+      // via alert so the user knows the take-ownership click didn't
+      // succeed and what went wrong.
+      window.alert(`Take ownership failed: ${msg}`);
     }
   };
 
