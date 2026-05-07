@@ -1364,22 +1364,50 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
     const label = picked ? `${picked.first_name || ""} ${picked.last_name || ""}`.trim() || picked.email : pickedAssigneeId;
     if (!window.confirm(`Reassign Lead #${lead.ref_number || lead.id} to ${label}?`)) return;
     setAction("ownership", "running");
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.info("[Stage 7][assign-user] PUT /v1/leads/" + lead.id, { assigned_to: pickedAssigneeId });
+    if (import.meta.env.DEV) console.info("[Phase 5][assign-user] POST /v1/leads/" + lead.id + "/assign", { assignee_id: pickedAssigneeId });
     try {
-      const res = await apiJson(`/leads/${lead.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ assigned_to: pickedAssigneeId }),
+      const res = await apiJson(`/leads/${lead.id}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ assignee_id: pickedAssigneeId }),
       });
-      // eslint-disable-next-line no-console
-      if (import.meta.env.DEV) console.info("[Stage 7][assign-user] response →", res);
-      setAction("ownership", "success", `Assigned to ${label}`);
+      if (import.meta.env.DEV) console.info("[Phase 5][assign-user] response →", res);
+      const stateMsg = res?.state_transitioned ? ` · state → ASSIGNED` : "";
+      setAction("ownership", "success", `Assigned to ${label}${stateMsg}`);
       setAssignModalOpen(false);
       setPickedAssigneeId("");
-      setTimeout(() => { refreshLead(); }, 500);
+      setTimeout(() => { refreshLead(); }, 400);
+      // If the assign auto-transitioned state, refresh timeline + queue counts.
+      if (res?.state_transitioned) {
+        setTimeout(() => { refreshStateHistory(); }, 400);
+        if (typeof onOutreachTransition === "function") {
+          try { onOutreachTransition(); } catch (_) {}
+        }
+      }
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[Stage 7][assign-user] error →", err);
+      console.error("[Phase 5][assign-user] error →", err);
+      setAction("ownership", "error", errMsg(err));
+    }
+  };
+
+  const handleUnassign = async () => {
+    if (!guardLeadRow("ownership")) return;
+    if (!window.confirm(`Unassign Lead #${lead.ref_number || lead.id}? It will return to the queue.`)) return;
+    setAction("ownership", "running");
+    if (import.meta.env.DEV) console.info("[Phase 5][unassign] POST /v1/leads/" + lead.id + "/assign", { assignee_id: null });
+    try {
+      await apiJson(`/leads/${lead.id}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ assignee_id: null }),
+      });
+      setAction("ownership", "success", "Unassigned");
+      setAssignModalOpen(false);
+      setPickedAssigneeId("");
+      setTimeout(() => { refreshLead(); }, 400);
+      // Unassign doesn't transition state, but a subsequent move-to-queue
+      // action might. For now, just leave the timeline alone — the
+      // unassign event isn't currently audited (Phase 5.1 enhancement).
+    } catch (err) {
+      console.error("[Phase 5][unassign] error →", err);
       setAction("ownership", "error", errMsg(err));
     }
   };
@@ -1424,17 +1452,23 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
 
     if (!window.confirm(`Take ownership of Lead #${lead.ref_number || lead.id}?`)) return;
     setAction("ownership", "running");
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.info("[Stage 7][take-ownership] PUT /v1/leads/" + lead.id, { assigned_to: userId });
+    if (import.meta.env.DEV) console.info("[Phase 5][take-ownership] POST /v1/leads/" + lead.id + "/assign", { assignee_id: userId });
     try {
-      const res = await apiJson(`/leads/${lead.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ assigned_to: userId }),
+      const res = await apiJson(`/leads/${lead.id}/assign`, {
+        method: "POST",
+        body: JSON.stringify({ assignee_id: userId }),
       });
-      // eslint-disable-next-line no-console
-      if (import.meta.env.DEV) console.info("[Stage 7][take-ownership] response →", res);
-      setAction("ownership", "success", "You own this lead");
-      setTimeout(() => { refreshLead(); }, 500);
+      if (import.meta.env.DEV) console.info("[Phase 5][take-ownership] response →", res);
+      const stateMsg = res?.state_transitioned ? " · state → ASSIGNED" : "";
+      setAction("ownership", "success", `You own this lead${stateMsg}`);
+      setTimeout(() => { refreshLead(); }, 400);
+      // Auto-transition to ASSIGNED writes an audit row + shifts queue counts.
+      if (res?.state_transitioned) {
+        setTimeout(() => { refreshStateHistory(); }, 400);
+        if (typeof onOutreachTransition === "function") {
+          try { onOutreachTransition(); } catch (_) {}
+        }
+      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[Stage 7][take-ownership] error →", err);
@@ -1856,6 +1890,9 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
             <DispositionButton label="Take Ownership"   onClick={handleTakeOwnership}      disabled={!isLeadRow || ownerInfo.isMe} />
             <DispositionButton label="Assign to User…"  onClick={openAssignToUserPicker}  disabled={!isLeadRow} variant="muted" />
+            {detail?.assigned_to && (
+              <DispositionButton label="Unassign" onClick={handleUnassign} disabled={!isLeadRow} variant="muted" />
+            )}
           </div>
           {actions.ownership?.state === "running" && (
             <div style={{ ...mono, fontSize: 11, color: "#A855F7", marginTop: 8 }}>updating ownership…</div>
