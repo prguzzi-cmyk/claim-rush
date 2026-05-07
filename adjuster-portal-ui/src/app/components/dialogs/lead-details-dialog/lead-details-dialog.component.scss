@@ -7,19 +7,29 @@
     // Stabilization (2026-05-07): give each field its own vertical room so
     // floating labels of adjacent fields don't visually collide on the
     // narrow column layout.
-    margin-bottom: 10px !important;
+    margin-bottom: 14px !important;
 }
 
-// Stabilization (2026-05-07): reset cramped internal padding on the
-// outlined text-field wrapper so the floating label floats into the
-// notch cleanly without overlapping the input value.
+// Stabilization (2026-05-07 update): the Material outline appearance
+// floats labels into the notched-outline by transforming them upward.
+// If the infix doesn't reserve enough top-space, the label sits ON TOP
+// of the typed value (the user-reported "labels overlap text" bug).
+// Increasing infix top-padding gives the floating label its own row.
 .mat-mdc-text-field-wrapper {
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
+    padding-top: 10px !important;
+    padding-bottom: 8px !important;
 }
 
 .mat-mdc-form-field-infix {
-    min-height: 44px !important;
+    min-height: 52px !important;
+    padding-top: 22px !important;   // room for floated label
+    padding-bottom: 6px !important;
+}
+
+// Floating-label transform — make sure it lifts high enough to land
+// in the outline notch above the input, not on the input itself.
+::ng-deep .mat-mdc-form-field .mdc-floating-label--float-above {
+    transform: translateY(-26px) scale(0.75) !important;
 }
 
 // Stabilization (2026-05-07): the Source by / Assigned to autocomplete
@@ -27,15 +37,30 @@
 // so the dialog-scoped dark-mode rules in styles.scss don't reach them.
 // Force readable colors on those portaled panels via ::ng-deep so the
 // rule survives view-encapsulation when emitted into the global pane.
-::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel {
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel,
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel {
     background-color: #1f2937 !important;
     color: #F1F5F9 !important;
 }
 ::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option,
-::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option .mdc-list-item__primary-text {
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option .mdc-list-item__primary-text,
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option,
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option .mdc-list-item__primary-text {
     color: #F1F5F9 !important;
 }
 ::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option:hover,
-::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active {
-    background-color: rgba(96, 165, 250, 0.12) !important;
+::ng-deep .cdk-overlay-pane .mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active,
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option:hover,
+::ng-deep .cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active {
+    background-color: rgba(96, 165, 250, 0.18) !important;
+}
+
+// Stabilization (2026-05-07): ensure overlay panels (mat-select +
+// autocomplete dropdowns) stack ABOVE the dialog when both render
+// inside the same cdk-overlay-container. The container itself is at
+// z-index 99999 globally; this rule guarantees panel-over-dialog when
+// the user clicks a dropdown inside the lead dialog.
+::ng-deep .cdk-overlay-pane:has(.mat-mdc-autocomplete-panel),
+::ng-deep .cdk-overlay-pane:has(.mat-mdc-select-panel) {
+    z-index: 100000 !important;
 }
