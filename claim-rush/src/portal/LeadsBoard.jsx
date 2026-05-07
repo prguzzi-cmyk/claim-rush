@@ -201,20 +201,42 @@ export default function LeadsBoard() {
         method: "POST",
         body: JSON.stringify(body),
       });
-      // Success — close modal (resets form + clears error/loading), re-fetch.
+      // Success path is the ONLY path that calls closeNewLead. The catch
+      // below intentionally does NOT close the modal so the user can read
+      // the error and retry without losing what they typed.
       closeNewLead();
       await fetchLeads();
     } catch (err) {
-      // FastAPI 422 → { detail: [{ loc, msg, type }, ...] }; other
-      // errors → { detail: "..." } or HTTP status string.
-      let msg = "Could not create lead.";
+      // Always log the full error to the console so DevTools shows the
+      // exact response body / headers / stack — essential when the error
+      // is a network/CORS failure (no .status, no .detail) and the inline
+      // banner can only show a generic message.
+      // eslint-disable-next-line no-console
+      console.error("[NewLead] POST /v1/leads failed:", err);
+
+      // Build the inline message with as much signal as possible. Order:
+      //   1. HTTP status (if present) — always prefixed so the user can
+      //      tell apart 401 (auth lost) from 422 (validation) from 5xx
+      //      (server) from undefined (network/CORS pre-response).
+      //   2. Server-supplied detail (FastAPI 422 detail-array, or a
+      //      plain {detail: "..."} string).
+      //   3. A network-fail hint when neither status nor detail is set —
+      //      this signature is most consistent with a CORS preflight
+      //      rejection or a fetch-level TypeError before any response.
+      const statusPart = err?.status ? `HTTP ${err.status}` : "Network error";
+      let detailPart = "";
       if (Array.isArray(err?.detail)) {
-        msg = err.detail.map(d => `${(d.loc || []).slice(-1)[0] || "field"}: ${d.msg}`).join("; ");
+        detailPart = err.detail
+          .map(d => `${(d.loc || []).slice(-1)[0] || "field"}: ${d.msg}`)
+          .join("; ");
       } else if (typeof err?.detail === "string") {
-        msg = err.detail;
-      } else if (err?.status) {
-        msg = `HTTP ${err.status}: ${msg}`;
+        detailPart = err.detail;
+      } else if (!err?.status) {
+        detailPart = "no response from server (check DevTools Network for details)";
       }
+      const msg = detailPart
+        ? `${statusPart} — ${detailPart}`
+        : `${statusPart} — could not create lead.`;
       setNewLeadError(msg);
     } finally {
       setNewLeadCreating(false);
