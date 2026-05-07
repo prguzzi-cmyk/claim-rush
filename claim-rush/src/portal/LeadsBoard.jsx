@@ -1393,21 +1393,30 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
     if (!guardLeadRow("ownership")) return;
     if (!window.confirm(`Unassign Lead #${lead.ref_number || lead.id}? It will return to the queue.`)) return;
     setAction("ownership", "running");
-    if (import.meta.env.DEV) console.info("[Phase 5][unassign] POST /v1/leads/" + lead.id + "/assign", { assignee_id: null });
+    if (import.meta.env.DEV) console.info("[Phase 5.1][unassign] POST /v1/leads/" + lead.id + "/assign", { assignee_id: null });
     try {
-      await apiJson(`/leads/${lead.id}/assign`, {
+      const res = await apiJson(`/leads/${lead.id}/assign`, {
         method: "POST",
         body: JSON.stringify({ assignee_id: null }),
       });
-      setAction("ownership", "success", "Unassigned");
+      if (import.meta.env.DEV) console.info("[Phase 5.1][unassign] response →", res);
+      // Phase 5.1 — unassigning an ASSIGNED lead now rewinds state to
+      // NEEDS_REVIEW on the backend AND writes an audit row. The
+      // response's state_transitioned flag tells us whether to refresh
+      // the timeline + queue badges so the UI catches up.
+      const stateMsg = res?.state_transitioned ? " · state → NEEDS_REVIEW" : "";
+      setAction("ownership", "success", `Unassigned${stateMsg}`);
       setAssignModalOpen(false);
       setPickedAssigneeId("");
       setTimeout(() => { refreshLead(); }, 400);
-      // Unassign doesn't transition state, but a subsequent move-to-queue
-      // action might. For now, just leave the timeline alone — the
-      // unassign event isn't currently audited (Phase 5.1 enhancement).
+      if (res?.state_transitioned) {
+        setTimeout(() => { refreshStateHistory(); }, 400);
+        if (typeof onOutreachTransition === "function") {
+          try { onOutreachTransition(); } catch (_) {}
+        }
+      }
     } catch (err) {
-      console.error("[Phase 5][unassign] error →", err);
+      console.error("[Phase 5.1][unassign] error →", err);
       setAction("ownership", "error", errMsg(err));
     }
   };
