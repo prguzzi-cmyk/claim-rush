@@ -893,6 +893,10 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
   const [detail, setDetail] = useState(null);
   const [trace, setTrace] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Phase 4 — read-only audit timeline. Pulled from
+  // GET /v1/leads/{id}/state-history; refreshed after every transition.
+  const [stateHistory, setStateHistory] = useState(null);
+  const [stateHistoryLoading, setStateHistoryLoading] = useState(false);
   // Stage 3+4 — convert + assign-adjuster wiring.
   // After a successful Convert, the backend response carries client_id +
   // claim_id. Capture both so the Assign Adjuster modal knows which claim
@@ -955,12 +959,32 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
     setRefreshing(false);
   };
 
+  // Phase 4 — re-fetch the state-changes audit log. Cheap (GROUP BY
+  // on indexed lead_id, joined to user); runs on lead open and after
+  // each transition. Failures are silent — the panel just shows
+  // "no history yet" instead of breaking the rest of the panel.
+  const refreshStateHistory = async () => {
+    if (!lead || !isLeadRow) return;
+    setStateHistoryLoading(true);
+    try {
+      const res = await apiJson(`/leads/${lead.id}/state-history?limit=100`);
+      setStateHistory(Array.isArray(res?.items) ? res.items : []);
+    } catch (err) {
+      if (import.meta.env.DEV) console.warn("[Phase 4][history] failed:", err);
+      setStateHistory([]);
+    } finally {
+      setStateHistoryLoading(false);
+    }
+  };
+
   // On panel open (lead.id changes), reset state and re-fetch.
   useEffect(() => {
     setDetail(null);
     setTrace(null);
+    setStateHistory(null);
     if (lead && isLeadRow) {
       refreshLead();
+      refreshStateHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lead?.id]);
@@ -1521,6 +1545,8 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
       });
       setAction("disposition", "success", prettyLabel);
       setTimeout(() => { refreshLead(); }, 400);
+      // Refresh the audit timeline so the new entry appears immediately.
+      setTimeout(() => { refreshStateHistory(); }, 400);
       // Bubble up so the parent can refresh queue badges + the
       // currently-selected queue list. Best-effort; safe if undefined.
       if (typeof onOutreachTransition === "function") {
@@ -2046,6 +2072,91 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
                 Terminal state — no further transitions.
               </span>
             )}
+          </div>
+        )}
+
+        {/* Phase 4 — Audit Timeline (read-only).
+            Shows all lead_state_changes for this lead, most recent
+            first. Renders only when there's at least one entry — leads
+            predating the operational layer have no rows here. */}
+        {stateHistory !== null && stateHistory.length > 0 && (
+          <div style={{
+            marginTop: 16,
+            padding: "12px 14px",
+            background: "rgba(15, 23, 42, 0.45)",
+            border: "1px solid rgba(148, 163, 184, 0.14)",
+            borderRadius: 8,
+          }}>
+            <div style={{
+              ...mono, fontSize: 10, letterSpacing: 1.5, color: "rgba(168, 85, 247, 0.85)",
+              textTransform: "uppercase", marginBottom: 10, paddingBottom: 6,
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <span>Audit Timeline</span>
+              <span style={{ color: "rgba(148,163,184,0.55)", fontWeight: 400 }}>
+                · {stateHistory.length} {stateHistory.length === 1 ? "entry" : "entries"}
+              </span>
+              {stateHistoryLoading && <span style={{ color: "#A855F7" }}>· refreshing…</span>}
+            </div>
+            <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
+              {stateHistory.map((entry, idx) => {
+                const fromMeta = entry.from_state ? OUTREACH_STATE_META[entry.from_state] : null;
+                const toMeta = OUTREACH_STATE_META[entry.to_state] || { label: entry.to_state, color: C.muted };
+                const who = entry.changed_by
+                  ? ([entry.changed_by.first_name, entry.changed_by.last_name].filter(Boolean).join(" ") || entry.changed_by.email || "user")
+                  : "system";
+                const when = entry.changed_at ? new Date(entry.changed_at) : null;
+                const whenLabel = when ? when.toLocaleString(undefined, {
+                  month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+                }) : "—";
+                const isLatest = idx === 0;
+                return (
+                  <li key={entry.id} style={{
+                    display: "flex", gap: 10, alignItems: "flex-start",
+                    padding: "8px 0",
+                    borderBottom: idx < stateHistory.length - 1 ? "1px dashed rgba(255,255,255,0.05)" : "none",
+                  }}>
+                    <span style={{
+                      width: 8, height: 8, borderRadius: 8, marginTop: 5, flexShrink: 0,
+                      background: isLatest ? toMeta.color : "rgba(148,163,184,0.45)",
+                      boxShadow: isLatest ? `0 0 8px ${toMeta.color}` : "none",
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+                        {fromMeta ? (
+                          <span style={{
+                            ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 0.8,
+                            padding: "2px 6px", borderRadius: 3,
+                            background: `${fromMeta.color}15`, color: fromMeta.color,
+                            border: `1px solid ${fromMeta.color}33`,
+                          }}>{fromMeta.label}</span>
+                        ) : (
+                          <span style={{ ...mono, fontSize: 9, color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: 0.8 }}>INITIAL</span>
+                        )}
+                        <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 11 }}>→</span>
+                        <span style={{
+                          ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 0.8,
+                          padding: "2px 6px", borderRadius: 3,
+                          background: `${toMeta.color}1F`, color: toMeta.color,
+                          border: `1px solid ${toMeta.color}55`,
+                        }}>{toMeta.label}</span>
+                      </div>
+                      <div style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
+                        {whenLabel}
+                        <span style={{ color: "rgba(255,255,255,0.3)", margin: "0 6px" }}>·</span>
+                        <span style={{ color: entry.changed_by ? "#CBD5E1" : "rgba(168,85,247,0.7)" }}>{who}</span>
+                      </div>
+                      {(entry.reason || entry.notes) && (
+                        <div style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 3, fontStyle: "italic" }}>
+                          {entry.reason || entry.notes}
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         )}
 
