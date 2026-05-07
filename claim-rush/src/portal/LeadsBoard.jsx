@@ -1186,20 +1186,31 @@ function LeadDetailPanel({ lead, onClose, onOutreachTransition }) {
   }, [detail, currentUserId, assignableUsers]);
 
   // Follow-up classification:
-  //   no follow_up_at → "No Follow-Up Scheduled"
-  //   follow_up_completed_at >= follow_up_at → "Completed"
-  //   follow_up_at < now → "Overdue" (red)
-  //   today → "Due Today" (gold)
-  //   tomorrow → "Tomorrow" (blue)
-  //   within 7 days → "This Week" (blue)
-  //   beyond → "Scheduled" (muted)
+  //   follow_up_completed_at set → "Completed" (takes precedence; users
+  //                                naturally mark complete BEFORE the due
+  //                                time, so the prior `doneAt >= dueAt`
+  //                                gate caused completed entries to show
+  //                                up as "Tomorrow"/"Due Today" again
+  //                                after refresh — bug fixed 2026-05-07)
+  //   no follow_up_at             → "No Follow-Up Scheduled"
+  //   follow_up_at < now          → "Overdue" (red)
+  //   today                       → "Due Today" (gold)
+  //   tomorrow                    → "Tomorrow" (blue)
+  //   within 7 days               → "This Week" (blue)
+  //   beyond                      → "Scheduled" (muted)
   const followUpInfo = useMemo(() => {
     const dueAt = detail?.follow_up_at || null;
     const doneAt = detail?.follow_up_completed_at || null;
-    if (!dueAt) return { state: "none", label: "No Follow-Up Scheduled", color: "rgba(255,255,255,0.45)", dueAt: null, doneAt: null };
-    if (doneAt && new Date(doneAt) >= new Date(dueAt)) {
+    // Completion is terminal — show "Completed" whenever the backend
+    // has follow_up_completed_at set, regardless of whether it's
+    // before or after the due time. Scheduling a NEW follow-up after
+    // completing one explicitly clears completed_at on the backend
+    // (handleScheduleFollowUp PUTs follow_up_completed_at: null), so
+    // the cycle reopens cleanly when the user wants a new reminder.
+    if (doneAt) {
       return { state: "done", label: "Completed", color: "#00E6A8", dueAt, doneAt };
     }
+    if (!dueAt) return { state: "none", label: "No Follow-Up Scheduled", color: "rgba(255,255,255,0.45)", dueAt: null, doneAt: null };
     const due = new Date(dueAt);
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
