@@ -2,6 +2,7 @@ import { Component, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+import OutreachQueueTabs, { isOutreachQueueUiEnabled } from "./OutreachQueueTabs";
 
 // Local ErrorBoundary for the LeadDetailPanel. The panel renders a lot of
 // computed values from a freshly-fetched Lead row whose fields may be
@@ -201,6 +202,12 @@ export default function LeadsBoard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
+  // Outreach Queue tab — Phase 1 stub. Feature-flagged via localStorage
+  // ('cr_outreach_queue_ui'='1'); when off, the tab strip is hidden and
+  // selectedQueueState stays "all" so the existing list behavior is
+  // unchanged. Phase 2 will wire counts + filter against backend.
+  const queueUiEnabled = isOutreachQueueUiEnabled();
+  const [selectedQueueState, setSelectedQueueState] = useState("all");
   // Selected lead for the in-place detail panel. Click on a row sets it;
   // panel close clears it. No navigation away from /portal/fire-leads.
   const [selectedLead, setSelectedLead] = useState(null);
@@ -412,6 +419,15 @@ export default function LeadsBoard() {
           Leads sourced and monitored through the <span style={{ color: "#fff", fontWeight: 700 }}>UPA Response Intelligence Network</span>
         </div>
       </div>
+
+      {/* Outreach Queue tabs — Phase 1 stub, flag-gated */}
+      {queueUiEnabled && (
+        <OutreachQueueTabs
+          selected={selectedQueueState}
+          counts={{}}
+          onSelect={setSelectedQueueState}
+        />
+      )}
 
       {/* Filter chips + New Lead trigger */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 20 }}>
