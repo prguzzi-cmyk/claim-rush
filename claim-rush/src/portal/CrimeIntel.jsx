@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import PageHeader from "./shared/PageHeader";
+import { fetchActiveIncidents, aggregateMetrics } from "./services/crimeIntel";
 
 /**
  * Crime Intel — flagship neighborhood/property threat intelligence module.
@@ -127,30 +128,24 @@ function SectionStrip({ label, color = GREEN, right }) {
 
 // ── Threat Heat Map console ──────────────────────────────────────────
 function HeatMapConsole({ incidents }) {
-  // Place incident "hot zones" on a normalized 100×100 canvas. Cluster
-  // around 4 fixed regions to suggest city-scale neighborhoods. Severity
-  // drives dot color + glow.
+  // Each incident carries pre-computed canvas coords; the heat map only
+  // needs to colorize by targeting priority + cluster classification.
   const HOT_ZONES = useMemo(() => {
-    const seeds = [
-      { cx: 28, cy: 28 },
-      { cx: 72, cy: 32 },
-      { cx: 30, cy: 70 },
-      { cx: 70, cy: 72 },
-    ];
-    const pts = [];
-    incidents.forEach((inc, i) => {
-      const seed = seeds[i % seeds.length];
-      // Cluster jitter — keep dots near the seed but visibly grouped.
-      const ax = seed.cx + ((i * 13) % 18 - 9);
-      const ay = seed.cy + ((i * 17) % 18 - 9);
-      pts.push({
-        x: ax, y: ay,
-        color: SEVERITY_META[inc.severity]?.color || GOLD,
-        sev: inc.severity,
-        label: inc.type,
-      });
+    return incidents.map(inc => {
+      const priority = inc.scoring.targeting_priority;
+      const cls = inc.zone_impact.cluster_classification;
+      const color = priority >= 90 ? RED
+                  : priority >= 75 ? COPPER
+                  : priority >= 55 ? GOLD
+                  : GREEN;
+      const surge = cls === "SURGING" || inc.recommendation.action === "TARGET_NOW";
+      return {
+        x: inc.location.canvas_x,
+        y: inc.location.canvas_y,
+        color, surge, priority,
+        label: inc.event_type.toUpperCase().replace("_", " "),
+      };
     });
-    return pts;
   }, [incidents]);
 
   return (
@@ -237,33 +232,32 @@ function HeatMapConsole({ incidents }) {
             pointerEvents: "none",
           }} />
         ))}
-        {/* Incident dots */}
-        {HOT_ZONES.map((p, i) => {
-          const sev = SEVERITY_META[p.sev] || { color: GOLD, pulse: false };
-          return (
-            <div key={i} style={{
-              position: "absolute",
-              left: `${p.x}%`, top: `${p.y}%`,
-              transform: "translate(-50%, -50%)",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              pointerEvents: "none",
+        {/* Incident dots — sized + pulse-encoded by targeting priority */}
+        {HOT_ZONES.map((p, i) => (
+          <div key={i} style={{
+            position: "absolute",
+            left: `${p.x}%`, top: `${p.y}%`,
+            transform: "translate(-50%, -50%)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+            pointerEvents: "none",
+          }}>
+            <span style={{
+              width: p.surge ? 12 : 9, height: p.surge ? 12 : 9, borderRadius: 6,
+              background: p.color,
+              boxShadow: p.surge
+                ? `0 0 14px ${p.color}, 0 0 28px ${p.color}99, inset 0 0 4px ${p.color}`
+                : `0 0 10px ${p.color}, 0 0 18px ${p.color}66`,
+              animation: p.surge ? "crimePulse 1.4s ease-in-out infinite" : "none",
+            }} />
+            <span style={{
+              ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.2,
+              color: p.color, textShadow: `0 0 6px ${p.color}aa`,
+              textTransform: "uppercase",
             }}>
-              <span style={{
-                width: 10, height: 10, borderRadius: 5,
-                background: p.color,
-                boxShadow: `0 0 14px ${p.color}, 0 0 24px ${p.color}80`,
-                animation: sev.pulse ? "crimePulse 1.4s ease-in-out infinite" : "none",
-              }} />
-              <span style={{
-                ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.2,
-                color: p.color, textShadow: `0 0 6px ${p.color}aa`,
-                textTransform: "uppercase",
-              }}>
-                {p.label}
-              </span>
-            </div>
-          );
-        })}
+              {p.label} · {p.priority}
+            </span>
+          </div>
+        ))}
         {/* Empty state */}
         {HOT_ZONES.length === 0 && (
           <div style={{
@@ -318,103 +312,202 @@ function RiskRing({ value, color }) {
   );
 }
 
-// ── Incident card — tactical intel panel ─────────────────────────────
+// ── Action → tactical color encoding for the recommendation pill ─────
+const ACTION_META = {
+  TARGET_NOW:         { color: RED,    label: "Target Now",       pulse: true  },
+  HIGH_PROPERTY_RISK: { color: COPPER, label: "High Property Risk", pulse: true },
+  WATCH_ZONE:         { color: GOLD,   label: "Watch Zone",        pulse: false },
+  MONITOR:            { color: BLUE,   label: "Monitor",           pulse: false },
+  ESCALATE:           { color: PURPLE, label: "Escalate",          pulse: true  },
+  ARCHIVE:            { color: "rgba(255,255,255,0.40)", label: "Archive", pulse: false },
+};
+
+const CLUSTER_COLOR = {
+  SURGING:  RED,
+  ACTIVE:   COPPER,
+  EMERGING: GOLD,
+  ISOLATED: BLUE,
+};
+
+// ── Incident card — tactical intel panel (CrimeIncident shape) ───────
 function IncidentCard({ inc }) {
-  const sev = SEVERITY_META[inc.severity] || SEVERITY_META.MODERATE;
-  const stat = STATUS_META[inc.status] || STATUS_META.LOGGED;
-  const icon = TYPE_ICONS[inc.type] || "⚠️";
+  const sevUpper = (inc.severity || "moderate").toUpperCase();
+  const sevColor = sevUpper === "CRITICAL" ? RED
+                 : sevUpper === "HIGH"     ? COPPER
+                 : sevUpper === "MODERATE" ? GOLD
+                 : GREEN;
+  const isPulse = inc.scoring.targeting_priority >= 75;
+  const action = ACTION_META[inc.recommendation.action] || ACTION_META.MONITOR;
+  const cluster = inc.zone_impact.cluster_classification;
+  const clusterColor = CLUSTER_COLOR[cluster] || GOLD;
+  const eventLabel = inc.event_type.toUpperCase().replace("_", " ");
+  const icon = TYPE_ICONS[eventLabel.split(" ")[0]] || TYPE_ICONS[eventLabel] || "⚠️";
+  const fmtRisk = (n) => n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n);
+
   return (
     <div style={{
       position: "relative",
       padding: "16px 18px 16px 22px",
-      background: `linear-gradient(135deg, ${sev.color}10 0%, ${sev.color}02 60%, rgba(255,255,255,0.012) 100%)`,
-      border: `1px solid ${sev.color}30`,
+      background: `linear-gradient(135deg, ${sevColor}10 0%, ${sevColor}02 60%, rgba(255,255,255,0.012) 100%)`,
+      border: `1px solid ${sevColor}30`,
       borderRadius: 10,
       overflow: "hidden",
-      boxShadow: `0 6px 18px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.03), 0 0 20px ${sev.color}14`,
+      boxShadow: `0 6px 18px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.03), 0 0 20px ${sevColor}14`,
     }}>
-      {/* Severity-encoded left edge */}
+      {/* Severity-encoded left edge — pulses on high-priority */}
       <div style={{
         position: "absolute", top: 0, bottom: 0, left: 0, width: 4,
-        background: sev.color,
-        boxShadow: `0 0 14px ${sev.color}cc, 0 0 24px ${sev.color}55`,
+        background: sevColor,
+        boxShadow: `0 0 14px ${sevColor}cc, 0 0 24px ${sevColor}55`,
         pointerEvents: "none",
-        animation: sev.pulse ? "crimeEdge 2.4s ease-in-out infinite" : "none",
+        animation: isPulse ? "crimeEdge 2.4s ease-in-out infinite" : "none",
       }} />
       {/* Ambient corner glow */}
       <div style={{
         position: "absolute", top: -40, right: -40,
         width: 160, height: 160,
-        background: `radial-gradient(circle, ${sev.color}1c 0%, transparent 65%)`,
+        background: `radial-gradient(circle, ${sevColor}1c 0%, transparent 65%)`,
         pointerEvents: "none",
       }} />
-      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", gap: 14 }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          {/* Tier 1: severity chip + type */}
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 7, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {/* Tier 1: severity chip + event type + recommendation pill + risk ring */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: sevColor, padding: "2px 8px",
+            background: `${sevColor}1a`, border: `1px solid ${sevColor}55`,
+            borderRadius: 3, ...mono, textTransform: "uppercase",
+            boxShadow: isPulse ? `0 0 10px ${sevColor}40` : "none",
+          }}>
+            {isPulse && (
+              <span style={{ width: 5, height: 5, borderRadius: 3, background: sevColor, boxShadow: `0 0 5px ${sevColor}`, animation: "crimePulse 1.4s ease-in-out infinite" }} />
+            )}
+            {sevUpper}
+          </span>
+          <span style={{
+            fontSize: 16, fontWeight: 800, color: "#fff",
+            ...mono, letterSpacing: 0.5, textTransform: "uppercase",
+            textShadow: `0 0 10px ${sevColor}40`,
+          }}>{eventLabel}</span>
+          {/* Recommendation pill */}
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: action.color, padding: "2px 8px",
+            background: `${action.color}1a`, border: `1px solid ${action.color}55`,
+            borderRadius: 3, ...mono, textTransform: "uppercase",
+            boxShadow: action.pulse ? `0 0 10px ${action.color}40` : "none",
+          }}>
+            {action.pulse && (
+              <span style={{ width: 5, height: 5, borderRadius: 3, background: action.color, boxShadow: `0 0 5px ${action.color}`, animation: "crimePulse 1.4s ease-in-out infinite" }} />
+            )}
+            {action.label}
+          </span>
+          {inc._has_real_source && (
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
-              color: sev.color, padding: "2px 8px",
-              background: `${sev.color}1a`, border: `1px solid ${sev.color}55`,
-              borderRadius: 3, ...mono, textTransform: "uppercase",
-              boxShadow: sev.pulse ? `0 0 10px ${sev.color}40` : "none",
-            }}>
-              {sev.pulse && (
-                <span style={{ width: 5, height: 5, borderRadius: 3, background: sev.color, boxShadow: `0 0 5px ${sev.color}`, animation: "crimePulse 1.4s ease-in-out infinite" }} />
-              )}
-              {inc.severity}
-            </span>
-            <span style={{
-              fontSize: 16, fontWeight: 800, color: "#fff",
-              ...mono, letterSpacing: 0.5, textTransform: "uppercase",
-              textShadow: `0 0 10px ${sev.color}40`,
-            }}>{inc.type}</span>
-            <span style={{ marginLeft: "auto" }}>
-              <RiskRing value={inc.riskScore} color={sev.color} />
-            </span>
-          </div>
-          {/* Tier 2: address + neighborhood */}
+              ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.6,
+              color: GREEN, textTransform: "uppercase",
+              padding: "2px 7px",
+              background: `${GREEN}10`, border: `1px solid ${GREEN}38`,
+              borderRadius: 3,
+            }}>Live Source</span>
+          )}
+          <span style={{ marginLeft: "auto" }}>
+            <RiskRing value={inc.scoring.targeting_priority} color={sevColor} />
+          </span>
+        </div>
+
+        {/* Tier 2: address + neighborhood */}
+        {inc.location.address && (
           <div style={{
             ...mono, fontSize: 13, color: "rgba(255,255,255,0.85)",
             letterSpacing: 0.3, fontWeight: 700, marginBottom: 4,
           }}>
-            {inc.address}
+            {inc.location.address}
           </div>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6,
-          }}>
-            <span style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1.3, textTransform: "uppercase", fontWeight: 800 }}>Neighborhood</span>
-            <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.78)", letterSpacing: 0.6, fontWeight: 700 }}>
-              {inc.neighborhood} · {inc.city} · {inc.state}
-            </span>
-          </div>
-          {/* Telemetry footer */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 12, marginTop: 8,
-            ...mono, fontSize: 10, color: "rgba(255,255,255,0.40)", letterSpacing: 0.8,
-          }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-              <span style={{ width: 4, height: 4, borderRadius: 2, background: BLUE, boxShadow: `0 0 4px ${BLUE}` }} />
-              Reported {inc.hours}h ago
-            </span>
-            <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              padding: "2px 7px",
-              background: `${stat.color}10`,
-              border: `1px solid ${stat.color}38`,
-              borderRadius: 3,
-              color: stat.color, fontWeight: 800, letterSpacing: 1.2,
-              textTransform: "uppercase",
+        )}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 8,
+        }}>
+          <span style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1.3, textTransform: "uppercase", fontWeight: 800 }}>Neighborhood</span>
+          <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.78)", letterSpacing: 0.6, fontWeight: 700 }}>
+            {inc.location.neighborhood} · {inc.location.city} · {inc.location.state}
+          </span>
+        </div>
+
+        {/* Operational scoring telemetry — 4-tile inline grid */}
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6,
+          marginBottom: 8,
+        }}>
+          {[
+            { label: "Cluster",    value: cluster,                                       color: clusterColor },
+            { label: "Likelihood", value: `${inc.scoring.claim_likelihood}%`,           color: GREEN },
+            { label: "Confidence", value: `${inc.scoring.confidence}%`,                 color: BLUE },
+            { label: "At Risk",    value: fmtRisk(inc.zone_impact.properties_at_risk_est), color: COPPER },
+          ].map(m => (
+            <div key={m.label} style={{
+              position: "relative",
+              padding: "5px 8px",
+              background: `${m.color}10`,
+              border: `1px solid ${m.color}28`,
+              borderRadius: 5,
+              overflow: "hidden",
             }}>
-              {stat.pulse && (
-                <span style={{ width: 4, height: 4, borderRadius: 2, background: stat.color, boxShadow: `0 0 4px ${stat.color}`, animation: "crimePulse 1.4s ease-in-out infinite" }} />
-              )}
-              {inc.status}
-            </span>
-          </div>
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 1.5,
+                background: m.color, boxShadow: `0 0 4px ${m.color}99`, pointerEvents: "none",
+              }} />
+              <div style={{
+                ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.3,
+                color: "rgba(255,255,255,0.40)", textTransform: "uppercase",
+                marginBottom: 1,
+              }}>{m.label}</div>
+              <div style={{
+                ...mono, fontSize: 12, fontWeight: 800, color: m.color,
+                letterSpacing: 0.2, lineHeight: 1,
+                textShadow: `0 0 6px ${m.color}30`,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}>{m.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Recommendation reason */}
+        <div style={{
+          ...mono, fontSize: 11, color: "rgba(255,255,255,0.62)",
+          lineHeight: 1.55, letterSpacing: 0.2,
+          paddingTop: 8, marginTop: 6,
+          borderTop: "1px solid rgba(255,255,255,0.05)",
+        }}>
+          <span style={{
+            color: action.color, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", fontSize: 9,
+            marginRight: 6,
+          }}>Recommendation ·</span>
+          {inc.recommendation.reason}
+        </div>
+
+        {/* Telemetry footer */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap",
+          ...mono, fontSize: 10, color: "rgba(255,255,255,0.40)", letterSpacing: 0.8,
+        }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 4, height: 4, borderRadius: 2, background: BLUE, boxShadow: `0 0 4px ${BLUE}` }} />
+            Reported {inc.hours_ago}h ago
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, boxShadow: `0 0 4px ${PURPLE}` }} />
+            {inc.metrics.cluster_size} cluster · {inc.metrics.repeat_incidents_30d} repeat (30d)
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 4, height: 4, borderRadius: 2, background: GOLD, boxShadow: `0 0 4px ${GOLD}` }} />
+            Outreach {inc.zone_impact.recommended_outreach_radius_mi} mi
+          </span>
         </div>
       </div>
     </div>
@@ -466,8 +559,23 @@ function FeedTile({ feed }) {
 
 // ── Main ─────────────────────────────────────────────────────────────
 export default function CrimeIntel() {
+  const [incidents, setIncidents] = useState([]);  // CrimeIncident[]
+  const [loading, setLoading] = useState(true);
   const [tick, setTick] = useState(0);
   const mountedAt = useRef(Date.now());
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchActiveIncidents()
+      .then(d => {
+        if (cancelled) return;
+        setIncidents(Array.isArray(d) ? d : []);
+        setLoading(false);
+        mountedAt.current = Date.now();
+      })
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setTick(x => x + 1), 60000);
@@ -475,21 +583,8 @@ export default function CrimeIntel() {
   }, []);
   void tick;
 
-  // Derived ops metrics from demo data; live from `apiFetch` later.
-  const metrics = useMemo(() => {
-    const critical = DEMO_INCIDENTS.filter(i => i.severity === "CRITICAL").length;
-    const neighborhoods = new Set(DEMO_INCIDENTS.map(i => i.neighborhood)).size;
-    const avgRisk = Math.round(
-      DEMO_INCIDENTS.reduce((s, i) => s + i.riskScore, 0) / DEMO_INCIDENTS.length
-    );
-    return {
-      total: DEMO_INCIDENTS.length,
-      critical,
-      neighborhoods,
-      avgRisk,
-    };
-  }, []);
-
+  // Composite operational metrics from the scored incident list.
+  const metrics = useMemo(() => aggregateMetrics(incidents), [incidents]);
   const minutesSinceCheck = Math.floor((Date.now() - mountedAt.current) / 60000);
 
   return (
@@ -516,68 +611,107 @@ export default function CrimeIntel() {
         accent={PURPLE}
       />
 
-      {/* Operational Status strip */}
+      {/* Operational Status strip — composite intelligence metrics */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12,
         marginBottom: 22,
       }}>
         <StatusTile
           label="Active Incidents"
-          value={metrics.total}
-          sub="Sample dataset"
+          value={loading ? "…" : metrics.total}
+          sub={metrics.total === 0 ? "Feed clear" : "Threat intel feed"}
           color={metrics.total > 0 ? PURPLE : GREEN}
           pulse={metrics.total > 0}
         />
         <StatusTile
-          label="Critical Threats"
-          value={metrics.critical}
-          sub={metrics.critical > 0 ? "Immediate priority" : "All clear"}
-          color={metrics.critical > 0 ? RED : GREEN}
-          pulse={metrics.critical > 0}
+          label="Surge Clusters"
+          value={loading ? "…" : metrics.surgeClusters}
+          sub={metrics.surgeClusters > 0 ? "Active / Surging zones" : "No active clusters"}
+          color={metrics.surgeClusters > 0 ? RED : GREEN}
+          pulse={metrics.surgeClusters > 0}
         />
         <StatusTile
-          label="Neighborhoods Tracked"
-          value={metrics.neighborhoods}
-          sub="Active threat zones"
+          label="Targeting Priority"
+          value={loading ? "…" : (metrics.avgPriority || 0)}
+          sub={metrics.avgPriority >= 75 ? "Operationally urgent" : metrics.avgPriority >= 50 ? "Active monitoring" : "Standby"}
+          color={metrics.avgPriority >= 75 ? RED : metrics.avgPriority >= 50 ? COPPER : GREEN}
+        />
+        <StatusTile
+          label="Properties at Risk"
+          value={loading ? "…" : (metrics.totalAtRisk >= 1000
+            ? (metrics.totalAtRisk / 1000).toFixed(1) + "k"
+            : String(metrics.totalAtRisk))}
+          sub={`${metrics.neighborhoods} neighborhood${metrics.neighborhoods === 1 ? "" : "s"} · outreach window`}
           color={GOLD}
-        />
-        <StatusTile
-          label="Avg Risk Score"
-          value={metrics.avgRisk}
-          sub="0–100 AI scale"
-          color={metrics.avgRisk >= 80 ? RED : metrics.avgRisk >= 60 ? COPPER : GREEN}
+          pulse={metrics.totalAtRisk > 0}
         />
       </div>
 
       {/* Threat Heat Map console */}
       <div style={{ marginBottom: 22 }}>
-        <HeatMapConsole incidents={DEMO_INCIDENTS} />
+        <HeatMapConsole incidents={incidents} />
       </div>
 
       {/* Recent Incidents grid */}
       <SectionStrip
-        label={`Recent Incidents · ${DEMO_INCIDENTS.length}`}
+        label={`Recent Incidents · ${incidents.length}`}
         color={PURPLE}
         right={
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 5,
             ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
-            color: GOLD, padding: "2px 8px",
-            background: `${GOLD}10`, border: `1px solid ${GOLD}38`,
+            color: COPPER, padding: "2px 8px",
+            background: `${COPPER}10`, border: `1px solid ${COPPER}38`,
             borderRadius: 3, textTransform: "uppercase",
           }}>
-            <span style={{ width: 4, height: 4, borderRadius: 2, background: GOLD, boxShadow: `0 0 4px ${GOLD}` }} />
-            Demo Mode · Sample Incidents
+            <span style={{ width: 4, height: 4, borderRadius: 2, background: COPPER, boxShadow: `0 0 4px ${COPPER}` }} />
+            Sorted by Targeting Priority
           </span>
         }
       />
 
-      <div style={{
-        display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12,
-        marginBottom: 24,
-      }}>
-        {DEMO_INCIDENTS.map(inc => <IncidentCard key={inc.id} inc={inc} />)}
-      </div>
+      {loading ? (
+        <div style={{
+          padding: "40px 20px", textAlign: "center",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.022) 0%, rgba(255,255,255,0.005) 100%)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: 10,
+          ...mono, fontSize: 12, color: "rgba(255,255,255,0.50)",
+          letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
+          marginBottom: 24,
+        }}>
+          ● Scanning Incident Feed…
+        </div>
+      ) : incidents.length === 0 ? (
+        <div style={{
+          padding: "44px 24px", textAlign: "center", marginBottom: 24,
+          position: "relative",
+          background: `linear-gradient(180deg, ${GREEN}05 0%, rgba(255,255,255,0.005) 100%)`,
+          border: `1px solid ${GREEN}25`,
+          borderRadius: 10,
+          overflow: "hidden",
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px ${GREEN}0d`,
+        }}>
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 2,
+            background: GREEN, boxShadow: `0 0 8px ${GREEN}aa`, pointerEvents: "none",
+          }} />
+          <div style={{ fontSize: 38, marginBottom: 12 }}>🛡️</div>
+          <div style={{ ...mono, fontSize: 14, color: "rgba(255,255,255,0.78)", fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase" }}>
+            Threat Feed Clear
+          </div>
+          <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 8, letterSpacing: 0.6, lineHeight: 1.55, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+            No qualifying incidents detected. Surfacing automatically when neighborhood activity meets operational threshold.
+          </div>
+        </div>
+      ) : (
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12,
+          marginBottom: 24,
+        }}>
+          {incidents.map(inc => <IncidentCard key={inc.id} inc={inc} />)}
+        </div>
+      )}
 
       {/* Intelligence Layers */}
       <SectionStrip label="Intelligence Layers" color={BLUE} />
