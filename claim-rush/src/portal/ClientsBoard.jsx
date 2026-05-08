@@ -146,20 +146,37 @@ function FilterChip({ label, active, color, onClick }) {
   return (
     <button
       onClick={onClick}
+      onMouseEnter={active ? undefined : (e) => {
+        e.currentTarget.style.background = `${color}10`;
+        e.currentTarget.style.borderColor = `${color}40`;
+        e.currentTarget.style.color = "#fff";
+      }}
+      onMouseLeave={active ? undefined : (e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+        e.currentTarget.style.color = "rgba(255,255,255,0.55)";
+      }}
       style={{
-        padding: "8px 14px",
-        background: active ? `${color}22` : "rgba(255,255,255,0.03)",
-        border: `1px solid ${active ? color + "88" : "rgba(255,255,255,0.10)"}`,
-        borderRadius: 999,
-        color: active ? color : "rgba(255,255,255,0.70)",
-        fontSize: 12,
-        fontWeight: 700,
-        letterSpacing: 0.5,
-        cursor: "pointer",
-        transition: "all 0.15s",
-        ...mono,
+        display: "inline-flex", alignItems: "center", gap: 7,
+        padding: "6px 12px",
+        background: active ? `${color}1a` : "rgba(255,255,255,0.03)",
+        border: `1px solid ${active ? `${color}66` : "rgba(255,255,255,0.10)"}`,
+        borderRadius: 4,
+        color: active ? color : "rgba(255,255,255,0.55)",
+        fontSize: 10, fontWeight: 800, letterSpacing: 1.4,
+        textTransform: "uppercase",
+        cursor: "pointer", ...mono,
+        transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+        boxShadow: active ? `0 0 12px ${color}25, inset 0 1px 0 rgba(255,255,255,0.05)` : "none",
       }}
     >
+      <span style={{
+        width: 4, height: 4, borderRadius: 2,
+        background: color,
+        boxShadow: active ? `0 0 5px ${color}` : "none",
+        opacity: active ? 1 : 0.55,
+        display: "inline-block",
+      }} />
       {label}
     </button>
   );
@@ -168,82 +185,114 @@ function FilterChip({ label, active, color, onClick }) {
 function ClientRow({ client }) {
   const stage = stageMeta(client.stage);
   const type = typeMeta(client.claim_type);
+  const isClosed = stage.bucket === "closed";
   const locationLine = [client.city, client.state].filter(Boolean).join(", ");
 
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "auto 1fr auto auto auto",
-      alignItems: "center",
-      gap: 16,
-      padding: "14px 18px",
-      background: "rgba(255,255,255,0.02)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 10,
-    }}>
+    <div
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.borderColor = `${stage.color}55`;
+        e.currentTarget.style.background = `linear-gradient(135deg, ${stage.color}10 0%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.01) 100%)`;
+        e.currentTarget.style.boxShadow = `0 8px 22px rgba(0,0,0,0.40), 0 0 0 1px ${stage.color}28, 0 0 22px ${stage.color}1a`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+        e.currentTarget.style.background = "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)";
+        e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.28), 0 0 14px ${stage.color}10`;
+      }}
+      style={{
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr auto auto auto",
+        alignItems: "center",
+        gap: 16,
+        padding: "14px 18px 14px 22px",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 10,
+        overflow: "hidden",
+        boxShadow: `0 4px 12px rgba(0,0,0,0.28), 0 0 14px ${stage.color}10`,
+        transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
+      }}>
+      {/* Stage-encoded left edge accent */}
+      <div style={{
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+        background: stage.color,
+        boxShadow: `0 0 10px ${stage.color}80`,
+        pointerEvents: "none",
+      }} />
+
       {/* Type icon */}
       <div style={{
         width: 40, height: 40,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: `${type.color}18`,
-        border: `1px solid ${type.color}33`,
+        background: `linear-gradient(135deg, ${type.color}26 0%, ${type.color}0d 100%)`,
+        border: `1px solid ${type.color}45`,
         borderRadius: 10,
         fontSize: 20,
+        boxShadow: `0 0 14px ${type.color}25, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        flexShrink: 0,
       }}>
         {type.icon}
       </div>
 
       {/* Name + ref */}
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", ...mono, letterSpacing: 0.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {client.client_name || "(Unnamed)"}
-          <span style={{ fontWeight: 400, color: C.muted, marginLeft: 8 }}>
-            · {client.claim_number}
+          <span style={{
+            fontWeight: 700, marginLeft: 10,
+            color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", fontSize: 10,
+          }}>
+            {client.claim_number}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: C.muted, marginTop: 3, ...mono, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {client.agent_name || "Unassigned"}
-          {locationLine && <span> · {locationLine}</span>}
-          {client.carrier && <span> · {client.carrier}</span>}
+        <div style={{
+          fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 4, ...mono,
+          letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          fontWeight: 600,
+        }}>
+          {client.agent_name || "UNASSIGNED"}
+          {locationLine && <span style={{ color: "rgba(255,255,255,0.30)" }}> · {locationLine}</span>}
+          {client.carrier && <span style={{ color: "rgba(255,255,255,0.30)" }}> · {client.carrier}</span>}
         </div>
       </div>
 
       {/* Gross fee */}
       <div style={{
-        fontSize: 13, fontWeight: 700, color: stage.bucket === "closed" ? "#00E6A8" : "#fff",
-        ...mono, letterSpacing: 0.5,
+        fontSize: 14, fontWeight: 800,
+        color: isClosed ? "#00E6A8" : "#fff",
+        ...mono, letterSpacing: 0.3,
+        textShadow: isClosed ? `0 0 10px rgba(0,230,168,0.30)` : "none",
       }}>
         {formatCurrency(client.gross_fee)}
       </div>
 
       {/* Claim type pill */}
       <div style={{
-        padding: "4px 10px",
-        background: `${type.color}12`,
-        border: `1px solid ${type.color}30`,
-        borderRadius: 6,
+        padding: "3px 10px",
+        background: `${type.color}1a`,
+        border: `1px solid ${type.color}40`,
+        borderRadius: 4,
         color: type.color,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        ...mono,
+        fontSize: 9, fontWeight: 800, letterSpacing: 1.2,
+        ...mono, textTransform: "uppercase",
       }}>
         {type.label.toUpperCase()}
       </div>
 
       {/* Stage pill */}
       <div style={{
-        padding: "4px 10px",
-        background: `${stage.color}12`,
-        border: `1px solid ${stage.color}40`,
-        borderRadius: 6,
+        padding: "3px 10px",
+        background: `${stage.color}1f`,
+        borderRadius: 4,
         color: stage.color,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        ...mono,
-        minWidth: 140,
-        textAlign: "center",
+        fontSize: 9, fontWeight: 800, letterSpacing: 1.2,
+        ...mono, textTransform: "uppercase",
+        minWidth: 130, textAlign: "center",
+        boxShadow: !isClosed ? `0 0 10px ${stage.color}24` : "none",
       }}>
         {stage.label}
       </div>
@@ -252,17 +301,47 @@ function ClientRow({ client }) {
 }
 
 function EmptyState() {
+  const accent = "#C9A84C";
   return (
     <div style={{
+      position: "relative",
+      padding: "44px 28px 38px",
+      background: `linear-gradient(180deg, ${accent}05 0%, rgba(255,255,255,0.005) 100%)`,
+      border: `1px solid ${accent}25`,
+      borderRadius: 10,
+      overflow: "hidden",
       textAlign: "center",
-      padding: "60px 24px",
-      background: "rgba(255,255,255,0.02)",
-      border: "1px dashed rgba(255,255,255,0.12)",
-      borderRadius: 12,
+      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px ${accent}0d`,
     }}>
-      <div style={{ fontSize: 36, marginBottom: 12 }}>👥</div>
-      <div style={{ ...mono, fontSize: 14, color: "rgba(255,255,255,0.55)" }}>
-        No clients match this filter.
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: accent, boxShadow: `0 0 8px ${accent}aa`, pointerEvents: "none",
+      }} />
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "3px 10px", marginBottom: 16,
+        background: `${accent}10`, border: `1px solid ${accent}38`, borderRadius: 3,
+        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+        color: accent, textTransform: "uppercase",
+      }}>
+        <span style={{
+          width: 5, height: 5, borderRadius: 3,
+          background: accent, boxShadow: `0 0 6px ${accent}`,
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+        }} />
+        Awaiting Telemetry
+      </div>
+      <div style={{
+        ...mono, fontSize: 14, color: "rgba(255,255,255,0.85)", fontWeight: 800,
+        letterSpacing: 1.3, textTransform: "uppercase", marginBottom: 8,
+      }}>
+        No Clients Match This Filter
+      </div>
+      <div style={{
+        ...mono, fontSize: 11, color: "rgba(255,255,255,0.50)",
+        maxWidth: 460, margin: "0 auto", lineHeight: 1.6, letterSpacing: 0.3,
+      }}>
+        Adjust the filter or select All to view the full client base.
       </div>
     </div>
   );

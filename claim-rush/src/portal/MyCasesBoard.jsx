@@ -180,17 +180,37 @@ function FilterChip({ label, active, color, onClick }) {
   return (
     <button
       onClick={onClick}
+      onMouseEnter={active ? undefined : (e) => {
+        e.currentTarget.style.background = `${color}10`;
+        e.currentTarget.style.borderColor = `${color}40`;
+        e.currentTarget.style.color = "#fff";
+      }}
+      onMouseLeave={active ? undefined : (e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+        e.currentTarget.style.color = "rgba(255,255,255,0.55)";
+      }}
       style={{
-        padding: "8px 14px",
-        background: active ? `${color}22` : "rgba(255,255,255,0.03)",
-        border: `1px solid ${active ? color + "88" : "rgba(255,255,255,0.10)"}`,
-        borderRadius: 999,
-        color: active ? color : C.muted,
-        fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
-        cursor: "pointer", transition: "all 0.15s",
-        ...mono,
+        display: "inline-flex", alignItems: "center", gap: 7,
+        padding: "6px 12px",
+        background: active ? `${color}1a` : "rgba(255,255,255,0.03)",
+        border: `1px solid ${active ? `${color}66` : "rgba(255,255,255,0.10)"}`,
+        borderRadius: 4,
+        color: active ? color : "rgba(255,255,255,0.55)",
+        fontSize: 10, fontWeight: 800, letterSpacing: 1.4,
+        textTransform: "uppercase",
+        cursor: "pointer", ...mono,
+        transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+        boxShadow: active ? `0 0 12px ${color}25, inset 0 1px 0 rgba(255,255,255,0.05)` : "none",
       }}
     >
+      <span style={{
+        width: 4, height: 4, borderRadius: 2,
+        background: color,
+        boxShadow: active ? `0 0 5px ${color}` : "none",
+        opacity: active ? 1 : 0.55,
+        display: "inline-block",
+      }} />
       {label}
     </button>
   );
@@ -198,6 +218,7 @@ function FilterChip({ label, active, color, onClick }) {
 
 function CaseRow({ claim, onClick }) {
   const phase = phaseMeta(claim.current_phase);
+  const isClosed = phase.bucket === "closed";
   const clientName = (claim.client && (claim.client.full_name || claim.client.first_name)) || "(Unnamed)";
   const carrier = claim.insurance_company || "—";
   const loc = [
@@ -209,13 +230,26 @@ function CaseRow({ claim, onClick }) {
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.borderColor = `${phase.color}55`;
+        e.currentTarget.style.background = `linear-gradient(135deg, ${phase.color}10 0%, rgba(255,255,255,0.02) 60%, rgba(255,255,255,0.01) 100%)`;
+        e.currentTarget.style.boxShadow = `0 8px 22px rgba(0,0,0,0.40), 0 0 0 1px ${phase.color}28, 0 0 22px ${phase.color}1a`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+        e.currentTarget.style.background = "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)";
+        e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.28), 0 0 14px ${phase.color}10`;
+      }}
       style={{
+        position: "relative",
         display: "grid",
         gridTemplateColumns: "auto 1fr auto auto auto",
         alignItems: "center",
         gap: 16,
-        padding: "14px 18px",
-        background: "rgba(255,255,255,0.02)",
+        padding: "14px 18px 14px 22px",
+        background: "linear-gradient(135deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%)",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: 10,
         cursor: "pointer",
@@ -223,67 +257,88 @@ function CaseRow({ claim, onClick }) {
         font: "inherit",
         color: "inherit",
         width: "100%",
+        overflow: "hidden",
+        boxShadow: `0 4px 12px rgba(0,0,0,0.28), 0 0 14px ${phase.color}10`,
+        transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
       }}
     >
+      {/* Phase-encoded left edge accent */}
+      <div style={{
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+        background: phase.color,
+        boxShadow: `0 0 10px ${phase.color}80`,
+        pointerEvents: "none",
+      }} />
+
       {/* Ref icon */}
       <div style={{
         width: 40, height: 40,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: `${phase.color}18`,
-        border: `1px solid ${phase.color}33`,
+        background: `linear-gradient(135deg, ${phase.color}26 0%, ${phase.color}0d 100%)`,
+        border: `1px solid ${phase.color}45`,
         borderRadius: 10,
-        fontSize: 14, fontWeight: 700, color: phase.color, ...mono,
+        fontSize: 16, fontWeight: 700, color: phase.color, ...mono,
+        boxShadow: `0 0 14px ${phase.color}25, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        flexShrink: 0,
       }}>
         📄
       </div>
 
       {/* Name + ref */}
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", ...mono, letterSpacing: 0.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {clientName}
-          <span style={{ fontWeight: 400, color: C.muted, marginLeft: 8 }}>
-            · {claim.ref_string || `CLM-${claim.ref_number}`}
+          <span style={{
+            fontWeight: 700, marginLeft: 10,
+            color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", fontSize: 10,
+          }}>
+            {claim.ref_string || `CLM-${claim.ref_number}`}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: C.muted, marginTop: 3, ...mono, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{
+          fontSize: 11, color: "rgba(255,255,255,0.55)", marginTop: 4, ...mono,
+          letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          fontWeight: 600,
+        }}>
           {carrier}
-          {loc && <span> · {loc}</span>}
-          <span> · last activity {relativeTime(claim.updated_at || claim.created_at)}</span>
+          {loc && <span style={{ color: "rgba(255,255,255,0.30)" }}> · {loc}</span>}
+          <span style={{ color: "rgba(255,255,255,0.30)" }}> · last activity {relativeTime(claim.updated_at || claim.created_at)}</span>
         </div>
       </div>
 
       {/* Anticipated amount */}
       <div style={{
-        fontSize: 13, fontWeight: 700,
-        color: phase.bucket === "closed" ? "#00E6A8" : "#fff",
-        ...mono, letterSpacing: 0.5,
+        fontSize: 14, fontWeight: 800,
+        color: isClosed ? "#00E6A8" : "#fff",
+        ...mono, letterSpacing: 0.3,
+        textShadow: isClosed ? `0 0 10px rgba(0,230,168,0.30)` : "none",
       }}>
         {fmtCurrency(claim.anticipated_amount)}
       </div>
 
       {/* Peril pill */}
       <div style={{
-        padding: "4px 10px",
+        padding: "3px 10px",
         background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.14)",
-        borderRadius: 6,
-        color: C.muted,
-        fontSize: 10, fontWeight: 700, letterSpacing: 1,
-        ...mono,
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 4,
+        color: "rgba(255,255,255,0.65)",
+        fontSize: 9, fontWeight: 800, letterSpacing: 1.2,
+        ...mono, textTransform: "uppercase",
       }}>
         {(claim.peril || "—").toUpperCase()}
       </div>
 
       {/* Phase pill */}
       <div style={{
-        padding: "4px 10px",
-        background: `${phase.color}12`,
-        border: `1px solid ${phase.color}40`,
-        borderRadius: 6,
+        padding: "3px 10px",
+        background: `${phase.color}1f`,
+        borderRadius: 4,
         color: phase.color,
-        fontSize: 10, fontWeight: 700, letterSpacing: 1,
-        ...mono,
-        minWidth: 140, textAlign: "center",
+        fontSize: 9, fontWeight: 800, letterSpacing: 1.2,
+        ...mono, textTransform: "uppercase",
+        minWidth: 130, textAlign: "center",
+        boxShadow: !isClosed ? `0 0 10px ${phase.color}24` : "none",
       }}>
         {phase.label}
       </div>
@@ -442,25 +497,50 @@ function DetailRow({ label, value }) {
 
 function EmptyState({ hasAny, hasFilter }) {
   const isFilteredOut = hasAny && hasFilter;
-  const title = isFilteredOut
-    ? "No cases match this filter."
-    : "No cases assigned to you yet.";
+  const accent = "#00E6A8";
+  const title = isFilteredOut ? "No Cases Match This Filter" : "Operations Queue Clear";
   const sub = isFilteredOut
-    ? "Try a different filter or pick \"All\"."
-    : "When a claim is assigned to you, it'll appear here automatically.";
+    ? "Adjust the filter or select All to view the full case ledger."
+    : "No active cases assigned. New claim assignments appear here automatically.";
   return (
     <div style={{
+      position: "relative",
+      padding: "44px 28px 38px",
+      background: `linear-gradient(180deg, ${accent}05 0%, rgba(255,255,255,0.005) 100%)`,
+      border: `1px solid ${accent}25`,
+      borderRadius: 10,
+      overflow: "hidden",
       textAlign: "center",
-      padding: "60px 24px",
-      background: "rgba(255,255,255,0.02)",
-      border: "1px dashed rgba(255,255,255,0.14)",
-      borderRadius: 12,
+      boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px ${accent}0d`,
     }}>
-      <div style={{ fontSize: 36, marginBottom: 12 }}>{isFilteredOut ? "🔍" : "📂"}</div>
-      <div style={{ ...mono, fontSize: 14, color: C.white, fontWeight: 700, marginBottom: 6 }}>
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: accent, boxShadow: `0 0 8px ${accent}aa`, pointerEvents: "none",
+      }} />
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "3px 10px", marginBottom: 16,
+        background: `${accent}10`, border: `1px solid ${accent}38`, borderRadius: 3,
+        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+        color: accent, textTransform: "uppercase",
+      }}>
+        <span style={{
+          width: 5, height: 5, borderRadius: 3,
+          background: accent, boxShadow: `0 0 6px ${accent}`,
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+        }} />
+        Awaiting Telemetry
+      </div>
+      <div style={{
+        ...mono, fontSize: 14, color: "rgba(255,255,255,0.85)", fontWeight: 800,
+        letterSpacing: 1.3, textTransform: "uppercase", marginBottom: 8,
+      }}>
         {title}
       </div>
-      <div style={{ fontSize: 13, color: C.muted, maxWidth: 440, margin: "0 auto", lineHeight: 1.5 }}>
+      <div style={{
+        ...mono, fontSize: 11, color: "rgba(255,255,255,0.50)",
+        maxWidth: 460, margin: "0 auto", lineHeight: 1.6, letterSpacing: 0.3,
+      }}>
         {sub}
       </div>
     </div>
