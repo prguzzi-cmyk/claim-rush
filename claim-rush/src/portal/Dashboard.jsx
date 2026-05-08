@@ -1443,32 +1443,76 @@ export default function Dashboard() {
 
       <div style={{ position: "relative", zIndex: 1 }}>
 
-      {/* UPA advocacy hero — branding layer, no logic */}
+      {/* UPA Advocacy Network — cinematic intelligence band. Replaces the
+          flat purple branding bar with a real operational header. */}
       <div style={{
+        position: "relative",
         marginBottom: 22,
-        padding: "18px 22px",
-        background: "linear-gradient(135deg, rgba(168,85,247,0.10) 0%, rgba(168,85,247,0.03) 100%)",
-        border: "1px solid rgba(168,85,247,0.22)",
+        padding: "16px 22px 18px",
+        background: "linear-gradient(135deg, rgba(168,85,247,0.10) 0%, rgba(168,85,247,0.025) 60%, rgba(0,230,168,0.04) 100%)",
+        border: "1px solid rgba(168,85,247,0.30)",
         borderRadius: 10,
-        fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+        overflow: "hidden",
+        boxShadow: "0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 30px rgba(168,85,247,0.08)",
       }}>
+        {/* Top accent — purple intel-network marker */}
         <div style={{
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 2.5,
-          textTransform: "uppercase",
-          color: "#A855F7",
-          marginBottom: 6,
+          position: "absolute", top: 0, left: 0, right: 0, height: 2,
+          background: "#A855F7",
+          boxShadow: "0 0 10px rgba(168,85,247,0.85)",
+          pointerEvents: "none",
+        }} />
+        {/* Ambient corner glow */}
+        <div style={{
+          position: "absolute", top: -50, right: -50,
+          width: 200, height: 200,
+          background: "radial-gradient(circle, rgba(168,85,247,0.18) 0%, transparent 65%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "relative", zIndex: 1,
+          display: "flex", alignItems: "center", gap: 10, marginBottom: 8,
+          flexWrap: "wrap",
         }}>
-          Unified Public Advocacy Network
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontFamily: "'Courier New', monospace",
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+            textTransform: "uppercase",
+            color: "#A855F7",
+            padding: "3px 9px",
+            background: "rgba(168,85,247,0.14)",
+            border: "1px solid rgba(168,85,247,0.40)",
+            borderRadius: 3,
+            boxShadow: "0 0 10px rgba(168,85,247,0.18)",
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: 3,
+              background: "#A855F7",
+              boxShadow: "0 0 6px rgba(168,85,247,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            Intel Network · Active
+          </span>
+          <span style={{
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            fontSize: 11, fontWeight: 800, letterSpacing: 2.2,
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.85)",
+            textShadow: "0 0 14px rgba(168,85,247,0.30)",
+          }}>
+            Unified Public Advocacy Network
+          </span>
         </div>
         <div style={{
-          fontSize: 14,
-          fontWeight: 500,
-          color: "rgba(255,255,255,0.85)",
+          position: "relative", zIndex: 1,
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          fontSize: 14, fontWeight: 500,
+          color: "rgba(255,255,255,0.80)",
           lineHeight: 1.55,
+          letterSpacing: 0.2,
         }}>
-          You're managing claims through the <span style={{ color: "#fff", fontWeight: 700 }}>Unified Public Advocacy</span> network — advocating for homeowners and maximizing recovery outcomes.
+          You're managing claims through the <span style={{ color: "#fff", fontWeight: 800, textShadow: "0 0 12px rgba(168,85,247,0.40)" }}>Unified Public Advocacy</span> network — advocating for homeowners and maximizing recovery outcomes.
         </div>
       </div>
 
@@ -1480,8 +1524,30 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+      {/* Quick Launch — operational quick-launch CTAs with cinematic strip header. */}
+      <div style={{
+        marginBottom: 12,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: "#00E6A8",
+          boxShadow: "0 0 6px rgba(0,230,168,0.70)",
+          display: "inline-block",
+        }} />
+        <h3 style={{
+          ...mono, fontSize: 11, color: "rgba(255,255,255,0.65)",
+          fontWeight: 800, margin: 0, letterSpacing: 1.8,
+          textTransform: "uppercase",
+        }}>
+          Quick Launch
+        </h3>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.20) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+        }} />
+      </div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { label: "🔥 Find Leads", to: "/portal/fire-leads", color: "#00E6A8" },
           { label: "📞 Call with Marcus", to: "/portal/rin/marcus", color: "#3B82F6" },
@@ -1491,12 +1557,30 @@ export default function Dashboard() {
             key={a.to}
             onClick={() => navigate(a.to)}
             style={{
-              padding: "10px 20px", background: `${a.color}10`, border: `1px solid ${a.color}30`,
-              borderRadius: 8, color: a.color, fontSize: 13, fontWeight: 700, cursor: "pointer",
-              ...mono, letterSpacing: 0.5, transition: "all 0.15s",
+              position: "relative",
+              padding: "11px 22px",
+              background: `linear-gradient(135deg, ${a.color}14 0%, ${a.color}03 100%)`,
+              border: `1px solid ${a.color}40`,
+              borderRadius: 8,
+              color: a.color, fontSize: 13, fontWeight: 800, letterSpacing: 0.8,
+              textTransform: "uppercase",
+              cursor: "pointer", ...mono,
+              transition: "all 0.22s cubic-bezier(.4,0,.2,1)",
+              overflow: "hidden",
+              boxShadow: `0 4px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 16px ${a.color}10`,
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = `${a.color}20`; e.currentTarget.style.borderColor = `${a.color}60`; }}
-            onMouseLeave={e => { e.currentTarget.style.background = `${a.color}10`; e.currentTarget.style.borderColor = `${a.color}30`; }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.background = `linear-gradient(135deg, ${a.color}28 0%, ${a.color}08 100%)`;
+              e.currentTarget.style.borderColor = `${a.color}80`;
+              e.currentTarget.style.boxShadow = `0 8px 22px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06), 0 0 28px ${a.color}30`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = `linear-gradient(135deg, ${a.color}14 0%, ${a.color}03 100%)`;
+              e.currentTarget.style.borderColor = `${a.color}40`;
+              e.currentTarget.style.boxShadow = `0 4px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 16px ${a.color}10`;
+            }}
           >
             {a.label}
           </button>

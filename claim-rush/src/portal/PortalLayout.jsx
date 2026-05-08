@@ -61,46 +61,100 @@ const TICKER_ITEMS = [
 function LiveTicker() {
   return (
     <div style={{
-      background: "linear-gradient(90deg, #0D1526 0%, #111B30 50%, #0D1526 100%)",
-      borderBottom: "1px solid rgba(255,255,255,0.08)",
-      padding: "12px 0",
+      position: "relative",
+      background: "linear-gradient(90deg, #0B1220 0%, #0F1A2E 50%, #0B1220 100%)",
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      padding: "10px 0",
       overflow: "hidden",
       whiteSpace: "nowrap",
-      position: "relative",
+      boxShadow: "inset 0 1px 0 rgba(0,230,168,0.06)",
     }}>
-      {/* Left fade */}
-      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(90deg, #0D1526 0%, transparent 100%)", zIndex: 2 }} />
+      {/* Top edge accent — subtle green line marks this as live system telemetry */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 1,
+        background: "linear-gradient(90deg, transparent 0%, rgba(0,230,168,0.30) 30%, rgba(0,230,168,0.20) 70%, transparent 100%)",
+        boxShadow: "0 0 6px rgba(0,230,168,0.20)",
+        pointerEvents: "none",
+      }} />
+      {/* LIVE prefix marker — fixed position on the left */}
+      <div style={{
+        position: "absolute", left: 14, top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 3,
+        display: "flex", alignItems: "center", gap: 6,
+        padding: "3px 9px",
+        background: "linear-gradient(90deg, rgba(11,18,32,1) 0%, rgba(11,18,32,0.95) 100%)",
+        border: "1px solid rgba(0,230,168,0.30)",
+        borderRadius: 3,
+        boxShadow: "0 0 10px rgba(0,230,168,0.18)",
+      }}>
+        <span style={{
+          width: 5, height: 5, borderRadius: 3,
+          background: "#00E6A8",
+          boxShadow: "0 0 6px rgba(0,230,168,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <span style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+          color: "#00E6A8", textTransform: "uppercase",
+          fontFamily: "'Courier New', monospace",
+        }}>
+          Live · Telemetry
+        </span>
+      </div>
+      {/* Left fade — pushed right to clear the LIVE marker */}
+      <div style={{ position: "absolute", left: 130, top: 0, bottom: 0, width: 40, background: "linear-gradient(90deg, #0B1220 0%, transparent 100%)", zIndex: 2 }} />
       {/* Right fade */}
-      <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(270deg, #0D1526 0%, transparent 100%)", zIndex: 2 }} />
+      <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 40, background: "linear-gradient(270deg, #0B1220 0%, transparent 100%)", zIndex: 2 }} />
 
       <div style={{
         display: "inline-flex",
-        gap: 12,
+        gap: 14,
         animation: "ticker-scroll 50s linear infinite",
         paddingLeft: "100%",
       }}>
         {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
           <span key={i} style={{
-            fontSize: 13,
-            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.7)",
+            fontSize: 12,
+            fontFamily: "'Courier New', monospace",
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.78)",
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            gap: 7,
             flexShrink: 0,
             cursor: "pointer",
-            padding: "4px 8px",
+            padding: "3px 8px",
             borderRadius: 4,
-            transition: "background 0.15s",
+            transition: "all 0.18s",
+            letterSpacing: 0.5,
           }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
-            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = `${item.color}10`;
+              e.currentTarget.style.boxShadow = `0 0 10px ${item.color}25`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           >
-            <span style={{ fontSize: 15 }}>{item.icon}</span>
-            <span style={{ color: item.color, fontWeight: 600 }}>{item.text}</span>
-            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>{item.time}</span>
-            <span style={{ color: "rgba(255,255,255,0.08)", fontSize: 16, margin: "0 4px", fontWeight: 300 }}>|</span>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: item.color,
+              boxShadow: `0 0 6px ${item.color}aa`,
+              display: "inline-block", flexShrink: 0,
+            }} />
+            <span style={{ color: item.color, fontWeight: 800, letterSpacing: 1.1, textTransform: "uppercase", fontSize: 11 }}>{item.text}</span>
+            <span style={{
+              color: "rgba(255,255,255,0.55)", fontSize: 10,
+              fontWeight: 700, letterSpacing: 0.8,
+              padding: "1px 6px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 2,
+            }}>{item.time.toUpperCase()}</span>
+            <span style={{ color: "rgba(255,255,255,0.10)", fontSize: 14, marginLeft: 4, fontWeight: 300 }}>·</span>
           </span>
         ))}
       </div>
@@ -585,39 +639,61 @@ function PortalInner() {
         display: "flex",
         flexDirection: "column",
       }}>
-        {/* Top bar with UPA branding + user menu */}
+        {/* Top operational bar — cinematic command-bar identity strip.
+            Sticky, with sub-pixel green edge accent + system online dot. */}
         <div style={{
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          padding: "8px 24px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(10,16,32,0.8)",
-          backdropFilter: "blur(8px)",
           position: "sticky", top: 0, zIndex: 40,
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "9px 24px",
+          background: "linear-gradient(90deg, rgba(10,16,32,0.92) 0%, rgba(13,21,40,0.94) 50%, rgba(10,16,32,0.92) 100%)",
+          borderBottom: "1px solid rgba(0,230,168,0.10)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.3)",
         }}>
-          <span style={{
-            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: 1.5,
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.55)",
-          }}>
-            Powered by <span style={{ color: "rgba(255,255,255,0.85)", fontWeight: 700 }}>Unified Public Advocacy</span>
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontFamily: "'Courier New', monospace",
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: "#00E6A8",
+              padding: "3px 9px",
+              background: "rgba(0,230,168,0.08)",
+              border: "1px solid rgba(0,230,168,0.30)",
+              borderRadius: 3,
+            }}>
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: "#00E6A8",
+                boxShadow: "0 0 6px rgba(0,230,168,0.85)",
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
+                display: "inline-block",
+              }} />
+              UPA Network · Online
+            </span>
             <span style={{
               fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: 1.2,
+              fontSize: 11, fontWeight: 600, letterSpacing: 1.4,
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
-              padding: "4px 10px",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 4,
-              whiteSpace: "nowrap",
+              color: "rgba(255,255,255,0.60)",
             }}>
-              ACI Adjustment Group · Licensed Operator
+              Powered by <span style={{ color: "#fff", fontWeight: 800, textShadow: "0 0 12px rgba(0,230,168,0.20)" }}>Unified Public Advocacy</span>
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{
+              fontFamily: "'Courier New', monospace",
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: C.gold,
+              padding: "3px 9px",
+              background: `${C.gold}10`,
+              border: `1px solid ${C.gold}38`,
+              borderRadius: 3,
+              whiteSpace: "nowrap",
+              boxShadow: `0 0 10px ${C.gold}18`,
+            }}>
+              ACI · Licensed Operator
             </span>
             <UserMenu />
           </div>
