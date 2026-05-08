@@ -348,132 +348,320 @@ function CaseRow({ claim, onClick }) {
 
 function CaseDetail({ claim, onClose }) {
   const phase = phaseMeta(claim.current_phase);
+  const isClosed = phase.bucket === "closed";
   const clientName = (claim.client && (claim.client.full_name || claim.client.first_name)) || "(Unnamed)";
+  const claimRef = claim.ref_string || `CLM-${claim.ref_number}`;
+  const fmtName = (u) => u ? `${u.first_name || ""} ${u.last_name || ""}`.trim() : null;
 
   return (
     <div
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)",
+        background: "rgba(0,0,0,0.62)", backdropFilter: "blur(4px)",
         display: "flex", justifyContent: "flex-end",
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width: "min(540px, 100%)",
+          position: "relative",
+          width: "min(580px, 100%)",
           height: "100%",
-          background: C.panel,
-          borderLeft: "1px solid rgba(255,255,255,0.14)",
-          padding: "28px 28px 60px",
+          background: "linear-gradient(180deg, #131A2E 0%, #0B121F 100%)",
+          borderLeft: `1px solid ${phase.color}38`,
           overflowY: "auto",
           color: "#fff",
           ...mono,
+          boxShadow: `-24px 0 60px rgba(0,0,0,0.65), 0 0 80px ${phase.color}1a, inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            position: "absolute", top: 16, right: 18,
-            background: "transparent", border: "none",
-            color: C.muted, fontSize: 22, cursor: "pointer",
-            ...mono,
-          }}
-        >×</button>
-
-        <div style={{ fontSize: 11, color: C.muted, letterSpacing: 1, marginBottom: 6 }}>
-          CLAIM · {claim.ref_string || `CLM-${claim.ref_number}`}
-        </div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 6px", color: "#fff" }}>
-          {clientName}
-        </h2>
+        {/* Phase-encoded top accent — claim's operational status as the
+            first thing the operator sees on the slide-over. */}
         <div style={{
-          display: "inline-block",
-          padding: "4px 12px",
-          background: `${phase.color}12`,
-          border: `1px solid ${phase.color}40`,
-          borderRadius: 6,
-          color: phase.color,
-          fontSize: 10, fontWeight: 700, letterSpacing: 1,
-          marginBottom: 24,
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: phase.color,
+          boxShadow: `0 0 12px ${phase.color}cc`,
+          pointerEvents: "none",
+          zIndex: 2,
+        }} />
+        {/* Ambient corner wash */}
+        <div style={{
+          position: "absolute", top: -60, right: -60,
+          width: 240, height: 240,
+          background: `radial-gradient(circle, ${phase.color}1c 0%, transparent 65%)`,
+          pointerEvents: "none",
+          zIndex: 0,
+        }} />
+
+        {/* Identity strip — OPS PANEL kicker + close */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "16px 26px 12px",
+          background: "rgba(255,255,255,0.022)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}>
-          {phase.label}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "3px 9px",
+              background: `${phase.color}14`,
+              border: `1px solid ${phase.color}45`,
+              borderRadius: 3,
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              color: phase.color, ...mono, textTransform: "uppercase",
+              boxShadow: `0 0 10px ${phase.color}25`,
+            }}>
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: phase.color, boxShadow: `0 0 6px ${phase.color}`,
+                animation: !isClosed ? "liveDotPulse 1.6s ease-in-out infinite" : "none",
+              }} />
+              Claim Ops · Monitoring
+            </span>
+            <span style={{
+              ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+              textTransform: "uppercase", color: "rgba(255,255,255,0.45)",
+              padding: "2px 7px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: 3,
+            }}>OPS PANEL</span>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              background: "none", border: "none",
+              color: "rgba(255,255,255,0.55)",
+              fontSize: 18, cursor: "pointer", lineHeight: 1,
+              padding: "2px 6px",
+              ...mono,
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
+          >×</button>
         </div>
 
-        <DetailGrid title="CARRIER">
-          <DetailRow label="Insurance company" value={claim.insurance_company} />
-          <DetailRow label="Policy #"           value={claim.policy_number} />
-          <DetailRow label="Claim # (carrier)"  value={claim.claim_number} />
-          <DetailRow label="Policy type"        value={claim.policy_type_name || claim.policy_type} />
-        </DetailGrid>
-
-        <DetailGrid title="LOSS">
-          <DetailRow label="Peril"      value={claim.peril} />
-          <DetailRow label="Loss date"  value={fmtDate(claim.loss_date)} />
-          <DetailRow label="Address"    value={claim.claim_contact?.address_loss} />
-          <DetailRow label="City"       value={claim.claim_contact?.city_loss} />
-          <DetailRow label="State"      value={claim.claim_contact?.state_loss} />
-          <DetailRow label="Zip"        value={claim.claim_contact?.zip_code_loss} />
-          <DetailRow label="Inhabitable"        value={claim.inhabitable === true ? "Yes" : claim.inhabitable === false ? "No" : null} />
-          <DetailRow label="State of emergency" value={claim.state_of_emergency === true ? "Yes" : claim.state_of_emergency === false ? "No" : null} />
-        </DetailGrid>
-
-        <DetailGrid title="VALUE">
-          <DetailRow label="Anticipated amount" value={fmtCurrency(claim.anticipated_amount)} />
-          <DetailRow label="Fee"                value={claim.fee != null ? `${claim.fee}${claim.fee_type === 'percent' ? '%' : ''}` : null} />
-          <DetailRow label="Prior carrier paid" value={fmtCurrency(claim.prior_carrier_payments)} />
-        </DetailGrid>
-
-        <DetailGrid title="TIMELINE">
-          <DetailRow label="Created"       value={fmtDate(claim.created_at)} />
-          <DetailRow label="Last activity" value={fmtDate(claim.updated_at || claim.created_at)} />
-          <DetailRow label="Date logged"   value={fmtDate(claim.date_logged)} />
-          <DetailRow label="Contract sign" value={fmtDate(claim.contract_sign_date)} />
-        </DetailGrid>
-
-        <DetailGrid title="OWNERSHIP">
-          <DetailRow label="Assigned to" value={claim.assigned_user
-            ? `${claim.assigned_user.first_name || ""} ${claim.assigned_user.last_name || ""}`.trim()
-            : null} />
-          <DetailRow label="Signed by"   value={claim.signed_by_user
-            ? `${claim.signed_by_user.first_name || ""} ${claim.signed_by_user.last_name || ""}`.trim()
-            : null} />
-          <DetailRow label="Adjusted by" value={claim.adjusted_by_user
-            ? `${claim.adjusted_by_user.first_name || ""} ${claim.adjusted_by_user.last_name || ""}`.trim()
-            : null} />
-        </DetailGrid>
-
-        {claim.instructions_or_notes && (
-          <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1, marginBottom: 6 }}>NOTES</div>
-            <div style={{
-              fontSize: 13, lineHeight: 1.55, color: "#fff",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.10)",
-              padding: 12, borderRadius: 8, whiteSpace: "pre-wrap",
-            }}>
-              {claim.instructions_or_notes}
-            </div>
+        {/* Hero block — claim ref + client + phase */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          padding: "20px 26px 18px",
+        }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+            textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
+            marginBottom: 8,
+          }}>
+            <span style={{
+              width: 4, height: 4, borderRadius: 2,
+              background: phase.color, boxShadow: `0 0 5px ${phase.color}`,
+            }} />
+            Claim · {claimRef}
           </div>
-        )}
+          <div style={{
+            ...mono, fontSize: 24, fontWeight: 800, color: "#fff",
+            margin: 0, lineHeight: 1.15,
+            letterSpacing: 0.3, textTransform: "uppercase",
+            textShadow: `0 0 18px ${phase.color}28`,
+          }}>
+            {clientName}
+          </div>
+          <div style={{
+            marginTop: 10,
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 10px",
+            background: `${phase.color}1f`,
+            borderRadius: 4,
+            color: phase.color,
+            fontSize: 10, fontWeight: 800, letterSpacing: 1.2,
+            ...mono, textTransform: "uppercase",
+            boxShadow: !isClosed ? `0 0 10px ${phase.color}28` : "none",
+          }}>
+            {phase.label}
+          </div>
+        </div>
+
+        {/* Financial hero — Anticipated Recovery + fee + prior carrier payments */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          margin: "0 26px 22px",
+          padding: "16px 18px",
+          background: `linear-gradient(135deg, rgba(0,230,168,0.10) 0%, rgba(0,230,168,0.02) 60%, rgba(255,255,255,0.012) 100%)`,
+          border: `1px solid rgba(0,230,168,0.30)`,
+          borderRadius: 10,
+          overflow: "hidden",
+          boxShadow: `0 6px 20px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px rgba(0,230,168,0.10)`,
+        }}>
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 2,
+            background: "#00E6A8", boxShadow: `0 0 8px rgba(0,230,168,0.85)`, pointerEvents: "none",
+          }} />
+          <div style={{
+            display: "flex", alignItems: "center", gap: 7, marginBottom: 10,
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: `0 0 6px rgba(0,230,168,0.85)`,
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+              display: "inline-block",
+            }} />
+            <span style={{
+              ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              color: "rgba(255,255,255,0.55)", textTransform: "uppercase",
+            }}>
+              Financial Intelligence · Anticipated Recovery
+            </span>
+          </div>
+          <div style={{
+            ...mono, fontSize: 28, fontWeight: 800, color: "#00E6A8",
+            letterSpacing: -0.3, lineHeight: 1.05,
+            textShadow: `0 0 18px rgba(0,230,168,0.40), 0 0 6px rgba(0,230,168,0.25)`,
+            marginBottom: 8,
+          }}>
+            {fmtCurrency(claim.anticipated_amount)}
+          </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+            ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)",
+            letterSpacing: 1.1, textTransform: "uppercase", fontWeight: 700,
+          }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: C.gold, boxShadow: `0 0 4px ${C.gold}` }} />
+              Fee · <span style={{ color: "#fff", marginLeft: 2, letterSpacing: 0.3 }}>{claim.fee != null ? `${claim.fee}${claim.fee_type === 'percent' ? '%' : ''}` : "—"}</span>
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: "#3B82F6", boxShadow: `0 0 4px #3B82F6` }} />
+              Prior Paid · <span style={{ color: "#fff", marginLeft: 2, letterSpacing: 0.3 }}>{fmtCurrency(claim.prior_carrier_payments)}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Body sections — cinematic SectionPanel-style containers */}
+        <div style={{ position: "relative", zIndex: 1, padding: "0 26px 60px" }}>
+          <DetailGrid title="Carrier" accent="#3B82F6">
+            <DetailRow label="Insurance Company" value={claim.insurance_company} />
+            <DetailRow label="Policy #"           value={claim.policy_number} />
+            <DetailRow label="Claim # (Carrier)"  value={claim.claim_number} />
+            <DetailRow label="Policy Type"        value={claim.policy_type_name || claim.policy_type} />
+          </DetailGrid>
+
+          <DetailGrid title="Loss" accent="#E05050">
+            <DetailRow label="Peril"      value={claim.peril} />
+            <DetailRow label="Loss Date"  value={fmtDate(claim.loss_date)} />
+            <DetailRow label="Address"    value={claim.claim_contact?.address_loss} />
+            <DetailRow label="City"       value={claim.claim_contact?.city_loss} />
+            <DetailRow label="State"      value={claim.claim_contact?.state_loss} />
+            <DetailRow label="Zip"        value={claim.claim_contact?.zip_code_loss} />
+            <DetailRow label="Inhabitable"        value={claim.inhabitable === true ? "Yes" : claim.inhabitable === false ? "No" : null} />
+            <DetailRow label="State of Emergency" value={claim.state_of_emergency === true ? "Yes" : claim.state_of_emergency === false ? "No" : null} />
+          </DetailGrid>
+
+          <DetailGrid title="Timeline" accent="#A855F7">
+            <DetailRow label="Created"       value={fmtDate(claim.created_at)} />
+            <DetailRow label="Last Activity" value={fmtDate(claim.updated_at || claim.created_at)} />
+            <DetailRow label="Date Logged"   value={fmtDate(claim.date_logged)} />
+            <DetailRow label="Contract Sign" value={fmtDate(claim.contract_sign_date)} />
+          </DetailGrid>
+
+          <DetailGrid title="Ownership" accent="#C9A84C">
+            <DetailRow label="Assigned To" value={fmtName(claim.assigned_user)} />
+            <DetailRow label="Signed By"   value={fmtName(claim.signed_by_user)} />
+            <DetailRow label="Adjusted By" value={fmtName(claim.adjusted_by_user)} />
+          </DetailGrid>
+
+          {claim.instructions_or_notes && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, marginBottom: 10,
+              }}>
+                <span style={{
+                  width: 5, height: 5, borderRadius: 3,
+                  background: "#FF6D00",
+                  boxShadow: `0 0 5px rgba(255,109,0,0.70)`,
+                  display: "inline-block",
+                }} />
+                <span style={{
+                  ...mono, fontSize: 10, color: "rgba(255,255,255,0.70)",
+                  fontWeight: 800, letterSpacing: 1.6,
+                  textTransform: "uppercase",
+                }}>
+                  Notes
+                </span>
+                <span style={{
+                  flex: 1, height: 1,
+                  background: "linear-gradient(90deg, rgba(255,109,0,0.20) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+                }} />
+              </div>
+              <div style={{
+                position: "relative",
+                fontSize: 12, lineHeight: 1.6, color: "rgba(255,255,255,0.85)",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                padding: "12px 14px 14px",
+                borderRadius: 8,
+                whiteSpace: "pre-wrap",
+                ...mono, letterSpacing: 0.2,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04)",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  position: "absolute", top: 0, left: 0, bottom: 0, width: 2,
+                  background: "#FF6D00",
+                  boxShadow: "0 0 6px rgba(255,109,0,0.65)",
+                  pointerEvents: "none",
+                }} />
+                <div style={{ paddingLeft: 6 }}>
+                  {claim.instructions_or_notes}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function DetailGrid({ title, children }) {
+function DetailGrid({ title, accent = "#00E6A8", children }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 10, color: C.muted, letterSpacing: 1, marginBottom: 8 }}>{title}</div>
+    <div style={{ marginBottom: 18 }}>
+      {/* Cinematic section header strip */}
       <div style={{
+        display: "flex", alignItems: "center", gap: 8, marginBottom: 10,
+      }}>
+        <span style={{
+          width: 5, height: 5, borderRadius: 3,
+          background: accent,
+          boxShadow: `0 0 6px ${accent}cc`,
+          display: "inline-block",
+        }} />
+        <span style={{
+          ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
+          color: "rgba(255,255,255,0.78)", textTransform: "uppercase",
+        }}>
+          {title}
+        </span>
+        <span style={{
+          flex: 1, height: 1,
+          background: `linear-gradient(90deg, ${accent}28 0%, rgba(255,255,255,0.04) 60%, transparent 100%)`,
+        }} />
+      </div>
+      {/* Body — cinematic panel container */}
+      <div style={{
+        position: "relative",
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
         gap: 8,
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.10)",
+        background: "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%)",
+        border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: 8,
-        padding: "12px 14px",
+        padding: "14px 16px",
+        boxShadow: `0 4px 12px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 14px ${accent}0d`,
       }}>
         {children}
       </div>
@@ -482,11 +670,18 @@ function DetailGrid({ title, children }) {
 }
 
 function DetailRow({ label, value }) {
+  const isEmpty = !value;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-      <div style={{ fontSize: 10, color: C.muted, letterSpacing: 0.5 }}>{label}</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
       <div style={{
-        fontSize: 12, color: value ? "#fff" : C.muted,
+        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.40)",
+      }}>{label}</div>
+      <div style={{
+        ...mono, fontSize: 12, fontWeight: 700,
+        color: isEmpty ? "rgba(255,255,255,0.30)" : "rgba(255,255,255,0.92)",
+        letterSpacing: 0.3,
         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
       }}>
         {value || "—"}
