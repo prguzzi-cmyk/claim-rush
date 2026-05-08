@@ -855,7 +855,12 @@ function LeadDetailPanel({ lead, onClose }) {
     setRefreshing(true);
     const [leadRes, traceRes] = await Promise.allSettled([
       apiJson(`/leads/${lead.id}`),
-      apiJson(`/leads/${lead.id}/skip-trace`),
+      // GET /v1/leads/{id}/skip-trace not yet in production backend (404).
+      // Existing fallbacks already handle a null trace (Owner Contact panel
+      // shows "no contact data yet" hint, phone/owner fall back to
+      // detail.contact). Re-enable when backend ships:
+      //   apiJson(`/leads/${lead.id}/skip-trace`)
+      Promise.resolve(null),
     ]);
     const newDetail = leadRes.status === "fulfilled" ? leadRes.value : null;
     const newTrace = traceRes.status === "fulfilled" ? traceRes.value : null;
