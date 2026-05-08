@@ -25,11 +25,12 @@ const items = {
   managerOversight:{ to: "/portal/oversight",           label: "Oversight Queue",     icon: "\u{1F441}️", page: "oversight" },
   myCases:         { to: "/portal/my-cases",            label: "My Cases",            icon: "\u{1F4C2}" },
 
-  // ── FIND LEADS ──
-  fireLeads:       { to: "/portal/fire-leads",           label: "Fire Leads",          icon: "\u{1F525}", page: "fire-leads" },
-  waterLeads:      { to: "/portal/rin/water-leads",      label: "Water Leads",         icon: "\u{1F4A7}", rinRoute: "/app/fire-leads", rinQuery: "peril=flood" },
-  stormIntel:      { to: "/portal/rin/storm-intel",      label: "Storm Intel",         icon: "\u26C8\uFE0F", rinRoute: "/app/storm-intelligence", page: "storm-intel" },
-  roofIntel:       { to: "/portal/rin/roof-intel",       label: "Roof Intel",          icon: "\u{1F3E0}", rinRoute: "/app/roof-intelligence" },
+  // ── INTELLIGENCE NETWORK ── operational accent color per module
+  fireLeads:       { to: "/portal/fire-leads",           label: "Fire Leads",          icon: "\u{1F525}", page: "fire-leads", accent: "#00E6A8", sub: "Active Threat Feed" },
+  waterLeads:      { to: "/portal/rin/water-leads",      label: "Water Leads",         icon: "\u{1F4A7}", rinRoute: "/app/fire-leads", rinQuery: "peril=flood", accent: "#3B82F6" },
+  stormIntel:      { to: "/portal/storm-intel",          label: "Storm Intel",         icon: "\u26C8\uFE0F", accent: "#E05050", sub: "National Monitoring" },
+  roofIntel:       { to: "/portal/roof-intel",           label: "Roof Intel",          icon: "\u{1F6F0}\uFE0F", accent: "#FF6D00", sub: "Satellite Targeting" },
+  crimeIntel:      { to: "/portal/crime-intel",          label: "Crime Intel",         icon: "\u{1F6E1}\uFE0F", accent: "#A855F7", sub: "Threat Intelligence" },
 
   // ── WORK LEADS (The ACI Team) ──
   marcus:          { to: "/portal/rin/marcus",           label: "Marcus",              sub: "Outbound Caller",     icon: "\u{1F4DE}", rinRoute: "/app/voice-outreach" },
@@ -74,7 +75,7 @@ const items = {
 // them until the seminar service ships.
 export const AGENT_NAV = [
   { group: null, items: [items.dashboard] },
-  { group: "FIND LEADS",  items: [items.fireLeads] },
+  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -83,7 +84,7 @@ export const AGENT_NAV = [
 // Same delivery-clean pass as AGENT — placeholders removed, oversight kept.
 export const RVP_NAV = [
   { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "FIND LEADS",  items: [items.fireLeads] },
+  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -93,7 +94,7 @@ export const RVP_NAV = [
 // built native pages). Placeholders + SEMINARS removed.
 export const CP_NAV = [
   { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "FIND LEADS",  items: [items.fireLeads] },
+  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
   { group: "CLOSE",       items: [items.pitchMode] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
@@ -119,7 +120,7 @@ export const ADJUSTER_NAV = [
 // ── HOME OFFICE ─────────────────────────────────────────────────────────────
 export const HOME_OFFICE_NAV = [
   { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "LEADS", items: [items.fireLeads, items.waterLeads, items.stormIntel, items.roofIntel] },
+  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.waterLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
   { group: "THE ACI TEAM", items: [items.marcus, items.victoria, items.sophia, items.aciLegal] },
   { group: "OUTREACH", items: [items.communityOut, items.campaigns] },
   { group: "CLIENTS", items: [items.myClients, items.signClient] },

@@ -128,6 +128,7 @@ export default function App() {
         <Route path="seminar-training" element={<SeminarTraining />} />
         <Route path="my-seminars" element={<MySeminars />} />
         <Route path="storm-alerts" element={<StormAlerts />} />
+        <Route path="storm-intel"  element={<StormAlerts />} />
         <Route path="roof-intel"   element={<RoofIntel />} />
         <Route path="crime-intel"  element={<CrimeIntel />} />
         <Route path="profile" element={<ProfilePage />} />

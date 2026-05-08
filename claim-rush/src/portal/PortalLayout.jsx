@@ -360,46 +360,84 @@ function PortalInner() {
                   }} />
                 </div>
               )}
-              {group.items.map(item => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className="nav-item-hover"
-                  style={({ isActive }) => ({
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "11px 16px",
-                    borderRadius: "0 8px 8px 0",
-                    textDecoration: "none",
-                    fontSize: isActive ? 14 : 13,
-                    fontWeight: isActive ? 700 : 500,
-                    letterSpacing: 0.5,
-                    color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
-                    background: isActive
-                      ? "linear-gradient(90deg, rgba(0,230,168,0.12) 0%, rgba(0,230,168,0.02) 60%, transparent 100%)"
-                      : "var(--nv-bg, transparent)",
-                    borderLeft: isActive ? "4px solid #00E6A8" : "4px solid transparent",
-                    borderTop: "0px solid transparent", borderBottom: "0px solid transparent", borderRight: "0px solid transparent",
-                    boxShadow: isActive
-                      ? "0 0 24px rgba(0,230,168,0.20), inset 0 1px 0 rgba(255,255,255,0.06), inset 4px 0 12px rgba(0,230,168,0.10)"
-                      : "none",
-                    transition: "all 0.2s ease",
-                    cursor: "pointer",
-                    fontFamily: "'Courier New', monospace",
-                    textShadow: isActive ? "0 0 10px rgba(0,230,168,0.35)" : "none",
-                  })}
-                >
-                  <span style={{ fontSize: 16, filter: "drop-shadow(0 0 4px rgba(255,255,255,0.10))" }}>{item.icon}</span>
-                  <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
-                    <span>{item.label}</span>
-                    {item.sub && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, fontWeight: 500 }}>{item.sub}</span>}
-                  </span>
-                  {item.readonly && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.30)", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 3 }}>VIEW</span>}
-                  {item.comingSoon && <span style={{ fontSize: 8, color: "#A855F7", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.35)", borderRadius: 3 }}>SOON</span>}
-                </NavLink>
-              ))}
+              {group.items.map(item => {
+                // Per-item operational accent (intelligence modules carry their
+                // own color identity; nav items without an accent fall back to
+                // the platform green).
+                const accent = item.accent || "#00E6A8";
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className="nav-item-hover"
+                    style={({ isActive }) => ({
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "11px 16px",
+                      borderRadius: "0 8px 8px 0",
+                      textDecoration: "none",
+                      fontSize: isActive ? 14 : 13,
+                      fontWeight: isActive ? 700 : 500,
+                      letterSpacing: 0.5,
+                      color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                      background: isActive
+                        ? `linear-gradient(90deg, ${accent}1f 0%, ${accent}05 60%, transparent 100%)`
+                        : "var(--nv-bg, transparent)",
+                      borderLeft: isActive ? `4px solid ${accent}` : "4px solid transparent",
+                      borderTop: "0px solid transparent", borderBottom: "0px solid transparent", borderRight: "0px solid transparent",
+                      boxShadow: isActive
+                        ? `0 0 24px ${accent}33, inset 0 1px 0 rgba(255,255,255,0.06), inset 4px 0 12px ${accent}1a`
+                        : "none",
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                      fontFamily: "'Courier New', monospace",
+                      textShadow: isActive ? `0 0 10px ${accent}59` : "none",
+                    })}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span style={{
+                          fontSize: 16,
+                          filter: isActive
+                            ? `drop-shadow(0 0 6px ${accent}aa)`
+                            : "drop-shadow(0 0 4px rgba(255,255,255,0.10))",
+                          transition: "filter 0.2s ease",
+                        }}>{item.icon}</span>
+                        <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
+                          <span>{item.label}</span>
+                          {item.sub && (
+                            <span style={{
+                              fontSize: 9,
+                              color: isActive ? `${accent}cc` : "rgba(255,255,255,0.35)",
+                              letterSpacing: 1.2, fontWeight: 700,
+                              textTransform: "uppercase",
+                              transition: "color 0.2s ease",
+                            }}>
+                              {item.sub}
+                            </span>
+                          )}
+                        </span>
+                        {item.readonly && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.30)", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 3 }}>VIEW</span>}
+                        {item.comingSoon && <span style={{ fontSize: 8, color: "#A855F7", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.35)", borderRadius: 3 }}>SOON</span>}
+                        {/* Active live-pulse dot — uses the item accent so each
+                            intel route shows its own operational color when current. */}
+                        {isActive && !item.readonly && !item.comingSoon && (
+                          <span style={{
+                            marginLeft: "auto",
+                            width: 6, height: 6, borderRadius: 3,
+                            background: accent,
+                            boxShadow: `0 0 8px ${accent}, 0 0 14px ${accent}66`,
+                            animation: "liveDotPulse 1.6s ease-in-out infinite",
+                            display: "inline-block",
+                          }} />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
           ))}
 
