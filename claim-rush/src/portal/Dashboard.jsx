@@ -290,25 +290,133 @@ function AgentDash({ navigate }) {
 
   return (
     <>
-      {/* Identity header */}
-      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(42,112,208,0.08) 0%, rgba(42,112,208,0.02) 100%)", border: "1px solid rgba(42,112,208,0.18)", borderRadius: 12 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.blue, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", textShadow: "0 0 20px rgba(42,112,208,0.3)" }}>
-          LICENSED AGENT
+      {/* Identity hero — cinematic blue treatment for licensed agent. */}
+      <div style={{
+        position: "relative",
+        marginBottom: 28,
+        padding: "30px 30px 28px",
+        background: "linear-gradient(135deg, rgba(42,112,208,0.10) 0%, rgba(42,112,208,0.015) 60%, rgba(0,230,168,0.04) 100%)",
+        border: "1px solid rgba(42,112,208,0.25)",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 60px rgba(42,112,208,0.10)",
+      }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: C.blue,
+          boxShadow: `0 0 12px ${C.blue}aa`,
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", top: -80, right: -80,
+          width: 280, height: 280,
+          background: `radial-gradient(circle, ${C.blue}1f 0%, transparent 60%)`,
+          pointerEvents: "none",
+          opacity: 0.7,
+        }} />
+
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+          flexWrap: "wrap",
+        }}>
+          <div style={{
+            fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.blue,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            textShadow: `0 0 24px ${C.blue}55, 0 0 8px ${C.blue}30`,
+          }}>
+            LICENSED AGENT
+          </div>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 9px",
+            background: "rgba(0,230,168,0.10)",
+            border: "1px solid rgba(0,230,168,0.32)",
+            borderRadius: 4,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: "#00E6A8", ...mono,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            FIELD OPS · LIVE
+          </span>
         </div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6, fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: 0.5, lineHeight: 1.2, marginTop: 10 }}>
+        <div style={{
+          position: "relative", zIndex: 2,
+          fontSize: 32, fontWeight: 700, color: "#FFFFFF", marginBottom: 8,
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          letterSpacing: 0.4, lineHeight: 1.15,
+          textShadow: "0 0 28px rgba(255,255,255,0.10)",
+        }}>
           {d.user.name || d.user.email}
         </div>
-        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
-          {d.primary_territory.name ? `${d.primary_territory.name} Territory` : "No territory assigned"}
-          {chain && <span style={{ color: "rgba(255,255,255,0.35)", marginLeft: 10 }}>— {chain}</span>}
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          fontSize: 13, color: "rgba(255,255,255,0.6)",
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          letterSpacing: 0.5,
+        }}>
+          {d.primary_territory.name ? (
+            <>
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: C.blue,
+                boxShadow: `0 0 6px ${C.blue}aa`,
+                display: "inline-block",
+              }} />
+              <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.78)", textTransform: "uppercase", letterSpacing: 1 }}>
+                {d.primary_territory.name}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.30)" }}>·</span>
+              <span style={{ color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>Territory</span>
+            </>
+          ) : (
+            <span style={{ color: "rgba(255,255,255,0.40)" }}>No territory assigned</span>
+          )}
+          {chain && (
+            <span style={{
+              marginLeft: 6, padding: "2px 8px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: 3,
+              color: "rgba(255,255,255,0.55)",
+              fontSize: 10, fontWeight: 700, letterSpacing: 0.6, ...mono,
+              textTransform: "uppercase",
+            }}>
+              {chain}
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Page subtitle */}
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+      {/* Section subtitle — cinematic strip. */}
+      <div style={{
+        marginBottom: 18,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: 4,
+          background: "#00E6A8",
+          boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <h2 style={{
+          ...mono, fontSize: 13, color: "rgba(255,255,255,0.78)",
+          fontWeight: 800, margin: 0, letterSpacing: 2,
+          textTransform: "uppercase",
+        }}>
           My Dashboard
         </h2>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.30) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+        }} />
       </div>
 
       {/* KPI row */}
@@ -407,34 +515,133 @@ function RVPDash({ navigate }) {
 
   return (
     <>
-      {/* Identity header */}
-      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 12 }}>
-        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.gold, fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", textShadow: "0 0 20px rgba(201,168,76,0.25)" }}>
-          REGIONAL VICE PRESIDENT
+      {/* Identity hero — cinematic gold treatment for RVP. */}
+      <div style={{
+        position: "relative",
+        marginBottom: 28,
+        padding: "30px 30px 28px",
+        background: "linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.015) 60%, rgba(0,230,168,0.04) 100%)",
+        border: "1px solid rgba(201,168,76,0.22)",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 60px rgba(201,168,76,0.10)",
+      }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: C.gold,
+          boxShadow: `0 0 12px ${C.gold}aa`,
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", top: -80, right: -80,
+          width: 280, height: 280,
+          background: `radial-gradient(circle, ${C.gold}1f 0%, transparent 60%)`,
+          pointerEvents: "none",
+          opacity: 0.7,
+        }} />
+
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+          flexWrap: "wrap",
+        }}>
+          <div style={{
+            fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.gold,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            textShadow: `0 0 24px ${C.gold}50, 0 0 8px ${C.gold}30`,
+          }}>
+            REGIONAL VICE PRESIDENT
+          </div>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 9px",
+            background: "rgba(0,230,168,0.10)",
+            border: "1px solid rgba(0,230,168,0.32)",
+            borderRadius: 4,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: "#00E6A8", ...mono,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            TEAM OPS · LIVE
+          </span>
         </div>
-        <div style={{ fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6, fontFamily: "'Georgia', 'Times New Roman', serif", letterSpacing: 0.5, lineHeight: 1.2, marginTop: 10 }}>
+        <div style={{
+          position: "relative", zIndex: 2,
+          fontSize: 32, fontWeight: 700, color: "#FFFFFF", marginBottom: 8,
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          letterSpacing: 0.4, lineHeight: 1.15,
+          textShadow: "0 0 28px rgba(255,255,255,0.10)",
+        }}>
           {d.user.name || d.user.email}
         </div>
-        {d.reporting_cp ? (
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
-            {d.primary_territory.name} Territory — reporting to CP {d.reporting_cp.name}
-          </div>
-        ) : d.primary_territory.name ? (
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
-            {d.primary_territory.name} Territory
-          </div>
-        ) : (
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
-            No territory assigned
-          </div>
-        )}
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          fontSize: 13, color: "rgba(255,255,255,0.6)",
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          letterSpacing: 0.5,
+        }}>
+          {d.primary_territory.name ? (
+            <>
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: C.gold,
+                boxShadow: `0 0 6px ${C.gold}aa`,
+                display: "inline-block",
+              }} />
+              <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.78)", textTransform: "uppercase", letterSpacing: 1 }}>
+                {d.primary_territory.name}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.30)" }}>·</span>
+              <span style={{ color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>Territory</span>
+              {d.reporting_cp && (
+                <span style={{
+                  marginLeft: 6, padding: "2px 8px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  borderRadius: 3,
+                  color: "rgba(255,255,255,0.55)",
+                  fontSize: 10, fontWeight: 700, letterSpacing: 0.6, ...mono,
+                  textTransform: "uppercase",
+                }}>
+                  CP · {d.reporting_cp.name}
+                </span>
+              )}
+            </>
+          ) : (
+            <span style={{ color: "rgba(255,255,255,0.40)" }}>No territory assigned</span>
+          )}
+        </div>
       </div>
 
-      {/* Page subtitle */}
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+      {/* Section subtitle — cinematic strip. */}
+      <div style={{
+        marginBottom: 18,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: 4,
+          background: "#00E6A8",
+          boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <h2 style={{
+          ...mono, fontSize: 13, color: "rgba(255,255,255,0.78)",
+          fontWeight: 800, margin: 0, letterSpacing: 2,
+          textTransform: "uppercase",
+        }}>
           Team Command Center
         </h2>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.30) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+        }} />
       </div>
 
       {/* KPI row */}
