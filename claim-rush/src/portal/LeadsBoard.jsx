@@ -416,6 +416,10 @@ export default function LeadsBoard() {
           0%, 100% { filter: brightness(1); }
           50% { filter: brightness(1.25); }
         }
+        /* Lead-card hover affordance — chevron brightens + slides right
+           on parent hover so operators see the click target moving. */
+        .leadrow-card { --cta-color: rgba(255,255,255,0.22); --cta-x: 0px; }
+        .leadrow-card:hover { --cta-color: #00E6A8; --cta-x: 3px; }
       `}</style>
 
       <div style={{ position: "relative", zIndex: 1 }}>
@@ -1651,15 +1655,30 @@ function LeadDetailPanel({ lead, onClose }) {
           if (idleDays < 7 || currentStatus === "converted" || currentStatus === "closed") return null;
           return (
             <div style={{
-              padding: "8px 12px", marginBottom: 14,
-              background: "rgba(224,80,80,0.08)",
-              border: "1px solid rgba(224,80,80,0.30)",
-              borderRadius: 6,
+              position: "relative",
+              padding: "10px 14px 10px 16px", marginBottom: 14,
+              background: "linear-gradient(135deg, rgba(224,80,80,0.10) 0%, rgba(224,80,80,0.025) 100%)",
+              border: "1px solid rgba(224,80,80,0.40)",
+              borderRadius: 8,
               ...mono, fontSize: 11, color: "#E05050",
-              display: "flex", alignItems: "center", gap: 8,
+              display: "flex", alignItems: "center", gap: 10,
+              overflow: "hidden",
+              boxShadow: "0 0 18px rgba(224,80,80,0.18), inset 0 1px 0 rgba(255,255,255,0.04)",
             }}>
-              <span style={{ fontSize: 14 }}>⚠</span>
-              <span><strong>STALLED</strong> — no activity for {idleDays} days. Consider re-engaging or marking Not Interested.</span>
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 2,
+                background: "#E05050",
+                boxShadow: "0 0 8px rgba(224,80,80,0.85)",
+                pointerEvents: "none",
+              }} />
+              <span style={{
+                width: 7, height: 7, borderRadius: 4,
+                background: "#E05050",
+                boxShadow: "0 0 8px rgba(224,80,80,0.85)",
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
+                display: "inline-block", flexShrink: 0,
+              }} />
+              <span><strong style={{ letterSpacing: 1.2 }}>STALLED</strong> — no activity for {idleDays} days. Consider re-engaging or marking Not Interested.</span>
             </div>
           );
         })()}
@@ -1750,14 +1769,16 @@ function LeadDetailPanel({ lead, onClose }) {
           );
         })()}
 
-        <DetailRow label="Assigned to"  value={lead.agent_name || "Unassigned"} />
-        <DetailRow label="Days open"    value={String(lead.days_open ?? 0)} />
-        {lead.claim_number && <DetailRow label="Claim #" value={lead.claim_number} />}
-        {lead.insurance_company && <DetailRow label="Insurance" value={lead.insurance_company} />}
-        {lead.policy_number && <DetailRow label="Policy #" value={lead.policy_number} />}
-        {lead.loss_date && <DetailRow label="Loss date" value={fmtDate(lead.loss_date)} />}
-        {lead.created_at && <DetailRow label="Created" value={fmtDate(lead.created_at)} />}
-        <DetailRow label="ID" value={lead.id} mono />
+        <SectionPanel label="Lead Records" color="rgba(255,255,255,0.35)" marginTop={14}>
+          <DetailRow label="Assigned to"  value={lead.agent_name || "Unassigned"} />
+          <DetailRow label="Days open"    value={String(lead.days_open ?? 0)} />
+          {lead.claim_number && <DetailRow label="Claim #" value={lead.claim_number} />}
+          {lead.insurance_company && <DetailRow label="Insurance" value={lead.insurance_company} />}
+          {lead.policy_number && <DetailRow label="Policy #" value={lead.policy_number} />}
+          {lead.loss_date && <DetailRow label="Loss date" value={fmtDate(lead.loss_date)} />}
+          {lead.created_at && <DetailRow label="Created" value={fmtDate(lead.created_at)} />}
+          <DetailRow label="ID" value={lead.id} mono />
+        </SectionPanel>
 
         {/* Stage 7 — Assigned Owner */}
         <SectionPanel label="Assigned Owner" color="#00E6A8" marginTop={22}>
@@ -1880,8 +1901,15 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 5 — Lead Status pipeline (8 steps) */}
         <SectionPanel label="Lead Status" color="#3B82F6" marginTop={22}>
-          {pipelineSteps.map(s => (
-            <PipelineStep key={s.key} label={s.label} state={s.state} timestamp={s.timestamp} fmtTime={fmtTime} />
+          {pipelineSteps.map((s, i) => (
+            <PipelineStep
+              key={s.key}
+              label={s.label}
+              state={s.state}
+              timestamp={s.timestamp}
+              fmtTime={fmtTime}
+              isLast={i === pipelineSteps.length - 1}
+            />
           ))}
         </SectionPanel>
 
@@ -1943,24 +1971,44 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 6 — Next Recommended Action */}
         <div style={{
+          position: "relative",
           marginTop: 16,
-          padding: "12px 14px",
-          background: `${nextRecommendedAction.color}10`,
+          padding: "12px 14px 12px 16px",
+          background: `linear-gradient(135deg, ${nextRecommendedAction.color}14 0%, ${nextRecommendedAction.color}03 100%)`,
           border: `1px solid ${nextRecommendedAction.color}44`,
           borderRadius: 8,
           display: "flex", alignItems: "center", gap: 12,
+          overflow: "hidden",
+          boxShadow: `0 0 18px ${nextRecommendedAction.color}1a, inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}>
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 2,
+            background: nextRecommendedAction.color,
+            boxShadow: `0 0 8px ${nextRecommendedAction.color}aa`,
+            pointerEvents: "none",
+          }} />
           <span style={{
-            ...mono, fontSize: 10, fontWeight: 700, letterSpacing: 1.5,
+            ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
             textTransform: "uppercase", color: nextRecommendedAction.color,
-            padding: "3px 8px",
-            background: `${nextRecommendedAction.color}22`,
+            padding: "3px 9px",
+            background: `${nextRecommendedAction.color}26`,
             border: `1px solid ${nextRecommendedAction.color}55`,
             borderRadius: 3, whiteSpace: "nowrap",
-          }}>Next ▸</span>
+            display: "inline-flex", alignItems: "center", gap: 6,
+            boxShadow: `0 0 10px ${nextRecommendedAction.color}30`,
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: 3,
+              background: nextRecommendedAction.color,
+              boxShadow: `0 0 6px ${nextRecommendedAction.color}cc`,
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            Next ▸
+          </span>
           <span style={{
             ...mono, fontSize: 13, fontWeight: 600,
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(255,255,255,0.92)",
+            letterSpacing: 0.3,
           }}>{nextRecommendedAction.text}</span>
         </div>
 
@@ -2481,16 +2529,31 @@ function BannerCell({ label, value, color, emphasis }) {
     emphasis === "self"  ? "#00E6A8" :
     color                ? color :
                            "#FFFFFF";
+  // Cells with semantic color (warn/self/explicit) get a small accent dot
+  // before the label for at-a-glance scan; neutral cells stay clean.
+  const showDot = !!(emphasis === "warn" || emphasis === "self" || color);
   return (
     <div>
       <div style={{
+        display: "flex", alignItems: "center", gap: 6,
         ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 1.4,
-        textTransform: "uppercase", color: "rgba(255,255,255,0.40)",
-      }}>{label}</div>
+        textTransform: "uppercase", color: "rgba(255,255,255,0.45)",
+      }}>
+        {showDot && (
+          <span style={{
+            width: 5, height: 5, borderRadius: 3,
+            background: valueColor,
+            boxShadow: `0 0 5px ${valueColor}aa`,
+            display: "inline-block", flexShrink: 0,
+          }} />
+        )}
+        <span>{label}</span>
+      </div>
       <div style={{
-        ...mono, fontSize: 13, color: valueColor, fontWeight: 600,
-        marginTop: 2, lineHeight: 1.3,
+        ...mono, fontSize: 14, color: valueColor, fontWeight: 700,
+        marginTop: 3, lineHeight: 1.25, letterSpacing: 0.3,
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        textShadow: showDot && valueColor !== "#FFFFFF" ? `0 0 12px ${valueColor}30` : "none",
       }}>{value || "—"}</div>
     </div>
   );
@@ -2501,26 +2564,46 @@ function BannerCell({ label, value, color, emphasis }) {
 // red for closing, muted for reset.
 function DispositionButton({ label, onClick, disabled, variant }) {
   const tone =
-    variant === "danger" ? { color: "#E05050", border: "rgba(224,80,80,0.40)", bg: "rgba(224,80,80,0.08)" } :
-    variant === "muted"  ? { color: "rgba(255,255,255,0.55)", border: "rgba(255,255,255,0.18)", bg: "rgba(255,255,255,0.03)" } :
-                           { color: "#00E6A8", border: "rgba(0,230,168,0.40)", bg: "rgba(0,230,168,0.08)" };
+    variant === "danger" ? { hex: "#E05050", color: "#E05050",                 border: "rgba(224,80,80,0.45)", bg: "rgba(224,80,80,0.10)" } :
+    variant === "muted"  ? { hex: "#FFFFFF", color: "rgba(255,255,255,0.65)",  border: "rgba(255,255,255,0.18)", bg: "rgba(255,255,255,0.04)" } :
+                           { hex: "#00E6A8", color: "#00E6A8",                 border: "rgba(0,230,168,0.45)", bg: "rgba(0,230,168,0.10)" };
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      onMouseEnter={disabled ? undefined : (e) => {
+        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.background = variant === "muted"
+          ? "rgba(255,255,255,0.07)"
+          : `${tone.hex}1f`;
+        e.currentTarget.style.borderColor = variant === "muted"
+          ? "rgba(255,255,255,0.30)"
+          : `${tone.hex}80`;
+        e.currentTarget.style.boxShadow = variant === "muted"
+          ? "0 4px 14px rgba(0,0,0,0.30)"
+          : `0 4px 14px rgba(0,0,0,0.30), 0 0 12px ${tone.hex}30`;
+      }}
+      onMouseLeave={disabled ? undefined : (e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.background = tone.bg;
+        e.currentTarget.style.borderColor = tone.border;
+        e.currentTarget.style.boxShadow = "none";
+      }}
       style={{
         ...mono,
-        padding: "6px 12px",
+        padding: "7px 13px",
         background: tone.bg,
         border: `1px solid ${tone.border}`,
         borderRadius: 6,
         color: tone.color,
         fontSize: 11,
-        fontWeight: 700,
-        letterSpacing: 0.5,
+        fontWeight: 800,
+        letterSpacing: 0.8,
+        textTransform: "uppercase",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.45 : 1,
-        transition: "all 0.15s",
+        transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+        boxShadow: "none",
       }}
     >
       {label}
@@ -2528,33 +2611,60 @@ function DispositionButton({ label, onClick, disabled, variant }) {
   );
 }
 
-// PipelineStep — one row of the Lead Status timeline. Pure-presentational;
-// data derived in LeadDetailPanel. Color-coded by state with a clean monospace
-// label + timestamp.
-function PipelineStep({ label, state, timestamp, fmtTime }) {
+// PipelineStep — one node of the Lead Status timeline with a connected
+// vertical line. Done steps glow status-colored; the connector line below
+// inherits the step's "done" tone so completed segments visibly chain.
+function PipelineStep({ label, state, timestamp, fmtTime, isLast }) {
   const tone =
     state === "done"    ? { color: "#00E6A8", icon: "✓", labelColor: "#FFFFFF", bold: 600 } :
     state === "failed"  ? { color: "#E05050", icon: "✗", labelColor: "#FFFFFF", bold: 600 } :
     state === "pending" ? { color: "#A855F7", icon: "◐", labelColor: "#FFFFFF", bold: 500 } :
                           { color: "rgba(255,255,255,0.30)", icon: "○",
                             labelColor: "rgba(255,255,255,0.45)", bold: 500 };
+  const isLive = state === "done" || state === "pending" || state === "failed";
   return (
     <div style={{
-      display: "grid", gridTemplateColumns: "20px 1fr auto",
-      alignItems: "center", gap: 12,
-      padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.04)",
+      display: "grid", gridTemplateColumns: "22px 1fr auto",
+      alignItems: "stretch", gap: 14,
+      padding: "8px 0",
+      position: "relative",
     }}>
-      <span style={{
-        ...mono, fontSize: 14, color: tone.color, fontWeight: 700,
-        textAlign: "center",
-      }}>{tone.icon}</span>
+      {/* Dot + connector column. Connector hides on the last step. */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        position: "relative",
+      }}>
+        <span style={{
+          width: 18, height: 18, borderRadius: 10,
+          background: isLive ? `${tone.color}1f` : "rgba(255,255,255,0.025)",
+          border: `1.5px solid ${tone.color}`,
+          color: tone.color,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 11, fontWeight: 800, ...mono,
+          boxShadow: isLive
+            ? `0 0 10px ${tone.color}66, 0 0 18px ${tone.color}28`
+            : "none",
+          zIndex: 2, position: "relative", flexShrink: 0,
+        }}>{tone.icon}</span>
+        {!isLast && (
+          <span style={{
+            flex: 1, width: 2,
+            background: state === "done"
+              ? `linear-gradient(180deg, ${tone.color}66 0%, rgba(255,255,255,0.10) 100%)`
+              : "rgba(255,255,255,0.07)",
+            marginTop: 0, marginBottom: -8,
+          }} />
+        )}
+      </div>
       <span style={{
         ...mono, fontSize: 12, color: tone.labelColor,
-        fontWeight: tone.bold, letterSpacing: 0.3,
+        fontWeight: tone.bold, letterSpacing: 0.4,
+        alignSelf: "center", paddingTop: 1,
       }}>{label}</span>
       <span style={{
         ...mono, fontSize: 11,
-        color: state === "notyet" ? "rgba(255,255,255,0.30)" : "rgba(255,255,255,0.55)",
+        color: state === "notyet" ? "rgba(255,255,255,0.30)" : "rgba(255,255,255,0.60)",
+        alignSelf: "center", whiteSpace: "nowrap",
       }}>{timestamp ? fmtTime(timestamp) : "Not yet"}</span>
     </div>
   );
@@ -2618,6 +2728,7 @@ function LeadRow({ lead, onClick }) {
   return (
     <div
       role="button"
+      className="leadrow-card"
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick && onClick(); } }}
@@ -2638,7 +2749,7 @@ function LeadRow({ lead, onClick }) {
         gridTemplateColumns: "auto 1fr auto",
         alignItems: "center",
         gap: 18,
-        padding: "20px 22px 20px 30px",
+        padding: "20px 44px 20px 30px",
         background: baseBg,
         border: "1px solid rgba(255,255,255,0.10)",
         borderRadius: 14,
@@ -2668,6 +2779,22 @@ function LeadRow({ lead, onClick }) {
         pointerEvents: "none",
         opacity: 0.7,
       }} />
+
+      {/* Hover affordance — chevron at far right brightens + slides on
+          parent hover via the .leadrow-card:hover CSS variables. */}
+      <div style={{
+        position: "absolute", right: 14, top: "50%",
+        transform: "translateY(-50%) translateX(var(--cta-x, 0px))",
+        display: "flex", alignItems: "center", gap: 4,
+        fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+        color: "var(--cta-color, rgba(255,255,255,0.22))", ...mono,
+        textTransform: "uppercase",
+        pointerEvents: "none",
+        transition: "color 0.22s, transform 0.22s cubic-bezier(.4,0,.2,1)",
+        zIndex: 3,
+      }}>
+        OPEN ▸
+      </div>
 
       {/* Peril badge — larger, gradient-filled, peril-tinted glow. */}
       <div style={{
