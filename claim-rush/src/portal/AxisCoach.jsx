@@ -7,6 +7,7 @@ const PURPLE = "#A855F7";
 const PURPLE_DIM = "#7C3AED";
 const INNER_GOLD = "#D4A853";
 const INNER_GOLD_DIM = "#B8922F";
+const GREEN = "#00E6A8";
 
 // ── AXIS RESPONSE ENGINE (mock) ──────────────────────────────────────────────
 
@@ -468,223 +469,429 @@ export default function AxisCoach({ open, onClose }) {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Mode Toggle */}
-            <div style={{ display: "flex", gap: 0 }}>
+            {/* Mode toggle — cinematic operator workstation selector */}
+            <div style={{
+              display: "flex", gap: 0,
+              padding: 2,
+              background: "rgba(0,0,0,0.30)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 6,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+            }}>
               {[
-                { key: "coach", label: "COACH", accent: PURPLE },
-                { key: "inner", label: "INNER", accent: INNER_GOLD },
-                { key: "help", label: "HELP", accent: PURPLE },
-              ].map((m, idx) => (
-                <button
-                  key={m.key}
-                  onClick={() => mode !== m.key && switchMode(m.key)}
-                  style={{
-                    padding: "5px 10px",
-                    background: mode === m.key ? `${m.accent}20` : "transparent",
-                    border: `1px solid ${mode === m.key ? `${m.accent}50` : "rgba(255,255,255,0.08)"}`,
-                    borderRadius: idx === 0 ? "5px 0 0 5px" : idx === 2 ? "0 5px 5px 0" : "0",
-                    color: mode === m.key ? m.accent : "rgba(255,255,255,0.85)",
-                    fontSize: 12, fontWeight: 700, letterSpacing: 0.8,
-                    cursor: "pointer", ...mono, transition: "all 0.3s",
-                    borderLeft: idx > 0 ? "none" : undefined,
-                  }}
-                >
-                  {m.label}
-                </button>
-              ))}
+                { key: "coach", label: "Coach", accent: PURPLE },
+                { key: "inner", label: "Inner", accent: INNER_GOLD },
+                { key: "help",  label: "Help",  accent: PURPLE },
+              ].map(m => {
+                const active = mode === m.key;
+                return (
+                  <button
+                    key={m.key}
+                    onClick={() => !active && switchMode(m.key)}
+                    onMouseEnter={active ? undefined : (e) => {
+                      e.currentTarget.style.color = "#fff";
+                      e.currentTarget.style.background = `${m.accent}14`;
+                    }}
+                    onMouseLeave={active ? undefined : (e) => {
+                      e.currentTarget.style.color = "rgba(255,255,255,0.65)";
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                    style={{
+                      padding: "5px 11px",
+                      background: active ? `${m.accent}26` : "transparent",
+                      border: `1px solid ${active ? `${m.accent}60` : "transparent"}`,
+                      borderRadius: 4,
+                      color: active ? m.accent : "rgba(255,255,255,0.65)",
+                      fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+                      textTransform: "uppercase",
+                      cursor: active ? "default" : "pointer",
+                      ...mono,
+                      transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+                      boxShadow: active ? `0 0 12px ${m.accent}30, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
+                      textShadow: active ? `0 0 10px ${m.accent}55` : "none",
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
             </div>
             <button
               onClick={onClose}
-              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.85)", fontSize: 18, cursor: "pointer", padding: 2, lineHeight: 1 }}
+              aria-label="Close"
+              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.55)", fontSize: 16, cursor: "pointer", padding: "2px 4px", lineHeight: 1 }}
+              onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+              onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
             >
               ✕
             </button>
           </div>
         </div>
 
-        {/* Daily Score + Leaderboard */}
+        {/* Operator telemetry strip — daily score + top operators leaderboard */}
         <div style={{
+          position: "relative", zIndex: 1,
           padding: "8px 16px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "rgba(124,58,237,0.04)",
+          background: `linear-gradient(90deg, ${PURPLE}06 0%, rgba(255,255,255,0.012) 50%, ${PURPLE}06 100%)`,
+          gap: 12, flexWrap: "wrap",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", letterSpacing: 1.5, textTransform: "uppercase", ...mono, fontWeight: 600 }}>
-              TODAY
+            <span style={{
+              width: 4, height: 4, borderRadius: 2,
+              background: PURPLE,
+              boxShadow: `0 0 5px ${PURPLE}`,
+              display: "inline-block",
+            }} />
+            <span style={{
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.50)", ...mono,
+            }}>
+              Today · CP
             </span>
-            <span style={{ fontSize: 15, fontWeight: 700, color: PURPLE, ...mono }}>
+            <span style={{
+              fontSize: 15, fontWeight: 800, color: PURPLE, ...mono,
+              letterSpacing: 0.3,
+              textShadow: `0 0 10px ${PURPLE}45`,
+            }}>
               {dailyPoints}
             </span>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", ...mono, letterSpacing: 0.5 }}>
-              CP
-            </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {leaderboard.slice(0, 3).map((a, i) => (
-              <div key={a.name} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, ...mono,
-                  color: i === 0 ? C.gold : i === 1 ? "#C0C0C0" : "#CD7F32",
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span style={{
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.40)", ...mono,
+              marginRight: 2,
+            }}>Leaderboard</span>
+            {leaderboard.slice(0, 3).map((a, i) => {
+              const rankColor = i === 0 ? C.gold : i === 1 ? "#C0C0C0" : "#CD7F32";
+              return (
+                <span key={a.name} style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "2px 8px",
+                  background: `${rankColor}10`,
+                  border: `1px solid ${rankColor}38`,
+                  borderRadius: 3,
+                  ...mono,
                 }}>
-                  {i + 1}
+                  <span style={{
+                    fontSize: 9, fontWeight: 800, letterSpacing: 0.8,
+                    color: rankColor,
+                  }}>
+                    #{i + 1}
+                  </span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.78)", fontWeight: 700 }}>
+                    {a.name.split(" ")[0]}
+                  </span>
+                  <span style={{
+                    fontSize: 10, color: "#fff", fontWeight: 800, letterSpacing: 0.3,
+                    textShadow: `0 0 8px ${rankColor}40`,
+                  }}>
+                    {a.points}
+                  </span>
                 </span>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.85)", ...mono }}>
-                  {a.name.split(" ")[0]}
-                </span>
-                <span style={{ fontSize: 12, color: "#FFFFFF", fontWeight: 700, ...mono }}>
-                  {a.points}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Messages */}
+        {/* Message stream — tactical intel panels for AXIS, compact frame
+            for OPERATOR. Reads as embedded operations log, not chat bubbles. */}
         <div
           ref={scrollRef}
           style={{
+            position: "relative", zIndex: 1,
             flex: 1, overflowY: "auto", padding: "16px 16px 8px",
-            display: "flex", flexDirection: "column", gap: 12,
+            display: "flex", flexDirection: "column", gap: 14,
           }}
         >
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                justifyContent: msg.from === "user" ? "flex-end" : "flex-start",
-              }}
-            >
-              <div style={{
-                maxWidth: "88%",
-                padding: msg.from === "user" ? "10px 14px" : "12px 16px",
-                borderRadius: msg.from === "user" ? "10px 10px 2px 10px" : "10px 10px 10px 2px",
-                background: msg.from === "user"
-                  ? (mode === "inner" ? "rgba(212,168,83,0.15)" : "rgba(124,58,237,0.2)")
-                  : "rgba(18, 24, 38, 0.96)",
-                border: `1px solid ${
-                  msg.from === "user"
-                    ? (mode === "inner" ? "rgba(212,168,83,0.3)" : "rgba(124,58,237,0.3)")
-                    : "rgba(255,255,255,0.10)"
-                }`,
-                fontSize: 14, color: "#FFFFFF", fontWeight: 600,
-                lineHeight: msg.mode === "inner" ? 1.8 : 1.6,
-                ...mono,
-              }}>
-                {msg.from === "axis" ? (
-                  <FormatMessage text={msg.text} />
-                ) : (
-                  msg.text
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Typing indicator */}
-          {typing && (
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <div style={{
-                padding: "10px 16px",
-                borderRadius: "10px 10px 10px 2px",
-                background: "rgba(18, 24, 38, 0.96)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                display: "flex", gap: 4, alignItems: "center",
-              }}>
-                {[0, 1, 2].map(d => (
-                  <div key={d} style={{
-                    width: 6, height: 6, borderRadius: 3,
-                    background: mode === "inner" ? INNER_GOLD : PURPLE,
-                    animation: `axisDot ${mode === "inner" ? "1.8" : "1.2"}s ease ${d * (mode === "inner" ? 0.3 : 0.2)}s infinite`,
+          {messages.map((msg, i) => {
+            const isAxis = msg.from === "axis";
+            const msgMode = msg.mode || mode;
+            const accent = msgMode === "inner" ? INNER_GOLD : PURPLE;
+            if (isAxis) {
+              return (
+                <div key={i} style={{
+                  position: "relative",
+                  alignSelf: "flex-start",
+                  maxWidth: "92%",
+                  padding: "10px 14px 12px 18px",
+                  background: `linear-gradient(135deg, ${accent}10 0%, ${accent}02 60%, rgba(255,255,255,0.012) 100%)`,
+                  border: `1px solid ${accent}28`,
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px ${accent}10`,
+                }}>
+                  {/* Left edge accent */}
+                  <div style={{
+                    position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+                    background: accent,
+                    boxShadow: `0 0 10px ${accent}aa, 0 0 20px ${accent}55`,
+                    pointerEvents: "none",
                   }} />
-                ))}
+                  {/* Header strip */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    marginBottom: 6,
+                  }}>
+                    <span style={{
+                      width: 5, height: 5, borderRadius: 3,
+                      background: accent,
+                      boxShadow: `0 0 5px ${accent}`,
+                      animation: "axlDotPulse 1.6s ease-in-out infinite",
+                      display: "inline-block",
+                    }} />
+                    <span style={{
+                      ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+                      color: accent, textTransform: "uppercase",
+                    }}>
+                      AXIS · {msgMode === "inner" ? "Inner Game" : msgMode === "help" ? "Help Mode" : "Coach Mode"}
+                    </span>
+                  </div>
+                  {/* Body */}
+                  <div style={{
+                    fontSize: 14, color: "#fff", fontWeight: 500,
+                    lineHeight: msgMode === "inner" ? 1.8 : 1.6,
+                    ...mono, letterSpacing: 0.2,
+                  }}>
+                    <FormatMessage text={msg.text} />
+                  </div>
+                </div>
+              );
+            }
+            // OPERATOR message — right-aligned compact frame
+            return (
+              <div key={i} style={{
+                position: "relative",
+                alignSelf: "flex-end",
+                maxWidth: "82%",
+                padding: "8px 14px 10px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                borderRadius: 8,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04)",
+              }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  marginBottom: 4,
+                }}>
+                  <span style={{
+                    width: 4, height: 4, borderRadius: 2,
+                    background: GREEN,
+                    boxShadow: `0 0 4px ${GREEN}`,
+                    display: "inline-block",
+                  }} />
+                  <span style={{
+                    ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.6,
+                    color: "rgba(0,230,168,0.85)", textTransform: "uppercase",
+                  }}>
+                    Operator
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: 13, color: "rgba(255,255,255,0.92)",
+                  lineHeight: 1.55, ...mono, letterSpacing: 0.2,
+                }}>
+                  {msg.text}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
+
+          {/* Typing indicator — telemetry analyzing strip, not chat bubble */}
+          {typing && (() => {
+            const accent = mode === "inner" ? INNER_GOLD : PURPLE;
+            return (
+              <div style={{
+                position: "relative",
+                alignSelf: "flex-start",
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "8px 14px 8px 16px",
+                background: `linear-gradient(135deg, ${accent}10 0%, ${accent}02 100%)`,
+                border: `1px solid ${accent}30`,
+                borderRadius: 8,
+                overflow: "hidden",
+                boxShadow: `0 4px 12px rgba(0,0,0,0.28), 0 0 14px ${accent}18`,
+              }}>
+                <div style={{
+                  position: "absolute", top: 0, bottom: 0, left: 0, width: 2,
+                  background: accent,
+                  boxShadow: `0 0 8px ${accent}aa`,
+                  animation: "axlDotPulse 1.6s ease-in-out infinite",
+                }} />
+                <span style={{
+                  ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+                  color: accent, textTransform: "uppercase",
+                }}>
+                  Analyzing Situation
+                </span>
+                <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  {[0, 1, 2].map(d => (
+                    <span key={d} style={{
+                      width: 6, height: 6, borderRadius: 3,
+                      background: accent,
+                      boxShadow: `0 0 6px ${accent}aa`,
+                      animation: `axisDot ${mode === "inner" ? "1.8" : "1.2"}s ease ${d * (mode === "inner" ? 0.3 : 0.2)}s infinite`,
+                    }} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
-        {/* Quick Actions */}
-        <div style={{
-          padding: "8px 16px 4px",
-          display: "flex", gap: 6, flexWrap: "wrap",
-        }}>
-          {(mode === "coach"
+        {/* Suggested prompts — operator suggestion surface with cinematic
+            header strip + mode-encoded chips. */}
+        {(() => {
+          const chipAccent = mode === "inner" ? INNER_GOLD : PURPLE;
+          const prompts = mode === "coach"
             ? ["Not interested", "Call me later", "Already have someone", "Insurance will handle it", "Closing script", "Fire lead strategy", "Follow-up plan", "Motivation"]
             : mode === "inner"
             ? ["Reset before call", "Confidence boost", "Handle pressure", "Let go of outcome", "Handling rejection", "Selling from service", "Low energy", "Fear and doubt"]
-            : ["First Deal Flow", "Start outreach", "Follow-up system", "Send agreement", "Lead statuses", "What should I do next", "Protection plans", "AXIS modes"]
-          ).map(q => {
-            const chipAccent = mode === "inner" ? INNER_GOLD : PURPLE;
-            return (
-              <button
-                key={q}
-                onClick={() => {
-                  setInput(q);
-                  setTimeout(() => {
-                    setMessages(prev => [...prev, { from: "user", text: q }]);
-                    setInput("");
-                    setTyping(true);
-                    setTimeout(() => {
-                      const response = getAxisResponse(q, mode, liveContext);
-                      setMessages(prev => [...prev, { from: "axis", text: response, mode }]);
-                      setTyping(false);
-                    }, 800 + Math.random() * 1000);
-                  }, 50);
-                }}
-                style={{
-                  padding: "5px 12px",
-                  background: `${chipAccent}25`, border: `1px solid ${chipAccent}40`,
-                  borderRadius: 4, color: "#FFFFFF", fontSize: 12,
-                  fontWeight: 600, letterSpacing: 0.5, cursor: "pointer",
-                  ...mono, transition: "all 0.2s",
-                }}
-              >
-                {q}
-              </button>
-            );
-          })}
-        </div>
+            : ["First Deal Flow", "Start outreach", "Follow-up system", "Send agreement", "Lead statuses", "What should I do next", "Protection plans", "AXIS modes"];
+          return (
+            <div style={{ position: "relative", zIndex: 1, padding: "6px 16px 4px" }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 7, marginBottom: 8,
+              }}>
+                <span style={{
+                  width: 4, height: 4, borderRadius: 2,
+                  background: chipAccent,
+                  boxShadow: `0 0 5px ${chipAccent}`,
+                  display: "inline-block",
+                }} />
+                <span style={{
+                  ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+                  color: "rgba(255,255,255,0.50)", textTransform: "uppercase",
+                }}>Suggested Prompts</span>
+                <span style={{
+                  flex: 1, height: 1,
+                  background: `linear-gradient(90deg, ${chipAccent}28 0%, rgba(255,255,255,0.04) 60%, transparent 100%)`,
+                }} />
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {prompts.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => {
+                      setInput(q);
+                      setTimeout(() => {
+                        setMessages(prev => [...prev, { from: "user", text: q }]);
+                        setInput("");
+                        setTyping(true);
+                        setTimeout(() => {
+                          const response = getAxisResponse(q, mode, liveContext);
+                          setMessages(prev => [...prev, { from: "axis", text: response, mode }]);
+                          setTyping(false);
+                        }, 800 + Math.random() * 1000);
+                      }, 50);
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.transform = "translateY(-1px)";
+                      e.currentTarget.style.background = `${chipAccent}28`;
+                      e.currentTarget.style.borderColor = `${chipAccent}80`;
+                      e.currentTarget.style.boxShadow = `0 4px 14px rgba(0,0,0,0.30), 0 0 14px ${chipAccent}38`;
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.background = `${chipAccent}14`;
+                      e.currentTarget.style.borderColor = `${chipAccent}40`;
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                    style={{
+                      padding: "5px 11px",
+                      background: `${chipAccent}14`,
+                      border: `1px solid ${chipAccent}40`,
+                      borderRadius: 4,
+                      color: "rgba(255,255,255,0.92)",
+                      fontSize: 10, fontWeight: 800, letterSpacing: 1.1,
+                      textTransform: "uppercase",
+                      cursor: "pointer", ...mono,
+                      transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+                    }}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
-        {/* Input */}
+        {/* Operator command line — mode-color focus glow + ❯ prefix prompt */}
         <div style={{
+          position: "relative", zIndex: 1,
           padding: "12px 16px 16px",
           borderTop: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.012)",
           display: "flex", gap: 10, alignItems: "flex-end",
         }}>
-          <textarea
-            className="axis-input"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={mode === "coach" ? "Describe the situation..." : mode === "inner" ? "What's present for you..." : "Ask about the platform..."}
-            rows={1}
-            style={{
-              flex: 1, padding: "10px 14px",
-              background: "rgba(6, 8, 16, 0.95)", border: "1px solid rgba(255,255,255,0.10)",
-              borderRadius: 8, color: "#fff", fontSize: 14,
-              ...mono, outline: "none", resize: "none",
-              lineHeight: 1.5, maxHeight: 80,
-              transition: "border-color 0.2s",
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={{
+            position: "relative",
+            flex: 1,
+            display: "flex", alignItems: "stretch",
+          }}>
+            <span style={{
+              position: "absolute", left: 12, top: 11,
+              ...mono, fontSize: 13, fontWeight: 800,
+              color: mode === "inner" ? INNER_GOLD : PURPLE,
+              textShadow: `0 0 8px ${(mode === "inner" ? INNER_GOLD : PURPLE)}aa`,
+              pointerEvents: "none",
+              letterSpacing: 0.5,
+            }}>❯</span>
+            <textarea
+              className="axis-input"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={mode === "coach" ? "Describe the situation..." : mode === "inner" ? "What's present for you..." : "Ask about the platform..."}
+              rows={1}
+              style={{
+                flex: 1, padding: "10px 14px 10px 28px",
+                background: "rgba(6, 8, 16, 0.95)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                borderRadius: 8, color: "#fff", fontSize: 13,
+                ...mono, outline: "none", resize: "none",
+                lineHeight: 1.5, maxHeight: 80,
+                transition: "border-color 0.2s, box-shadow 0.2s",
+                boxSizing: "border-box",
+                width: "100%",
+                letterSpacing: 0.2,
+              }}
+            />
+          </div>
           <button
             onClick={handleSend}
             disabled={!input.trim() || typing}
+            onMouseEnter={(!input.trim() || typing) ? undefined : (e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = `0 6px 18px rgba(0,0,0,0.45), 0 0 22px ${(mode === "inner" ? INNER_GOLD : PURPLE)}55`;
+            }}
+            onMouseLeave={(!input.trim() || typing) ? undefined : (e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = `0 0 16px ${(mode === "inner" ? INNER_GOLD : PURPLE)}30, inset 0 1px 0 rgba(255,255,255,0.10)`;
+            }}
             style={{
-              padding: "10px 16px",
+              padding: "10px 18px",
               background: (!input.trim() || typing) ? "rgba(20,26,40,0.8)"
                 : mode === "inner" ? `linear-gradient(135deg, ${INNER_GOLD}, ${INNER_GOLD_DIM})`
                 : `linear-gradient(135deg, ${PURPLE}, ${PURPLE_DIM})`,
-              border: "none", borderRadius: 8,
+              border: `1px solid ${(!input.trim() || typing) ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.18)"}`,
+              borderRadius: 8,
               color: (!input.trim() || typing) ? "rgba(255,255,255,0.5)" : "#FFFFFF",
-              fontSize: 14, fontWeight: 700, letterSpacing: 1,
+              fontSize: 13, fontWeight: 800, letterSpacing: 1.2,
+              textTransform: "uppercase",
               cursor: (!input.trim() || typing) ? "default" : "pointer",
-              ...mono, transition: "all 0.2s",
+              ...mono,
+              transition: "all 0.2s cubic-bezier(.4,0,.2,1)",
               flexShrink: 0,
+              boxShadow: (!input.trim() || typing) ? "none" : `0 0 16px ${(mode === "inner" ? INNER_GOLD : PURPLE)}30, inset 0 1px 0 rgba(255,255,255,0.10)`,
             }}
           >
-            ↑
+            Send ↑
           </button>
         </div>
       </div>
