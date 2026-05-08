@@ -10,45 +10,165 @@ const PURPLE = "#A855F7";
 
 // ── SHARED COMPONENTS ───────────────────────────────────────────────────────
 
-function KPI({ label, value, color, alert, to }) {
+function KPI({ label, value, color, alert, to, loading, notConnected }) {
   const navigate = useNavigate();
-  const clickable = !!to;
+  const clickable = !!to && !notConnected && !loading;
+  const muted = notConnected || loading;
+  const valueText = loading ? "···" : (notConnected ? "--" : value);
+  const accent = alert ? "#E05050" : (color || "#00E6A8");
+  // Multi-layer base shadow + ring. Hover layers in stronger lift + ambient.
+  const baseShadow = `0 6px 18px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.04), 0 0 22px ${accent}14`;
+  const hoverShadow = `0 14px 36px rgba(0,0,0,0.55), 0 0 0 1px ${accent}40, 0 0 36px ${accent}28`;
   return (
     <div
+      title={notConnected ? "Not Connected Yet" : undefined}
       onClick={clickable ? () => navigate(to) : undefined}
       role={clickable ? "button" : undefined}
       tabIndex={clickable ? 0 : undefined}
       onKeyDown={clickable ? (e) => { if (e.key === "Enter" || e.key === " ") navigate(to); } : undefined}
       style={{
-        background: "#162238",
-        border: `1px solid ${alert ? "#E0505030" : "rgba(255,255,255,0.12)"}`,
-        borderRadius: 8,
-        padding: "16px 18px",
+        position: "relative",
+        background: "linear-gradient(135deg, #1A2844 0%, #131C2F 100%)",
+        border: `1px solid ${alert ? "#E0505040" : "rgba(255,255,255,0.10)"}`,
+        borderRadius: 10,
+        padding: "18px 20px 20px",
         cursor: clickable ? "pointer" : "default",
-        transition: "all 0.15s",
+        transition: "all 0.22s cubic-bezier(.4,0,.2,1)",
+        opacity: notConnected ? 0.55 : 1,
+        overflow: "hidden",
+        boxShadow: baseShadow,
       }}
-      onMouseEnter={clickable ? (e) => { e.currentTarget.style.borderColor = `${color}80`; e.currentTarget.style.background = "#1A2844"; } : undefined}
-      onMouseLeave={clickable ? (e) => { e.currentTarget.style.borderColor = alert ? "#E0505030" : "rgba(255,255,255,0.12)"; e.currentTarget.style.background = "#162238"; } : undefined}
+      onMouseEnter={clickable ? (e) => {
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.borderColor = `${accent}66`;
+        e.currentTarget.style.boxShadow = hoverShadow;
+      } : undefined}
+      onMouseLeave={clickable ? (e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.borderColor = alert ? "#E0505040" : "rgba(255,255,255,0.10)";
+        e.currentTarget.style.boxShadow = baseShadow;
+      } : undefined}
     >
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", ...mono, fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 26, color: "#FFFFFF", fontWeight: 700, ...mono, marginTop: 6, textShadow: `0 0 10px ${color}40` }}>{value}</div>
+      {/* Top accent — color-encoded, glowing. Dimmed on muted KPIs. */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 3,
+        background: muted ? "rgba(255,255,255,0.20)" : accent,
+        boxShadow: muted ? "none" : `0 0 10px ${accent}88`,
+        pointerEvents: "none",
+        animation: alert ? "edgeGlow 2.4s ease-in-out infinite" : "none",
+      }} />
+      {/* Ambient corner glow — radial wash from top-right, color-tinted. */}
+      {!muted && (
+        <div style={{
+          position: "absolute", top: -50, right: -50,
+          width: 200, height: 200,
+          background: `radial-gradient(circle, ${accent}20 0%, transparent 65%)`,
+          pointerEvents: "none",
+          opacity: 0.7,
+          animation: alert ? "kpiAmbient 3s ease-in-out infinite" : "none",
+        }} />
+      )}
+      <div style={{
+        position: "relative", zIndex: 2,
+        fontSize: 11, color: alert ? "#E05050" : "rgba(255,255,255,0.55)",
+        letterSpacing: 1.2, textTransform: "uppercase", ...mono, fontWeight: 700,
+        display: "flex", alignItems: "center", gap: 7,
+      }}>
+        {alert && (
+          <span style={{
+            width: 6, height: 6, borderRadius: 3,
+            background: "#E05050",
+            boxShadow: "0 0 8px rgba(224,80,80,0.85)",
+            display: "inline-block",
+            animation: "liveDotPulse 1.6s ease-in-out infinite",
+          }} />
+        )}
+        {label}
+      </div>
+      <div style={{
+        position: "relative", zIndex: 2,
+        fontSize: 32,
+        color: muted ? "rgba(255,255,255,0.35)" : "#FFFFFF",
+        fontWeight: 800,
+        ...mono,
+        marginTop: 8,
+        letterSpacing: -0.3,
+        textShadow: muted ? "none" : `0 0 18px ${accent}55, 0 0 6px ${accent}30`,
+        transition: "opacity 250ms ease, color 250ms ease",
+        opacity: loading ? 0.4 : 1,
+        lineHeight: 1.1,
+      }}>{valueText}</div>
     </div>
   );
 }
 
 function Panel({ title, color, children, action, onAction }) {
+  const accent = color || "#00E6A8";
   return (
-    <div style={{ background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 10, boxShadow: "0 8px 24px rgba(0,0,0,0.4)", overflow: "hidden" }}>
+    <div style={{
+      position: "relative",
+      background: "linear-gradient(180deg, #151D2E 0%, #0F1622 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      boxShadow: `0 8px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px ${accent}14`,
+      overflow: "hidden",
+    }}>
+      {/* Top accent — colored glow bar, anchors the panel as a "system module". */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: accent,
+        boxShadow: `0 0 8px ${accent}aa`,
+        pointerEvents: "none",
+      }} />
       {title && (
-        <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {color && <span style={{ width: 7, height: 7, borderRadius: 4, background: color }} />}
-            <span style={{ fontSize: 13, color: "#FFFFFF", fontWeight: 700, ...mono, letterSpacing: 1 }}>{title}</span>
+        <div style={{
+          padding: "12px 20px",
+          background: "rgba(255,255,255,0.025)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <span style={{
+              width: 7, height: 7, borderRadius: 4,
+              background: accent,
+              boxShadow: `0 0 7px ${accent}cc`,
+              display: "inline-block",
+              flexShrink: 0,
+            }} />
+            <span style={{
+              fontSize: 12, color: "rgba(255,255,255,0.85)", fontWeight: 800,
+              ...mono, letterSpacing: 1.4, textTransform: "uppercase",
+            }}>{title}</span>
           </div>
-          {action && <button onClick={onAction} style={{ padding: "4px 10px", background: "rgba(0,230,168,0.08)", border: "1px solid rgba(0,230,168,0.25)", borderRadius: 5, color: "#00E6A8", fontSize: 10, fontWeight: 700, cursor: "pointer", ...mono }}>{action}</button>}
+          {action && (
+            <button
+              onClick={onAction}
+              style={{
+                padding: "4px 12px",
+                background: "rgba(0,230,168,0.12)",
+                border: "1px solid rgba(0,230,168,0.40)",
+                borderRadius: 5,
+                color: "#00E6A8",
+                fontSize: 10, fontWeight: 800, letterSpacing: 0.8,
+                cursor: "pointer", ...mono,
+                boxShadow: "0 0 10px rgba(0,230,168,0.20)",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "rgba(0,230,168,0.18)";
+                e.currentTarget.style.boxShadow = "0 0 16px rgba(0,230,168,0.35)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "rgba(0,230,168,0.12)";
+                e.currentTarget.style.boxShadow = "0 0 10px rgba(0,230,168,0.20)";
+              }}
+            >
+              {action}
+            </button>
+          )}
         </div>
       )}
-      <div style={{ padding: "14px 20px" }}>{children}</div>
+      <div style={{ padding: "16px 20px" }}>{children}</div>
     </div>
   );
 }
@@ -421,43 +541,140 @@ function CPDash({ navigate }) {
 
   return (
     <>
-      {/* Identity header — visual anchor */}
-      <div style={{ marginBottom: 28, padding: "28px 28px 24px", background: "linear-gradient(135deg, rgba(201,168,76,0.06) 0%, rgba(201,168,76,0.02) 100%)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
+      {/* Identity hero — cinematic anchor with gold accent + LIVE chip.
+          Provides the "you are here" beat for a CP entering the dashboard. */}
+      <div style={{
+        position: "relative",
+        marginBottom: 28,
+        padding: "30px 30px 28px",
+        background: "linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.015) 60%, rgba(168,85,247,0.04) 100%)",
+        border: "1px solid rgba(201,168,76,0.22)",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 60px rgba(201,168,76,0.10)",
+      }}>
+        {/* Gold top accent + glow */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: C.gold,
+          boxShadow: `0 0 12px ${C.gold}aa`,
+          pointerEvents: "none",
+        }} />
+        {/* Ambient corner glow — gold radial wash */}
+        <div style={{
+          position: "absolute", top: -80, right: -80,
+          width: 280, height: 280,
+          background: `radial-gradient(circle, ${C.gold}1f 0%, transparent 60%)`,
+          pointerEvents: "none",
+          opacity: 0.7,
+        }} />
+
+        {/* Top row: CHAPTER PRESIDENT chip + LIVE indicator */}
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+          flexWrap: "wrap",
+        }}>
           <div style={{
             fontSize: 20, fontWeight: 800, letterSpacing: 5, color: C.gold,
             fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
-            textShadow: "0 0 20px rgba(201,168,76,0.25)",
+            textShadow: `0 0 24px ${C.gold}50, 0 0 8px ${C.gold}30`,
           }}>
             CHAPTER PRESIDENT
           </div>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 9px",
+            background: "rgba(0,230,168,0.10)",
+            border: "1px solid rgba(0,230,168,0.32)",
+            borderRadius: 4,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: "#00E6A8", ...mono,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            TERRITORY OPS · LIVE
+          </span>
         </div>
+        {/* Operator name — serif, prestige typography. */}
         <div style={{
-          fontSize: 28, fontWeight: 700, color: "#FFFFFF", marginBottom: 6,
+          position: "relative", zIndex: 2,
+          fontSize: 32, fontWeight: 700, color: "#FFFFFF", marginBottom: 8,
           fontFamily: "'Georgia', 'Times New Roman', serif",
-          letterSpacing: 0.5, lineHeight: 1.2,
+          letterSpacing: 0.4, lineHeight: 1.15,
+          textShadow: "0 0 28px rgba(255,255,255,0.10)",
         }}>
           {d.user.name || d.user.email}
         </div>
         {d.primary_territory.name ? (
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", letterSpacing: 0.5 }}>
-            {d.primary_territory.name} Territory
+          <div style={{
+            position: "relative", zIndex: 2,
+            display: "flex", alignItems: "center", gap: 8,
+            fontSize: 13, color: "rgba(255,255,255,0.6)",
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            letterSpacing: 0.5,
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: 3,
+              background: C.gold,
+              boxShadow: `0 0 6px ${C.gold}aa`,
+              display: "inline-block",
+            }} />
+            <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.78)", textTransform: "uppercase", letterSpacing: 1 }}>
+              {d.primary_territory.name}
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.30)" }}>·</span>
+            <span style={{ color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>Territory</span>
             {d.territories.length > 1 && (
-              <span style={{ color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>+{d.territories.length - 1} more</span>
+              <span style={{
+                marginLeft: 6, padding: "1px 7px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 3,
+                color: "rgba(255,255,255,0.55)",
+                fontSize: 10, fontWeight: 700, letterSpacing: 0.5, ...mono,
+              }}>+{d.territories.length - 1} MORE</span>
             )}
           </div>
         ) : (
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif" }}>
+          <div style={{
+            position: "relative", zIndex: 2,
+            fontSize: 13, color: "rgba(255,255,255,0.40)",
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            letterSpacing: 0.5,
+          }}>
             No territory assigned
           </div>
         )}
       </div>
 
-      {/* Page subtitle */}
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ ...mono, fontSize: 16, color: "rgba(255,255,255,0.55)", fontWeight: 700, margin: 0, letterSpacing: 1.5, textTransform: "uppercase" }}>
+      {/* Section subtitle — cinematic CP-style strip. */}
+      <div style={{
+        marginBottom: 18,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: 4,
+          background: "#00E6A8",
+          boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <h2 style={{
+          ...mono, fontSize: 13, color: "rgba(255,255,255,0.78)",
+          fontWeight: 800, margin: 0, letterSpacing: 2,
+          textTransform: "uppercase",
+        }}>
           Territory Command Center
         </h2>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.30) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+        }} />
       </div>
 
       {/* KPI row */}
@@ -466,6 +683,40 @@ function CPDash({ navigate }) {
         <KPI label="Active RVPs" value={String(d.downline.rvp_count)} color={C.gold} />
         <KPI label="Active Agents" value={String(d.downline.agent_count)} color="#00E6A8" />
         <KPI label="Total Leads" value={String(d.total_leads)} color={C.blue} />
+      </div>
+
+      {/* MY TEAM — surfaces team/recruiting at-a-glance. Total Agents
+          is wired to cp-summary's downline; the other three are mock
+          placeholders ("—") until the backend exposes producing-agents,
+          7-day recruits, and lifetime team claims. Same KPI styling +
+          4-column grid as the strip above. */}
+      <div style={{
+        marginBottom: 12,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: "#00E6A8",
+          boxShadow: "0 0 6px rgba(0,230,168,0.70)",
+          display: "inline-block",
+        }} />
+        <h3 style={{
+          ...mono, fontSize: 12, color: "rgba(255,255,255,0.65)",
+          fontWeight: 800, margin: 0, letterSpacing: 1.8,
+          textTransform: "uppercase",
+        }}>
+          My Team
+        </h3>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.20) 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+        }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+        <KPI label="Total Agents"      value={String(d.downline.agent_count)} color="#00E6A8" />
+        <KPI label="Active Agents"     value="—" color="#00E6A8" />
+        <KPI label="New Recruits (7d)" value="—" color={C.gold} />
+        <KPI label="Team Claims"       value="—" color={C.blue} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -698,63 +949,95 @@ function GrowthPathPanel() {
 // ── HOME OFFICE DASHBOARD ───────────────────────────────────────────────────
 
 function HomeOfficeDash({ navigate }) {
+  // KPI data sources (verified against running backend):
+  //   Revenue Pulse  → GET /v1/commission/admin/overview  field: total_gross_fee_mtd
+  //   At Risk        → GET /v1/escalation/active          length of returned list
+  //   Payout Actions → no backend endpoint exists         renders as "—"
+  //   Billing Issues → no backend endpoint exists         renders as "—"
+  const [revenue, setRevenue] = useState(null);
+  const [atRiskCount, setAtRiskCount] = useState(null);
+  const [revenueErr, setRevenueErr] = useState(false);
+  const [atRiskErr, setAtRiskErr] = useState(false);
+
+  useEffect(() => {
+    apiJson("/commission/admin/overview")
+      .then((d) => setRevenue(typeof d?.total_gross_fee_mtd === "number" ? d.total_gross_fee_mtd : 0))
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn("[HomeOfficeDash] Revenue Pulse — /v1/commission/admin/overview failed:",
+          e?.status || e?.message || e);
+        setRevenueErr(true);
+      });
+    apiJson("/escalation/active")
+      .then((d) => setAtRiskCount(Array.isArray(d) ? d.length : 0))
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn("[HomeOfficeDash] At Risk — /v1/escalation/active failed:",
+          e?.status || e?.message || e);
+        setAtRiskErr(true);
+      });
+    // eslint-disable-next-line no-console
+    console.warn("[HomeOfficeDash] No backend endpoint exists for 'Payout Actions' KPI — rendering as —");
+    // eslint-disable-next-line no-console
+    console.warn("[HomeOfficeDash] No backend endpoint exists for 'Billing Issues' KPI — rendering as —");
+  }, []);
+
+  const fmtCurrency = (v) => v > 0
+    ? `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+    : "$0";
+
+  const revenueValue = revenueErr ? "—" : (revenue == null ? "…" : fmtCurrency(revenue));
+  const atRiskValue  = atRiskErr  ? "—" : (atRiskCount == null ? "…" : String(atRiskCount));
+
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
-        <KPI label="Revenue Pulse" value="$258K" color="#00E6A8" />
-        <KPI label="Payout Actions" value="3" color={C.gold} alert />
-        <KPI label="Billing Issues" value="3" color="#E05050" alert />
-        <KPI label="At Risk" value="2" color="#E05050" />
+        <KPI label="Revenue Pulse"  value={revenueValue} color="#00E6A8"
+             loading={revenue == null && !revenueErr} />
+        <KPI label="Payout Actions" color={C.gold}  alert notConnected />
+        <KPI label="Billing Issues" color="#E05050" alert notConnected />
+        <KPI label="At Risk"        value={atRiskValue}  color="#E05050"
+             loading={atRiskCount == null && !atRiskErr} />
       </div>
 
-      {/* Smart summary */}
+      {/* Smart summary — no backend data source; placeholder. */}
       <div style={{ padding: "14px 20px", marginBottom: 20, background: `${PURPLE}04`, border: `1px solid ${PURPLE}15`, borderRadius: 10 }}>
-        <div style={{ fontSize: 14, color: "#FFFFFF", ...mono, fontWeight: 500, lineHeight: 1.7 }}>
-          <span style={{ color: "#E05050", fontWeight: 700 }}>2 past due</span> — Obi $1K, Brooks $1.5K suspended.
-          {" "}<span style={{ color: C.gold, fontWeight: 700 }}>PR-2026-009</span> awaiting approval ($3.9K, 1 held).
-          {" "}AL territory <span style={{ color: "#E05050", fontWeight: 700 }}>has no RVPs</span>.
-          {" "}Revenue <span style={{ color: "#00E6A8", fontWeight: 700 }}>+16%</span> this month.
+        <div style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", ...mono, fontWeight: 500, lineHeight: 1.7 }}>
+          —
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <Panel title="WHAT NEEDS ATTENTION TODAY" color="#E05050">
-            <AttentionItem severity="high" text="Approve payout run PR-2026-009" sub="$3,885 gross · 12 items · 1 held" />
-            <AttentionItem severity="high" text="David Kim — 4 access violations" sub="Repeated attempts at restricted routes" />
-            <AttentionItem severity="high" text="Tanya Brooks — suspended" sub="$1,500 outstanding · card: None" />
-            <AttentionItem severity="medium" text="James Obi — $1,000 past due" sub="32 days · autopay off" />
-            <AttentionItem severity="medium" text="Alabama — no RVPs" sub="Declining health score (45%)" />
+            <AttentionItem severity="high"   text="—" sub="—" />
+            <AttentionItem severity="high"   text="—" sub="—" />
+            <AttentionItem severity="high"   text="—" sub="—" />
+            <AttentionItem severity="medium" text="—" sub="—" />
+            <AttentionItem severity="medium" text="—" sub="—" />
           </Panel>
           <Panel title="PAYOUT QUEUE" color={C.gold} action="OPEN →" onAction={() => navigate("/portal/payout-runs")}>
-            <EarningsRow label="Pending Approval" value="$3,885" color={C.gold} />
-            <EarningsRow label="Held Items" value="$1,140" color="#E05050" />
-            <EarningsRow label="Ready to Pay" value="11 items" />
-            <EarningsRow label="Last Run Paid" value="PR-2026-008 · $4,120" />
+            <EarningsRow label="Pending Approval" value="—" color={C.gold} />
+            <EarningsRow label="Held Items"       value="—" color="#E05050" />
+            <EarningsRow label="Ready to Pay"     value="—" />
+            <EarningsRow label="Last Run Paid"    value="—" />
           </Panel>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <Panel title="BILLING ALERTS" color="#E05050" action="OPEN →" onAction={() => navigate("/portal/billing")}>
-            <AttentionItem severity="high" text="Tanya Brooks — suspended" sub="$1,500 · no card on file" />
-            <AttentionItem severity="high" text="David Kim — payment failed" sub="$500 · card declined" />
-            <AttentionItem severity="medium" text="James Obi — past due" sub="$1,000 · 32 days" />
-            <AttentionItem severity="info" text="5 renewals this week" sub="All on autopay" />
+            <AttentionItem severity="high"   text="—" sub="—" />
+            <AttentionItem severity="high"   text="—" sub="—" />
+            <AttentionItem severity="medium" text="—" sub="—" />
+            <AttentionItem severity="info"   text="—" sub="—" />
           </Panel>
           <Panel title="TERRITORY PERFORMANCE" color="#00E6A8" action="VIEW →" onAction={() => navigate("/portal/territory-revenue")}>
-            {[
-              { terr: "CA", rev: "$64K", health: 88, color: "#00E6A8" },
-              { terr: "TX", rev: "$54K", health: 85, color: "#00E6A8" },
-              { terr: "FL", rev: "$42K", health: 92, color: "#00E6A8" },
-              { terr: "AL", rev: "$5K", health: 45, color: "#E05050" },
-            ].map(t => (
-              <div key={t.terr} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <span style={{ fontSize: 14, color: "#FFFFFF", ...mono, fontWeight: 700, width: 28 }}>{t.terr}</span>
-                <span style={{ fontSize: 13, color: "#00E6A8", ...mono, fontWeight: 700 }}>{t.rev}</span>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", ...mono, fontWeight: 700, width: 28 }}>—</span>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", ...mono, fontWeight: 700 }}>—</span>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <div style={{ width: 30, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
-                    <div style={{ width: `${t.health}%`, height: "100%", borderRadius: 2, background: t.color }} />
-                  </div>
-                  <span style={{ fontSize: 11, color: t.color, ...mono, fontWeight: 600 }}>{t.health}</span>
+                  <div style={{ width: 30, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)" }} />
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", ...mono, fontWeight: 600 }}>—</span>
                 </div>
               </div>
             ))}
@@ -782,7 +1065,55 @@ export default function Dashboard() {
   const t = titles[userRole] || titles.agent;
 
   return (
-    <div style={{ maxWidth: 1100, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
+    <div style={{
+      maxWidth: 1100,
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? "translateY(0)" : "translateY(12px)",
+      transition: "all 0.5s ease",
+      position: "relative",
+    }}>
+      {/* Cinematic ambient backdrop — radial color washes anchored at the
+          edges so the dashboard reads as a real "screen", not a flat panel. */}
+      <div style={{
+        position: "absolute", top: -140, left: -140,
+        width: 520, height: 520,
+        background: "radial-gradient(circle, rgba(0,230,168,0.07) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      <div style={{
+        position: "absolute", top: 280, right: -180,
+        width: 460, height: 460,
+        background: "radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      <div style={{
+        position: "absolute", top: 700, left: 60,
+        width: 380, height: 380,
+        background: "radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      {/* Animation keyframes — mirror LeadsBoard so KPI / panel / hero
+          elements can pulse and glow without per-component injection. */}
+      <style>{`
+        @keyframes liveDotPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.82); }
+        }
+        @keyframes edgeGlow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.55; }
+        }
+        @keyframes kpiAmbient {
+          0%, 100% { opacity: 0.55; }
+          50% { opacity: 0.85; }
+        }
+      `}</style>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+
       {/* UPA advocacy hero — branding layer, no logic */}
       <div style={{
         marginBottom: 22,
@@ -847,6 +1178,7 @@ export default function Dashboard() {
       {userRole === "RVP" && <RVPDash navigate={navigate} />}
       {userRole === "CP" && <CPDash navigate={navigate} />}
       {userRole === "home_office" && <HomeOfficeDash navigate={navigate} />}
+      </div>
     </div>
   );
 }
