@@ -764,6 +764,11 @@ function LeadDetailPanel({ lead, onClose }) {
   const [assignableUsers, setAssignableUsers] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [pickedAssigneeId, setPickedAssigneeId] = useState("");
+  // Inline composer modals — replace window.prompt() for SMS + AI call.
+  const [smsComposerOpen, setSmsComposerOpen] = useState(false);
+  const [smsBody, setSmsBody] = useState("");
+  const [callComposerOpen, setCallComposerOpen] = useState(false);
+  const [callPhone, setCallPhone] = useState("");
   const currentUserId = useMemo(() => {
     try { return JSON.parse(localStorage.getItem("cr_user") || "{}")?.user_id || null; }
     catch { return null; }
@@ -1410,13 +1415,18 @@ function LeadDetailPanel({ lead, onClose }) {
     }
   };
 
-  // Action 2 — Send SMS via Communications Hub (queued, opt-out aware)
-  const handleSendSms = async () => {
+  // Action 2 — Send SMS via Communications Hub (queued, opt-out aware).
+  // Opens the composer modal; actual send fires from confirmSendSms().
+  const SMS_DEFAULT_MSG = "Hi, this is UPA. We noticed a fire incident at your property. We help homeowners with insurance claims at no upfront cost. Reply YES to learn more.";
+  const handleSendSms = () => {
     if (!guardLeadRow("sms")) return;
-    const defaultMsg = "Hi, this is UPA. We noticed a fire incident at your property. We help homeowners with insurance claims at no upfront cost. Reply YES to learn more.";
-    const message = window.prompt("SMS message to send:", defaultMsg);
+    setSmsBody(SMS_DEFAULT_MSG);
+    setSmsComposerOpen(true);
+  };
+  const confirmSendSms = async () => {
+    const message = smsBody.trim();
     if (!message) return;
-    if (!window.confirm(`Send this SMS to Lead #${lead.ref_number || lead.id}?\n\n"${message}"`)) return;
+    setSmsComposerOpen(false);
     setAction("sms", "running");
     // eslint-disable-next-line no-console
     if (import.meta.env.DEV) console.info("[Stage 1][send-sms] sending lead_id =", lead.id, "(row.type =", lead.type + ")");
@@ -1435,15 +1445,17 @@ function LeadDetailPanel({ lead, onClose }) {
     }
   };
 
-  // Action 3 — Call with Marcus (AI voice outreach via VAPI)
-  const handleCallMarcus = async () => {
+  // Action 3 — Call with Marcus (AI voice outreach via VAPI).
+  // Opens the composer modal; actual call fires from confirmCallMarcus().
+  const handleCallMarcus = () => {
     if (!guardLeadRow("call")) return;
-    const phone_number = window.prompt(
-      "Phone number to call (E.164 format, e.g., +12155551234):",
-      ""
-    );
+    setCallPhone(phoneNumber || "");
+    setCallComposerOpen(true);
+  };
+  const confirmCallMarcus = async () => {
+    const phone_number = callPhone.trim();
     if (!phone_number) return;
-    if (!window.confirm(`Initiate AI voice call to ${phone_number}?`)) return;
+    setCallComposerOpen(false);
     setAction("call", "running");
     // eslint-disable-next-line no-console
     if (import.meta.env.DEV) console.info("[Stage 1][call-marcus] sending lead_id =", lead.id, "phone =", phone_number, "(row.type =", lead.type + ")");
@@ -1497,29 +1509,45 @@ function LeadDetailPanel({ lead, onClose }) {
         </div>
 
         {/* Stage 9 — At-a-glance status banner. 4 high-signal facts in one row.
-            All values reflect the most recent backend state from refreshLead. */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 8,
-          padding: "10px 12px",
-          marginBottom: 16,
-          background: "rgba(255,255,255,0.02)",
-          border: `1px solid ${
-            (() => {
-              if (followUpInfo.state === "overdue") return "rgba(224,80,80,0.45)";
-              if (followUpInfo.state === "today") return "rgba(201,168,76,0.45)";
-              if (followUpInfo.state === "done" || currentStatus === "converted") return "rgba(0,230,168,0.30)";
-              return "rgba(255,255,255,0.08)";
-            })()
-          }`,
-          borderRadius: 8,
-        }}>
-          <BannerCell label="Owner"         value={ownerInfo.name}                emphasis={ownerInfo.isMe ? "self" : (ownerInfo.name === "Unassigned" ? "warn" : null)} />
-          <BannerCell label="Stage"         value={dispositionMeta.label}         color={dispositionMeta.color} />
-          <BannerCell label="Follow-Up"     value={followUpInfo.label}            color={followUpInfo.color} />
-          <BannerCell label="Last Activity" value={detail?.updated_at ? fmtTime(detail.updated_at) : "—"} />
-        </div>
+            CP-style: status-encoded top accent + ambient glow + slight
+            elevation. The accent color is driven by follow-up urgency so
+            overdue is red, today is gold, complete is green. */}
+        {(() => {
+          const banner =
+            followUpInfo.state === "overdue" ? { accent: "#E05050", border: "rgba(224,80,80,0.45)" } :
+            followUpInfo.state === "today"   ? { accent: "#C9A84C", border: "rgba(201,168,76,0.45)" } :
+            (followUpInfo.state === "done" || currentStatus === "converted")
+                                             ? { accent: "#00E6A8", border: "rgba(0,230,168,0.30)" } :
+                                               { accent: null,      border: "rgba(255,255,255,0.08)" };
+          return (
+            <div style={{
+              position: "relative",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 8,
+              padding: "12px 14px",
+              marginBottom: 16,
+              background: "rgba(255,255,255,0.035)",
+              border: `1px solid ${banner.border}`,
+              borderRadius: 8,
+              boxShadow: banner.accent ? `0 0 18px ${banner.accent}1f` : "none",
+              overflow: "hidden",
+            }}>
+              {banner.accent && (
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                  background: banner.accent,
+                  boxShadow: `0 0 10px ${banner.accent}80`,
+                  pointerEvents: "none",
+                }} />
+              )}
+              <BannerCell label="Owner"         value={ownerInfo.name}                emphasis={ownerInfo.isMe ? "self" : (ownerInfo.name === "Unassigned" ? "warn" : null)} />
+              <BannerCell label="Stage"         value={dispositionMeta.label}         color={dispositionMeta.color} />
+              <BannerCell label="Follow-Up"     value={followUpInfo.label}            color={followUpInfo.color} />
+              <BannerCell label="Last Activity" value={detail?.updated_at ? fmtTime(detail.updated_at) : "—"} />
+            </div>
+          );
+        })()}
 
         {/* Stalled indicator — surfaces inactivity older than 7 days */}
         {(() => {
@@ -1544,9 +1572,89 @@ function LeadDetailPanel({ lead, onClose }) {
         <DetailRow label="Peril"        value={`${peril.icon} ${peril.label}`} color={peril.color} />
         <DetailRow label="Status"       value={status.label} color={status.color} />
         <DetailRow label="Type"         value={lead.type || "—"} />
-        <DetailRow label="Skip Trace"   value={skipStatus.label} color={skipStatus.color} />
-        {phoneNumber && <DetailRow label="Phone" value={phoneNumber} />}
-        {ownerName && <DetailRow label="Owner" value={ownerName} />}
+
+        {/* CP-style Owner Contact panel — groups skip-trace enrichment
+            into one section with a status-encoded top accent + header
+            meta. Replaces 5 scattered DetailRows. */}
+        {(() => {
+          const mailing = [
+            trace?.owner_mailing_street,
+            trace?.owner_mailing_street2,
+            trace?.owner_mailing_city,
+            trace?.owner_mailing_state,
+            trace?.owner_mailing_zip,
+          ].filter(Boolean).join(", ");
+          const hasAny = !!(ownerName || phoneNumber || trace?.owner_email || mailing);
+          const accent = skipStatus.color;
+          return (
+            <div style={{
+              position: "relative",
+              marginTop: 14, marginBottom: 4,
+              background: "rgba(255,255,255,0.025)",
+              border: `1px solid ${accent}26`,
+              borderRadius: 8,
+              overflow: "hidden",
+              boxShadow: hasAny ? `0 0 14px ${accent}1a` : "none",
+            }}>
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                background: accent,
+                boxShadow: `0 0 8px ${accent}66`,
+                pointerEvents: "none",
+              }} />
+              <div style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "10px 14px",
+                background: "rgba(255,255,255,0.025)",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                gap: 12,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+                  <span style={{
+                    width: 7, height: 7, borderRadius: 4,
+                    background: accent,
+                    boxShadow: `0 0 7px ${accent}aa`,
+                    flexShrink: 0,
+                    display: "inline-block",
+                  }} />
+                  <span style={{
+                    ...mono, fontSize: 11, fontWeight: 700,
+                    letterSpacing: 1.2, textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.78)",
+                  }}>Owner Contact</span>
+                  <span style={{
+                    ...mono, fontSize: 10, fontWeight: 700,
+                    letterSpacing: 1, textTransform: "uppercase",
+                    color: accent,
+                  }}>· {skipStatus.label}</span>
+                </div>
+                {trace?.skiptrace_ran_at && (
+                  <span style={{
+                    ...mono, fontSize: 10, color: "rgba(255,255,255,0.45)",
+                    letterSpacing: 0.4, whiteSpace: "nowrap",
+                  }}>
+                    ran {fmtTime(trace.skiptrace_ran_at) || trace.skiptrace_ran_at}
+                  </span>
+                )}
+              </div>
+              <div style={{ padding: "2px 14px 8px" }}>
+                {ownerName && <DetailRow label="Owner" value={ownerName} />}
+                {phoneNumber && <DetailRow label="Phone" value={phoneNumber} />}
+                {trace?.owner_email && <DetailRow label="Email" value={trace.owner_email} />}
+                {mailing && <DetailRow label="Mailing" value={mailing} />}
+                {!hasAny && (
+                  <div style={{
+                    ...mono, fontSize: 12, color: "rgba(255,255,255,0.50)",
+                    padding: "10px 0", lineHeight: 1.5,
+                  }}>
+                    {trace ? "Skip trace ran but returned no contact data." : "No contact data yet — run Skip Trace to enrich."}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         <DetailRow label="Assigned to"  value={lead.agent_name || "Unassigned"} />
         <DetailRow label="Days open"    value={String(lead.days_open ?? 0)} />
         {lead.claim_number && <DetailRow label="Claim #" value={lead.claim_number} />}
@@ -1558,12 +1666,7 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 7 — Assigned Owner */}
         <div style={{ marginTop: 22 }}>
-          <div style={{
-            ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
-            letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
-            marginBottom: 8, paddingBottom: 6,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>Assigned Owner</div>
+          <SectionHeader label="Assigned Owner" color="#00E6A8" />
           <div style={{
             display: "grid", gridTemplateColumns: "1fr auto", gap: 12,
             alignItems: "center", padding: "8px 0",
@@ -1618,17 +1721,11 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 7 — Follow-Up Due */}
         <div style={{ marginTop: 18 }}>
-          <div style={{
-            ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
-            letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
-            marginBottom: 8, paddingBottom: 6,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>Follow-Up</div>
+          <SectionHeader label="Follow-Up" color="#C9A84C" />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
             <span style={{
               padding: "4px 10px",
-              background: `${followUpInfo.color}1A`,
-              border: `1px solid ${followUpInfo.color}66`,
+              background: `${followUpInfo.color}2e`,
               borderRadius: 4, color: followUpInfo.color,
               fontSize: 11, fontWeight: 700, letterSpacing: 1, ...mono,
             }}>{followUpInfo.label}</span>
@@ -1690,12 +1787,7 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 5 — Lead Status pipeline (8 steps) */}
         <div style={{ marginTop: 22 }}>
-          <div style={{
-            ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
-            letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
-            marginBottom: 8, paddingBottom: 6,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>Lead Status</div>
+          <SectionHeader label="Lead Status" color="#3B82F6" />
           {pipelineSteps.map(s => (
             <PipelineStep key={s.key} label={s.label} state={s.state} timestamp={s.timestamp} fmtTime={fmtTime} />
           ))}
@@ -1703,12 +1795,7 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 5 — Recent Activity feed */}
         <div style={{ marginTop: 18 }}>
-          <div style={{
-            ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
-            letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
-            marginBottom: 8, paddingBottom: 6,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>Recent Activity</div>
+          <SectionHeader label="Recent Activity" color="#00E6A8" />
           {recentActivity.length === 0 ? (
             <div style={{
               ...mono, fontSize: 12, color: "rgba(255,255,255,0.35)",
@@ -1739,18 +1826,12 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Stage 6 — Disposition pill + quick-action buttons */}
         <div style={{ marginTop: 18 }}>
-          <div style={{
-            ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
-            letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
-            marginBottom: 8, paddingBottom: 6,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>Outcome / Disposition</div>
+          <SectionHeader label="Outcome / Disposition" color="#A855F7" />
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
             <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Current:</span>
             <span style={{
               padding: "4px 10px",
-              background: `${dispositionMeta.color}1A`,
-              border: `1px solid ${dispositionMeta.color}66`,
+              background: `${dispositionMeta.color}2e`,
               borderRadius: 4, color: dispositionMeta.color,
               fontSize: 11, fontWeight: 700, letterSpacing: 1, ...mono,
             }}>{dispositionMeta.label}</span>
@@ -1795,25 +1876,59 @@ function LeadDetailPanel({ lead, onClose }) {
 
         {/* Action buttons — Stage 1 (skip-trace, sms, call) +
             Stage 2 Refresh + Stage 3 Convert + Stage 4 Assign Adjuster.
-            Disabled on incident rows (FireIncident UUID would 404 on lead endpoints).
-            Assign Adjuster also requires a successful Convert first (need claim_id). */}
-        <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-          <ActionButton idle="Run Skip Trace"     state={actions.skip}    onClick={handleSkipTrace}  disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
-          <ActionButton idle="Send SMS"           state={actions.sms}     onClick={handleSendSms}    disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
-          <ActionButton idle="Call with Marcus"   state={actions.call}    onClick={handleCallMarcus} disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
-          <ActionButton idle="Convert to Client"  state={actions.convert} onClick={handleConvert}    disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : "Creates Client + initial Claim in one call"} />
-          <ActionButton
-            idle="Assign Adjuster"
-            state={actions.assign}
-            onClick={openAdjusterPicker}
-            disabled={!isLeadRow || !convertResult?.claim_id}
-            title={
-              !isLeadRow ? "Incident row — convert to lead first"
-              : !convertResult?.claim_id ? "Run Convert first to create the claim"
-              : "Assign an adjuster user to this claim"
-            }
-          />
-          <ActionButton idle={refreshing ? "Refreshing…" : "↻ Refresh"} state={undefined} onClick={refreshLead} disabled={!isLeadRow || refreshing} title={!isLeadRow ? "Incident row — convert to lead first" : "Re-fetch lead + skip-trace"} />
+            CP-style panel: green top accent + ambient glow + header strip,
+            so the operator's action surface feels like a console, not a
+            row of generic buttons. Disabled on incident rows. */}
+        <div style={{
+          position: "relative",
+          marginTop: 18,
+          background: "rgba(0,230,168,0.03)",
+          border: "1px solid rgba(0,230,168,0.18)",
+          borderRadius: 8,
+          overflow: "hidden",
+          boxShadow: "0 0 18px rgba(0,230,168,0.10)",
+        }}>
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: 3,
+            background: "#00E6A8",
+            boxShadow: "0 0 10px rgba(0,230,168,0.50)",
+            pointerEvents: "none",
+          }} />
+          <div style={{ padding: "12px 14px 14px" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 9, marginBottom: 12,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: 3,
+                background: "#00E6A8",
+                boxShadow: "0 0 6px rgba(0,230,168,0.70)",
+                display: "inline-block",
+              }} />
+              <span style={{
+                ...mono, fontSize: 11, fontWeight: 700,
+                letterSpacing: 1.2, textTransform: "uppercase",
+                color: "rgba(255,255,255,0.78)",
+              }}>Actions</span>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <ActionButton idle="Run Skip Trace"     state={actions.skip}    onClick={handleSkipTrace}  disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
+              <ActionButton idle="Send SMS"           state={actions.sms}     onClick={handleSendSms}    disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
+              <ActionButton idle="Call with Marcus"   state={actions.call}    onClick={handleCallMarcus} disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : undefined} />
+              <ActionButton idle="Convert to Client"  state={actions.convert} onClick={handleConvert}    disabled={!isLeadRow} title={!isLeadRow ? "Incident row — convert to lead first" : "Creates Client + initial Claim in one call"} />
+              <ActionButton
+                idle="Assign Adjuster"
+                state={actions.assign}
+                onClick={openAdjusterPicker}
+                disabled={!isLeadRow || !convertResult?.claim_id}
+                title={
+                  !isLeadRow ? "Incident row — convert to lead first"
+                  : !convertResult?.claim_id ? "Run Convert first to create the claim"
+                  : "Assign an adjuster user to this claim"
+                }
+              />
+              <ActionButton idle={refreshing ? "Refreshing…" : "↻ Refresh"} state={undefined} onClick={refreshLead} disabled={!isLeadRow || refreshing} title={!isLeadRow ? "Incident row — convert to lead first" : "Re-fetch lead + skip-trace"} />
+            </div>
+          </div>
         </div>
 
         {/* Stage 7 — Assign-to-User picker (cp/rvp/agent/adjuster merged). */}
@@ -1830,13 +1945,15 @@ function LeadDetailPanel({ lead, onClose }) {
               style={{
                 background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
                 border: "1px solid rgba(0,230,168,0.30)",
+                borderTop: "3px solid #00E6A8",
                 borderRadius: 12, padding: "22px 26px",
                 width: 480, maxWidth: "92vw", maxHeight: "70vh", overflow: "auto",
                 boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5 }}>
+                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 9 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: "#00E6A8", boxShadow: "0 0 6px rgba(0,230,168,0.70)", display: "inline-block", flexShrink: 0 }} />
                   Assign Lead to User
                 </h4>
                 <button
@@ -1917,13 +2034,15 @@ function LeadDetailPanel({ lead, onClose }) {
               style={{
                 background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
                 border: "1px solid rgba(0,230,168,0.30)",
+                borderTop: "3px solid #00E6A8",
                 borderRadius: 12, padding: "22px 26px",
                 width: 480, maxWidth: "92vw", maxHeight: "70vh", overflow: "auto",
                 boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5 }}>
+                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 9 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: "#00E6A8", boxShadow: "0 0 6px rgba(0,230,168,0.70)", display: "inline-block", flexShrink: 0 }} />
                   Assign Adjuster
                 </h4>
                 <button
@@ -1989,6 +2108,170 @@ function LeadDetailPanel({ lead, onClose }) {
             </div>
           </div>
         )}
+
+        {/* SMS composer — replaces window.prompt() for handleSendSms. */}
+        {smsComposerOpen && (
+          <div
+            onClick={() => setSmsComposerOpen(false)}
+            style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1100,
+              display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
+                border: "1px solid rgba(0,230,168,0.30)",
+                borderTop: "3px solid #00E6A8",
+                borderRadius: 12, padding: "22px 26px",
+                width: 540, maxWidth: "92vw", maxHeight: "80vh", overflow: "auto",
+                boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 9 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: "#00E6A8", boxShadow: "0 0 6px rgba(0,230,168,0.70)", display: "inline-block", flexShrink: 0 }} />
+                  Send SMS
+                </h4>
+                <button
+                  onClick={() => setSmsComposerOpen(false)}
+                  aria-label="Close"
+                  style={{ background: "none", border: "none", color: C.muted, fontSize: 20, cursor: "pointer", lineHeight: 1, padding: 4 }}
+                >×</button>
+              </div>
+              <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
+                Lead #{String(lead.ref_number || lead.id).slice(0, 16)}
+              </div>
+              <div style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.75)", marginBottom: 4 }}>
+                To: <span style={{ color: "#fff", fontWeight: 600 }}>{phoneNumber || "(no phone on file — backend will use lead contact)"}</span>
+              </div>
+              {ownerName && (
+                <div style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 12 }}>
+                  Skip-traced owner: <span style={{ color: "#fff" }}>{ownerName}</span>
+                </div>
+              )}
+              <textarea
+                value={smsBody}
+                onChange={(e) => setSmsBody(e.target.value)}
+                rows={6}
+                style={{
+                  width: "100%", padding: "10px 12px", marginTop: 4, marginBottom: 6,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 6, color: "#fff", fontSize: 13, ...mono,
+                  resize: "vertical", boxSizing: "border-box", lineHeight: 1.5,
+                }}
+              />
+              <div style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.40)", marginBottom: 12, textAlign: "right" }}>
+                {smsBody.length} chars
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  onClick={() => setSmsComposerOpen(false)}
+                  style={{
+                    ...mono, padding: "8px 14px", background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6,
+                    color: "rgba(255,255,255,0.65)", fontSize: 12, cursor: "pointer",
+                  }}
+                >Cancel</button>
+                <button
+                  onClick={confirmSendSms}
+                  disabled={!smsBody.trim() || actions.sms?.state === "running"}
+                  style={{
+                    ...mono, padding: "8px 14px",
+                    background: !smsBody.trim() ? "rgba(255,255,255,0.06)" : "rgba(0,230,168,0.12)",
+                    border: `1px solid ${!smsBody.trim() ? "rgba(255,255,255,0.18)" : "rgba(0,230,168,0.45)"}`,
+                    borderRadius: 6,
+                    color: !smsBody.trim() ? "rgba(255,255,255,0.4)" : "#00E6A8",
+                    fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
+                    cursor: !smsBody.trim() ? "not-allowed" : "pointer",
+                  }}
+                >Send SMS</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Call composer — replaces window.prompt() for handleCallMarcus. */}
+        {callComposerOpen && (
+          <div
+            onClick={() => setCallComposerOpen(false)}
+            style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1100,
+              display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
+                border: "1px solid rgba(0,230,168,0.30)",
+                borderTop: "3px solid #00E6A8",
+                borderRadius: 12, padding: "22px 26px",
+                width: 480, maxWidth: "92vw", maxHeight: "70vh", overflow: "auto",
+                boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <h4 style={{ ...mono, color: "#fff", fontSize: 16, margin: 0, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 9 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 3, background: "#00E6A8", boxShadow: "0 0 6px rgba(0,230,168,0.70)", display: "inline-block", flexShrink: 0 }} />
+                  Call with Marcus
+                </h4>
+                <button
+                  onClick={() => setCallComposerOpen(false)}
+                  aria-label="Close"
+                  style={{ background: "none", border: "none", color: C.muted, fontSize: 20, cursor: "pointer", lineHeight: 1, padding: 4 }}
+                >×</button>
+              </div>
+              <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
+                Lead #{String(lead.ref_number || lead.id).slice(0, 16)}
+              </div>
+              {ownerName && (
+                <div style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.55)", marginBottom: 10 }}>
+                  Skip-traced owner: <span style={{ color: "#fff" }}>{ownerName}</span>
+                </div>
+              )}
+              <label style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.55)", letterSpacing: 0.5, display: "block", marginBottom: 6 }}>
+                Phone (E.164, e.g. +12155551234)
+              </label>
+              <input
+                type="tel"
+                value={callPhone}
+                onChange={(e) => setCallPhone(e.target.value)}
+                placeholder="+1…"
+                style={{
+                  width: "100%", padding: "10px 12px", marginBottom: 16,
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 6, color: "#fff", fontSize: 13, ...mono,
+                  boxSizing: "border-box",
+                }}
+              />
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 8 }}>
+                <button
+                  onClick={() => setCallComposerOpen(false)}
+                  style={{
+                    ...mono, padding: "8px 14px", background: "transparent",
+                    border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6,
+                    color: "rgba(255,255,255,0.65)", fontSize: 12, cursor: "pointer",
+                  }}
+                >Cancel</button>
+                <button
+                  onClick={confirmCallMarcus}
+                  disabled={!callPhone.trim() || actions.call?.state === "running"}
+                  style={{
+                    ...mono, padding: "8px 14px",
+                    background: !callPhone.trim() ? "rgba(255,255,255,0.06)" : "rgba(0,230,168,0.12)",
+                    border: `1px solid ${!callPhone.trim() ? "rgba(255,255,255,0.18)" : "rgba(0,230,168,0.45)"}`,
+                    borderRadius: 6,
+                    color: !callPhone.trim() ? "rgba(255,255,255,0.4)" : "#00E6A8",
+                    fontSize: 12, fontWeight: 700, letterSpacing: 0.5,
+                    cursor: !callPhone.trim() ? "not-allowed" : "pointer",
+                  }}
+                >Initiate Call</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2008,6 +2291,13 @@ function ActionButton({ idle, state, onClick, disabled, title }) {
     s === "error"   ? { color: "#E05050", border: "rgba(224,80,80,0.45)",  bg: "rgba(224,80,80,0.12)" } :
                       { color: "#fff",    border: "rgba(255,255,255,0.18)", bg: "rgba(255,255,255,0.04)" };
   const isDisabled = disabled || s === "running";
+  // CP-style "alive" feedback — non-idle states get a status-tinted glow
+  // so operators see at-a-glance which buttons just fired.
+  const glow =
+    s === "success" ? "0 0 14px rgba(0,230,168,0.30)" :
+    s === "running" ? "0 0 14px rgba(168,85,247,0.28)" :
+    s === "error"   ? "0 0 14px rgba(224,80,80,0.28)" :
+                      "none";
   return (
     <button
       onClick={onClick}
@@ -2026,6 +2316,7 @@ function ActionButton({ idle, state, onClick, disabled, title }) {
         cursor: isDisabled ? "not-allowed" : "pointer",
         opacity: isDisabled ? 0.45 : 1,
         transition: "all 0.15s",
+        boxShadow: glow,
       }}
     >
       {label}
@@ -2035,6 +2326,36 @@ function ActionButton({ idle, state, onClick, disabled, title }) {
 
 // BannerCell — one of 4 cells in the at-a-glance status banner at the
 // top of the detail panel. Compact, color-coded, no hover state.
+// CP-style section header strip — slightly elevated bg + colored accent
+// dot + uppercase mono label. Replaces five copy-pasted inline header
+// divs in LeadDetailPanel so each grouping reads with the same rhythm.
+function SectionHeader({ label, color = "#00E6A8" }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 9,
+      padding: "8px 12px",
+      marginBottom: 10,
+      background: "rgba(255,255,255,0.035)",
+      borderLeft: `3px solid ${color}`,
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      borderRadius: "3px 3px 0 0",
+    }}>
+      <span style={{
+        width: 6, height: 6, borderRadius: 3,
+        background: color,
+        boxShadow: `0 0 6px ${color}aa`,
+        display: "inline-block",
+        flexShrink: 0,
+      }} />
+      <span style={{
+        ...mono, fontSize: 11, fontWeight: 700,
+        letterSpacing: 1.2, textTransform: "uppercase",
+        color: "rgba(255,255,255,0.78)",
+      }}>{label}</span>
+    </div>
+  );
+}
+
 function BannerCell({ label, value, color, emphasis }) {
   const valueColor =
     emphasis === "warn"  ? "#E05050" :
@@ -2159,9 +2480,17 @@ function FilterChip({ label, active, color, onClick }) {
   );
 }
 
+// CP-style "alive" detection — pulse + glow only fire on in-flight leads.
+// Terminal statuses (closed positive or closed negative) get the static accent
+// only, so the operator can scan the queue and instantly see what's working.
+const TERMINAL_STATUSES = new Set([
+  "signed-approved", "not-qualified", "not-interested", "closed",
+]);
+
 function LeadRow({ lead, onClick }) {
   const peril = perilMeta(lead.peril);
   const status = statusPill(lead.status);
+  const isActive = !TERMINAL_STATUSES.has(lead.status);
   return (
     <div
       role="button"
@@ -2169,9 +2498,9 @@ function LeadRow({ lead, onClick }) {
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick && onClick(); } }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "rgba(0,230,168,0.40)";
-        e.currentTarget.style.background = "rgba(0,230,168,0.04)";
-        e.currentTarget.style.boxShadow = "0 0 0 1px rgba(0,230,168,0.15), 0 8px 24px rgba(0,0,0,0.35)";
+        e.currentTarget.style.borderColor = `${status.color}66`;
+        e.currentTarget.style.background = `${status.color}08`;
+        e.currentTarget.style.boxShadow = `0 0 0 1px ${status.color}25, 0 10px 28px rgba(0,0,0,0.45)`;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
@@ -2183,13 +2512,24 @@ function LeadRow({ lead, onClick }) {
         gridTemplateColumns: "auto 1fr auto auto",
         alignItems: "center",
         gap: 16,
-        padding: "14px 18px",
+        padding: "14px 18px 14px 22px",
         background: "rgba(255,255,255,0.02)",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: 10,
         cursor: "pointer",
         transition: "all 0.15s ease",
+        position: "relative",
+        overflow: "hidden",
       }}>
+      {/* CP-style status accent — left edge, status-encoded, glowing.
+          Absolute child so hover-driven boxShadow doesn't repaint it. */}
+      <div style={{
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+        background: status.color,
+        boxShadow: `0 0 10px ${status.color}80`,
+        pointerEvents: "none",
+      }} />
+
       {/* Peril icon */}
       <div style={{
         width: 40, height: 40,
@@ -2204,10 +2544,21 @@ function LeadRow({ lead, onClick }) {
 
       {/* Info */}
       <div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 0.5 }}>
-          Lead #{lead.ref_number}
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 8 }}>
+          {isActive && (
+            <span
+              title="Lead in flight"
+              style={{
+                width: 7, height: 7, borderRadius: 4,
+                background: status.color,
+                boxShadow: `0 0 8px ${status.color}b3`,
+                display: "inline-block", flexShrink: 0,
+              }}
+            />
+          )}
+          <span>Lead #{lead.ref_number}</span>
           {lead.insurance_company && (
-            <span style={{ fontWeight: 400, color: C.muted, marginLeft: 8 }}>
+            <span style={{ fontWeight: 400, color: C.muted }}>
               · {lead.insurance_company}
             </span>
           )}
@@ -2232,12 +2583,12 @@ function LeadRow({ lead, onClick }) {
         {peril.label.toUpperCase()}
       </div>
 
-      {/* Status pill */}
+      {/* CP-style status pill — rgba(.,0.18) bg + colored text + 4px radius,
+          borderless to match Command Center pill convention. */}
       <div style={{
-        padding: "4px 10px",
-        background: `${status.color}12`,
-        border: `1px solid ${status.color}40`,
-        borderRadius: 6,
+        padding: "3px 10px",
+        background: `${status.color}2e`,
+        borderRadius: 4,
         color: status.color,
         fontSize: 10,
         fontWeight: 700,
