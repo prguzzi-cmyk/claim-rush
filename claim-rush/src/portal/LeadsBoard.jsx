@@ -377,7 +377,49 @@ export default function LeadsBoard() {
   }
 
   return (
-    <div style={{ maxWidth: 1100 }}>
+    <div style={{
+      maxWidth: 1100,
+      position: "relative",
+    }}>
+      {/* Cinematic ambient backdrop — radial green wash anchored top-left,
+          subtle so it never competes with content. */}
+      <div style={{
+        position: "absolute", top: -120, left: -120,
+        width: 480, height: 480,
+        background: "radial-gradient(circle, rgba(0,230,168,0.06) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      <div style={{
+        position: "absolute", top: 200, right: -160,
+        width: 420, height: 420,
+        background: "radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 65%)",
+        pointerEvents: "none",
+        zIndex: 0,
+      }} />
+      {/* Live animation keyframes — mounted once, used across queue cards
+          and the detail panel for pulse + glow oscillation. */}
+      <style>{`
+        @keyframes liveDotPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.82); }
+        }
+        @keyframes edgeGlow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.55; }
+        }
+        @keyframes leadCardEnter {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes accentSweep {
+          0%, 100% { filter: brightness(1); }
+          50% { filter: brightness(1.25); }
+        }
+      `}</style>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+
       {/* Header */}
       <div style={{ marginBottom: 22 }}>
         <button
@@ -395,10 +437,33 @@ export default function LeadsBoard() {
         >
           ← BACK TO COMMAND CENTER
         </button>
-        <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, margin: "6px 0 4px" }}>
-          Fire Leads
-        </h1>
-        <div style={{ color: C.muted, fontSize: 13, ...mono }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, margin: "6px 0 4px" }}>
+          <h1 style={{
+            ...mono, fontSize: 28, color: "#fff", fontWeight: 800,
+            margin: 0, letterSpacing: -0.5,
+            textShadow: "0 0 24px rgba(0,230,168,0.20)",
+          }}>
+            FIRE LEADS
+          </h1>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 9px",
+            background: "rgba(0,230,168,0.10)",
+            border: "1px solid rgba(0,230,168,0.32)",
+            borderRadius: 4,
+            fontSize: 10, fontWeight: 800, letterSpacing: 1.5,
+            color: "#00E6A8", ...mono,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            LIVE
+          </span>
+        </div>
+        <div style={{ color: C.muted, fontSize: 13, ...mono, letterSpacing: 0.3 }}>
           {leads.length} lead{leads.length === 1 ? "" : "s"} across your downline.
         </div>
         <div style={{
@@ -457,7 +522,7 @@ export default function LeadsBoard() {
       {visible.length === 0 ? (
         <EmptyState hasAnyLeads={leads.length > 0} hasFilter={filter !== "all"} />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {visible.map(lead => (
             <LeadRow
               key={lead.id}
@@ -653,6 +718,7 @@ export default function LeadsBoard() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -1490,15 +1556,39 @@ function LeadDetailPanel({ lead, onClose }) {
         style={{
           background: "linear-gradient(180deg, #151D2E 0%, #111826 100%)",
           border: "1px solid rgba(0,230,168,0.25)",
-          borderRadius: 12, padding: "24px 28px",
-          width: 540, maxWidth: "90vw", maxHeight: "85vh", overflow: "auto",
-          boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
+          borderTop: "3px solid #00E6A8",
+          borderRadius: 12, padding: "26px 30px",
+          width: 560, maxWidth: "92vw", maxHeight: "88vh", overflow: "auto",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.70), 0 0 80px rgba(0,230,168,0.12), inset 0 1px 0 rgba(255,255,255,0.05)",
+          position: "relative",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <h3 style={{ ...mono, color: "#fff", fontSize: 18, margin: 0, letterSpacing: 0.5 }}>
-            Lead #{lead.ref_number}
-          </h3>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: 4,
+              background: "#00E6A8",
+              boxShadow: "0 0 10px rgba(0,230,168,0.85), 0 0 20px rgba(0,230,168,0.40)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+              display: "inline-block", flexShrink: 0,
+            }} />
+            <h3 style={{
+              ...mono, color: "#fff", fontSize: 22, fontWeight: 800,
+              margin: 0, letterSpacing: 0.8,
+              textShadow: "0 0 20px rgba(0,230,168,0.20)",
+            }}>
+              LEAD #{lead.ref_number}
+            </h3>
+            <span style={{
+              ...mono, fontSize: 9, fontWeight: 800,
+              letterSpacing: 1.5, textTransform: "uppercase",
+              color: "rgba(255,255,255,0.45)",
+              padding: "2px 7px",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: 3,
+            }}>OPS PANEL</span>
+          </div>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -1665,8 +1755,7 @@ function LeadDetailPanel({ lead, onClose }) {
         <DetailRow label="ID" value={lead.id} mono />
 
         {/* Stage 7 — Assigned Owner */}
-        <div style={{ marginTop: 22 }}>
-          <SectionHeader label="Assigned Owner" color="#00E6A8" />
+        <SectionPanel label="Assigned Owner" color="#00E6A8" marginTop={22}>
           <div style={{
             display: "grid", gridTemplateColumns: "1fr auto", gap: 12,
             alignItems: "center", padding: "8px 0",
@@ -1717,11 +1806,10 @@ function LeadDetailPanel({ lead, onClose }) {
           {actions.ownership?.state === "error" && (
             <div style={{ ...mono, fontSize: 11, color: "#E05050", marginTop: 8 }}>✗ {actions.ownership.msg}</div>
           )}
-        </div>
+        </SectionPanel>
 
         {/* Stage 7 — Follow-Up Due */}
-        <div style={{ marginTop: 18 }}>
-          <SectionHeader label="Follow-Up" color="#C9A84C" />
+        <SectionPanel label="Follow-Up" color="#C9A84C" marginTop={18}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
             <span style={{
               padding: "4px 10px",
@@ -1783,19 +1871,17 @@ function LeadDetailPanel({ lead, onClose }) {
           {actions.followup?.state === "error" && (
             <div style={{ ...mono, fontSize: 11, color: "#E05050", marginTop: 8 }}>✗ {actions.followup.msg}</div>
           )}
-        </div>
+        </SectionPanel>
 
         {/* Stage 5 — Lead Status pipeline (8 steps) */}
-        <div style={{ marginTop: 22 }}>
-          <SectionHeader label="Lead Status" color="#3B82F6" />
+        <SectionPanel label="Lead Status" color="#3B82F6" marginTop={22}>
           {pipelineSteps.map(s => (
             <PipelineStep key={s.key} label={s.label} state={s.state} timestamp={s.timestamp} fmtTime={fmtTime} />
           ))}
-        </div>
+        </SectionPanel>
 
         {/* Stage 5 — Recent Activity feed */}
-        <div style={{ marginTop: 18 }}>
-          <SectionHeader label="Recent Activity" color="#00E6A8" />
+        <SectionPanel label="Recent Activity" color="#00E6A8" marginTop={18}>
           {recentActivity.length === 0 ? (
             <div style={{
               ...mono, fontSize: 12, color: "rgba(255,255,255,0.35)",
@@ -1822,11 +1908,10 @@ function LeadDetailPanel({ lead, onClose }) {
               </div>
             ))
           )}
-        </div>
+        </SectionPanel>
 
         {/* Stage 6 — Disposition pill + quick-action buttons */}
-        <div style={{ marginTop: 18 }}>
-          <SectionHeader label="Outcome / Disposition" color="#A855F7" />
+        <SectionPanel label="Outcome / Disposition" color="#A855F7" marginTop={18}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
             <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Current:</span>
             <span style={{
@@ -1849,7 +1934,7 @@ function LeadDetailPanel({ lead, onClose }) {
             <DispositionButton label="Schedule Appointment"   onClick={() => handleDisposition("pending-sign",   "Appointment Scheduled")} disabled={!isLeadRow} />
             <DispositionButton label="Reset to Active"        onClick={() => handleDisposition("new",            "No Response (reset)")}   disabled={!isLeadRow} variant="muted" />
           </div>
-        </div>
+        </SectionPanel>
 
         {/* Stage 6 — Next Recommended Action */}
         <div style={{
@@ -2326,6 +2411,35 @@ function ActionButton({ idle, state, onClick, disabled, title }) {
 
 // BannerCell — one of 4 cells in the at-a-glance status banner at the
 // top of the detail panel. Compact, color-coded, no hover state.
+// CP-style section panel — full container with top accent, ambient
+// gradient bg, header strip, body padding. Each LeadDetailPanel
+// grouping renders inside one of these so the operator sees discrete
+// "system panels" instead of flat-stacked sections.
+function SectionPanel({ label, color = "#00E6A8", marginTop = 18, children }) {
+  return (
+    <div style={{
+      position: "relative",
+      marginTop,
+      background: "linear-gradient(180deg, rgba(255,255,255,0.028) 0%, rgba(255,255,255,0.005) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px ${color}10`,
+    }}>
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: color,
+        boxShadow: `0 0 8px ${color}aa`,
+        pointerEvents: "none",
+      }} />
+      <SectionHeader label={label} color={color} />
+      <div style={{ padding: "0 14px 14px" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // CP-style section header strip — slightly elevated bg + colored accent
 // dot + uppercase mono label. Replaces five copy-pasted inline header
 // divs in LeadDetailPanel so each grouping reads with the same rhythm.
@@ -2491,6 +2605,11 @@ function LeadRow({ lead, onClick }) {
   const peril = perilMeta(lead.peril);
   const status = statusPill(lead.status);
   const isActive = !TERMINAL_STATUSES.has(lead.status);
+  // Multi-shadow base. Hover layers in stronger ring + ambient.
+  const baseShadow = `0 6px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px ${status.color}1a`;
+  const hoverShadow = `0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px ${status.color}33, 0 0 36px ${status.color}30`;
+  const baseBg = "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.01) 100%)";
+  const hoverBg = `linear-gradient(135deg, ${status.color}10 0%, rgba(255,255,255,0.025) 50%, rgba(255,255,255,0.015) 100%)`;
   return (
     <div
       role="button"
@@ -2498,104 +2617,158 @@ function LeadRow({ lead, onClick }) {
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick && onClick(); } }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = `${status.color}66`;
-        e.currentTarget.style.background = `${status.color}08`;
-        e.currentTarget.style.boxShadow = `0 0 0 1px ${status.color}25, 0 10px 28px rgba(0,0,0,0.45)`;
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.borderColor = `${status.color}59`;
+        e.currentTarget.style.background = hoverBg;
+        e.currentTarget.style.boxShadow = hoverShadow;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-        e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+        e.currentTarget.style.background = baseBg;
+        e.currentTarget.style.boxShadow = baseShadow;
       }}
       style={{
         display: "grid",
-        gridTemplateColumns: "auto 1fr auto auto",
+        gridTemplateColumns: "auto 1fr auto",
         alignItems: "center",
-        gap: 16,
-        padding: "14px 18px 14px 22px",
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 10,
+        gap: 18,
+        padding: "20px 22px 20px 30px",
+        background: baseBg,
+        border: "1px solid rgba(255,255,255,0.10)",
+        borderRadius: 14,
         cursor: "pointer",
-        transition: "all 0.15s ease",
+        transition: "all 0.22s cubic-bezier(.4,0,.2,1)",
         position: "relative",
         overflow: "hidden",
+        boxShadow: baseShadow,
+        animation: "leadCardEnter 0.4s ease both",
       }}>
-      {/* CP-style status accent — left edge, status-encoded, glowing.
-          Absolute child so hover-driven boxShadow doesn't repaint it. */}
+      {/* Animated status edge — 5px wide left bar with double-shadow halo.
+          Pulses on in-flight leads via @keyframes edgeGlow. */}
       <div style={{
-        position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 5,
         background: status.color,
-        boxShadow: `0 0 10px ${status.color}80`,
+        boxShadow: `0 0 16px ${status.color}cc, 0 0 28px ${status.color}55`,
         pointerEvents: "none",
+        animation: isActive ? "edgeGlow 2.4s ease-in-out infinite" : "none",
       }} />
 
-      {/* Peril icon */}
+      {/* Ambient corner glow — radial wash bleeding from top-right,
+          colored by status so each card has its own atmosphere. */}
       <div style={{
-        width: 40, height: 40,
+        position: "absolute", top: -40, right: -40,
+        width: 180, height: 180,
+        background: `radial-gradient(circle, ${status.color}22 0%, transparent 65%)`,
+        pointerEvents: "none",
+        opacity: 0.7,
+      }} />
+
+      {/* Peril badge — larger, gradient-filled, peril-tinted glow. */}
+      <div style={{
+        width: 52, height: 52,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: `${peril.color}18`,
-        border: `1px solid ${peril.color}33`,
-        borderRadius: 10,
-        fontSize: 20,
+        background: `linear-gradient(135deg, ${peril.color}28 0%, ${peril.color}10 100%)`,
+        border: `1px solid ${peril.color}55`,
+        borderRadius: 12,
+        fontSize: 24,
+        boxShadow: `0 0 18px ${peril.color}30, inset 0 1px 0 rgba(255,255,255,0.08)`,
+        position: "relative",
+        zIndex: 2,
+        flexShrink: 0,
       }}>
         {peril.icon}
       </div>
 
-      {/* Info */}
-      <div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 0.5, display: "flex", alignItems: "center", gap: 8 }}>
+      {/* Info column — 3-tier typography:
+          1) LEAD #ref title (17px bold mono) + LIVE pulse + insurance tag
+          2) agent / days-open uppercase metadata line. */}
+      <div style={{ minWidth: 0, position: "relative", zIndex: 2 }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: 11, marginBottom: 6,
+          flexWrap: "wrap",
+        }}>
           {isActive && (
             <span
               title="Lead in flight"
               style={{
-                width: 7, height: 7, borderRadius: 4,
+                width: 8, height: 8, borderRadius: 4,
                 background: status.color,
-                boxShadow: `0 0 8px ${status.color}b3`,
+                boxShadow: `0 0 10px ${status.color}, 0 0 20px ${status.color}66`,
                 display: "inline-block", flexShrink: 0,
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
               }}
             />
           )}
-          <span>Lead #{lead.ref_number}</span>
+          <span style={{
+            fontSize: 17, fontWeight: 700, color: "#fff",
+            ...mono, letterSpacing: 0.6,
+          }}>
+            LEAD #{lead.ref_number}
+          </span>
           {lead.insurance_company && (
-            <span style={{ fontWeight: 400, color: C.muted }}>
-              · {lead.insurance_company}
+            <span style={{
+              fontSize: 10, fontWeight: 700, ...mono,
+              color: "rgba(255,255,255,0.65)",
+              padding: "2px 8px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 4,
+              letterSpacing: 0.8,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+            }}>
+              {lead.insurance_company}
             </span>
           )}
         </div>
-        <div style={{ fontSize: 12, color: C.muted, marginTop: 3, ...mono }}>
-          {lead.agent_name || "Unassigned"} · {lead.days_open} day{lead.days_open === 1 ? "" : "s"} open
+        <div style={{
+          display: "flex", alignItems: "center", gap: 11,
+          fontSize: 11, ...mono, letterSpacing: 0.6,
+        }}>
+          <span style={{
+            color: lead.agent_name ? "rgba(255,255,255,0.65)" : "#E05050",
+            fontWeight: 700, textTransform: "uppercase",
+          }}>
+            {lead.agent_name || "UNASSIGNED"}
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 13, lineHeight: 1 }}>·</span>
+          <span style={{
+            color: "rgba(255,255,255,0.55)", fontWeight: 700,
+          }}>
+            {lead.days_open}D OPEN
+          </span>
         </div>
       </div>
 
-      {/* Peril label (compact) */}
+      {/* Right column: peril + status pills stacked. CP-form pills
+          (rgba bg, no border on status) with glow on the live one. */}
       <div style={{
-        padding: "4px 10px",
-        background: `${peril.color}12`,
-        border: `1px solid ${peril.color}30`,
-        borderRadius: 6,
-        color: peril.color,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        ...mono,
+        display: "flex", flexDirection: "column", gap: 6,
+        alignItems: "flex-end", position: "relative", zIndex: 2,
       }}>
-        {peril.label.toUpperCase()}
-      </div>
-
-      {/* CP-style status pill — rgba(.,0.18) bg + colored text + 4px radius,
-          borderless to match Command Center pill convention. */}
-      <div style={{
-        padding: "3px 10px",
-        background: `${status.color}2e`,
-        borderRadius: 4,
-        color: status.color,
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: 1,
-        ...mono,
-      }}>
-        {status.label}
+        <div style={{
+          padding: "3px 10px",
+          background: `${peril.color}1a`,
+          border: `1px solid ${peril.color}38`,
+          borderRadius: 4,
+          color: peril.color,
+          fontSize: 10, fontWeight: 700, letterSpacing: 1.1,
+          ...mono, whiteSpace: "nowrap",
+        }}>
+          {peril.label.toUpperCase()}
+        </div>
+        <div style={{
+          padding: "3px 10px",
+          background: `${status.color}30`,
+          borderRadius: 4,
+          color: status.color,
+          fontSize: 10, fontWeight: 700, letterSpacing: 1.1,
+          ...mono, whiteSpace: "nowrap",
+          boxShadow: isActive ? `0 0 12px ${status.color}38` : "none",
+        }}>
+          {status.label}
+        </div>
       </div>
     </div>
   );
