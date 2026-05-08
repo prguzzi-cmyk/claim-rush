@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { apiFetch } from "../lib/api";
 import PageHeader from "./shared/PageHeader";
+import { fetchActiveEvents, scheduleSeminar as schedule, aggregateMetrics } from "./services/stormIntel";
 
 /**
  * Phase 17e — Storm Alerts for CP/RVP/Agent.
@@ -134,21 +134,24 @@ function SectionStrip({ label, color = "#00E6A8", right }) {
 }
 
 // ── National Intelligence Radar — atmospheric map placeholder ─────────
-function NationalRadar({ alerts }) {
-  // Collect all (state, severity) pairs across alerts. Same state hit by
-  // multiple events gets the most-severe color; duplicates dropped.
-  const sevRank = { extreme: 5, severe: 4, high: 3, moderate: 2, low: 1 };
+function NationalRadar({ events }) {
+  // Pick highest-priority event per state. Multi-state events register
+  // their primary state at full priority and secondary states at the
+  // event's severity_by_state weighting.
   const stateEntries = useMemo(() => {
     const m = new Map();
-    for (const a of alerts) {
-      const states = a.affected_states || [];
-      const sev = a.severity || "moderate";
-      for (const s of states) {
-        const code = (s || "").toUpperCase().slice(0, 2);
-        if (!STATE_COORDS[code]) continue;
-        const prev = m.get(code);
-        if (!prev || sevRank[sev] > sevRank[prev.sev]) {
-          m.set(code, { sev, eventType: a.event_type });
+    for (const ev of events) {
+      const sevByState = ev.territory_impact?.severity_by_state || {};
+      for (const [code, sev] of Object.entries(sevByState)) {
+        const upper = (code || "").toUpperCase().slice(0, 2);
+        if (!STATE_COORDS[upper]) continue;
+        const prev = m.get(upper);
+        const priority = ev.scoring.response_priority;
+        // Prefer the higher response_priority; tie-break by severity.
+        if (!prev || priority > prev.priority) {
+          m.set(upper, {
+            priority, sev: ev.severity, eventType: ev.event_type, action: ev.recommendation.action,
+          });
         }
       }
     }
@@ -156,11 +159,13 @@ function NationalRadar({ alerts }) {
       code,
       x: STATE_COORDS[code][0],
       y: STATE_COORDS[code][1],
-      color: SEVERITY_COLORS[v.sev] || GOLD,
+      color: v.priority >= 90 ? RED : v.priority >= 75 ? "#FF6D00" : v.priority >= 55 ? GOLD : GREEN,
       sev: v.sev,
       eventType: v.eventType,
+      action: v.action,
+      priority: v.priority,
     }));
-  }, [alerts]);
+  }, [events]);
 
   return (
     <div style={{
@@ -235,30 +240,37 @@ function NationalRadar({ alerts }) {
             pointerEvents: "none",
           }} />
         ))}
-        {/* Threat dots — positioned by state coords */}
-        {stateEntries.map(({ code, x, y, color, sev, eventType }) => (
-          <div key={code} style={{
-            position: "absolute",
-            left: `${x}%`, top: `${y}%`,
-            transform: "translate(-50%, -50%)",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-            pointerEvents: "none",
-          }}>
-            <span style={{
-              width: 9, height: 9, borderRadius: 5,
-              background: color,
-              boxShadow: `0 0 12px ${color}, 0 0 22px ${color}80`,
-              animation: (sev === "extreme" || sev === "severe") ? "stormPulse 1.3s ease-in-out infinite" : "none",
-              display: "inline-block",
-            }} />
-            <span style={{
-              ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1,
-              color, textShadow: `0 0 6px ${color}aa`,
+        {/* Threat dots — positioned by state coords. Color + pulse driven
+            by response_priority, not raw severity, so the operator sees
+            operational urgency at a glance. */}
+        {stateEntries.map(({ code, x, y, color, action, priority }) => {
+          const surge = action === "TARGET_NOW" || action === "SURGE_ZONE";
+          return (
+            <div key={code} style={{
+              position: "absolute",
+              left: `${x}%`, top: `${y}%`,
+              transform: "translate(-50%, -50%)",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              pointerEvents: "none",
             }}>
-              {code}
-            </span>
-          </div>
-        ))}
+              <span style={{
+                width: surge ? 11 : 9, height: surge ? 11 : 9, borderRadius: 6,
+                background: color,
+                boxShadow: surge
+                  ? `0 0 14px ${color}, 0 0 28px ${color}99, 0 0 4px ${color} inset`
+                  : `0 0 10px ${color}, 0 0 18px ${color}66`,
+                animation: surge ? "stormPulse 1.3s ease-in-out infinite" : "none",
+                display: "inline-block",
+              }} />
+              <span style={{
+                ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1,
+                color, textShadow: `0 0 6px ${color}aa`,
+              }}>
+                {code} · {priority}
+              </span>
+            </div>
+          );
+        })}
         {/* Empty-state center label */}
         {stateEntries.length === 0 && (
           <div style={{
@@ -289,15 +301,37 @@ function NationalRadar({ alerts }) {
   );
 }
 
-// ── Active Threat card ────────────────────────────────────────────────
-function ThreatCard({ alert, scheduling, onSchedule }) {
-  const meta = alert.metadata_json ? JSON.parse(alert.metadata_json) : {};
-  const icon = EVENT_ICONS[alert.event_type] || "⛈️";
-  const sevColor = SEVERITY_COLORS[alert.severity] || GOLD;
-  const counties = (alert.affected_counties || []).join(", ");
-  const states = (alert.affected_states || []).join(" · ");
-  const age = Math.round((Date.now() - new Date(alert.triggered_at).getTime()) / 3600000);
-  const isPulse = alert.severity === "extreme" || alert.severity === "severe";
+// ── Action → tactical color encoding for the recommendation pill ─────
+const ACTION_META = {
+  TARGET_NOW:  { color: RED,    label: "Target Now",  pulse: true  },
+  SURGE_ZONE:  { color: "#FF6D00", label: "Surge Zone",  pulse: true  },
+  DEPLOY:      { color: GOLD,   label: "Deploy",       pulse: false },
+  MONITOR:     { color: "#3B82F6", label: "Monitor",   pulse: false },
+  WAIT:        { color: "rgba(255,255,255,0.55)", label: "Wait",   pulse: false },
+  ESCALATE:    { color: PURPLE, label: "Escalate",     pulse: true  },
+  ARCHIVE:     { color: "rgba(255,255,255,0.40)", label: "Archive", pulse: false },
+};
+
+function fmtPop(p) {
+  if (p >= 1_000_000) return (p / 1_000_000).toFixed(1) + "M";
+  if (p >= 1_000)     return (p / 1_000).toFixed(0) + "k";
+  return String(p);
+}
+
+// ── Active Threat card — operational scoring + recommendation ────────
+function ThreatCard({ event, scheduling, onSchedule }) {
+  const icon = EVENT_ICONS[event.event_type] || "⛈️";
+  const sevColor = SEVERITY_COLORS[event.severity] || GOLD;
+  const counties = (event.location.counties || []).join(", ");
+  const states = (event.location.states || [event.location.state]).join(" · ");
+  const cities = (event.location.cities || []).join(", ");
+  const age = event.hours_ago;
+  const action = ACTION_META[event.recommendation.action] || ACTION_META.MONITOR;
+  const priority = event.scoring.response_priority;
+  const isLegacy = event._has_real_source === true;
+  const canSchedule = isLegacy && !(event._legacy?.alert_sent);
+  const alreadyRequested = isLegacy && event._legacy?.alert_sent;
+  const isPulse = priority >= 75;
 
   return (
     <div style={{
@@ -309,7 +343,7 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
       overflow: "hidden",
       boxShadow: `0 6px 18px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.03), 0 0 20px ${sevColor}14`,
     }}>
-      {/* Severity-encoded left edge accent */}
+      {/* Severity-encoded left edge accent — pulses on high-priority */}
       <div style={{
         position: "absolute", top: 0, bottom: 0, left: 0, width: 4,
         background: sevColor,
@@ -326,12 +360,12 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
       }} />
       <div style={{
         position: "relative", zIndex: 1,
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-        gap: 14,
+        display: "grid", gridTemplateColumns: "1fr auto",
+        gap: 14, alignItems: "stretch",
       }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          {/* Tier 1: severity chip + event type + states */}
-          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          {/* Tier 1 — severity + event type + recommendation chip */}
+          <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8, flexWrap: "wrap" }}>
             <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 5,
@@ -352,17 +386,52 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
                   animation: "stormPulse 1.4s ease-in-out infinite",
                 }} />
               )}
-              {alert.severity}
+              {event.severity}
             </span>
             <span style={{
               fontSize: 16, fontWeight: 800, color: "#fff",
               ...mono, letterSpacing: 0.5, textTransform: "uppercase",
               textShadow: `0 0 10px ${sevColor}40`,
             }}>
-              {alert.event_type}
+              {event.event_type}
             </span>
+            {/* Recommendation pill */}
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+              color: action.color,
+              padding: "2px 8px",
+              background: `${action.color}1a`,
+              border: `1px solid ${action.color}55`,
+              borderRadius: 3,
+              ...mono, textTransform: "uppercase",
+              boxShadow: action.pulse ? `0 0 10px ${action.color}40` : "none",
+            }}>
+              {action.pulse && (
+                <span style={{
+                  width: 5, height: 5, borderRadius: 3,
+                  background: action.color,
+                  boxShadow: `0 0 5px ${action.color}`,
+                  animation: "stormPulse 1.4s ease-in-out infinite",
+                }} />
+              )}
+              {action.label}
+            </span>
+            {/* Source provenance — legacy real backend vs synthesized */}
+            {isLegacy && (
+              <span style={{
+                ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.6,
+                color: GREEN, textTransform: "uppercase",
+                padding: "2px 7px",
+                background: `${GREEN}10`,
+                border: `1px solid ${GREEN}38`,
+                borderRadius: 3,
+              }}>
+                Live Trigger
+              </span>
+            )}
           </div>
-          {/* Tier 2: states + counties */}
+          {/* Tier 2 — states + counties + (cities if present) */}
           <div style={{
             display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
             marginBottom: 6,
@@ -378,19 +447,82 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
               {states || "—"}
             </span>
           </div>
-          {counties && (
+          {(counties || cities) && (
             <div style={{
               ...mono, fontSize: 11, color: "rgba(255,255,255,0.55)",
-              letterSpacing: 0.3, lineHeight: 1.55,
-              padding: "4px 0",
+              letterSpacing: 0.3, lineHeight: 1.55, padding: "4px 0",
             }}>
-              <span style={{ color: "rgba(255,255,255,0.40)", letterSpacing: 1.2, textTransform: "uppercase", fontSize: 9, fontWeight: 800, marginRight: 6 }}>Counties</span>
-              {counties}
+              {counties && (
+                <>
+                  <span style={{ color: "rgba(255,255,255,0.40)", letterSpacing: 1.2, textTransform: "uppercase", fontSize: 9, fontWeight: 800, marginRight: 6 }}>Counties</span>
+                  {counties}
+                </>
+              )}
+              {counties && cities && <span style={{ color: "rgba(255,255,255,0.20)", marginInline: 8 }}>·</span>}
+              {cities && (
+                <>
+                  <span style={{ color: "rgba(255,255,255,0.40)", letterSpacing: 1.2, textTransform: "uppercase", fontSize: 9, fontWeight: 800, marginRight: 6 }}>Cities</span>
+                  {cities}
+                </>
+              )}
             </div>
           )}
-          {/* Telemetry footer */}
+
+          {/* Operational scoring telemetry strip — 4 inline metrics */}
           <div style={{
-            display: "flex", alignItems: "center", gap: 12, marginTop: 8,
+            display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6,
+            marginTop: 10, marginBottom: 4,
+          }}>
+            {[
+              { label: "Priority",    value: priority,                 color: priority >= 90 ? RED : priority >= 75 ? "#FF6D00" : priority >= 55 ? GOLD : GREEN },
+              { label: "Likelihood",  value: `${event.scoring.claim_likelihood}%`, color: GREEN },
+              { label: "Confidence",  value: `${event.scoring.confidence}%`,       color: BLUE },
+              { label: "Operators",   value: event.territory_impact.recommended_operators || 0, color: PURPLE, sub: "rec." },
+            ].map(m => (
+              <div key={m.label} style={{
+                position: "relative",
+                padding: "5px 8px",
+                background: `${m.color}10`,
+                border: `1px solid ${m.color}28`,
+                borderRadius: 5,
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: 0, height: 1.5,
+                  background: m.color, boxShadow: `0 0 4px ${m.color}99`, pointerEvents: "none",
+                }} />
+                <div style={{
+                  ...mono, fontSize: 8, fontWeight: 800, letterSpacing: 1.3,
+                  color: "rgba(255,255,255,0.40)", textTransform: "uppercase",
+                  marginBottom: 1,
+                }}>{m.label}</div>
+                <div style={{
+                  ...mono, fontSize: 13, fontWeight: 800, color: m.color,
+                  letterSpacing: 0.2, lineHeight: 1,
+                  textShadow: `0 0 6px ${m.color}30`,
+                }}>{m.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Recommendation reason */}
+          <div style={{
+            ...mono, fontSize: 11, color: "rgba(255,255,255,0.62)",
+            lineHeight: 1.55, letterSpacing: 0.2,
+            paddingTop: 8, marginTop: 6,
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+          }}>
+            <span style={{
+              color: action.color,
+              fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", fontSize: 9,
+              marginRight: 6,
+            }}>Recommendation ·</span>
+            {event.recommendation.reason}
+          </div>
+
+          {/* Telemetry footer — age + population */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap",
             ...mono, fontSize: 10, color: "rgba(255,255,255,0.40)",
             letterSpacing: 0.8,
           }}>
@@ -401,41 +533,54 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
             <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
               <span style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, boxShadow: `0 0 4px ${PURPLE}` }} />
-              {meta.total_events || "?"} EVENTS TRACKED
+              Pop. {fmtPop(event.metrics.affected_population_est)}
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: GOLD, boxShadow: `0 0 4px ${GOLD}` }} />
+              Radius {event.metrics.impact_radius_miles} mi
             </span>
           </div>
         </div>
-        {/* Schedule Seminar CTA */}
-        <button
-          onClick={() => !alert.alert_sent && onSchedule(alert.id)}
-          disabled={scheduling === alert.id || alert.alert_sent}
-          onMouseEnter={(alert.alert_sent || scheduling === alert.id) ? undefined : (e) => {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.background = `${GREEN}26`;
-            e.currentTarget.style.boxShadow = `0 6px 18px rgba(0,0,0,0.40), 0 0 18px ${GREEN}40`;
-          }}
-          onMouseLeave={(alert.alert_sent || scheduling === alert.id) ? undefined : (e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.background = `${GREEN}14`;
-            e.currentTarget.style.boxShadow = `0 0 14px ${GREEN}25, inset 0 1px 0 rgba(255,255,255,0.06)`;
-          }}
-          style={{
-            position: "relative",
-            padding: "9px 16px",
-            background: alert.alert_sent ? "rgba(255,255,255,0.04)" : `${GREEN}14`,
-            border: `1px solid ${alert.alert_sent ? "rgba(255,255,255,0.10)" : `${GREEN}55`}`,
-            borderRadius: 6,
-            color: alert.alert_sent ? "rgba(255,255,255,0.40)" : GREEN,
-            fontSize: 11, fontWeight: 800, letterSpacing: 1.1,
-            textTransform: "uppercase",
-            cursor: (alert.alert_sent || scheduling === alert.id) ? "default" : "pointer",
-            ...mono, flexShrink: 0,
-            transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
-            boxShadow: alert.alert_sent ? "none" : `0 0 14px ${GREEN}25, inset 0 1px 0 rgba(255,255,255,0.06)`,
-          }}
-        >
-          {alert.alert_sent ? "Seminar Requested" : scheduling === alert.id ? "Scheduling..." : "Schedule Seminar"}
-        </button>
+
+        {/* Right rail — Schedule Seminar CTA (legacy events only) */}
+        <div style={{ display: "flex", alignItems: "flex-start" }}>
+          <button
+            onClick={() => canSchedule && onSchedule(event.id)}
+            disabled={!canSchedule || scheduling === event.id}
+            title={!isLegacy ? "Synthesized event — scheduling needs the storm-trigger backend"
+                  : alreadyRequested ? "Seminar request already sent" : undefined}
+            onMouseEnter={(!canSchedule || scheduling === event.id) ? undefined : (e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.background = `${GREEN}26`;
+              e.currentTarget.style.boxShadow = `0 6px 18px rgba(0,0,0,0.40), 0 0 18px ${GREEN}40`;
+            }}
+            onMouseLeave={(!canSchedule || scheduling === event.id) ? undefined : (e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = `${GREEN}14`;
+              e.currentTarget.style.boxShadow = `0 0 14px ${GREEN}25, inset 0 1px 0 rgba(255,255,255,0.06)`;
+            }}
+            style={{
+              position: "relative",
+              padding: "9px 16px",
+              background: !canSchedule ? "rgba(255,255,255,0.04)" : `${GREEN}14`,
+              border: `1px solid ${!canSchedule ? "rgba(255,255,255,0.10)" : `${GREEN}55`}`,
+              borderRadius: 6,
+              color: !canSchedule ? "rgba(255,255,255,0.40)" : GREEN,
+              fontSize: 11, fontWeight: 800, letterSpacing: 1.1,
+              textTransform: "uppercase",
+              cursor: (canSchedule && scheduling !== event.id) ? "pointer" : "default",
+              ...mono, flexShrink: 0,
+              transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+              boxShadow: !canSchedule ? "none" : `0 0 14px ${GREEN}25, inset 0 1px 0 rgba(255,255,255,0.06)`,
+            }}
+          >
+            {alreadyRequested ? "Seminar Requested"
+              : !isLegacy ? "Backend Pending"
+              : scheduling === event.id ? "Scheduling..."
+              : "Schedule Seminar"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -443,7 +588,7 @@ function ThreatCard({ alert, scheduling, onSchedule }) {
 
 // ── Main ──────────────────────────────────────────────────────────────
 export default function StormAlerts() {
-  const [alerts, setAlerts] = useState([]);
+  const [events, setEvents] = useState([]);              // StormEvent[]
   const [loading, setLoading] = useState(true);
   const [scheduling, setScheduling] = useState(null);
   const [tick, setTick] = useState(0);
@@ -457,33 +602,31 @@ export default function StormAlerts() {
     return () => clearInterval(t);
   }, []);
 
-  function load() {
+  async function load() {
     setLoading(true);
-    apiFetch("/seminars/storm-triggers/alerts/me")
-      .then(r => r.ok ? r.json() : [])
-      .then(d => { setAlerts(Array.isArray(d) ? d : []); setLoading(false); mountedAt.current = Date.now(); })
-      .catch(() => setLoading(false));
+    try {
+      const data = await fetchActiveEvents();
+      setEvents(Array.isArray(data) ? data : []);
+      mountedAt.current = Date.now();
+    } catch {
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function scheduleSeminar(triggerId) {
-    setScheduling(triggerId);
-    apiFetch(`/seminars/storm-triggers/${triggerId}/schedule-seminar`, { method: "POST" })
-      .then(r => r.json())
-      .then(() => { setScheduling(null); load(); })
-      .catch(() => setScheduling(null));
+  async function scheduleSeminar(eventId) {
+    setScheduling(eventId);
+    try {
+      const r = await schedule(eventId);
+      if (r.ok) await load();
+    } finally {
+      setScheduling(null);
+    }
   }
 
-  // Derived ops metrics — live from the same alerts payload.
-  const metrics = useMemo(() => {
-    const extremeCount = alerts.filter(a => a.severity === "extreme" || a.severity === "severe").length;
-    const allStates = new Set();
-    for (const a of alerts) for (const s of (a.affected_states || [])) allStates.add(s);
-    return {
-      total: alerts.length,
-      extreme: extremeCount,
-      regions: allStates.size,
-    };
-  }, [alerts]);
+  // Aggregate operational metrics — composite from the scored event list.
+  const metrics = useMemo(() => aggregateMetrics(events), [events]);
 
   const minutesSinceCheck = Math.floor((Date.now() - mountedAt.current) / 60000);
   // tick is read by minutesSinceCheck implicitly via render; reference it
@@ -514,52 +657,58 @@ export default function StormAlerts() {
         accent="#E05050"
       />
 
-      {/* Operational Status strip — derived KPIs */}
+      {/* Operational Status strip — composite intelligence metrics */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12,
         marginBottom: 22,
       }}>
         <StatusTile
-          label="Active Threats"
+          label="Active Events"
           value={loading ? "…" : metrics.total}
-          sub={metrics.total === 0 ? "No active alerts" : "Real-time feed"}
+          sub={metrics.total === 0 ? "Feed clear" : "National intel feed"}
           color={metrics.total > 0 ? RED : GREEN}
           pulse={metrics.total > 0}
         />
         <StatusTile
-          label="Extreme · Severe"
-          value={loading ? "…" : metrics.extreme}
-          sub={metrics.extreme > 0 ? "Critical priority" : "All clear"}
-          color={metrics.extreme > 0 ? RED : GREEN}
-          pulse={metrics.extreme > 0}
+          label="Surge Zones"
+          value={loading ? "…" : metrics.surgeZones}
+          sub={metrics.surgeZones > 0 ? "Target / Deploy now" : "No surge activity"}
+          color={metrics.surgeZones > 0 ? RED : GREEN}
+          pulse={metrics.surgeZones > 0}
         />
         <StatusTile
-          label="Impacted Regions"
-          value={loading ? "…" : metrics.regions}
-          sub="States with active threats"
-          color={metrics.regions > 0 ? GOLD : GREEN}
+          label="Response Priority"
+          value={loading ? "…" : (metrics.avgPriority || 0)}
+          sub={metrics.avgPriority >= 75 ? "Operationally urgent" : metrics.avgPriority >= 50 ? "Active monitoring" : "Standby"}
+          color={metrics.avgPriority >= 75 ? RED : metrics.avgPriority >= 50 ? GOLD : GREEN}
         />
         <StatusTile
-          label="Systems Online"
-          value="8/8"
-          sub="All sensors operational"
-          color={GREEN}
-          pulse
+          label="Operators Recommended"
+          value={loading ? "…" : metrics.totalOperators}
+          sub={`${metrics.statesAffected} state${metrics.statesAffected === 1 ? "" : "s"} · pop. ${
+            metrics.totalPopulation >= 1_000_000
+              ? (metrics.totalPopulation / 1_000_000).toFixed(1) + "M"
+              : metrics.totalPopulation >= 1_000
+              ? (metrics.totalPopulation / 1_000).toFixed(0) + "k"
+              : String(metrics.totalPopulation)
+          }`}
+          color={GOLD}
+          pulse={metrics.totalOperators > 0}
         />
       </div>
 
       {/* National Intelligence Radar */}
       <div style={{ marginBottom: 22 }}>
-        <NationalRadar alerts={alerts} />
+        <NationalRadar events={events} />
       </div>
 
       {/* Active Threats panel */}
       <SectionStrip
-        label={`Active Threats${alerts.length > 0 ? ` · ${alerts.length}` : ""}`}
-        color={alerts.length > 0 ? RED : GREEN}
-        right={alerts.length > 0 ? (
-          <span style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.45)", letterSpacing: 1.2 }}>
-            SCROLLING FEED
+        label={`Active Events${events.length > 0 ? ` · ${events.length}` : ""}`}
+        color={events.length > 0 ? RED : GREEN}
+        right={events.length > 0 ? (
+          <span style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)", letterSpacing: 1.2, fontWeight: 700, textTransform: "uppercase" }}>
+            Sorted by Response Priority
           </span>
         ) : null}
       />
@@ -573,9 +722,9 @@ export default function StormAlerts() {
           ...mono, fontSize: 12, color: "rgba(255,255,255,0.50)",
           letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
         }}>
-          ● Scanning Storm Trigger Feed…
+          ● Scanning National Storm Intelligence Feed…
         </div>
-      ) : alerts.length === 0 ? (
+      ) : events.length === 0 ? (
         <div style={{
           padding: "44px 24px", textAlign: "center",
           position: "relative",
@@ -591,18 +740,18 @@ export default function StormAlerts() {
           }} />
           <div style={{ fontSize: 38, marginBottom: 12 }}>☀️</div>
           <div style={{ ...mono, fontSize: 14, color: "rgba(255,255,255,0.78)", fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase" }}>
-            All Clear
+            National Feed Clear
           </div>
           <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 8, letterSpacing: 0.6, lineHeight: 1.55, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
-            No active storm alerts in your territory. Alerts appear automatically when severe weather is detected in your assigned states.
+            No qualifying storm events detected. Active events automatically surface here scored by response priority.
           </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {alerts.map(alert => (
+          {events.map(ev => (
             <ThreatCard
-              key={alert.id}
-              alert={alert}
+              key={ev.id}
+              event={ev}
               scheduling={scheduling}
               onSchedule={scheduleSeminar}
             />
