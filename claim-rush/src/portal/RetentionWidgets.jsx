@@ -48,20 +48,55 @@ function WeeklyActivity({ role }) {
   const items = activities[role] || activities.agent;
 
   return (
-    <div style={{ padding: "20px", background: "#131A2E", border: "1px solid #1F2742", borderRadius: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 18 }}>📅</span>
-        <span style={{ ...mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>Your ACI This Week</span>
+    <div style={{
+      position: "relative",
+      padding: 0,
+      background: "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px ${GREEN}10`,
+    }}>
+      {/* Top accent — green operational signal */}
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: GREEN,
+        boxShadow: `0 0 8px ${GREEN}aa`,
+        pointerEvents: "none",
+      }} />
+      {/* Header strip */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "10px 16px",
+        background: "rgba(255,255,255,0.025)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: GREEN,
+          boxShadow: `0 0 6px ${GREEN}cc`,
+          display: "inline-block",
+        }} />
+        <span style={{ ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>
+          Your ACI This Week
+        </span>
+        <span style={{ marginLeft: "auto", fontSize: 13 }}>📅</span>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ padding: "14px 16px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {items.map(item => (
-          <div key={item.label} style={{ padding: "12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6 }}>
+          <div key={item.label} style={{
+            padding: "12px",
+            background: "rgba(255,255,255,0.025)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: 6,
+            transition: "all 0.18s",
+          }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ fontSize: 14 }}>{item.icon}</span>
-              <span style={{ ...mono, fontSize: 18, fontWeight: 700, color: "#fff" }}>{item.value}</span>
+              <span style={{ ...mono, fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: 0.3, textShadow: `0 0 10px ${GREEN}30` }}>{item.value}</span>
             </div>
-            <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{item.label}</div>
-            <div style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 2 }}>Target: {item.target}</div>
+            <div style={{ ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)", marginTop: 4, letterSpacing: 1, textTransform: "uppercase", fontWeight: 700 }}>{item.label}</div>
+            <div style={{ ...mono, fontSize: 9, color: "rgba(255,255,255,0.30)", marginTop: 3, letterSpacing: 0.5 }}>Target: {item.target}</div>
           </div>
         ))}
       </div>
@@ -78,27 +113,60 @@ function StreakTracker() {
   const dayIndex = today === 0 ? 6 : today - 1;
 
   return (
-    <div style={{ padding: "20px", background: "#131A2E", border: "1px solid #1F2742", borderRadius: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 18 }}>🔥</span>
-        <span style={{ ...mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>Activity Streak</span>
-        <span style={{ marginLeft: "auto", ...mono, fontSize: 12, color: GREEN, fontWeight: 700 }}>Today</span>
+    <div style={{
+      position: "relative",
+      padding: 0,
+      background: "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px rgba(255,109,0,0.12)`,
+    }}>
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: "#FF6D00",
+        boxShadow: "0 0 8px rgba(255,109,0,0.85)",
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "10px 16px",
+        background: "rgba(255,255,255,0.025)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: "#FF6D00",
+          boxShadow: "0 0 6px rgba(255,109,0,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <span style={{ ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>
+          Activity Streak
+        </span>
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, color: GREEN, ...mono, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase", padding: "2px 7px", background: `${GREEN}10`, border: `1px solid ${GREEN}40`, borderRadius: 3 }}>
+          Today
+        </span>
       </div>
-      <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 12 }}>
-        {days.map((d, i) => (
-          <div key={i} style={{
-            width: 32, height: 32, borderRadius: "50%",
-            background: i <= dayIndex ? `${GREEN}20` : "rgba(255,255,255,0.03)",
-            border: `2px solid ${i <= dayIndex ? GREEN : "rgba(255,255,255,0.08)"}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 700, color: i <= dayIndex ? GREEN : "rgba(255,255,255,0.3)", ...mono,
-          }}>
-            {i < dayIndex ? "✓" : d}
-          </div>
-        ))}
-      </div>
-      <div style={{ textAlign: "center", ...mono, fontSize: 12, color: "rgba(255,255,255,0.45)" }}>
-        Log in daily to maintain your streak. Consistent activity drives results.
+      <div style={{ padding: "16px" }}>
+        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 12 }}>
+          {days.map((d, i) => (
+            <div key={i} style={{
+              width: 34, height: 34, borderRadius: "50%",
+              background: i <= dayIndex ? `${GREEN}22` : "rgba(255,255,255,0.025)",
+              border: `2px solid ${i <= dayIndex ? GREEN : "rgba(255,255,255,0.08)"}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 800, color: i <= dayIndex ? GREEN : "rgba(255,255,255,0.30)", ...mono,
+              boxShadow: i <= dayIndex ? `0 0 10px ${GREEN}40` : "none",
+              transition: "all 0.2s",
+            }}>
+              {i < dayIndex ? "✓" : d}
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: "center", ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 0.3, lineHeight: 1.55 }}>
+          Log in daily to maintain your streak. Consistent activity drives results.
+        </div>
       </div>
     </div>
   );
@@ -136,23 +204,62 @@ function MilestoneProgress({ role }) {
   const pct = Math.round((completed / items.length) * 100);
 
   return (
-    <div style={{ padding: "20px", background: "#131A2E", border: "1px solid #1F2742", borderRadius: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <span style={{ fontSize: 18 }}>🏅</span>
-        <span style={{ ...mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>Milestones</span>
-        <span style={{ marginLeft: "auto", ...mono, fontSize: 12, color: GOLD }}>{completed}/{items.length}</span>
+    <div style={{
+      position: "relative",
+      padding: 0,
+      background: "linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px ${GOLD}10`,
+    }}>
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: GOLD,
+        boxShadow: `0 0 8px ${GOLD}aa`,
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "10px 16px",
+        background: "rgba(255,255,255,0.025)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: GOLD,
+          boxShadow: `0 0 6px ${GOLD}cc`,
+          display: "inline-block",
+        }} />
+        <span style={{ ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>
+          Milestones
+        </span>
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", fontSize: 10, color: GOLD, ...mono, fontWeight: 800, letterSpacing: 1.2, padding: "2px 7px", background: `${GOLD}10`, border: `1px solid ${GOLD}40`, borderRadius: 3 }}>
+          {completed}/{items.length}
+        </span>
       </div>
-      {/* Progress bar */}
-      <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, marginBottom: 14 }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: GOLD, borderRadius: 2, transition: "width 0.5s" }} />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {items.map((m, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, ...mono }}>
-            <span style={{ fontSize: 14 }}>{m.done ? "✅" : m.icon}</span>
-            <span style={{ color: m.done ? "rgba(255,255,255,0.4)" : "#fff", textDecoration: m.done ? "line-through" : "none" }}>{m.label}</span>
-          </div>
-        ))}
+      <div style={{ padding: "14px 16px" }}>
+        {/* Progress bar — instrument visualization */}
+        <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, marginBottom: 14, overflow: "hidden" }}>
+          <div style={{
+            height: "100%", width: `${pct}%`,
+            background: `linear-gradient(90deg, ${GOLD}88 0%, ${GOLD} 100%)`,
+            boxShadow: `0 0 8px ${GOLD}aa`,
+            borderRadius: 2, transition: "width 0.5s",
+          }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          {items.map((m, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12, ...mono }}>
+              <span style={{ fontSize: 14, opacity: m.done ? 0.7 : 1 }}>{m.done ? "✓" : m.icon}</span>
+              <span style={{
+                color: m.done ? "rgba(255,255,255,0.40)" : "rgba(255,255,255,0.85)",
+                textDecoration: m.done ? "line-through" : "none",
+                fontWeight: 600, letterSpacing: 0.3,
+              }}>{m.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -164,20 +271,81 @@ function NetworkPosition({ role }) {
   const roleLabel = { agent: "Agent", RVP: "Regional VP", CP: "Chapter President" }[role] || "Member";
 
   return (
-    <div style={{ padding: "20px", background: "linear-gradient(135deg, rgba(168,85,247,0.08), rgba(168,85,247,0.02))", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <span style={{ fontSize: 18 }}>🌐</span>
-        <span style={{ ...mono, fontSize: 14, fontWeight: 700, color: "#fff" }}>Your Network Position</span>
+    <div style={{
+      position: "relative",
+      padding: 0,
+      background: `linear-gradient(135deg, ${PURPLE}10 0%, ${PURPLE}02 60%, rgba(0,230,168,0.04) 100%)`,
+      border: `1px solid ${PURPLE}28`,
+      borderRadius: 10,
+      overflow: "hidden",
+      boxShadow: `0 4px 14px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 22px ${PURPLE}14`,
+    }}>
+      <div style={{
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: PURPLE,
+        boxShadow: `0 0 8px ${PURPLE}aa`,
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", top: -50, right: -50,
+        width: 180, height: 180,
+        background: `radial-gradient(circle, ${PURPLE}1c 0%, transparent 65%)`,
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "relative", zIndex: 1,
+        display: "flex", alignItems: "center", gap: 9,
+        padding: "10px 16px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <span style={{
+          width: 6, height: 6, borderRadius: 3,
+          background: PURPLE,
+          boxShadow: `0 0 6px ${PURPLE}cc`,
+          display: "inline-block",
+        }} />
+        <span style={{ ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4, color: "rgba(255,255,255,0.85)", textTransform: "uppercase" }}>
+          Network Position
+        </span>
+        <span style={{ marginLeft: "auto", fontSize: 13 }}>🌐</span>
       </div>
-      <div style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-        You are a <strong style={{ color: PURPLE }}>{roleLabel}</strong> in the Pax Equitas network.
-        {role === "agent" && " Your upline RVP and CP support your growth. Focus on leads and client relationships."}
-        {role === "RVP" && " You lead a team of agents. Your success multiplies through their performance."}
-        {role === "CP" && " You own your territory. Build your team, grow your market, earn overrides on every transaction."}
-      </div>
-      <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-        <span style={{ padding: "3px 10px", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 12, fontSize: 10, color: PURPLE, fontWeight: 700, ...mono }}>ACTIVE MEMBER</span>
-        <span style={{ padding: "3px 10px", background: "rgba(0,230,168,0.1)", border: "1px solid rgba(0,230,168,0.25)", borderRadius: 12, fontSize: 10, color: GREEN, fontWeight: 700, ...mono }}>IN GOOD STANDING</span>
+      <div style={{ position: "relative", zIndex: 1, padding: "14px 16px" }}>
+        <div style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.70)", lineHeight: 1.6, letterSpacing: 0.2 }}>
+          You are a <strong style={{ color: PURPLE, textShadow: `0 0 12px ${PURPLE}55` }}>{roleLabel}</strong> in the Pax Equitas network.
+          {role === "agent" && " Your upline RVP and CP support your growth. Focus on leads and client relationships."}
+          {role === "RVP" && " You lead a team of agents. Your success multiplies through their performance."}
+          {role === "CP" && " You own your territory. Build your team, grow your market, earn overrides on every transaction."}
+        </div>
+        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "3px 9px",
+            background: `${PURPLE}1a`, border: `1px solid ${PURPLE}45`,
+            borderRadius: 4,
+            fontSize: 9, color: PURPLE, fontWeight: 800, letterSpacing: 1.4, ...mono,
+            textTransform: "uppercase",
+          }}>
+            <span style={{
+              width: 4, height: 4, borderRadius: 2,
+              background: PURPLE, boxShadow: `0 0 5px ${PURPLE}`, animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            Active Member
+          </span>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "3px 9px",
+            background: `${GREEN}1a`, border: `1px solid ${GREEN}45`,
+            borderRadius: 4,
+            fontSize: 9, color: GREEN, fontWeight: 800, letterSpacing: 1.4, ...mono,
+            textTransform: "uppercase",
+          }}>
+            <span style={{
+              width: 4, height: 4, borderRadius: 2,
+              background: GREEN, boxShadow: `0 0 5px ${GREEN}`,
+            }} />
+            In Good Standing
+          </span>
+        </div>
       </div>
     </div>
   );

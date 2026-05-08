@@ -548,16 +548,18 @@ export default function AxisLiveOverlay({ context = {}, onSessionEnd }) {
     <div style={{
       position: "fixed",
       bottom: 86, right: 24,
-      width: 320,
-      background: "rgba(12, 16, 28, 0.98)",
-      border: `1px solid ${locked ? `${PURPLE}40` : "rgba(255,255,255,0.08)"}`,
+      width: 340,
+      background: "linear-gradient(180deg, rgba(18, 22, 36, 0.98) 0%, rgba(10, 14, 26, 0.98) 100%)",
+      border: `1px solid ${locked ? `${PURPLE}66` : `${PURPLE}28`}`,
       borderRadius: 14,
       backdropFilter: "blur(20px)",
-      boxShadow: "0 8px 40px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,255,0.08)",
+      boxShadow: locked
+        ? `0 12px 44px rgba(0,0,0,0.65), 0 0 0 1px ${PURPLE}33, 0 0 60px ${PURPLE}30, inset 0 1px 0 rgba(255,255,255,0.05)`
+        : `0 12px 44px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04), 0 0 36px ${PURPLE}1c, inset 0 1px 0 rgba(255,255,255,0.04)`,
       zIndex: 899,
       overflow: "hidden",
       animation: "axlSlideUp 0.3s ease both",
-      transition: "border-color 0.5s ease",
+      transition: "border-color 0.5s ease, box-shadow 0.5s ease",
     }}>
       <style>{`
         @keyframes axlSlideUp {
@@ -568,44 +570,89 @@ export default function AxisLiveOverlay({ context = {}, onSessionEnd }) {
           0%, 100% { opacity: 1; box-shadow: 0 0 8px currentColor; }
           50% { opacity: 0.5; box-shadow: 0 0 4px currentColor; }
         }
+        @keyframes axlDotPulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.82); }
+        }
       `}</style>
 
-      {/* Header */}
+      {/* Top accent — purple intelligence-system marker */}
       <div style={{
-        padding: "10px 14px 8px",
+        position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: PURPLE,
+        boxShadow: `0 0 10px ${PURPLE}cc`,
+        pointerEvents: "none",
+      }} />
+      {/* Ambient corner glow — top-right purple wash */}
+      <div style={{
+        position: "absolute", top: -50, right: -50,
+        width: 180, height: 180,
+        background: `radial-gradient(circle, ${PURPLE}26 0%, transparent 65%)`,
+        pointerEvents: "none", zIndex: 0,
+      }} />
+
+      {/* Header — AXIS COACH identity stack with monitoring status pill */}
+      <div style={{
+        position: "relative", zIndex: 1,
+        padding: "12px 14px 10px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(255,255,255,0.025)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <div style={{
-            width: 22, height: 22, borderRadius: 5,
-            background: `linear-gradient(135deg, ${PURPLE}, ${PURPLE}88)`,
+            width: 30, height: 30, borderRadius: 7,
+            background: `linear-gradient(135deg, ${PURPLE}, #7C3AED)`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 11, fontWeight: 900, color: "#fff", ...mono,
+            fontSize: 13, fontWeight: 900, color: "#fff", ...mono,
+            letterSpacing: 0.5, flexShrink: 0,
+            boxShadow: `0 0 14px ${PURPLE}55, inset 0 1px 0 rgba(255,255,255,0.20)`,
           }}>C</div>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#FFFFFF", ...mono, letterSpacing: 1.5 }}>
-            Coach
-          </span>
+          <div style={{ minWidth: 0, lineHeight: 1.15 }}>
+            <div style={{
+              fontSize: 12, fontWeight: 800, letterSpacing: 1.5,
+              color: "#fff", ...mono, textTransform: "uppercase",
+              textShadow: `0 0 12px ${PURPLE}50`,
+            }}>
+              AXIS Coach
+            </div>
+            <div style={{
+              fontSize: 8, fontWeight: 800, letterSpacing: 1.6,
+              color: PURPLE, ...mono, textTransform: "uppercase", marginTop: 2,
+            }}>
+              AI Companion
+            </div>
+          </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "3px 8px",
+            background: `${status.color}1a`,
+            border: `1px solid ${status.color}40`,
+            borderRadius: 4,
+            boxShadow: `0 0 10px ${status.color}25`,
+          }}>
             <div style={{
-              width: 6, height: 6, borderRadius: 3,
+              width: 5, height: 5, borderRadius: 3,
               background: status.color,
-              boxShadow: `0 0 8px ${status.color}60`,
-              animation: "axlPulse 2.5s ease infinite",
+              boxShadow: `0 0 6px ${status.color}aa`,
+              animation: "axlDotPulse 1.6s ease-in-out infinite",
             }} />
-            <span style={{ fontSize: 12, color: status.color, ...mono, fontWeight: 600, letterSpacing: 1 }}>
+            <span style={{ fontSize: 9, color: status.color, ...mono, fontWeight: 800, letterSpacing: 1.4, textTransform: "uppercase" }}>
               {status.label}
             </span>
           </div>
           <button
             onClick={() => setMinimized(true)}
+            aria-label="Minimize"
             style={{
-              background: "none", border: "none", color: "#FFFFFF",
-              fontSize: 13, cursor: "pointer", padding: "0 2px", lineHeight: 1,
+              background: "none", border: "none", color: "rgba(255,255,255,0.55)",
+              fontSize: 14, cursor: "pointer", padding: "2px 4px", lineHeight: 1,
               ...mono,
             }}
+            onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+            onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.55)"}
           >—</button>
         </div>
       </div>
@@ -656,48 +703,70 @@ export default function AxisLiveOverlay({ context = {}, onSessionEnd }) {
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* Quick Actions — cinematic CTA buttons with hover glow */}
       <div style={{
-        padding: "6px 14px 6px",
+        position: "relative", zIndex: 1,
+        padding: "8px 14px 8px",
         display: "flex", gap: 6,
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
       }}>
         {[
           { key: "reset", label: "Reset" },
           { key: "next", label: "Next move" },
           { key: "close", label: "Close" },
-        ].map(t => (
-          <button
-            key={t.key}
-            onClick={() => handleTrigger(t.key)}
-            style={{
-              flex: 1,
-              padding: "7px 0",
-              background: trigger === t.key ? `${PURPLE}25` : "rgba(255,255,255,0.04)",
-              border: `1px solid ${trigger === t.key ? `${PURPLE}50` : "rgba(255,255,255,0.10)"}`,
-              borderRadius: 8,
-              color: "#FFFFFF",
-              fontSize: 13, fontWeight: 600, letterSpacing: 0.6,
-              cursor: "pointer", ...mono, transition: "all 0.2s",
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+        ].map(t => {
+          const isActive = trigger === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => handleTrigger(t.key)}
+              onMouseEnter={isActive ? undefined : (e) => {
+                e.currentTarget.style.background = `${PURPLE}1a`;
+                e.currentTarget.style.borderColor = `${PURPLE}55`;
+                e.currentTarget.style.boxShadow = `0 0 14px ${PURPLE}28`;
+                e.currentTarget.style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={isActive ? undefined : (e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.035)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+              style={{
+                flex: 1,
+                padding: "8px 0",
+                background: isActive ? `${PURPLE}28` : "rgba(255,255,255,0.035)",
+                border: `1px solid ${isActive ? `${PURPLE}66` : "rgba(255,255,255,0.10)"}`,
+                borderRadius: 8,
+                color: isActive ? "#fff" : "rgba(255,255,255,0.85)",
+                fontSize: 11, fontWeight: 800, letterSpacing: 1.2,
+                textTransform: "uppercase",
+                cursor: "pointer", ...mono,
+                transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
+                boxShadow: isActive ? `0 0 16px ${PURPLE}35, inset 0 1px 0 rgba(255,255,255,0.06)` : "none",
+              }}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Monitoring Line */}
       <div style={{
-        padding: "5px 14px 3px",
-        display: "flex", alignItems: "center", gap: 6,
+        position: "relative", zIndex: 1,
+        padding: "8px 14px 4px",
+        display: "flex", alignItems: "center", gap: 7,
       }}>
         <div style={{
-          width: 4, height: 4, borderRadius: 2,
+          width: 5, height: 5, borderRadius: 3,
           background: status.color,
+          boxShadow: `0 0 6px ${status.color}aa`,
+          animation: "axlDotPulse 1.6s ease-in-out infinite",
         }} />
         <span style={{
-          fontSize: 13, color: "#FFFFFF", ...mono,
-          letterSpacing: 1, fontWeight: 500,
+          fontSize: 11, color: "rgba(255,255,255,0.62)", ...mono,
+          letterSpacing: 0.8, fontWeight: 600,
         }}>
           {monitorLine}
         </span>
@@ -708,51 +777,100 @@ export default function AxisLiveOverlay({ context = {}, onSessionEnd }) {
         <PendingAgreementsPanel agreements={context.pendingAgreements} />
       )}
 
-      {/* Confidence Score — always visible */}
+      {/* Confidence Telemetry — instrument-style with progress bar.
+          Reads as operator confidence telemetry, not a score badge. */}
       <div style={{
-        padding: "6px 14px 10px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        position: "relative", zIndex: 1,
+        padding: "10px 14px 12px",
         borderTop: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(255,255,255,0.02)",
       }}>
+        {/* Header strip */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 7, marginBottom: 8,
+        }}>
+          <span style={{
+            width: 4, height: 4, borderRadius: 2,
+            background: context.activeLead ? scoreColor : "rgba(255,255,255,0.30)",
+            boxShadow: context.activeLead ? `0 0 5px ${scoreColor}` : "none",
+            display: "inline-block",
+          }} />
+          <span style={{
+            fontSize: 9, color: "rgba(255,255,255,0.50)", ...mono,
+            letterSpacing: 1.6, fontWeight: 800, textTransform: "uppercase",
+          }}>
+            Confidence Telemetry
+          </span>
+          <span style={{
+            flex: 1, height: 1,
+            background: context.activeLead
+              ? `linear-gradient(90deg, ${scoreColor}40 0%, rgba(255,255,255,0.04) 60%, transparent 100%)`
+              : "rgba(255,255,255,0.04)",
+          }} />
+        </div>
         {context.activeLead ? (
           <>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{
-                fontSize: 18, fontWeight: 700, color: scoreColor, ...mono,
-                transition: "color 0.4s ease",
-              }}>
-                {liveScore}
-              </span>
-              <span style={{
-                fontSize: 13, color: "#FFFFFF", ...mono,
-                letterSpacing: 1, fontWeight: 600,
-                transition: "color 0.4s ease",
-              }}>
-                {scoreLabel.toUpperCase()}
-              </span>
+            <div style={{
+              display: "flex", alignItems: "baseline",
+              justifyContent: "space-between", marginBottom: 8,
+            }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
+                <span style={{
+                  fontSize: 28, fontWeight: 800, color: scoreColor, ...mono,
+                  letterSpacing: -0.3, lineHeight: 1,
+                  textShadow: `0 0 16px ${scoreColor}55, 0 0 6px ${scoreColor}30`,
+                  transition: "color 0.4s ease",
+                }}>
+                  {liveScore}
+                </span>
+                <span style={{
+                  fontSize: 11, color: "rgba(255,255,255,0.70)", ...mono,
+                  letterSpacing: 1.4, fontWeight: 800, textTransform: "uppercase",
+                }}>
+                  {scoreLabel}
+                </span>
+              </div>
+              {feedback && (
+                <span style={{
+                  fontSize: 10, ...mono, fontWeight: 800, letterSpacing: 1,
+                  color: feedback.startsWith("+") ? C.green : "#E05050",
+                  animation: "axlSlideUp 0.3s ease both",
+                  textTransform: "uppercase",
+                }}>
+                  {feedback}
+                </span>
+              )}
             </div>
-            {feedback && (
-              <span style={{
-                fontSize: 13, ...mono, fontWeight: 700, letterSpacing: 0.5,
-                color: feedback.startsWith("+") ? C.green : "#E05050",
-                animation: "axlSlideUp 0.3s ease both",
-              }}>
-                {feedback}
-              </span>
-            )}
+            {/* Progress bar — instrument visualization */}
+            <div style={{
+              height: 4, borderRadius: 2,
+              background: "rgba(255,255,255,0.05)",
+              overflow: "hidden", position: "relative",
+            }}>
+              <div style={{
+                height: "100%", width: `${liveScore}%`,
+                background: `linear-gradient(90deg, ${scoreColor}88 0%, ${scoreColor} 100%)`,
+                boxShadow: `0 0 10px ${scoreColor}aa`,
+                transition: "width 0.5s ease, background 0.4s ease, box-shadow 0.4s ease",
+              }} />
+            </div>
           </>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "4px 0 2px",
+          }}>
             <span style={{
-              fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.85)", ...mono,
+              fontSize: 24, fontWeight: 800, color: "rgba(255,255,255,0.30)", ...mono,
+              letterSpacing: -0.2,
             }}>
               —
             </span>
             <span style={{
-              fontSize: 13, color: "rgba(255,255,255,0.85)", ...mono,
-              letterSpacing: 1, fontWeight: 600,
+              fontSize: 10, color: "rgba(255,255,255,0.50)", ...mono,
+              letterSpacing: 1.5, fontWeight: 800, textTransform: "uppercase",
             }}>
-              SELECT A LEAD
+              Awaiting Lead Selection
             </span>
           </div>
         )}

@@ -362,22 +362,38 @@ export default function AxisCoach({ open, onClose }) {
         }}
       />
 
-      {/* Panel */}
+      {/* Panel — embedded AI workstation. Top accent + ambient glow shift
+          with mode (purple = coach/help, gold = inner game). */}
       <div style={{
         position: "fixed",
         bottom: 24, right: 24,
-        width: 420, height: 600,
-        background: "rgba(12, 18, 30, 0.97)",
-        border: "1px solid rgba(255,255,255,0.10)",
+        width: 440, height: 620,
+        background: "linear-gradient(180deg, rgba(18, 24, 38, 0.98) 0%, rgba(10, 14, 24, 0.98) 100%)",
+        border: `1px solid ${mode === "inner" ? `${INNER_GOLD}33` : `${PURPLE}33`}`,
         borderRadius: 12,
         zIndex: 998,
         display: "flex", flexDirection: "column",
         overflow: "hidden",
         boxShadow: mode === "inner"
-          ? `0 20px 60px rgba(0,0,0,0.5), 0 0 30px ${INNER_GOLD}10`
-          : `0 20px 60px rgba(0,0,0,0.5), 0 0 30px ${PURPLE}10`,
+          ? `0 24px 70px rgba(0,0,0,0.65), 0 0 0 1px ${INNER_GOLD}1a, 0 0 70px ${INNER_GOLD}28, inset 0 1px 0 rgba(255,255,255,0.05)`
+          : `0 24px 70px rgba(0,0,0,0.65), 0 0 0 1px ${PURPLE}1a, 0 0 70px ${PURPLE}28, inset 0 1px 0 rgba(255,255,255,0.05)`,
         animation: "axisSlideUp 0.3s ease both",
+        backdropFilter: "blur(14px)",
       }}>
+        {/* Top accent — mode-encoded glow bar */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: mode === "inner" ? INNER_GOLD : PURPLE,
+          boxShadow: `0 0 12px ${mode === "inner" ? INNER_GOLD : PURPLE}cc`,
+          pointerEvents: "none", zIndex: 2,
+        }} />
+        {/* Ambient corner glow */}
+        <div style={{
+          position: "absolute", top: -60, right: -60,
+          width: 240, height: 240,
+          background: `radial-gradient(circle, ${mode === "inner" ? INNER_GOLD : PURPLE}1f 0%, transparent 65%)`,
+          pointerEvents: "none", zIndex: 0,
+        }} />
         <style>{`
           @keyframes axisSlideUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -386,6 +402,10 @@ export default function AxisCoach({ open, onClose }) {
           @keyframes axisDot {
             0%, 80%, 100% { opacity: 0.3; }
             40% { opacity: 1; }
+          }
+          @keyframes axlDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.82); }
           }
           .axis-input {
             color: #FFFFFF !important;
@@ -398,31 +418,52 @@ export default function AxisCoach({ open, onClose }) {
           }
         `}</style>
 
-        {/* Header */}
+        {/* Header \u2014 embedded AI workstation identity. */}
         <div style={{
-          padding: "16px 20px 12px",
+          position: "relative", zIndex: 1,
+          padding: "16px 20px 14px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.025)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: 8,
+              width: 36, height: 36, borderRadius: 8,
               background: mode === "inner"
                 ? `linear-gradient(135deg, ${INNER_GOLD}, ${INNER_GOLD_DIM})`
                 : `linear-gradient(135deg, ${PURPLE}, ${PURPLE_DIM})`,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 14, fontWeight: 900, color: mode === "inner" ? "#1a1206" : "#fff", ...mono,
-              letterSpacing: 1,
+              letterSpacing: 1, flexShrink: 0,
+              boxShadow: mode === "inner"
+                ? `0 0 18px ${INNER_GOLD}55, inset 0 1px 0 rgba(255,255,255,0.30)`
+                : `0 0 18px ${PURPLE}55, inset 0 1px 0 rgba(255,255,255,0.20)`,
               transition: "all 0.4s ease",
             }}>
               {mode === "inner" ? "\u25C9" : "AX"}
             </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", ...mono, letterSpacing: 1 }}>
+            <div style={{ lineHeight: 1.15 }}>
+              <div style={{
+                fontSize: 14, fontWeight: 800, color: "#fff", ...mono,
+                letterSpacing: 1.4, textTransform: "uppercase",
+                textShadow: `0 0 14px ${mode === "inner" ? INNER_GOLD : PURPLE}55`,
+              }}>
                 AXIS
               </div>
-              <div style={{ fontSize: 12, color: mode === "inner" ? INNER_GOLD : PURPLE, ...mono, letterSpacing: mode === "inner" ? 1.5 : 0.5, marginTop: 1 }}>
-                {mode === "coach" ? "COACH MODE" : mode === "inner" ? "I N N E R   G A M E" : "HELP MODE"}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                fontSize: 9, color: mode === "inner" ? INNER_GOLD : PURPLE,
+                ...mono, letterSpacing: 1.5, fontWeight: 800,
+                textTransform: "uppercase", marginTop: 3,
+              }}>
+                <span style={{
+                  width: 4, height: 4, borderRadius: 2,
+                  background: mode === "inner" ? INNER_GOLD : PURPLE,
+                  boxShadow: `0 0 5px ${mode === "inner" ? INNER_GOLD : PURPLE}`,
+                  animation: "axlDotPulse 1.6s ease-in-out infinite",
+                  display: "inline-block",
+                }} />
+                {mode === "coach" ? "Coach Mode" : mode === "inner" ? "Inner Game" : "Help Mode"}
               </div>
             </div>
           </div>
