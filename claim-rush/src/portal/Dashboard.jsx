@@ -1196,8 +1196,128 @@ function HomeOfficeDash({ navigate }) {
   const revenueValue = revenueErr ? "—" : (revenue == null ? "…" : fmtCurrency(revenue));
   const atRiskValue  = atRiskErr  ? "—" : (atRiskCount == null ? "…" : String(atRiskCount));
 
+  // Operator identity from cr_user (set by Login flow / RIN handoff).
+  const operatorName = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("cr_user") || "{}");
+      return u.display_name || u.email || "Home Office Operator";
+    } catch {
+      return "Home Office Operator";
+    }
+  })();
+
   return (
     <>
+      {/* Identity hero — cinematic purple treatment for global operations. */}
+      <div style={{
+        position: "relative",
+        marginBottom: 28,
+        padding: "30px 30px 28px",
+        background: `linear-gradient(135deg, ${PURPLE}10 0%, ${PURPLE}03 60%, rgba(0,230,168,0.04) 100%)`,
+        border: `1px solid ${PURPLE}40`,
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: `0 12px 36px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05), 0 0 60px ${PURPLE}15`,
+      }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: 3,
+          background: PURPLE,
+          boxShadow: `0 0 12px ${PURPLE}aa`,
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          position: "absolute", top: -80, right: -80,
+          width: 280, height: 280,
+          background: `radial-gradient(circle, ${PURPLE}26 0%, transparent 60%)`,
+          pointerEvents: "none",
+          opacity: 0.7,
+        }} />
+
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 14, marginBottom: 12,
+          flexWrap: "wrap",
+        }}>
+          <div style={{
+            fontSize: 20, fontWeight: 800, letterSpacing: 5, color: PURPLE,
+            fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+            textShadow: `0 0 24px ${PURPLE}60, 0 0 8px ${PURPLE}40`,
+          }}>
+            HOME OFFICE
+          </div>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "3px 9px",
+            background: "rgba(0,230,168,0.10)",
+            border: "1px solid rgba(0,230,168,0.32)",
+            borderRadius: 4,
+            fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            color: "#00E6A8", ...mono,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: 3,
+              background: "#00E6A8",
+              boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+              animation: "liveDotPulse 1.6s ease-in-out infinite",
+            }} />
+            GLOBAL OPS · LIVE
+          </span>
+        </div>
+        <div style={{
+          position: "relative", zIndex: 2,
+          fontSize: 32, fontWeight: 700, color: "#FFFFFF", marginBottom: 8,
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          letterSpacing: 0.4, lineHeight: 1.15,
+          textShadow: "0 0 28px rgba(255,255,255,0.10)",
+        }}>
+          {operatorName}
+        </div>
+        <div style={{
+          position: "relative", zIndex: 2,
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          fontSize: 13, color: "rgba(255,255,255,0.6)",
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          letterSpacing: 0.5,
+        }}>
+          <span style={{
+            width: 5, height: 5, borderRadius: 3,
+            background: PURPLE,
+            boxShadow: `0 0 6px ${PURPLE}aa`,
+            display: "inline-block",
+          }} />
+          <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.78)", textTransform: "uppercase", letterSpacing: 1 }}>
+            Operations Console
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.30)" }}>·</span>
+          <span style={{ color: "rgba(255,255,255,0.55)", letterSpacing: 0.5 }}>Revenue · Payouts · Billing · Compliance</span>
+        </div>
+      </div>
+
+      {/* Section subtitle — cinematic strip. */}
+      <div style={{
+        marginBottom: 18,
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: 4,
+          background: "#00E6A8",
+          boxShadow: "0 0 8px rgba(0,230,168,0.85)",
+          animation: "liveDotPulse 1.6s ease-in-out infinite",
+          display: "inline-block",
+        }} />
+        <h2 style={{
+          ...mono, fontSize: 13, color: "rgba(255,255,255,0.78)",
+          fontWeight: 800, margin: 0, letterSpacing: 2,
+          textTransform: "uppercase",
+        }}>
+          Operations Command Center
+        </h2>
+        <span style={{
+          flex: 1, height: 1,
+          background: "linear-gradient(90deg, rgba(0,230,168,0.30) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+        }} />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
         <KPI label="Revenue Pulse"  value={revenueValue} color="#00E6A8"
              loading={revenue == null && !revenueErr} />
@@ -1351,7 +1471,7 @@ export default function Dashboard() {
       </div>
 
       {/* Page header — hidden for CP/RVP/agent (identity header replaces it) */}
-      {userRole !== "CP" && userRole !== "RVP" && userRole !== "agent" && (
+      {userRole !== "CP" && userRole !== "RVP" && userRole !== "agent" && userRole !== "home_office" && (
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>{t.title}</h1>
           <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>{t.sub}</p>
