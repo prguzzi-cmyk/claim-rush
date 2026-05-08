@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { C } from "./theme";
 import AxisCoach from "./AxisCoach";
@@ -8,19 +8,54 @@ import logoIcon from "../assets/logo/claimrush-icon.svg";
 import { getNavForRole } from "./roleNav";
 import UserMenu from "./UserMenu";
 
+// ── Permission gating helpers ───────────────────────────────────────────────
+// Items in roleNav carry an optional `page` key that maps to the vocabulary
+// returned by /v1/users/me/permissions. If the item has a page key, it must
+// be present in `permissions.pages` to render — except `dashboard`, which is
+// always allowed (acts as the safe redirect target). Items without a page
+// key are not "pages" in the RIN-permission sense and pass through.
+const ALWAYS_ALLOWED_PAGES = new Set(["dashboard"]);
+
+function isPageAllowed(pageKey, permissions) {
+  if (!pageKey) return true;
+  if (ALWAYS_ALLOWED_PAGES.has(pageKey)) return true;
+  // Safety: if permissions or pages missing (shouldn't happen — the merge in
+  // AxisContext always provides a fallback list — but defend anyway), allow.
+  if (!permissions || !Array.isArray(permissions.pages)) return true;
+  return permissions.pages.includes(pageKey);
+}
+
+// Build a path → page-key reverse map by walking the nav tables. Used by
+// the route guard (useEffect) so direct URL entry to a gated path bounces
+// to dashboard if the user's pages list excludes it.
+function buildPathToPageMap(navGroups) {
+  const map = {};
+  for (const group of navGroups || []) {
+    for (const item of group.items || []) {
+      if (item.page && item.to) map[item.to] = item.page;
+    }
+  }
+  return map;
+}
+
 const PURPLE = "#A855F7";
 
 // ── Live Ticker ─────────────────────────────────────────────────────────────
 
+// Neutral system-status indicators — describe the platform itself, not
+// fabricated business events. Demo-safe: no fake closed claims, no fake
+// signed clients, no fake call counts, no fake revenue. Each item's
+// "time" field carries a status word ("Active", "Online", etc.) so the
+// scroll feels live without making claims about user activity.
 const TICKER_ITEMS = [
-  { icon: "🔥", text: "Structure Fire — Dallas TX", time: "2m ago", color: "#E05050" },
-  { icon: "⛈️", text: "Severe Storm Warning — Tarrant County", time: "5m ago", color: "#C9A84C" },
-  { icon: "📋", text: "New Lead Assigned — Maria Gonzalez → Agent Torres", time: "8m ago", color: "#00E6A8" },
-  { icon: "✅", text: "Client Signed — Park Residence WTP Platinum", time: "12m ago", color: "#00E6A8" },
-  { icon: "📞", text: "Marcus completed 3 outbound calls — FL region", time: "15m ago", color: "#3B82F6" },
-  { icon: "💧", text: "Flood Advisory — Harris County TX", time: "18m ago", color: "#3B82F6" },
-  { icon: "🏠", text: "Roof Damage Detected — Satellite Analysis — Bucks County PA", time: "22m ago", color: "#C9A84C" },
-  { icon: "📄", text: "Claim Filed — Johnson Residence — Fire Damage", time: "25m ago", color: "#00E6A8" },
+  { icon: "🟢", text: "System Health",         time: "Operational", color: "#00E6A8" },
+  { icon: "🔥", text: "Fire Incident Feed",    time: "Active",      color: "#E05050" },
+  { icon: "⛈️", text: "Storm Monitoring",      time: "Enabled",     color: "#C9A84C" },
+  { icon: "🛰️", text: "Intelligence Network", time: "Online",      color: "#A855F7" },
+  { icon: "📡", text: "Lead Routing",          time: "Operational", color: "#00E6A8" },
+  { icon: "🗺️", text: "Territory Sync",        time: "Complete",    color: "#3B82F6" },
+  { icon: "🤖", text: "AI Operators",          time: "Standing By", color: "#A855F7" },
+  { icon: "🔒", text: "Compliance Layer",      time: "Active",      color: "#3B82F6" },
 ];
 
 function LiveTicker() {
@@ -103,16 +138,54 @@ function PortalInner() {
   }
 
   // Phase 5: role-based nav from roleNav.js
-  const navGroups = getNavForRole(userRole);
+  const rawNavGroups = getNavForRole(userRole);
+
+  // Step 4: filter nav items by RIN permissions. Items with a `page` key
+  // that's not in permissions.pages disappear; items without a page key
+  // pass through (native ClaimRush features / RIN iframe wrappers gated
+  // server-side). Empty groups (all items filtered out) are dropped so
+  // we don't render an orphaned section header.
+  const navGroups = rawNavGroups
+    .map((group) => ({
+      ...group,
+      items: (group.items || []).filter((item) => isPageAllowed(item.page, permissions)),
+    }))
+    .filter((group) => (group.items || []).length > 0);
+
+  // Step 4: route guard — if the current path corresponds to a gated page
+  // the user's permissions don't include, redirect to /portal (dashboard).
+  // We walk ALL roles' nav tables to build the path→page map so a
+  // role-mismatched direct URL still gets caught (not just the current
+  // role's items).
+  useEffect(() => {
+    if (!permissions || !Array.isArray(permissions.pages)) return;
+    const allRolesPathMap = {
+      ...buildPathToPageMap(getNavForRole("agent")),
+      ...buildPathToPageMap(getNavForRole("RVP")),
+      ...buildPathToPageMap(getNavForRole("CP")),
+      ...buildPathToPageMap(getNavForRole("home_office")),
+    };
+    const currentPath = location.pathname.replace(/\/$/, "") || location.pathname;
+    const pageKey = allRolesPathMap[currentPath] || allRolesPathMap[location.pathname];
+    if (pageKey && !isPageAllowed(pageKey, permissions)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[PortalLayout] route guard: page='${pageKey}' not in permissions.pages — redirecting to dashboard`,
+      );
+      navigate("/portal", { replace: true });
+    }
+  }, [location.pathname, permissions, navigate]);
 
   return (
     <div className="portal-root" style={{ display: "flex", minHeight: "100vh", background: "#070D18", fontFamily: "'Courier New', monospace" }}>
-      {/* Sidebar */}
+      {/* Sidebar — premium intelligence-platform shell with ambient depth.
+          Acts as a real "system rail" rather than a flat menu strip. */}
       <nav style={{
         width: 240,
         minWidth: 240,
-        background: "#0A1020",
+        background: "linear-gradient(180deg, #0B1426 0%, #080F1E 55%, #060B16 100%)",
         borderRight: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "1px 0 0 rgba(0,230,168,0.08), 4px 0 24px rgba(0,0,0,0.45)",
         display: "flex",
         flexDirection: "column",
         padding: "0",
@@ -121,29 +194,85 @@ function PortalInner() {
         left: 0,
         bottom: 0,
         zIndex: 50,
+        overflow: "hidden",
       }}>
-        {/* Logo */}
+        {/* Global keyframes — mounted once at the shell so every portal
+            route inherits the pulse/glow language without re-injection. */}
+        <style>{`
+          @keyframes liveDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.82); }
+          }
+          @keyframes edgeGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.55; }
+          }
+          /* Sidebar nav-item hover affordance — uses CSS variables so we
+             can drive subtle hover states without inline style mutations. */
+          .nav-item-hover { --nv-bg: transparent; --nv-edge: transparent; }
+          .nav-item-hover:hover { --nv-bg: rgba(255,255,255,0.025); --nv-edge: rgba(0,230,168,0.40); }
+        `}</style>
+        {/* Ambient depth — radial green wash anchored top, purple at bottom. */}
         <div style={{
-          padding: "20px 18px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          position: "absolute", top: -120, left: -60,
+          width: 320, height: 320,
+          background: "radial-gradient(circle, rgba(0,230,168,0.07) 0%, transparent 65%)",
+          pointerEvents: "none", zIndex: 0,
+        }} />
+        <div style={{
+          position: "absolute", bottom: -120, left: -80,
+          width: 320, height: 320,
+          background: "radial-gradient(circle, rgba(168,85,247,0.05) 0%, transparent 65%)",
+          pointerEvents: "none", zIndex: 0,
+        }} />
+        {/* Content layer — sits above the ambient gradients. */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          display: "flex", flexDirection: "column",
+          width: "100%", height: "100%",
+        }}>
+        {/* Logo / system identity strip — elevated bg + green accent edge
+            + pulsing online indicator. Reads as the platform's "system
+            online" beacon, not a SaaS logo placeholder. */}
+        <div style={{
+          position: "relative",
+          padding: "18px 18px 16px",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.022) 0%, rgba(255,255,255,0.005) 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
           display: "flex", alignItems: "center", gap: 12,
         }}>
+          {/* Bottom green accent edge — system identity marker */}
+          <div style={{
+            position: "absolute", bottom: 0, left: 14, right: 14, height: 1,
+            background: "linear-gradient(90deg, rgba(0,230,168,0.40) 0%, rgba(0,230,168,0.15) 50%, transparent 100%)",
+            boxShadow: "0 0 8px rgba(0,230,168,0.25)",
+            pointerEvents: "none",
+          }} />
           <img src={logoIcon} alt="" style={{ width: 34, height: 34, flexShrink: 0 }} />
-          <div style={{ lineHeight: 1.2 }}>
+          <div style={{ lineHeight: 1.2, minWidth: 0 }}>
             <div style={{
               fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
               fontSize: 14, color: "#FFFFFF", letterSpacing: 1.5,
-              fontWeight: 700,
+              fontWeight: 800,
               textTransform: "uppercase",
+              textShadow: "0 0 14px rgba(0,230,168,0.18)",
             }}>
               Unified Public<br />Advocacy
             </div>
             <div style={{
-              fontSize: 10, color: "rgba(255,255,255,0.6)", letterSpacing: 2, marginTop: 6,
-              fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", fontWeight: 500,
+              display: "flex", alignItems: "center", gap: 6, marginTop: 6,
+              fontSize: 9, color: "rgba(0,230,168,0.85)", letterSpacing: 1.6,
+              fontFamily: "'Courier New', monospace", fontWeight: 800,
               textTransform: "uppercase",
             }}>
-              Claims Intelligence Platform
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: "#00E6A8",
+                boxShadow: "0 0 6px rgba(0,230,168,0.85)",
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
+                display: "inline-block",
+              }} />
+              System Online
             </div>
           </div>
         </div>
@@ -153,8 +282,28 @@ function PortalInner() {
           {navGroups.map((group, gi) => (
             <div key={gi}>
               {group.group && (
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 2, fontWeight: 700, padding: "12px 16px 4px", fontFamily: "'Courier New', monospace" }}>
-                  {group.group}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "14px 16px 6px",
+                }}>
+                  <span style={{
+                    width: 4, height: 4, borderRadius: 2,
+                    background: "#00E6A8",
+                    boxShadow: "0 0 5px rgba(0,230,168,0.65)",
+                    display: "inline-block", flexShrink: 0,
+                  }} />
+                  <span style={{
+                    fontSize: 9, color: "rgba(255,255,255,0.50)",
+                    letterSpacing: 2, fontWeight: 800,
+                    fontFamily: "'Courier New', monospace",
+                    textTransform: "uppercase",
+                  }}>
+                    {group.group}
+                  </span>
+                  <span style={{
+                    flex: 1, height: 1,
+                    background: "linear-gradient(90deg, rgba(0,230,168,0.20) 0%, rgba(255,255,255,0.04) 60%, transparent 100%)",
+                  }} />
                 </div>
               )}
               {group.items.map(item => (
@@ -162,33 +311,39 @@ function PortalInner() {
                   key={item.to}
                   to={item.to}
                   end={item.end}
+                  className="nav-item-hover"
                   style={({ isActive }) => ({
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
-                    padding: "10px 16px",
+                    padding: "11px 16px",
                     borderRadius: "0 8px 8px 0",
                     textDecoration: "none",
-                    fontSize: isActive ? 15 : 14,
+                    fontSize: isActive ? 14 : 13,
                     fontWeight: isActive ? 700 : 500,
                     letterSpacing: 0.5,
-                    color: isActive ? "#FFFFFF" : C.muted,
-                    background: isActive ? "rgba(0,230,168,0.08)" : "transparent",
-                    borderLeft: isActive ? "3px solid #00E6A8" : "3px solid transparent",
+                    color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
+                    background: isActive
+                      ? "linear-gradient(90deg, rgba(0,230,168,0.12) 0%, rgba(0,230,168,0.02) 60%, transparent 100%)"
+                      : "var(--nv-bg, transparent)",
+                    borderLeft: isActive ? "4px solid #00E6A8" : "4px solid transparent",
                     borderTop: "0px solid transparent", borderBottom: "0px solid transparent", borderRight: "0px solid transparent",
-                    boxShadow: isActive ? "0 0 20px rgba(0,230,168,0.12), inset 0 0 20px rgba(0,230,168,0.04)" : "none",
+                    boxShadow: isActive
+                      ? "0 0 24px rgba(0,230,168,0.20), inset 0 1px 0 rgba(255,255,255,0.06), inset 4px 0 12px rgba(0,230,168,0.10)"
+                      : "none",
                     transition: "all 0.2s ease",
                     cursor: "pointer",
                     fontFamily: "'Courier New', monospace",
+                    textShadow: isActive ? "0 0 10px rgba(0,230,168,0.35)" : "none",
                   })}
                 >
-                  <span style={{ fontSize: 16 }}>{item.icon}</span>
-                  <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+                  <span style={{ fontSize: 16, filter: "drop-shadow(0 0 4px rgba(255,255,255,0.10))" }}>{item.icon}</span>
+                  <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
                     <span>{item.label}</span>
-                    {item.sub && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 0.5, fontWeight: 500 }}>{item.sub}</span>}
+                    {item.sub && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 0.5, fontWeight: 500 }}>{item.sub}</span>}
                   </span>
-                  {item.readonly && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", marginLeft: "auto", letterSpacing: 1, fontWeight: 700 }}>VIEW</span>}
-                  {item.comingSoon && <span style={{ fontSize: 8, color: "#A855F7", marginLeft: "auto", letterSpacing: 1, fontWeight: 700 }}>SOON</span>}
+                  {item.readonly && <span style={{ fontSize: 8, color: "rgba(255,255,255,0.30)", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 3 }}>VIEW</span>}
+                  {item.comingSoon && <span style={{ fontSize: 8, color: "#A855F7", marginLeft: "auto", letterSpacing: 1.2, fontWeight: 800, padding: "2px 6px", background: "rgba(168,85,247,0.10)", border: "1px solid rgba(168,85,247,0.35)", borderRadius: 3 }}>SOON</span>}
                 </NavLink>
               ))}
             </div>
@@ -197,39 +352,101 @@ function PortalInner() {
           {/* Divider */}
           <div style={{ height: 1, background: C.border, margin: "8px 4px" }} />
 
-          {/* AXIS button in sidebar */}
+          {/* AXIS Coach — embedded intelligence module. Reads as a real AI
+              ops companion strip rather than a chat-button toy. Permanent
+              purple ambient + pulsing online indicator. */}
           <button
             onClick={() => setAxisOpen(true)}
+            onMouseEnter={axisOpen ? undefined : (e) => {
+              e.currentTarget.style.boxShadow = `0 0 24px ${PURPLE}30, inset 0 1px 0 rgba(255,255,255,0.05)`;
+              e.currentTarget.style.borderColor = `${PURPLE}55`;
+            }}
+            onMouseLeave={axisOpen ? undefined : (e) => {
+              e.currentTarget.style.boxShadow = `0 0 18px ${PURPLE}1a, inset 0 1px 0 rgba(255,255,255,0.04)`;
+              e.currentTarget.style.borderColor = `${PURPLE}30`;
+            }}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "12px 16px",
-              borderRadius: 8,
-              border: `1px solid ${axisOpen ? `${PURPLE}40` : "transparent"}`,
-              background: axisOpen ? `${PURPLE}12` : "transparent",
-              color: axisOpen ? PURPLE : C.muted,
-              fontSize: 15,
-              fontWeight: 600,
-              letterSpacing: 0.5,
+              position: "relative",
+              display: "flex", flexDirection: "column", alignItems: "stretch",
+              gap: 8,
+              padding: "13px 12px 11px",
+              borderRadius: 10,
+              border: `1px solid ${axisOpen ? `${PURPLE}66` : `${PURPLE}30`}`,
+              background: axisOpen
+                ? `linear-gradient(135deg, ${PURPLE}1a 0%, ${PURPLE}05 100%)`
+                : `linear-gradient(135deg, ${PURPLE}0e 0%, ${PURPLE}03 100%)`,
+              color: axisOpen ? PURPLE : "rgba(168,85,247,0.85)",
               cursor: "pointer",
               fontFamily: "'Courier New', monospace",
               transition: "all 0.2s ease",
               textAlign: "left",
               width: "100%",
+              overflow: "hidden",
+              boxShadow: axisOpen
+                ? `0 0 26px ${PURPLE}38, inset 0 1px 0 rgba(255,255,255,0.05)`
+                : `0 0 18px ${PURPLE}1a, inset 0 1px 0 rgba(255,255,255,0.04)`,
             }}
           >
-            <span style={{
-              width: 22, height: 22, borderRadius: 5,
-              background: `linear-gradient(135deg, ${PURPLE}, #7C3AED)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 900, color: "#fff",
-              fontFamily: "'Courier New', monospace",
-              letterSpacing: 0.5, flexShrink: 0,
+            {/* Top accent */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: 2,
+              background: PURPLE,
+              boxShadow: `0 0 8px ${PURPLE}aa`,
+              pointerEvents: "none",
+            }} />
+            {/* Header row: avatar + identity */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{
+                width: 28, height: 28, borderRadius: 6,
+                background: `linear-gradient(135deg, ${PURPLE}, #7C3AED)`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, fontWeight: 900, color: "#fff",
+                fontFamily: "'Courier New', monospace",
+                letterSpacing: 0.5, flexShrink: 0,
+                boxShadow: `0 0 12px ${PURPLE}50, inset 0 1px 0 rgba(255,255,255,0.20)`,
+              }}>
+                C
+              </span>
+              <div style={{ minWidth: 0, lineHeight: 1.2 }}>
+                <div style={{
+                  fontSize: 12, fontWeight: 800, letterSpacing: 1.2,
+                  color: "#fff", textTransform: "uppercase",
+                  textShadow: `0 0 12px ${PURPLE}55`,
+                }}>
+                  AXIS Coach
+                </div>
+                <div style={{
+                  fontSize: 8, fontWeight: 800, letterSpacing: 1.4,
+                  color: PURPLE, textTransform: "uppercase", marginTop: 2,
+                }}>
+                  AI Companion
+                </div>
+              </div>
+            </div>
+            {/* Bottom strip: ● ONLINE · MONITORING — pulsing live indicator */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "5px 8px",
+              background: "rgba(0,0,0,0.30)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 5,
             }}>
-              C
-            </span>
-            Coach
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: "#00E6A8",
+                boxShadow: "0 0 6px rgba(0,230,168,0.85)",
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
+                display: "inline-block", flexShrink: 0,
+              }} />
+              <span style={{
+                fontSize: 8, fontWeight: 800, letterSpacing: 1.6,
+                color: "rgba(0,230,168,0.85)",
+                fontFamily: "'Courier New', monospace",
+                textTransform: "uppercase",
+              }}>
+                Online · Monitoring
+              </span>
+            </div>
           </button>
         </div>
 
@@ -266,17 +483,56 @@ function PortalInner() {
               </div>
             </div>
           )}
-          {/* User badge + account links */}
-          {displayName && (
-            <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'Courier New', monospace", fontWeight: 500, marginBottom: 2 }}>
-                {displayName}
+          {/* Operator badge — role-colored avatar circle + name + role tag.
+              Reads as the active operator's identity, not a CRM user-menu line. */}
+          {displayName && (() => {
+            const roleColor = ROLE_COLORS[userRole] || C.blue;
+            const initial = (displayName.match(/\b\w/g) || ["?"]).slice(0, 2).join("").toUpperCase();
+            return (
+              <div style={{
+                padding: "12px 14px",
+                borderTop: `1px solid ${C.border}`,
+                background: "rgba(255,255,255,0.015)",
+                display: "flex", alignItems: "center", gap: 10,
+              }}>
+                <span style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  background: `linear-gradient(135deg, ${roleColor}40 0%, ${roleColor}15 100%)`,
+                  border: `1px solid ${roleColor}66`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 800, color: roleColor,
+                  fontFamily: "'Courier New', monospace",
+                  letterSpacing: 0.5, flexShrink: 0,
+                  boxShadow: `0 0 10px ${roleColor}28`,
+                }}>
+                  {initial}
+                </span>
+                <div style={{ minWidth: 0, lineHeight: 1.2, overflow: "hidden" }}>
+                  <div style={{
+                    fontSize: 12, color: "#fff", fontWeight: 700,
+                    fontFamily: "'Courier New', monospace",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {displayName}
+                  </div>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+                    color: roleColor, textTransform: "uppercase",
+                    fontFamily: "'Courier New', monospace", marginTop: 3,
+                  }}>
+                    <span style={{
+                      width: 4, height: 4, borderRadius: 2,
+                      background: roleColor,
+                      boxShadow: `0 0 5px ${roleColor}aa`,
+                      display: "inline-block",
+                    }} />
+                    {userRole}
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", fontFamily: "'Courier New', monospace", letterSpacing: 1, textTransform: "uppercase" }}>
-                {userRole}
-              </div>
-            </div>
-          )}
+            );
+          })()}
           <NavLink to="/portal/profile" style={({ isActive }) => ({
             display: "flex", alignItems: "center", gap: 10,
             width: "100%", padding: "8px 16px",
@@ -316,6 +572,7 @@ function PortalInner() {
             <span style={{ fontSize: 15 }}>{"\u{1F6AA}"}</span>
             Log out
           </button>
+        </div>
         </div>
       </nav>
 
