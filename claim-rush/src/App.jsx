@@ -22,6 +22,7 @@ import PitchMode from "./portal/PitchMode";
 import SeminarTraining from "./portal/SeminarTraining";
 import MySeminars from "./portal/MySeminars";
 import StormAlerts from "./portal/StormAlerts";
+import RoofIntel from "./portal/RoofIntel";
 import ProfilePage from "./portal/ProfilePage";
 import SettingsPage from "./portal/SettingsPage";
 import { useAxisContext } from "./portal/AxisContext";
@@ -126,6 +127,7 @@ export default function App() {
         <Route path="seminar-training" element={<SeminarTraining />} />
         <Route path="my-seminars" element={<MySeminars />} />
         <Route path="storm-alerts" element={<StormAlerts />} />
+        <Route path="roof-intel"   element={<RoofIntel />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
 
