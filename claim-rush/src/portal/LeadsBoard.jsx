@@ -466,6 +466,32 @@ export default function LeadsBoard() {
             }} />
             LIVE
           </span>
+          {/* Live ops counters — derived from already-loaded leads. Reads
+              as a real-time dispatch console at-a-glance. */}
+          {(() => {
+            const active  = leads.filter(l => !TERMINAL_STATUSES.has(l.status)).length;
+            const stalled = leads.filter(l => !TERMINAL_STATUSES.has(l.status) && (l.days_open ?? 0) > 7).length;
+            const Chip = ({ value, label, color }) => (
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "3px 9px",
+                background: `${color}10`,
+                border: `1px solid ${color}38`,
+                borderRadius: 4,
+                fontSize: 10, fontWeight: 800, letterSpacing: 1.5,
+                color, ...mono,
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 800 }}>{value}</span>
+                <span style={{ opacity: 0.85 }}>{label}</span>
+              </span>
+            );
+            return (
+              <>
+                <Chip value={active}  label="ACTIVE"  color="#00E6A8" />
+                {stalled > 0 && <Chip value={stalled} label="STALLED" color="#E05050" />}
+              </>
+            );
+          })()}
         </div>
         <div style={{ color: C.muted, fontSize: 13, ...mono, letterSpacing: 0.3 }}>
           {leads.length} lead{leads.length === 1 ? "" : "s"} across your downline.
@@ -526,11 +552,12 @@ export default function LeadsBoard() {
       {visible.length === 0 ? (
         <EmptyState hasAnyLeads={leads.length > 0} hasFilter={filter !== "all"} />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {visible.map(lead => (
             <LeadRow
               key={lead.id}
               lead={lead}
+              isSelected={selectedLead?.id === lead.id}
               onClick={() => {
                 // eslint-disable-next-line no-console
                 if (import.meta.env.DEV) console.log("[FireLeads] clicked lead", lead.id, lead);
@@ -2831,14 +2858,32 @@ const TERMINAL_STATUSES = new Set([
   "signed-approved", "not-qualified", "not-interested", "closed",
 ]);
 
-function LeadRow({ lead, onClick }) {
+function LeadRow({ lead, onClick, isSelected }) {
   const peril = perilMeta(lead.peril);
   const status = statusPill(lead.status);
   const isActive = !TERMINAL_STATUSES.has(lead.status);
-  // Multi-shadow base. Hover layers in stronger ring + ambient.
-  const baseShadow = `0 6px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px ${status.color}1a`;
+  // Operational urgency — derived from days_open + status. Surfaces the
+  // dispatch-priority signal that raw status alone doesn't convey.
+  const urgency = (() => {
+    const days = lead.days_open ?? 0;
+    if (isActive && days > 7)                                                       return { label: "STALLED",  color: "#E05050" };
+    if (lead.status === "callback")                                                 return { label: "CALLBACK", color: "#C9A84C" };
+    if (lead.status === "interested" || lead.status === "responded-yes")            return { label: "HOT",      color: "#00E6A8" };
+    if (!lead.status || lead.status === "new" || lead.status === "unassigned")      return { label: "NEW",      color: "#3B82F6" };
+    return null;
+  })();
+  // Selected state — the row whose lead is open in the detail panel gets a
+  // permanent locked-in treatment. Hover mutations are blocked so it stays
+  // visually anchored while the operator works the panel.
+  const sel = !!isSelected;
+  // Base / hover shadow + bg. Selected leans into status color permanently.
+  const baseShadow = sel
+    ? `0 14px 36px rgba(0,0,0,0.60), 0 0 0 1.5px ${status.color}88, 0 0 38px ${status.color}40, inset 0 1px 0 rgba(255,255,255,0.06)`
+    : `0 6px 18px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px ${status.color}1a`;
   const hoverShadow = `0 16px 40px rgba(0,0,0,0.55), 0 0 0 1px ${status.color}33, 0 0 36px ${status.color}30`;
-  const baseBg = "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.01) 100%)";
+  const baseBg = sel
+    ? `linear-gradient(135deg, ${status.color}1c 0%, rgba(255,255,255,0.025) 55%, rgba(255,255,255,0.012) 100%)`
+    : "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.01) 100%)";
   const hoverBg = `linear-gradient(135deg, ${status.color}10 0%, rgba(255,255,255,0.025) 50%, rgba(255,255,255,0.015) 100%)`;
   return (
     <div
@@ -2847,13 +2892,13 @@ function LeadRow({ lead, onClick }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick && onClick(); } }}
-      onMouseEnter={(e) => {
+      onMouseEnter={sel ? undefined : (e) => {
         e.currentTarget.style.transform = "translateY(-2px)";
         e.currentTarget.style.borderColor = `${status.color}59`;
         e.currentTarget.style.background = hoverBg;
         e.currentTarget.style.boxShadow = hoverShadow;
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={sel ? undefined : (e) => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
         e.currentTarget.style.background = baseBg;
@@ -2864,9 +2909,9 @@ function LeadRow({ lead, onClick }) {
         gridTemplateColumns: "auto 1fr auto",
         alignItems: "center",
         gap: 18,
-        padding: "20px 44px 20px 30px",
+        padding: "20px 64px 20px 30px",
         background: baseBg,
-        border: "1px solid rgba(255,255,255,0.10)",
+        border: `1px solid ${sel ? `${status.color}99` : "rgba(255,255,255,0.10)"}`,
         borderRadius: 14,
         cursor: "pointer",
         transition: "all 0.22s cubic-bezier(.4,0,.2,1)",
@@ -2895,21 +2940,45 @@ function LeadRow({ lead, onClick }) {
         opacity: 0.7,
       }} />
 
-      {/* Hover affordance — chevron at far right brightens + slides on
-          parent hover via the .leadrow-card:hover CSS variables. */}
-      <div style={{
-        position: "absolute", right: 14, top: "50%",
-        transform: "translateY(-50%) translateX(var(--cta-x, 0px))",
-        display: "flex", alignItems: "center", gap: 4,
-        fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
-        color: "var(--cta-color, rgba(255,255,255,0.22))", ...mono,
-        textTransform: "uppercase",
-        pointerEvents: "none",
-        transition: "color 0.22s, transform 0.22s cubic-bezier(.4,0,.2,1)",
-        zIndex: 3,
-      }}>
-        OPEN ▸
-      </div>
+      {/* Hover / selected affordance — flips between OPEN ▸ (idle) and
+          ACTIVE ● (selected). Idle uses CSS variables to brighten + slide
+          on parent hover; selected stays pinned with a pulsing dot. */}
+      {sel ? (
+        <div style={{
+          position: "absolute", right: 16, top: "50%",
+          transform: "translateY(-50%)",
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 9, fontWeight: 800, letterSpacing: 1.8,
+          color: status.color, ...mono,
+          textTransform: "uppercase",
+          pointerEvents: "none",
+          zIndex: 3,
+          textShadow: `0 0 10px ${status.color}66`,
+        }}>
+          <span style={{
+            width: 6, height: 6, borderRadius: 3,
+            background: status.color,
+            boxShadow: `0 0 8px ${status.color}, 0 0 16px ${status.color}66`,
+            animation: "liveDotPulse 1.6s ease-in-out infinite",
+            display: "inline-block",
+          }} />
+          ACTIVE
+        </div>
+      ) : (
+        <div style={{
+          position: "absolute", right: 14, top: "50%",
+          transform: "translateY(-50%) translateX(var(--cta-x, 0px))",
+          display: "flex", alignItems: "center", gap: 4,
+          fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+          color: "var(--cta-color, rgba(255,255,255,0.22))", ...mono,
+          textTransform: "uppercase",
+          pointerEvents: "none",
+          transition: "color 0.22s, transform 0.22s cubic-bezier(.4,0,.2,1)",
+          zIndex: 3,
+        }}>
+          OPEN ▸
+        </div>
+      )}
 
       {/* Peril badge — larger, gradient-filled, peril-tinted glow. */}
       <div style={{
@@ -2953,6 +3022,32 @@ function LeadRow({ lead, onClick }) {
           }}>
             LEAD #{lead.ref_number}
           </span>
+          {urgency && (
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              fontSize: 9, fontWeight: 800, ...mono,
+              color: urgency.color,
+              padding: "2px 8px",
+              background: `${urgency.color}1c`,
+              border: `1px solid ${urgency.color}55`,
+              borderRadius: 3,
+              letterSpacing: 1.6,
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              boxShadow: urgency.label === "STALLED" ? `0 0 12px ${urgency.color}40` : "none",
+            }}>
+              {(urgency.label === "STALLED" || urgency.label === "HOT") && (
+                <span style={{
+                  width: 4, height: 4, borderRadius: 2,
+                  background: urgency.color,
+                  boxShadow: `0 0 5px ${urgency.color}`,
+                  animation: urgency.label === "STALLED" ? "liveDotPulse 1.6s ease-in-out infinite" : "none",
+                  display: "inline-block",
+                }} />
+              )}
+              {urgency.label}
+            </span>
+          )}
           {lead.insurance_company && (
             <span style={{
               fontSize: 10, fontWeight: 700, ...mono,
