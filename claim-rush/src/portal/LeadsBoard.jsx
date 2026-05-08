@@ -1597,6 +1597,27 @@ function LeadDetailPanel({ lead, onClose }) {
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: 3,
             }}>OPS PANEL</span>
+            {/* AXIS monitoring chip — atmospheric AI presence cue. */}
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              ...mono, fontSize: 9, fontWeight: 800,
+              letterSpacing: 1.5, textTransform: "uppercase",
+              color: "#A855F7",
+              padding: "2px 8px",
+              background: "rgba(168,85,247,0.10)",
+              border: "1px solid rgba(168,85,247,0.40)",
+              borderRadius: 3,
+              boxShadow: "0 0 10px rgba(168,85,247,0.20)",
+            }}>
+              <span style={{
+                width: 5, height: 5, borderRadius: 3,
+                background: "#A855F7",
+                boxShadow: "0 0 6px rgba(168,85,247,0.85)",
+                animation: "liveDotPulse 1.6s ease-in-out infinite",
+                display: "inline-block",
+              }} />
+              AXIS · MONITORING
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -1683,9 +1704,70 @@ function LeadDetailPanel({ lead, onClose }) {
           );
         })()}
 
-        <DetailRow label="Peril"        value={`${peril.icon} ${peril.label}`} color={peril.color} />
-        <DetailRow label="Status"       value={status.label} color={status.color} />
-        <DetailRow label="Type"         value={lead.type || "—"} />
+        {/* Snapshot stat strip — 3 prominent lead facts in a compact
+            mission-control 3-column grid. Each tile has its own status-encoded
+            top accent + ambient glow so scan-first key facts read instantly. */}
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 8,
+          marginBottom: 14,
+        }}>
+          {[
+            { label: "Peril",  value: `${peril.icon} ${peril.label}`, color: peril.color },
+            { label: "Status", value: status.label,                   color: status.color },
+            { label: "Type",   value: lead.type || "—",                color: null },
+          ].map(s => (
+            <div key={s.label} style={{
+              position: "relative",
+              padding: "10px 12px",
+              background: s.color
+                ? `linear-gradient(135deg, ${s.color}12 0%, ${s.color}03 100%)`
+                : "rgba(255,255,255,0.025)",
+              border: `1px solid ${s.color ? `${s.color}30` : "rgba(255,255,255,0.08)"}`,
+              borderRadius: 8,
+              minWidth: 0, overflow: "hidden",
+              boxShadow: s.color
+                ? `0 4px 12px rgba(0,0,0,0.30), 0 0 14px ${s.color}10`
+                : "0 4px 12px rgba(0,0,0,0.30)",
+            }}>
+              {s.color && (
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: 0, height: 2,
+                  background: s.color,
+                  boxShadow: `0 0 6px ${s.color}aa`,
+                  pointerEvents: "none",
+                }} />
+              )}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 6,
+                ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.50)",
+                marginBottom: 4,
+              }}>
+                {s.color && (
+                  <span style={{
+                    width: 5, height: 5, borderRadius: 3,
+                    background: s.color,
+                    boxShadow: `0 0 5px ${s.color}aa`,
+                    display: "inline-block", flexShrink: 0,
+                  }} />
+                )}
+                {s.label}
+              </div>
+              <div style={{
+                ...mono, fontSize: 14, fontWeight: 800,
+                color: s.color || "#FFFFFF",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                letterSpacing: 0.3,
+                textShadow: s.color ? `0 0 12px ${s.color}30` : "none",
+              }}>
+                {s.value || "—"}
+              </div>
+            </div>
+          ))}
+        </div>
 
         {/* CP-style Owner Contact panel — groups skip-trace enrichment
             into one section with a status-encoded top accent + header
@@ -1820,7 +1902,7 @@ function LeadDetailPanel({ lead, onClose }) {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
-            <DispositionButton label="Take Ownership"   onClick={handleTakeOwnership}      disabled={!isLeadRow || ownerInfo.isMe} />
+            <DispositionButton label="Take Ownership"   onClick={handleTakeOwnership}      disabled={!isLeadRow || ownerInfo.isMe} variant="primary" />
             <DispositionButton label="Assign to User…"  onClick={openAssignToUserPicker}  disabled={!isLeadRow} variant="muted" />
           </div>
           {actions.ownership?.state === "running" && (
@@ -1923,23 +2005,46 @@ function LeadDetailPanel({ lead, onClose }) {
               No activity yet — run an action below to begin.
             </div>
           ) : (
-            recentActivity.map(a => (
-              <div key={a.key} style={{
-                display: "grid", gridTemplateColumns: "10px 1fr auto",
-                alignItems: "center", gap: 10,
-                padding: "7px 0",
-                borderBottom: "1px solid rgba(255,255,255,0.04)",
-              }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: a.state === "failed" ? "#E05050" : "#00E6A8",
-                  boxShadow: `0 0 6px ${a.state === "failed" ? "#E05050" : "#00E6A8"}50`,
-                  marginLeft: 2,
-                }} />
-                <span style={{ ...mono, fontSize: 12, color: "rgba(255,255,255,0.85)" }}>{a.label}</span>
-                <span style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.40)" }}>{fmtTime(a.timestamp)}</span>
-              </div>
-            ))
+            recentActivity.map((a, i) => {
+              const dotColor = a.state === "failed" ? "#E05050" : "#00E6A8";
+              const isLast = i === recentActivity.length - 1;
+              return (
+                <div key={a.key} style={{
+                  display: "grid", gridTemplateColumns: "14px 1fr auto",
+                  alignItems: "stretch", gap: 12,
+                  padding: "7px 0",
+                }}>
+                  {/* Dot + connector column — matches PipelineStep pattern. */}
+                  <div style={{
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    position: "relative",
+                  }}>
+                    <span style={{
+                      width: 8, height: 8, borderRadius: 4,
+                      background: dotColor,
+                      boxShadow: `0 0 8px ${dotColor}aa, 0 0 14px ${dotColor}40`,
+                      flexShrink: 0,
+                      zIndex: 2, position: "relative",
+                    }} />
+                    {!isLast && (
+                      <span style={{
+                        flex: 1, width: 2,
+                        background: `linear-gradient(180deg, ${dotColor}40 0%, rgba(255,255,255,0.06) 100%)`,
+                        marginTop: 0, marginBottom: -7,
+                      }} />
+                    )}
+                  </div>
+                  <span style={{
+                    ...mono, fontSize: 12, color: "rgba(255,255,255,0.85)",
+                    alignSelf: "center", letterSpacing: 0.3,
+                  }}>{a.label}</span>
+                  <span style={{
+                    ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)",
+                    alignSelf: "center", whiteSpace: "nowrap",
+                  }}>{fmtTime(a.timestamp)}</span>
+                </div>
+              );
+            })
           )}
         </SectionPanel>
 
@@ -2533,10 +2638,10 @@ function BannerCell({ label, value, color, emphasis }) {
   // before the label for at-a-glance scan; neutral cells stay clean.
   const showDot = !!(emphasis === "warn" || emphasis === "self" || color);
   return (
-    <div>
+    <div style={{ minWidth: 0 }}>
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
-        ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 1.4,
+        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
         textTransform: "uppercase", color: "rgba(255,255,255,0.45)",
       }}>
         {showDot && (
@@ -2550,10 +2655,10 @@ function BannerCell({ label, value, color, emphasis }) {
         <span>{label}</span>
       </div>
       <div style={{
-        ...mono, fontSize: 14, color: valueColor, fontWeight: 700,
-        marginTop: 3, lineHeight: 1.25, letterSpacing: 0.3,
+        ...mono, fontSize: 16, color: valueColor, fontWeight: 800,
+        marginTop: 4, lineHeight: 1.2, letterSpacing: 0.3,
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-        textShadow: showDot && valueColor !== "#FFFFFF" ? `0 0 12px ${valueColor}30` : "none",
+        textShadow: showDot && valueColor !== "#FFFFFF" ? `0 0 14px ${valueColor}40` : "none",
       }}>{value || "—"}</div>
     </div>
   );
@@ -2563,10 +2668,22 @@ function BannerCell({ label, value, color, emphasis }) {
 // quick-actions. Matches existing ClaimRush palette: green for positive,
 // red for closing, muted for reset.
 function DispositionButton({ label, onClick, disabled, variant }) {
+  const isPrimary = variant === "primary";
   const tone =
     variant === "danger" ? { hex: "#E05050", color: "#E05050",                 border: "rgba(224,80,80,0.45)", bg: "rgba(224,80,80,0.10)" } :
     variant === "muted"  ? { hex: "#FFFFFF", color: "rgba(255,255,255,0.65)",  border: "rgba(255,255,255,0.18)", bg: "rgba(255,255,255,0.04)" } :
+    isPrimary            ? { hex: "#00E6A8", color: "#00E6A8",                 border: "rgba(0,230,168,0.60)", bg: "rgba(0,230,168,0.14)" } :
                            { hex: "#00E6A8", color: "#00E6A8",                 border: "rgba(0,230,168,0.45)", bg: "rgba(0,230,168,0.10)" };
+  // Primary variant carries permanent ambient glow at rest so it reads
+  // as the clear hero CTA among the other disposition actions.
+  const restShadow = isPrimary
+    ? "0 0 18px rgba(0,230,168,0.22), inset 0 1px 0 rgba(255,255,255,0.06)"
+    : "none";
+  const hoverShadow = isPrimary
+    ? "0 6px 20px rgba(0,0,0,0.45), 0 0 26px rgba(0,230,168,0.45)"
+    : variant === "muted"
+      ? "0 4px 14px rgba(0,0,0,0.30)"
+      : `0 4px 14px rgba(0,0,0,0.30), 0 0 12px ${tone.hex}30`;
   return (
     <button
       onClick={onClick}
@@ -2575,35 +2692,33 @@ function DispositionButton({ label, onClick, disabled, variant }) {
         e.currentTarget.style.transform = "translateY(-1px)";
         e.currentTarget.style.background = variant === "muted"
           ? "rgba(255,255,255,0.07)"
-          : `${tone.hex}1f`;
+          : isPrimary ? `${tone.hex}26` : `${tone.hex}1f`;
         e.currentTarget.style.borderColor = variant === "muted"
           ? "rgba(255,255,255,0.30)"
-          : `${tone.hex}80`;
-        e.currentTarget.style.boxShadow = variant === "muted"
-          ? "0 4px 14px rgba(0,0,0,0.30)"
-          : `0 4px 14px rgba(0,0,0,0.30), 0 0 12px ${tone.hex}30`;
+          : `${tone.hex}90`;
+        e.currentTarget.style.boxShadow = hoverShadow;
       }}
       onMouseLeave={disabled ? undefined : (e) => {
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.background = tone.bg;
         e.currentTarget.style.borderColor = tone.border;
-        e.currentTarget.style.boxShadow = "none";
+        e.currentTarget.style.boxShadow = restShadow;
       }}
       style={{
         ...mono,
-        padding: "7px 13px",
+        padding: isPrimary ? "8px 16px" : "7px 13px",
         background: tone.bg,
         border: `1px solid ${tone.border}`,
         borderRadius: 6,
         color: tone.color,
-        fontSize: 11,
+        fontSize: isPrimary ? 12 : 11,
         fontWeight: 800,
-        letterSpacing: 0.8,
+        letterSpacing: isPrimary ? 1.1 : 0.8,
         textTransform: "uppercase",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.45 : 1,
         transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
-        boxShadow: "none",
+        boxShadow: restShadow,
       }}
     >
       {label}
