@@ -1000,8 +1000,10 @@ function CPDash({ navigate }) {
         </div>
       </div>
 
-      {/* Phase 12: Growth Path panel */}
-      <GrowthPathPanel />
+      {/* Phase 12: Growth Path panel — disabled until backend ships
+          GET /v1/cp/growth-path + POST /v1/cp/express-interest. Component
+          definition (with all UI states) is preserved below for re-enable. */}
+      {/* <GrowthPathPanel /> */}
 
       <RetentionWidgets role="CP" />
     </>
