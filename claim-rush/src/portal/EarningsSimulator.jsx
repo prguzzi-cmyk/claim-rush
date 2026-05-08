@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 
@@ -141,9 +142,13 @@ export default function EarningsSimulator() {
         marginBottom: 24, display: "flex", alignItems: "flex-end", justifyContent: "space-between",
         opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease",
       }}>
-        <div>
-          <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>EARNINGS SIMULATOR</h1>
-          <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>Model your income across platform licensing + production</p>
+        <div style={{ flex: 1 }}>
+          <PageHeader
+            title="Earnings Simulator"
+            subtitle="Model your income across platform licensing + production."
+            kicker="Simulation"
+            accent="#00E6A8"
+          />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => loadScenario(role, scenario)} style={{

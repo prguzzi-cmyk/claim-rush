@@ -23,6 +23,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 
@@ -249,14 +250,18 @@ export default function ManagerOversight() {
             fontSize: 12, cursor: "pointer", padding: "4px 0", letterSpacing: 0.5, ...mono,
           }}
         >← BACK TO COMMAND CENTER</button>
-        <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, margin: "6px 0 4px" }}>
-          Manager Oversight Queue
-        </h1>
-        <div style={{ color: C.muted, fontSize: 13, ...mono }}>
-          {totalLeads} lead{totalLeads === 1 ? "" : "s"} in scope ·
-          <span style={{ color: totalAtRisk > 0 ? "#E05050" : C.muted, fontWeight: 600 }}> {totalAtRisk} at-risk</span>
-        </div>
       </div>
+      <PageHeader
+        title="Manager Oversight Queue"
+        subtitle={<>
+          {totalLeads} lead{totalLeads === 1 ? "" : "s"} in scope ·{" "}
+          <span style={{ color: totalAtRisk > 0 ? "#E05050" : C.muted, fontWeight: 700 }}>
+            {totalAtRisk} at-risk
+          </span>
+        </>}
+        kicker="Oversight"
+        accent={C.gold}
+      />
 
       {/* Stage 9 — sticky summary metrics. Click any tile to jump to the
           corresponding lane (auto-expands if collapsed). */}

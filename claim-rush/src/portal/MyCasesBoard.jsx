@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 
 /**
  * My Cases — claim-centric operational board for adjusters.
@@ -143,13 +144,13 @@ export default function MyCasesBoard() {
         >
           ← BACK TO COMMAND CENTER
         </button>
-        <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, margin: "6px 0 4px" }}>
-          My Cases
-        </h1>
-        <div style={{ color: C.muted, fontSize: 13, ...mono }}>
-          {claims.length} claim{claims.length === 1 ? "" : "s"} assigned to you
-        </div>
       </div>
+      <PageHeader
+        title="My Cases"
+        subtitle={<>{claims.length} claim{claims.length === 1 ? "" : "s"} assigned to you</>}
+        kicker="Active Cases"
+        accent="#00E6A8"
+      />
 
       {/* Filter chips */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>

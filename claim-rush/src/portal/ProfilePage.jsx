@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { C } from "./theme";
 import { apiJson, apiFetch } from "../lib/api";
+import PageHeader from "./shared/PageHeader";
 
 function Field({ label, value, onChange, disabled, type = "text" }) {
   return (
@@ -103,7 +104,12 @@ export default function ProfilePage() {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 24, fontFamily: "'Inter', sans-serif" }}>Profile</h1>
+      <PageHeader
+        title="Profile"
+        subtitle="Operator identity, contact, and account preferences."
+        kicker="Operator Profile"
+        accent="#3B82F6"
+      />
 
       {error && (
         <div style={{ padding: "12px 16px", borderRadius: 8, marginBottom: 16, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444", fontSize: 13, fontFamily: "'Inter', sans-serif" }}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 
 /**
  * Commission — CP's full commission picture.
@@ -82,13 +83,13 @@ export default function CommissionBoard() {
         >
           ← BACK TO COMMAND CENTER
         </button>
-        <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, margin: "6px 0 4px" }}>
-          Commission
-        </h1>
-        <div style={{ color: C.muted, fontSize: 13, ...mono }}>
-          Override earnings, territory revenue, and recent ledger activity.
-        </div>
       </div>
+      <PageHeader
+        title="Commission"
+        subtitle="Override earnings, territory revenue, and recent ledger activity."
+        kicker="Revenue Ops"
+        accent="#00E6A8"
+      />
 
       {/* 4-KPI row */}
       <div style={{

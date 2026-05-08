@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 import { useAxisContext } from "./AxisContext";
 
 const mono = { fontFamily: "'Courier New', monospace" };
@@ -73,10 +74,12 @@ export default function HomeOfficeOps() {
     <div style={{ maxWidth: 1200, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
       <style>{`@keyframes hoFade { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>HOME OFFICE OPERATIONS</h1>
-        <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>Daily command center for payouts, billing, territory performance, recruiting, and compliance.</p>
-      </div>
+      <PageHeader
+        title="Home Office Operations"
+        subtitle="Daily command center for payouts, billing, territory performance, recruiting, and compliance."
+        kicker="HQ Ops"
+        accent="#A855F7"
+      />
 
       {/* KPIs */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12, marginBottom: 20 }}>

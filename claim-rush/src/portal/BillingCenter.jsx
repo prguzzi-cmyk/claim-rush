@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { C } from "./theme";
 import { useAxisContext } from "./AxisContext";
+import PageHeader from "./shared/PageHeader";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 const PURPLE = "#A855F7";
@@ -121,11 +122,12 @@ export default function BillingCenter() {
     <div style={{ maxWidth: 1300, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
       <style>{`@keyframes bcFade { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
-      {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>BILLING + WALLET CENTER</h1>
-        <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>Manage platform fees, payment status, wallet credits, commissions due, and payout balances.</p>
-      </div>
+      <PageHeader
+        title="Billing + Wallet Center"
+        subtitle="Manage platform fees, payment status, wallet credits, commissions due, and payout balances."
+        kicker="Billing Ops"
+        accent={C.gold}
+      />
 
       {/* Feedback toast */}
       {actionFeedback && (

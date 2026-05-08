@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { C } from "./theme";
+import PageHeader from "./shared/PageHeader";
 
 /**
  * My Clients — claim-based client list scoped to the CP's territory.
@@ -105,18 +106,20 @@ export default function ClientsBoard() {
         >
           ← BACK TO COMMAND CENTER
         </button>
-        <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, margin: "6px 0 4px" }}>
-          My Clients
-        </h1>
-        <div style={{ color: C.muted, fontSize: 13, ...mono }}>
+      </div>
+      <PageHeader
+        title="My Clients"
+        subtitle={<>
           {clients.length} claim{clients.length === 1 ? "" : "s"} across your territory
           {totalGrossFee > 0 && (
-            <span style={{ marginLeft: 10, color: C.gold }}>
+            <span style={{ marginLeft: 10, color: C.gold, fontWeight: 700 }}>
               · {formatCurrency(totalGrossFee)} gross fee
             </span>
           )}
-        </div>
-      </div>
+        </>}
+        kicker="Client Base"
+        accent={C.gold}
+      />
 
       {/* Filter chips */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>

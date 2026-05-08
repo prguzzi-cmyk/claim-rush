@@ -3,6 +3,7 @@ import PasswordTab from "./settings/PasswordTab";
 import NotificationsTab from "./settings/NotificationsTab";
 import DisplayTab from "./settings/DisplayTab";
 import TwoFactorTab from "./settings/TwoFactorTab";
+import PageHeader from "./shared/PageHeader";
 
 const TABS = [
   { id: "password", label: "Password", icon: "\u{1F512}" },
@@ -32,7 +33,12 @@ export default function SettingsPage() {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 24, fontFamily: "'Inter', sans-serif" }}>Settings</h1>
+      <PageHeader
+        title="Settings"
+        subtitle="Authentication, notifications, display, and 2FA configuration."
+        kicker="System Config"
+        accent="#3B82F6"
+      />
 
       {/* Tab bar */}
       <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: 0 }}>

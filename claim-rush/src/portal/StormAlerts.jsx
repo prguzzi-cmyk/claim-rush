@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../lib/api";
+import PageHeader from "./shared/PageHeader";
 
 /**
  * Phase 17e — Storm Alerts for CP/RVP/Agent.
@@ -41,8 +42,12 @@ export default function StormAlerts() {
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <h1 style={{ ...mono, fontSize: 22, color: "#fff", fontWeight: 700, marginBottom: 6 }}>Storm Alerts</h1>
-      <p style={{ ...mono, fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 24 }}>Severe weather events in your territory. Schedule a seminar to capture affected homeowner leads.</p>
+      <PageHeader
+        title="Storm Alerts"
+        subtitle="Severe weather events in your territory. Schedule a seminar to capture affected homeowner leads."
+        kicker="Storm Intel"
+        accent="#E05050"
+      />
 
       {alerts.length === 0 && (
         <div style={{ padding: "40px 20px", textAlign: "center", background: "#131A2E", border: "1px solid #1F2742", borderRadius: 8 }}>

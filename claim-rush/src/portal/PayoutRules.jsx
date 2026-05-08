@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { C } from "./theme";
 import { useAxisContext } from "./AxisContext";
+import PageHeader from "./shared/PageHeader";
 
 const mono = { fontFamily: "'Courier New', monospace" };
 const PURPLE = "#A855F7";
@@ -180,20 +181,16 @@ export default function PayoutRules() {
         @keyframes prFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
 
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <h1 style={{ ...mono, fontSize: 22, color: C.white, fontWeight: 700, margin: 0, letterSpacing: 0.5 }}>PAYOUT RULES ENGINE</h1>
-            <p style={{ color: C.muted, fontSize: 14, marginTop: 6, ...mono }}>Control licensing fees, overrides, production compensation, and payout eligibility.</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", ...mono }}>v{rules.version}</span>
-            <span style={{ width: 4, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.15)" }} />
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", ...mono }}>Published {new Date(rules.publishedAt).toLocaleDateString()}</span>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Payout Rules Engine"
+        subtitle="Control licensing fees, overrides, production compensation, and payout eligibility."
+        kicker="Engine"
+        accent="#A855F7"
+        chips={[
+          <span key="v" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", fontFamily: "'Courier New', monospace", padding: "3px 9px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 3, fontWeight: 700, letterSpacing: 1 }}>v{rules.version}</span>,
+          <span key="p" style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "'Courier New', monospace", letterSpacing: 0.6 }}>Published {new Date(rules.publishedAt).toLocaleDateString()}</span>,
+        ]}
+      />
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 24 }}>
         {/* ── LEFT: Rules ──────────────────────────────────────────────────── */}
