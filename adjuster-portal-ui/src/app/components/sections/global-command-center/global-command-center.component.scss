@@ -26,45 +26,43 @@ $accent-blue: #2979ff;
 @keyframes pulse { 0%,100% { opacity: 0.75; transform: scale(1); } 50% { opacity: 0.25; transform: scale(0.85); } }
 
 // ── HEADER ──
-.gcc-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 28px 16px;
-  h1 { margin: 0; font-size: 1.6rem; font-weight: 700; color: $text-primary; letter-spacing: -0.015em; }
-  .gcc-subtitle { margin: 4px 0 0; font-size: 0.78rem; color: $text-muted; } }
-.gcc-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.gcc-clock { font-size: 0.7rem; color: $text-muted; font-family: 'SF Mono', monospace; font-feature-settings: "tnum" 1; }
-.gcc-status { display: flex; align-items: center; gap: 5px; font-size: 0.62rem; color: $text-muted; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
-// Status dot: emerald, slow, low-amplitude — reads as "online", not "alarm".
+.gcc-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 16px 22px 10px;
+  h1 { margin: 0; font-size: 1.4rem; font-weight: 700; color: $text-primary; letter-spacing: -0.015em; line-height: 1.2; }
+  .gcc-subtitle { margin: 2px 0 0; font-size: 0.74rem; color: $text-muted; } }
+.gcc-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.gcc-clock { font-size: 0.68rem; color: $text-muted; font-family: 'SF Mono', monospace; font-feature-settings: "tnum" 1; }
+.gcc-status { display: flex; align-items: center; gap: 5px; font-size: 0.6rem; color: $text-muted; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #10b981; opacity: 0.7; animation: pulse 3s ease-in-out infinite; }
 
 // ── BODY ──
-// Right-side live feed was removed — body now uses full canvas width.
-.gcc-body { padding: 0 28px 28px; flex: 1; }
+.gcc-body { padding: 0 22px 18px; flex: 1; }
 
 // ── KPI ROW ──
-.kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
-.kpi-dark-card { background: $bg-panel; border: 1px solid $border; border-top: 3px solid $text-muted; border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden;
+.kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
+.kpi-dark-card { background: $bg-panel; border: 1px solid $border; border-top: 2px solid $text-muted; border-radius: 8px; padding: 12px 14px; text-align: center; transition: all 0.3s; position: relative; overflow: hidden;
   &::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top center, rgba(255,255,255,0.02) 0%, transparent 70%); }
-  &:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-  mat-icon { font-size: 28px; width: 28px; height: 28px; margin-bottom: 4px; } }
-.kpi-dark-value { font-size: 2rem; font-weight: 800; color: #fff; line-height: 1; margin: 4px 0; font-family: 'SF Mono', monospace; }
-.kpi-dark-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.05em; }
-.kpi-dark-trend { display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 0.62rem; margin-top: 6px;
-  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+  &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+  mat-icon { font-size: 22px; width: 22px; height: 22px; margin-bottom: 2px; } }
+.kpi-dark-value { font-size: 1.7rem; font-weight: 800; color: #fff; line-height: 1; margin: 2px 0; font-family: 'SF Mono', monospace; font-feature-settings: "tnum" 1; }
+.kpi-dark-label { font-size: 0.64rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi-dark-trend { display: flex; align-items: center; justify-content: center; gap: 2px; font-size: 0.6rem; margin-top: 4px;
+  mat-icon { font-size: 12px; width: 12px; height: 12px; }
   &.trend-up { color: $accent-green; }
   &.trend-down { color: $accent-red; } }
 
 // ── MAP ROW ──
-.map-row { display: flex; gap: 12px; margin-bottom: 20px; }
+.map-row { display: flex; gap: 10px; margin-bottom: 12px; }
 .map-panel { flex: 1; }
-.incident-panel { width: 320px; flex-shrink: 0; }
+.incident-panel { width: 300px; flex-shrink: 0; }
 
 // ── DARK PANEL ──
-.dark-panel { background: $bg-panel; border: 1px solid $border; border-radius: 10px; overflow: hidden; }
-.dark-panel-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: $bg-panel-header; border-bottom: 1px solid $border; font-weight: 600; font-size: 0.82rem; color: $text-primary;
-  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $accent-cyan; } }
+.dark-panel { background: $bg-panel; border: 1px solid $border; border-radius: 8px; overflow: hidden; }
+.dark-panel-header { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: $bg-panel-header; border-bottom: 1px solid $border; font-weight: 600; font-size: 0.78rem; color: $text-primary;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: $accent-cyan; } }
 .close-btn { margin-left: auto; color: $text-secondary; }
 
 // ── MAP AREA ──
-.map-area { height: 360px; background: #0d1117; position: relative; overflow: hidden; }
+.map-area { height: 320px; background: #0d1117; position: relative; overflow: hidden; }
 .marker-grid { position: absolute; inset: 20px; }
 .map-marker { position: absolute; width: 9px; height: 9px; border-radius: 50%; cursor: pointer; box-shadow: 0 0 5px currentColor; transition: transform 0.2s; animation: marker-glow 3.4s ease-in-out infinite; opacity: 0.85;
   &:hover { transform: scale(2); z-index: 10; } }
@@ -78,7 +76,7 @@ $accent-blue: #2979ff;
   mat-icon { font-size: 14px; width: 14px; height: 14px; color: $accent-cyan; } }
 
 // ── INCIDENT DETAIL ──
-.incident-body { padding: 16px; }
+.incident-body { padding: 12px 14px; }
 .incident-field { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid $border; font-size: 0.78rem;
   &:last-of-type { border-bottom: none; } }
 .incident-label { color: $text-secondary; }
@@ -96,7 +94,7 @@ $accent-blue: #2979ff;
 
 // ── ADJUSTER TABLE ──
 .adj-kpi-row { display: flex; gap: 0; padding: 0; border-bottom: 1px solid $border; }
-.adj-kpi { flex: 1; text-align: center; padding: 12px 8px; border-right: 1px solid $border;
+.adj-kpi { flex: 1; text-align: center; padding: 9px 8px; border-right: 1px solid $border;
   &:last-child { border-right: none; } }
 .adj-kpi-val { display: block; font-size: 1.3rem; font-weight: 800; color: #fff; font-family: 'SF Mono', monospace; }
 .adj-kpi-lbl { font-size: 0.58rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -116,7 +114,7 @@ $accent-blue: #2979ff;
   display: flex; align-items: center; gap: 0; border-bottom: 1px solid $border;
 }
 .recovery-compare-card {
-  flex: 1; text-align: center; padding: 20px 16px; border-right: 1px solid $border; position: relative;
+  flex: 1; text-align: center; padding: 14px 12px; border-right: 1px solid $border; position: relative;
   &:last-child { border-right: none; }
   mat-icon { font-size: 24px; width: 24px; height: 24px; margin-bottom: 4px; }
   &.carrier { mat-icon { color: $accent-orange; } }
@@ -137,7 +135,7 @@ $accent-blue: #2979ff;
   display: flex; gap: 0; border-bottom: 1px solid $border;
 }
 .recovery-metric {
-  flex: 1; text-align: center; padding: 14px 8px; border-right: 1px solid $border;
+  flex: 1; text-align: center; padding: 10px 8px; border-right: 1px solid $border;
   &:last-child { border-right: none; }
 }
 .recovery-metric-val { display: block; font-size: 1.1rem; font-weight: 800; color: #fff; font-family: 'SF Mono', monospace; }
@@ -203,7 +201,7 @@ $accent-blue: #2979ff;
 }
 
 // ── HIGH PROBABILITY CLAIMS PANEL ──
-.opp-panel { margin-bottom: 20px; }
+.opp-panel { margin-bottom: 12px; }
 .opp-filter { margin-left: auto; display: flex; align-items: center; gap: 8px; }
 .opp-filter-label { font-size: 0.68rem; color: $text-secondary; font-weight: 400; font-family: 'SF Mono', monospace; }
 .opp-slider { width: 100px; accent-color: $accent-cyan; cursor: pointer; }
@@ -228,7 +226,7 @@ $accent-blue: #2979ff;
 }
 
 // ── CLAIM OPPORTUNITY INTELLIGENCE ──
-.opp-section { margin-bottom: 20px; }
+.opp-section { margin-bottom: 12px; }
 .opp-header-kpis { margin-left: auto; display: flex; gap: 12px; font-size: 0.68rem; font-weight: 600; }
 .opp-hkpi {
   color: $text-secondary;
@@ -287,7 +285,7 @@ $accent-blue: #2979ff;
   &.ring-medium { border-color: $accent-yellow; }
 }
 
-.opp-intel-footer { padding: 8px 16px; text-align: center; border-top: 1px solid $border; }
+.opp-intel-footer { padding: 6px 14px; text-align: center; border-top: 1px solid $border; }
 
 // ── QUICK LINKS ──
 .quick-links { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -301,8 +299,8 @@ $accent-blue: #2979ff;
 .gov-status-chip.gov-warming { background: rgba(255,214,0,0.12); color: $accent-yellow; border-color: rgba(255,214,0,0.5); }
 .gov-status-chip.gov-offline { background: rgba(255,23,68,0.12); color: $accent-red; border-color: rgba(255,23,68,0.5); }
 
-.gov-grid { display: grid; grid-template-columns: 1.4fr 0.8fr 1.6fr 1.4fr; gap: 12px; padding: 14px 16px; }
-.gov-card { background: $bg-panel-header; border: 1px solid $border; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+.gov-grid { display: grid; grid-template-columns: 1.4fr 0.8fr 1.6fr 1.4fr; gap: 8px; padding: 10px 12px; }
+.gov-card { background: $bg-panel-header; border: 1px solid $border; border-radius: 6px; padding: 9px 11px; display: flex; flex-direction: column; gap: 4px; min-height: 96px; }
 .gov-card-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
 .gov-card-value { font-size: 1.8rem; font-weight: 800; color: $text-primary; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .gov-card-sub { font-size: 0.7rem; color: $text-muted; }
@@ -344,14 +342,14 @@ $accent-blue: #2979ff;
 .wallet-status-chip.wallet-restricted { background: rgba(255,214,0,0.10); color: $accent-yellow; border-color: rgba(255,214,0,0.4); }
 .wallet-status-chip.wallet-offline { background: rgba(255,23,68,0.12); color: $accent-red; border-color: rgba(255,23,68,0.5); }
 
-.wallet-grid { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr 1.4fr; gap: 12px; padding: 14px 16px; }
-.wallet-card { background: $bg-panel-header; border: 1px solid $border; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 130px; position: relative; }
+.wallet-grid { display: grid; grid-template-columns: 1.4fr 1fr 1.2fr 1.4fr; gap: 8px; padding: 10px 12px; }
+.wallet-card { background: $bg-panel-header; border: 1px solid $border; border-radius: 6px; padding: 9px 11px; display: flex; flex-direction: column; gap: 4px; min-height: 104px; position: relative; }
 .wallet-card-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
 .wallet-card-value { font-size: 1.6rem; font-weight: 800; color: $text-primary; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .wallet-card-sub { font-size: 0.7rem; color: $text-muted; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .wallet-empty { font-size: 0.74rem; color: $text-muted; font-style: italic; padding: 4px 0; }
 
-.wallet-balance { font-size: 1.9rem; font-weight: 800; color: $accent-green; font-family: 'SF Mono', monospace; line-height: 1.1; }
+.wallet-balance { font-size: 1.65rem; font-weight: 800; color: $accent-green; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .wallet-balance-unit { font-size: 0.7rem; color: $text-muted; font-weight: 500; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
 .wallet-kind { color: $text-secondary; font-size: 0.72rem; font-weight: 600; }
 .wallet-runway { display: inline-flex; align-items: center; gap: 4px; color: $accent-cyan; font-weight: 700; font-family: 'SF Mono', monospace; }
@@ -362,7 +360,7 @@ $accent-blue: #2979ff;
 .wallet-spend-label { color: $text-muted; }
 .wallet-spend-val { color: $text-primary; font-family: 'SF Mono', monospace; font-weight: 700; }
 
-.wallet-spark { display: flex; align-items: flex-end; justify-content: space-between; gap: 3px; height: 56px; padding-top: 4px; }
+.wallet-spark { display: flex; align-items: flex-end; justify-content: space-between; gap: 2px; height: 44px; padding-top: 2px; }
 .wallet-spark-bar { flex: 1; min-height: 2px; background: linear-gradient(180deg, $accent-cyan 0%, rgba(0,229,255,0.3) 100%); border-radius: 1px 1px 0 0; transition: height 0.3s ease; }
 .wallet-spark-bar:hover { background: linear-gradient(180deg, $accent-orange 0%, rgba(255,109,0,0.3) 100%); }
 
@@ -481,19 +479,17 @@ $exec-muted:      #64748b;
 $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 
 .executive-suite {
-  margin: 28px 0 24px;
-  padding: 28px 26px 24px;
+  margin: 0 0 12px;
+  padding: 14px 16px 12px;
   background: linear-gradient(180deg, $exec-ink 0%, #0a0e16 100%);
   border: 1px solid $exec-border;
-  border-radius: 14px;
+  border-radius: 10px;
   position: relative;
 
-  // Subtle accent rule across the top — signals "different zone"
-  // without screaming.
   &::before {
     content: '';
     position: absolute;
-    top: 0; left: 26px; right: 26px;
+    top: 0; left: 16px; right: 16px;
     height: 1px;
     background: linear-gradient(90deg, transparent 0%,
                 rgba(34, 211, 238, 0.35) 50%, transparent 100%);
@@ -502,22 +498,22 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 
 .executive-suite-header {
   display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 22px;
-  flex-wrap: wrap; gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap; gap: 10px;
 }
 .executive-suite-title {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 9px;
 }
 .executive-suite-marker {
   display: inline-block;
-  width: 3px; height: 14px;
+  width: 3px; height: 12px;
   background: $exec-cyan;
   border-radius: 1px;
   opacity: 0.75;
 }
 .executive-suite-eyebrow {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.22em;
@@ -543,8 +539,8 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 .executive-suite .dark-panel {
   background: $exec-surface;
   border-color: $exec-border;
-  border-radius: 10px;
-  margin-bottom: 18px;
+  border-radius: 8px;
+  margin-bottom: 10px;
 
   &:last-child { margin-bottom: 0; }
 }
@@ -554,9 +550,9 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 .executive-header {
   background: rgba(11, 16, 24, 0.5);
   border-bottom: 1px solid $exec-divider;
-  padding: 14px 18px;
+  padding: 9px 14px;
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: $exec-text;
@@ -658,32 +654,32 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   height: 6px; border-radius: 3px;
 }
 
-// Card surfaces inside the zone get a calmer treatment.
+// Card surfaces inside the zone — dense, terminal-like.
 .executive-suite .gov-card,
 .executive-suite .wallet-card {
   background: rgba(8, 12, 20, 0.7);
   border-color: $exec-border;
-  border-radius: 8px;
-  padding: 14px 16px;
-  min-height: 124px;
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-height: 96px;
 }
 .executive-suite .gov-card-label,
 .executive-suite .wallet-card-label {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   letter-spacing: 0.14em;
   color: $exec-muted;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .executive-suite .gov-card-sub,
 .executive-suite .wallet-card-sub {
   color: $exec-muted; font-size: 0.7rem;
 }
 
-// More breathing room in the grids — feels less crammed.
-.executive-suite .gov-grid { padding: 18px 18px; gap: 14px; }
-.executive-suite .wallet-grid { padding: 18px 18px; gap: 14px; }
+// Tight, dense grids — Bloomberg / Palantir command-center spacing.
+.executive-suite .gov-grid { padding: 10px 12px; gap: 8px; }
+.executive-suite .wallet-grid { padding: 10px 12px; gap: 8px; }
 
 // Kill all pulse/glow animations within the zone.
 .executive-suite *,
