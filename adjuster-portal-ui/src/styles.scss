@@ -163,6 +163,180 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────────
+ * GLOBAL — Modal / dialog readability hardening.
+ * ----------------------------------------------------------------------
+ * Default Material dialogs inherited too much "floating glass":
+ *   - cdk-overlay-backdrop default opacity 0.32 → busy dashboard bled
+ *     through, modal felt unanchored
+ *   - dialog surface had no crisp border → edges dissolved into the page
+ *   - form fields used --surface-muted (#0F1520) which is only 5% darker
+ *     than the surface (#111820) → fields disappeared into the dialog
+ *   - secondary buttons matched primary brightness → no clear hierarchy
+ *
+ * This block brings every default Material dialog into the
+ * Linear/Stripe/Cursor aesthetic: dark anchored backdrop, crisp surface
+ * with visible 1px border, deeply contrasting form fields, and a clear
+ * primary CTA vs ghost secondary action.
+ *
+ * Special-case dialogs (.dark-dialog-panel, .statement-dialog-panel,
+ * .territory-apply-dialog-panel, .command-palette-dialog) keep their
+ * existing overrides — the :not() selectors below skip them.
+ * ────────────────────────────────────────────────────────────────────── */
+
+/* Stronger backdrop — the modal needs to sit on a clean dark plane,
+ * not a translucent layer that lets dispatch UI bleed through. The
+ * subtle 4px blur pushes everything behind out of focus so the user's
+ * attention lands on the modal cleanly. */
+.cdk-overlay-dark-backdrop.cdk-overlay-backdrop-showing,
+.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
+  background: rgba(5, 9, 14, 0.72);
+  backdrop-filter: blur(4px) saturate(0.6);
+  -webkit-backdrop-filter: blur(4px) saturate(0.6);
+}
+
+/* Default dialog surface — crisp edge + anchored shadow.
+ * Surface background already comes from --mat-dialog-container-color
+ * (#111820) defined in _theme.scss; we only add the border + shadow. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) > .mat-mdc-dialog-container .mdc-dialog__surface,
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) > .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55),
+              0 4px 12px rgba(0, 0, 0, 0.40);
+}
+
+/* Title — bright, properly sized, clear bottom divider so sections
+ * are visually separated. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-dialog-title,
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-dialog__title {
+  color: #FFFFFF !important;
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  padding: 20px 24px 14px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* MDC's pseudo-element reserves 39px of empty space above the title
+ * via ::before height — strip it so titles sit at the top edge. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-dialog-title::before,
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-dialog__title::before {
+  display: none !important;
+  height: 0 !important;
+}
+
+/* Content — comfortable padding, high-contrast body text. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-dialog-content,
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-dialog__content {
+  color: #E8ECF1 !important;
+  padding: 22px 24px !important;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* Actions footer — top divider, slightly deeper plane, comfortable
+ * spacing, right-aligned (Mat default). */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-dialog-actions,
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-dialog__actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 20px !important;
+  gap: 8px;
+  background: rgba(11, 16, 24, 0.5);
+  min-height: 56px;
+}
+
+/* Primary CTA inside dialogs — enterprise contrast, dark text on
+ * brand cyan, subtle inner highlight + cyan halo. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-raised-button.mat-primary {
+  background: #00C2FF !important;
+  color: #0B0F14 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  height: 38px !important;
+  padding: 0 18px !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.10) inset,
+              0 4px 12px rgba(0, 194, 255, 0.18) !important;
+  &:hover:not(:disabled) {
+    background: #1ED6FF !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.14) inset,
+                0 6px 16px rgba(0, 194, 255, 0.28) !important;
+  }
+}
+
+/* Disabled CTA — clearly disabled, not a ghost. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-raised-button[disabled],
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-raised-button.mat-primary[disabled] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(232, 236, 241, 0.40) !important;
+  box-shadow: none !important;
+}
+
+/* Secondary / cancel — low-emphasis ghost button, clearly readable
+ * but visually subordinate to the primary CTA. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-button:not(.mat-primary):not(.mat-warn):not(.mat-accent) {
+  color: #C2CBD8 !important;
+  font-weight: 500 !important;
+  height: 38px !important;
+  padding: 0 14px !important;
+  &:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: #E8ECF1 !important;
+  }
+}
+
+/* Form fields inside dialogs — darker fill = clear separation from
+ * the dialog surface, crisp wrapper border, cyan focus state. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-form-field {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-form-field:last-of-type {
+  margin-bottom: 0;
+}
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-text-field--filled {
+  background: #0B0F14 !important;       /* sits below dialog surface = clear field boundary */
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 8px;
+  &:hover:not(.mdc-text-field--disabled) {
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+  &.mdc-text-field--focused {
+    border-color: #00C2FF;
+  }
+}
+
+/* Suppress the bottom underline ripple — wrapper border handles
+ * focus state cleanly instead. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-text-field--filled .mdc-line-ripple {
+  display: none;
+}
+
+/* Outlined fields — make the outline clearly visible. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-text-field--outlined:not(.mdc-text-field--focused) {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+  }
+}
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mdc-text-field--outlined.mdc-text-field--focused {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: #00C2FF !important;
+    border-width: 1.5px !important;
+  }
+}
+
+/* Hide the 22px reserved error space when there's no error — frees
+ * vertical breathing room. Re-shows when invalid. */
+.cdk-overlay-pane:not(.statement-dialog-panel):not(.command-palette-dialog) .mat-mdc-dialog-container .mat-mdc-form-field:not(.mat-form-field-invalid) .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────
  * Number-input spinner arrow suppression — global.
  * Applies to every <input type="number"> in the app (not just currency
  * fields). The spinner UX is noisy for money values and non-essential
