@@ -302,8 +302,8 @@ $accent-blue: #2979ff;
 
 // ── Skeleton sparkline (Daily Burn placeholder) ──
 // Same .wallet-spark grid, but bars use a desaturated gradient and
-// the whole strip is lower opacity. Communicates "this is what the
-// chart will look like" without faking any value.
+// the whole strip is lower opacity. Static — no breathing animation
+// (large-area opacity pulses were causing dashboard-wide flicker).
 .wallet-spark--skeleton {
   opacity: 0.5;
 }
@@ -312,14 +312,6 @@ $accent-blue: #2979ff;
               rgba(148, 163, 184, 0.5) 0%,
               rgba(148, 163, 184, 0.08) 100%) !important;
   border-radius: 1px 1px 0 0;
-}
-// Subtle breathing animation on skeleton — signals "ready, awaiting".
-@keyframes empty-state-breath {
-  0%,100% { opacity: 0.5; }
-  50%     { opacity: 0.65; }
-}
-.wallet-spark--skeleton {
-  animation: empty-state-breath 5s ease-in-out infinite;
 }
 
 // ── CLAIM OPPORTUNITY INTELLIGENCE ──
