@@ -270,10 +270,22 @@ export class SidebarComponent implements OnInit, OnDestroy {
   }
 
   /** Route-level visibility — used inside otherwise-visible sections (e.g.
-   *  CP sees the admin section but not the system-management items). */
+   *  CP sees the admin section but not the system-management items).
+   *
+   *  Also hides the AI Sales Agent demo surfaces whenever
+   *  `featureFlags.aiSalesAgent` is false (true in dev, false in prod).
+   *  Audit 2026-05-09: those pages render mock/static data only and
+   *  imply customer contact they cannot perform. */
   canShowRoute(path: string): boolean {
     const hidden = ROLE_HIDDEN_ROUTES[this.roleName as AppRole] ?? [];
-    return !hidden.includes(path);
+    if (hidden.includes(path)) return false;
+
+    if (path && path.startsWith('/app/ai-sales-agent')
+        && environment?.featureFlags?.aiSalesAgent !== true) {
+      return false;
+    }
+
+    return true;
   }
 
   private saveSectionState(): void {

@@ -5,6 +5,7 @@ import { LoginComponent } from "./components/login/login.component";
 import { AuthGuard } from "./guards/auth.guard";
 import { DevAutoLoginGuard } from "./guards/dev-auto-login.guard";
 import { RoleGuard } from "./guards/role.guard";
+import { AiSalesAgentGuard } from "./guards/ai-sales-agent.guard";
 import { ApplicationComponent } from "./components/application.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
 import { UsersComponent } from "./components/sections/users/users.component";
@@ -428,12 +429,17 @@ const routes: Routes = [
       { path: "ai-intake/dashboard", component: AiIntakeDashboardComponent },
       { path: "lead-rotation-engine", component: LeadRotationEngineComponent },
       { path: "sales-ai", component: SalesAiComponent },
-      { path: "ai-sales-agent", component: SalesAgentDashboardComponent },
-      { path: "ai-sales-agent/conversation/:id", component: AiConversationEngineComponent },
-      { path: "ai-sales-agent/appointments", component: AppointmentSchedulingComponent },
-      { path: "ai-sales-agent/intake-launcher", component: IntakeLauncherComponent },
-      { path: "ai-sales-agent/scripts", component: SalesScriptManagerComponent },
-      { path: "ai-sales-agent/kpis", component: SalesKpiDashboardComponent },
+      // AI Sales Agent demo surfaces — gated behind featureFlags.aiSalesAgent.
+      // In prod this is FALSE; AiSalesAgentGuard redirects to
+      // /app/dashboard/intelligence. Components are intentionally NOT deleted —
+      // they stay in the bundle for future wiring once real outreach + skip-trace
+      // pipelines are connected. (Audit 2026-05-09.)
+      { path: "ai-sales-agent",                  component: SalesAgentDashboardComponent,    canActivate: [AiSalesAgentGuard] },
+      { path: "ai-sales-agent/conversation/:id", component: AiConversationEngineComponent,   canActivate: [AiSalesAgentGuard] },
+      { path: "ai-sales-agent/appointments",     component: AppointmentSchedulingComponent,  canActivate: [AiSalesAgentGuard] },
+      { path: "ai-sales-agent/intake-launcher",  component: IntakeLauncherComponent,         canActivate: [AiSalesAgentGuard] },
+      { path: "ai-sales-agent/scripts",          component: SalesScriptManagerComponent,     canActivate: [AiSalesAgentGuard] },
+      { path: "ai-sales-agent/kpis",             component: SalesKpiDashboardComponent,      canActivate: [AiSalesAgentGuard] },
       { path: "voice-outreach-agent", component: VoiceCallDashboardComponent },
       { path: "voice-outreach-agent/campaigns", component: VoiceCampaignManagerComponent },
       { path: "voice-outreach-agent/calls", component: AiVoiceCallEngineComponent },

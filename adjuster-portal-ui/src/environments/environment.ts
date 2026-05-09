@@ -6,7 +6,9 @@ export const environment = {
   production: false,
   name: "Dev",
   // Dev-only: skip login and stub the current user so :4200 lands straight in the authenticated shell.
-  devAutoLogin: true,
+  // Local override (2026-05-07): turned OFF so manual login renders and the
+  // dev shell isn't fed an auto-token for an offline backend.
+  devAutoLogin: false,
   // Dev-only: credentials used by the APP_INITIALIZER auto-login to fetch a real
   // staging access_token at boot when devAutoLogin is on. This is the same
   // staging-only test account whose password was reset directly on the staging
@@ -19,11 +21,14 @@ export const environment = {
   // Relative base so the ApiInterceptor produces /v1/... paths — the ng-serve
   // proxy (proxy.conf.json) catches those and forwards to localhost:8888.
   // Point this at a full URL when you need to hit a remote dev API instead.
-  // server: "/v1",
-  // Temporary override: hit the AWS staging API directly so localhost:4200
-  // uses real data (production-snapshot restored to staging RDS).
-  // Revert to "/v1" when you want the local Docker FastAPI on :8888 back.
-  server: "http://api.staging.upaportal.org/v1",
+  //
+  // Reverted to relative "/v1" on 2026-05-09 so local-only seeded users
+  // (e.g. pete@local.dev) actually reach the local backend instead of
+  // the Railway prod API. The 2026-05-07 prod-pointing override is in
+  // git history if you ever need to talk to prod from a local ng serve.
+  // environment.prod.ts (the Vercel build target) is unaffected — that
+  // file still points at Railway and is used by all production deploys.
+  server: "/v1",
   // mlmServer:'http://localhost:8080',
   mlmServer: "http://upamlmstagingapi.eastus.cloudapp.azure.com", //staging env
   checkVersion: false,
@@ -38,6 +43,11 @@ export const environment = {
   ],
   featureFlags: {
     chatgptEnabled: true,
+    // AI Sales Agent demo surfaces (mock/static data only — see audit
+    // 2026-05-09). Local dev keeps these accessible for design work;
+    // environment.prod.ts has this flag set to FALSE so production
+    // operators cannot reach the demo routes.
+    aiSalesAgent: true,
   },
   openai: {
     organizationId: "org-o1DNEO5pUbY1j1YVb2Imkf91",
