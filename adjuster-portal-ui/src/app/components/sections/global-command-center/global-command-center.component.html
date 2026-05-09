@@ -1,20 +1,5 @@
 <div class="gcc-dark" [class.gcc-dark--treasury-focus]="treasuryFocus">
 
-  <!-- ══════ SECTION 1: LIVE INCIDENT TICKER ══════ -->
-  <div class="ticker-bar">
-    <div class="ticker-live"><span class="live-pulse"></span> LIVE</div>
-    <div class="ticker-track">
-      <div class="ticker-scroll">
-        <ng-container *ngFor="let _ of [1,2]">
-          <span class="ticker-item" *ngFor="let ev of tickerEvents">
-            <span class="ticker-emoji">{{ ev.emoji }}</span>
-            <span class="ticker-text">{{ ev.text }}</span>
-          </span>
-        </ng-container>
-      </div>
-    </div>
-  </div>
-
   <!-- Page Header -->
   <div class="gcc-header">
     <div>
@@ -28,40 +13,6 @@
   </div>
 
   <div class="gcc-body">
-
-    <!-- ══════ INCIDENT PRIORITY FILTER CHIPS ══════ -->
-    <!-- Single source of truth — drives map, ticker, KPI counts, and
-         right-side live feed. Default: HIGH + MEDIUM on; LOW off
-         (no dispatch noise). -->
-    <div class="priority-chip-row">
-      <span class="priority-chip-label"><mat-icon>filter_list</mat-icon> Priority</span>
-      <button class="priority-chip"
-              [class.priority-chip--active]="isPriorityActive('high')"
-              [style.--chip-color]="priorityChipColor('high')"
-              (click)="togglePriority('high')">
-        High <span class="priority-chip-count">{{ priorityCounts.high }}</span>
-      </button>
-      <button class="priority-chip"
-              [class.priority-chip--active]="isPriorityActive('medium')"
-              [style.--chip-color]="priorityChipColor('medium')"
-              (click)="togglePriority('medium')">
-        Medium <span class="priority-chip-count">{{ priorityCounts.medium }}</span>
-      </button>
-      <button class="priority-chip"
-              [class.priority-chip--active]="isPriorityActive('low')"
-              [style.--chip-color]="priorityChipColor('low')"
-              (click)="togglePriority('low')">
-        Low <span class="priority-chip-count">{{ priorityCounts.low }}</span>
-      </button>
-      <button class="priority-chip priority-chip--all"
-              [class.priority-chip--active]="isAllActive()"
-              (click)="selectAllPriorities()">
-        All <span class="priority-chip-count">{{ priorityCounts.total }}</span>
-      </button>
-      <span class="priority-chip-hint" *ngIf="!priorityFilters.low">
-        <mat-icon>visibility_off</mat-icon> Suppressing dispatch noise (medical, lift assist, traffic, alarms)
-      </span>
-    </div>
 
     <!-- ══════ SECTION 3: LEAD GENERATION MONITOR (KPI row) ══════ -->
     <div class="kpi-row">
@@ -670,40 +621,4 @@
     </div>
   </div>
 
-  <!-- ══════ FIXED RIGHT-SIDE: REAL-TIME ACTIVITY FEED ══════ -->
-  <div class="live-feed-panel">
-    <div class="live-feed-header">
-      <mat-icon>timeline</mat-icon>
-      <span>Real-Time Activity</span>
-      <span class="live-pulse-small"></span>
-      <span class="feed-count" *ngIf="filteredActivityFeed.length">
-        {{ filteredActivityFeed.length }}<span class="feed-count-of" *ngIf="activityFeed.length !== filteredActivityFeed.length">/{{ activityFeed.length }}</span>
-      </span>
-    </div>
-    <div class="live-feed-scroll">
-      <div class="live-feed-empty" *ngIf="filteredActivityFeed.length === 0 && activityFeed.length > 0">
-        <mat-icon>filter_alt</mat-icon>
-        <span>All current events filtered out by priority chips above.</span>
-      </div>
-      <div class="live-feed-item" *ngFor="let item of filteredActivityFeed" (click)="navigateToEvent(item)">
-        <div class="live-feed-left">
-          <div class="live-feed-dot" [style.backgroundColor]="getActivityColor(item.event_type)" [style.boxShadow]="'0 0 8px ' + getActivityColor(item.event_type)"></div>
-          <div class="live-feed-connector"></div>
-        </div>
-        <div class="live-feed-content">
-          <div class="live-feed-row-top">
-            <mat-icon [style.color]="getActivityColor(item.event_type)" class="live-feed-icon">{{ getActivityIcon(item.event_type) }}</mat-icon>
-            <span class="live-feed-type" [style.color]="getActivityColor(item.event_type)">{{ getActivityLabel(item.event_type) }}</span>
-          </div>
-          <span class="live-feed-title">{{ item.title }}</span>
-          <span class="live-feed-detail">{{ item.detail }}</span>
-          <div class="live-feed-meta">
-            <span class="live-feed-time"><mat-icon>schedule</mat-icon> {{ timeAgo(item.timestamp) }}</span>
-            <span *ngIf="item.location" class="live-feed-loc"><mat-icon>location_on</mat-icon> {{ item.location }}</span>
-            <span *ngIf="item.assigned_agent" class="live-feed-agent"><mat-icon>person</mat-icon> {{ item.assigned_agent }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

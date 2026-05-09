@@ -2,13 +2,16 @@
 // GLOBAL INTELLIGENCE COMMAND CENTER — Mission Control Dark Theme
 // ══════════════════════════════════════════════════════════════════
 
-$bg-primary: #0a0e17;
-$bg-panel: #111827;
-$bg-panel-header: #1a2332;
-$border: #1e293b;
-$text-primary: #e2e8f0;
-$text-secondary: #94a3b8;
-$text-muted: #64748b;
+// Base palette — bumped slightly brighter (still dark, just less
+// muddy). Each surface raises ~3–6 lightness points; text-secondary
+// and text-muted get a clearer contrast against the new surfaces.
+$bg-primary: #0d1320;
+$bg-panel: #151d2c;
+$bg-panel-header: #1d2638;
+$border: #232e44;
+$text-primary: #eef2f8;
+$text-secondary: #aab4c4;
+$text-muted: #7e8a9c;
 $accent-cyan: #00e5ff;
 $accent-green: #00e676;
 $accent-red: #ff1744;
@@ -19,22 +22,8 @@ $accent-blue: #2979ff;
 
 .gcc-dark { min-height: calc(100vh - 64px); background: $bg-primary; color: $text-primary; display: flex; flex-direction: column; }
 
-// ── TICKER (refined: enterprise-rail, not casino-marquee) ──
-// Slim height, slow tempo, low-chroma chrome. Real-time signal kept
-// (the dot still pulses, scroll still moves) but no longer competes
-// with the executive treasury zone for visual attention.
-.ticker-bar { display: flex; align-items: center; background: linear-gradient(180deg, #06080d 0%, #0a0e16 100%); height: 26px; border-bottom: 1px solid rgba(148, 163, 184, 0.10); overflow: hidden; }
-.ticker-live { display: flex; align-items: center; gap: 6px; padding: 0 14px; background: rgba(148, 163, 184, 0.06); color: #94a3b8; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em; height: 100%; flex-shrink: 0; border-right: 1px solid rgba(148, 163, 184, 0.10); }
-.live-pulse { width: 5px; height: 5px; border-radius: 50%; background: #d97706; animation: pulse 2.6s ease-in-out infinite; opacity: 0.7; }
+// ── PULSE keyframe (still used by .status-dot in the header) ──
 @keyframes pulse { 0%,100% { opacity: 0.75; transform: scale(1); } 50% { opacity: 0.25; transform: scale(0.85); } }
-.ticker-track { flex: 1; overflow: hidden; }
-// Slow the scroll dramatically — 32s was a marquee; 75s reads as a continuous data-stream.
-.ticker-scroll { display: flex; gap: 56px; white-space: nowrap; animation: ticker-scroll 75s linear infinite; }
-.ticker-track:hover .ticker-scroll { animation-play-state: paused; }
-@keyframes ticker-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.ticker-item { display: inline-flex; align-items: center; gap: 8px; font-size: 0.66rem; color: $text-muted; letter-spacing: 0.02em; }
-.ticker-emoji { font-size: 0.78rem; opacity: 0.6; }
-.ticker-text { color: $text-secondary; }
 
 // ── HEADER ──
 .gcc-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 28px 16px;
@@ -47,8 +36,8 @@ $accent-blue: #2979ff;
 .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #10b981; opacity: 0.7; animation: pulse 3s ease-in-out infinite; }
 
 // ── BODY ──
-// 240px live-feed-panel (compressed from 280) + 28px gutter.
-.gcc-body { padding: 0 268px 28px 28px; flex: 1; }
+// Right-side live feed was removed — body now uses full canvas width.
+.gcc-body { padding: 0 28px 28px; flex: 1; }
 
 // ── KPI ROW ──
 .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -190,8 +179,6 @@ $accent-blue: #2979ff;
 }
 
 // ── ACTIVITY FEED — VERTICAL TIMELINE ──
-.live-pulse-small { width: 4px; height: 4px; border-radius: 50%; background: #d97706; opacity: 0.6; animation: pulse 3s ease-in-out infinite; }
-.feed-count { margin-left: auto; font-size: 0.62rem; color: $text-muted; font-weight: 400; font-family: 'SF Mono', monospace; }
 .activity-timeline { max-height: 500px; overflow-y: auto; padding: 12px 16px 12px 8px; }
 .timeline-item {
   display: flex; gap: 12px; cursor: pointer; padding: 4px 0;
@@ -305,54 +292,6 @@ $accent-blue: #2979ff;
 // ── QUICK LINKS ──
 .quick-links { display: flex; gap: 8px; flex-wrap: wrap; }
 
-// ══════ FIXED RIGHT-SIDE LIVE ACTIVITY FEED (compressed) ══════
-// Narrower rail with low-chroma chrome. Same data, lower visual
-// weight. Hover tint switches from cyan flash to a subtle slate.
-.live-feed-panel {
-  position: fixed; top: 64px; right: 0; bottom: 0; width: 240px;
-  background: linear-gradient(180deg, #0a0e16 0%, #0c1119 100%);
-  border-left: 1px solid rgba(148, 163, 184, 0.10);
-  display: flex; flex-direction: column; z-index: 100;
-}
-.live-feed-header {
-  display: flex; align-items: center; gap: 6px; padding: 11px 14px;
-  background: rgba(11, 16, 24, 0.6);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
-  font-family: 'Inter', system-ui, sans-serif;
-  font-weight: 600; font-size: 0.7rem; color: $text-secondary;
-  letter-spacing: 0.04em;
-  mat-icon { font-size: 14px; width: 14px; height: 14px; color: $text-muted; opacity: 0.7; }
-}
-.live-feed-scroll {
-  flex: 1; overflow-y: auto; padding: 8px 10px 8px 6px;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.12); border-radius: 2px; }
-}
-.live-feed-item {
-  display: flex; gap: 8px; cursor: pointer; padding: 2px 0;
-  &:hover .live-feed-content { background: rgba(148, 163, 184, 0.05); }
-  &:last-child .live-feed-connector { display: none; }
-}
-.live-feed-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 12px; padding-top: 4px; }
-.live-feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.live-feed-connector { width: 1.5px; flex: 1; background: rgba(255,255,255,0.06); margin-top: 3px; min-height: 16px; }
-.live-feed-content { flex: 1; min-width: 0; padding: 4px 6px 8px; border-radius: 6px; transition: background 0.15s; }
-.live-feed-row-top { display: flex; align-items: center; gap: 4px; margin-bottom: 1px; }
-.live-feed-icon { font-size: 14px; width: 14px; height: 14px; flex-shrink: 0; }
-.live-feed-type { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.live-feed-title { display: block; font-size: 0.72rem; font-weight: 600; color: $text-primary; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-feed-detail { display: block; font-size: 0.64rem; color: $text-secondary; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-feed-meta {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px;
-  span {
-    display: inline-flex; align-items: center; gap: 2px; font-size: 0.56rem; color: $text-muted;
-    mat-icon { font-size: 10px; width: 10px; height: 10px; }
-  }
-}
-.live-feed-time mat-icon { color: $text-muted; }
-.live-feed-loc mat-icon { color: $accent-cyan; }
-.live-feed-agent mat-icon { color: $accent-green; }
-
 // ── GOVERNANCE + COST TELEMETRY ──
 .governance-panel { margin-bottom: 16px; }
 .governance-panel .dark-panel-header { gap: 10px; }
@@ -459,9 +398,6 @@ $accent-blue: #2979ff;
 $focus-ease: cubic-bezier(0.4, 0, 0.2, 1);
 $focus-duration: 480ms;
 
-.ticker-bar,
-.live-feed-panel,
-.priority-chip-row,
 .kpi-row,
 .map-row,
 .opp-panel,
@@ -482,44 +418,30 @@ $focus-duration: 480ms;
 
 .gcc-dark--treasury-focus {
 
-  // Top ticker — most peripheral, fade aggressively.
-  .ticker-bar      { opacity: 0.32; filter: saturate(0.45) blur(0.4px); }
-  // Slow the scroll dramatically while in focus (reduced animation
-  // intensity per spec — stream still moves, just imperceptibly).
-  .ticker-scroll   { animation-duration: 200s; }
-
   // Page header — still legible, just dimmer.
-  .gcc-header      { opacity: 0.55; filter: saturate(0.65); }
-
-  // Priority filter chips — recede.
-  .priority-chip-row { opacity: 0.45; filter: saturate(0.55); }
+  .gcc-header      { opacity: 0.62; filter: saturate(0.7); }
 
   // KPI row — readable in periphery; finance shouldn't compete with
-  // a flashing 6-card grid above it.
-  .kpi-row         { opacity: 0.50; filter: saturate(0.55) blur(0.3px); }
+  // a 6-card grid above it. Slightly less aggressive now that the
+  // ticker / priority chips / right-feed are gone.
+  .kpi-row         { opacity: 0.58; filter: saturate(0.65); }
 
-  // Map area — the most visually noisy element on the page (markers,
-  // glow halos). Recede the most.
-  .map-row         { opacity: 0.42; filter: saturate(0.50) blur(0.5px); }
+  // Map area — visually noisy (markers, glow halos). Recede the most.
+  .map-row         { opacity: 0.50; filter: saturate(0.55) blur(0.4px); }
 
   // Other content panels below the executive zone — read enough to
   // confirm context, not enough to compete.
   .opp-panel,
   .adj-panel,
   .recovery-dashboard {
-    opacity: 0.55; filter: saturate(0.7);
+    opacity: 0.62; filter: saturate(0.75);
   }
 
-  // Right-side fixed activity feed — still active, just peripheral.
-  .live-feed-panel { opacity: 0.42; filter: saturate(0.5) blur(0.4px); }
-
   // Quick-link CTAs.
-  .quick-links     { opacity: 0.50; }
+  .quick-links     { opacity: 0.58; }
 
   // Slow status pulses (still pulse, just gentler).
-  .live-pulse        { opacity: 0.40; animation-duration: 4s; }
-  .live-pulse-small  { opacity: 0.40; animation-duration: 4s; }
-  .status-dot        { opacity: 0.50; animation-duration: 4s; }
+  .status-dot        { opacity: 0.55; animation-duration: 4s; }
   .map-marker--high  { animation-duration: 8s; }
 
   // ── Treasury zone gains primacy ─────────────────────────────
@@ -787,58 +709,17 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   .executive-suite .wallet-grid { grid-template-columns: 1fr; }
 }
 
-// ── INCIDENT PRIORITY FILTER CHIPS (utility data filter, flat) ──
-.priority-chip-row { display: flex; align-items: center; gap: 6px; padding: 8px 0 12px; flex-wrap: wrap; border-bottom: 1px solid rgba(148, 163, 184, 0.08); margin-bottom: 14px; }
-.priority-chip-label { display: inline-flex; align-items: center; gap: 5px; color: $text-muted; font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; padding-right: 6px; }
-.priority-chip-label mat-icon { font-size: 13px; height: 13px; width: 13px; opacity: 0.65; }
-
-.priority-chip {
-  // --chip-color set inline by template; falls back to muted.
-  --chip-color: #{$text-muted};
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 22px; padding: 0 9px; border-radius: 4px;     // squarer = data filter, not pill
-  background: transparent; border: 1px solid rgba(148, 163, 184, 0.18);
-  color: $text-muted; font-size: 0.64rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.10em;
-  cursor: pointer; transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
-  font-family: inherit;
-}
-.priority-chip:hover { border-color: rgba(148, 163, 184, 0.35); color: $text-secondary; }
-// Active state: subtle tint, NO outer glow (was box-shadow 8px — too dispatchy).
-.priority-chip--active {
-  background: color-mix(in srgb, var(--chip-color) 10%, transparent);
-  border-color: color-mix(in srgb, var(--chip-color) 55%, transparent);
-  color: var(--chip-color);
-}
-.priority-chip--all { --chip-color: #22d3ee; }
-// Count: inline number, no rounded badge — reads as data, not score.
-.priority-chip-count {
-  display: inline-block; min-width: 18px; padding: 0;
-  background: transparent; color: inherit; opacity: 0.7;
-  font-family: 'SF Mono', monospace; font-size: 0.64rem; font-weight: 600; text-align: right;
-  font-feature-settings: "tnum" 1;
-}
-
-.priority-chip-hint { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: $text-muted; font-size: 0.62rem; font-style: normal; opacity: 0.7; letter-spacing: 0.04em; }
-.priority-chip-hint mat-icon { font-size: 12px; height: 12px; width: 12px; }
-
-// Map markers — HIGH gets a gentle, slow halo. Slower than dispatch
-// pulse, smaller amplitude so it reads as "priority signal" not "alarm".
+// Map markers — HIGH gets a gentle, slow halo (priority is still
+// derived in the component for marker color; just no UI chip row).
 .map-marker--high { box-shadow: 0 0 8px currentColor; animation: priority-pulse 4s ease-in-out infinite; }
 @keyframes priority-pulse { 0%,100% { transform: scale(1); opacity: 0.95; } 50% { transform: scale(1.10); opacity: 0.75; } }
-
-// Right-side feed — empty-by-filter message + count divisor.
-.live-feed-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px; color: $text-muted; font-size: 0.78rem; text-align: center; font-style: italic; }
-.live-feed-empty mat-icon { color: $accent-orange; font-size: 32px; height: 32px; width: 32px; }
-.feed-count-of { color: $text-muted; font-weight: 500; }
 
 // ── RESPONSIVE ──
 @media (max-width: 1400px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } .recovery-body-grid { grid-template-columns: 1fr; } .recovery-chart-section { border-right: none; border-bottom: 1px solid $border; } }
 @media (max-width: 1024px) {
   .kpi-row { grid-template-columns: repeat(2, 1fr); } .bottom-grid { grid-template-columns: 1fr; }
   .map-row { flex-direction: column; } .incident-panel { width: 100%; }
-  .live-feed-panel { position: static; width: 100%; border-left: none; border-top: 1px solid $border; max-height: 400px; }
   .gcc-body { padding: 0 28px 28px; }
 }
 @media (max-width: 768px) { .gcc-header { flex-direction: column; gap: 8px; } .adj-kpi-row { flex-wrap: wrap; } .recovery-comparison { flex-wrap: wrap; } .recovery-compare-vs { display: none; } .recovery-metrics-row { flex-wrap: wrap; } .recovery-metric { min-width: 50%; } }
-@media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr; } .gcc-body { padding: 0 16px 16px; } .ticker-bar { display: none; } }
+@media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr; } .gcc-body { padding: 0 16px 16px; } }
