@@ -443,6 +443,103 @@ $accent-blue: #2979ff;
 @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }
 
 // ══════════════════════════════════════════════════════════════════
+// CONTEXTUAL FOCUS HIERARCHY
+// IntersectionObserver toggles `.gcc-dark--treasury-focus` when the
+// executive zone enters significant viewport visibility. In that
+// state the dispatch chrome recedes (opacity + saturate + subtle
+// blur) and the treasury zone gains visual primacy. All animations
+// stay running — operational awareness is preserved at the
+// peripheral level. Same data flows, no functionality removed.
+//
+// Transition setup is split off the focus rule itself so that going
+// IN and OUT of focus mode are both smooth (the elements need the
+// transition declared in their default state too).
+// ══════════════════════════════════════════════════════════════════
+
+$focus-ease: cubic-bezier(0.4, 0, 0.2, 1);
+$focus-duration: 480ms;
+
+.ticker-bar,
+.live-feed-panel,
+.priority-chip-row,
+.kpi-row,
+.map-row,
+.opp-panel,
+.adj-panel,
+.recovery-dashboard,
+.gcc-header,
+.quick-links,
+.score-breakdown {
+  transition: opacity $focus-duration $focus-ease,
+              filter  $focus-duration $focus-ease;
+  will-change: opacity, filter;
+}
+
+.executive-suite {
+  transition: border-color $focus-duration $focus-ease,
+              box-shadow   $focus-duration $focus-ease;
+}
+
+.gcc-dark--treasury-focus {
+
+  // Top ticker — most peripheral, fade aggressively.
+  .ticker-bar      { opacity: 0.32; filter: saturate(0.45) blur(0.4px); }
+  // Slow the scroll dramatically while in focus (reduced animation
+  // intensity per spec — stream still moves, just imperceptibly).
+  .ticker-scroll   { animation-duration: 200s; }
+
+  // Page header — still legible, just dimmer.
+  .gcc-header      { opacity: 0.55; filter: saturate(0.65); }
+
+  // Priority filter chips — recede.
+  .priority-chip-row { opacity: 0.45; filter: saturate(0.55); }
+
+  // KPI row — readable in periphery; finance shouldn't compete with
+  // a flashing 6-card grid above it.
+  .kpi-row         { opacity: 0.50; filter: saturate(0.55) blur(0.3px); }
+
+  // Map area — the most visually noisy element on the page (markers,
+  // glow halos). Recede the most.
+  .map-row         { opacity: 0.42; filter: saturate(0.50) blur(0.5px); }
+
+  // Other content panels below the executive zone — read enough to
+  // confirm context, not enough to compete.
+  .opp-panel,
+  .adj-panel,
+  .recovery-dashboard {
+    opacity: 0.55; filter: saturate(0.7);
+  }
+
+  // Right-side fixed activity feed — still active, just peripheral.
+  .live-feed-panel { opacity: 0.42; filter: saturate(0.5) blur(0.4px); }
+
+  // Quick-link CTAs.
+  .quick-links     { opacity: 0.50; }
+
+  // Slow status pulses (still pulse, just gentler).
+  .live-pulse        { opacity: 0.40; animation-duration: 4s; }
+  .live-pulse-small  { opacity: 0.40; animation-duration: 4s; }
+  .status-dot        { opacity: 0.50; animation-duration: 4s; }
+  .map-marker--high  { animation-duration: 8s; }
+
+  // ── Treasury zone gains primacy ─────────────────────────────
+  // Subtle elevation: stronger border accent + a soft ambient
+  // shadow that visually lifts the zone without flashing it.
+  .executive-suite {
+    border-color: rgba(34, 211, 238, 0.22);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.06),
+                0 32px 60px -28px rgba(0, 0, 0, 0.65);
+  }
+  // The accent stripe across the top brightens slightly.
+  .executive-suite::before {
+    background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(34, 211, 238, 0.55) 50%,
+                transparent 100%);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
 // EXECUTIVE TREASURY ZONE
 // Dedicated finance/governance section. Calmer palette, tabular
 // numerics, no LIVE pulse, no urgency cues. Hosts Governance & Cost

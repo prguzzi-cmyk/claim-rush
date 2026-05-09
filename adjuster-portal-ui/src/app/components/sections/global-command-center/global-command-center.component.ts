@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef, NgZone, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { IncidentFeedService, NormalizedIncident } from 'src/app/services/incident-feed.service';
@@ -74,6 +74,29 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   governanceLastRefreshAt: number | null = null;
   walletLastRefreshAt: number | null = null;
 
+  // ── Contextual focus state ───────────────────────────────────────
+  // Bound to the root .gcc-dark via [class.gcc-dark--treasury-focus].
+  // Driven by an IntersectionObserver over the .executive-suite
+  // section: when the user scrolls the treasury into significant view
+  // (≥40% visible) the dispatch chrome recedes; when they scroll past
+  // it (≤15% visible) the page returns to operational command mode.
+  // Hysteresis prevents flicker around the threshold.
+  treasuryFocus = false;
+  private treasuryObserver: IntersectionObserver | null = null;
+  private treasuryEl: ElementRef | null = null;
+
+  @ViewChild('executiveSuiteEl', { static: false })
+  set executiveSuiteEl(el: ElementRef | undefined) {
+    // *ngIf="governance || wallet" — element appears asynchronously
+    // after the first poll. Setter fires when it does.
+    if (!el) {
+      this.treasuryEl = null;
+      return;
+    }
+    this.treasuryEl = el;
+    if (!this.treasuryObserver) this.attachTreasuryObserver();
+  }
+
   // Incident priority filter chips — single source of truth that
   // governs map, ticker, KPI counts, and right-side feed.
   // Defaults: HIGH + MEDIUM on, LOW off (no dispatch noise).
@@ -94,6 +117,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     private governanceTelemetry: GovernanceTelemetryService,
     private walletTelemetry: WalletTelemetryService,
     private incidentPriority: IncidentPriorityService,
+    private ngZone: NgZone,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
@@ -189,6 +213,39 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     this.claimOpportunity.stopPolling();
     this.governanceTelemetry.stopPolling();
     this.walletTelemetry.stopPolling();
+    this.treasuryObserver?.disconnect();
+    this.treasuryObserver = null;
+  }
+
+  /**
+   * Stand up an IntersectionObserver on the executive-suite section.
+   * Runs the visibility callback inside Angular's zone so the class
+   * binding actually re-renders.
+   *
+   * Hysteresis — enter at 40% visible, exit at 15%. Multiple
+   * thresholds let the observer fire frequently enough that the
+   * transition matches the user's scroll position smoothly.
+   */
+  private attachTreasuryObserver(): void {
+    if (!this.treasuryEl?.nativeElement) return;
+    if (typeof IntersectionObserver === 'undefined') return;  // SSR / very old browser
+
+    this.treasuryObserver = new IntersectionObserver(
+      entries => {
+        const entry = entries[0];
+        const ratio = entry?.intersectionRatio ?? 0;
+        let next = this.treasuryFocus;
+        if (this.treasuryFocus) {
+          if (ratio < 0.15) next = false;
+        } else {
+          if (entry?.isIntersecting && ratio >= 0.40) next = true;
+        }
+        if (next === this.treasuryFocus) return;
+        this.ngZone.run(() => { this.treasuryFocus = next; });
+      },
+      { threshold: [0, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0] },
+    );
+    this.treasuryObserver.observe(this.treasuryEl.nativeElement);
   }
 
   private loadRecovery(): void {

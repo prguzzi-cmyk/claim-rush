@@ -1,4 +1,4 @@
-<div class="gcc-dark">
+<div class="gcc-dark" [class.gcc-dark--treasury-focus]="treasuryFocus">
 
   <!-- ══════ SECTION 1: LIVE INCIDENT TICKER ══════ -->
   <div class="ticker-bar">
@@ -79,8 +79,12 @@
     <!-- ══════ EXECUTIVE TREASURY ZONE ══════ -->
     <!-- Dedicated finance/governance suite. Visually isolated from
          incident operations: no LIVE pill, no urgency styling, calmer
-         palette. Hosts the governance gate + the wallet/token economy. -->
-    <section class="executive-suite" *ngIf="governance || wallet">
+         palette. Hosts the governance gate + the wallet/token economy.
+         The #executiveSuiteEl ref is observed by the GCC component;
+         when this section enters meaningful viewport visibility the
+         page transitions into treasury-focus mode (dispatch chrome
+         recedes; this zone gains visual primacy). -->
+    <section class="executive-suite" #executiveSuiteEl *ngIf="governance || wallet">
 
       <header class="executive-suite-header">
         <div class="executive-suite-title">
