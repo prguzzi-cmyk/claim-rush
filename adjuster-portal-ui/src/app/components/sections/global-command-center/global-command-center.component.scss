@@ -430,6 +430,41 @@ $accent-blue: #2979ff;
 @media (max-width: 1400px) { .wallet-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }
 
+// ── INCIDENT PRIORITY FILTER CHIPS ──
+.priority-chip-row { display: flex; align-items: center; gap: 8px; padding: 12px 0 16px; flex-wrap: wrap; border-bottom: 1px solid $border; margin-bottom: 16px; }
+.priority-chip-label { display: inline-flex; align-items: center; gap: 6px; color: $text-secondary; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding-right: 4px; }
+.priority-chip-label mat-icon { font-size: 16px; height: 16px; width: 16px; }
+
+.priority-chip {
+  // CSS custom property `--chip-color` is set inline by the template;
+  // falls back to muted text when not specified (e.g. the All chip).
+  --chip-color: #{$text-muted};
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 12px; border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25); border: 1px solid $border;
+  color: $text-muted; font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: pointer; transition: all 160ms ease;
+  font-family: inherit;
+}
+.priority-chip:hover { border-color: var(--chip-color); color: $text-primary; }
+.priority-chip--active { background: color-mix(in srgb, var(--chip-color) 18%, transparent); border-color: var(--chip-color); color: var(--chip-color); box-shadow: 0 0 8px color-mix(in srgb, var(--chip-color) 30%, transparent); }
+.priority-chip--all { --chip-color: #{$accent-cyan}; }
+.priority-chip-count { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: inherit; font-size: 0.65rem; font-weight: 800; text-align: center; }
+.priority-chip--active .priority-chip-count { background: rgba(0, 0, 0, 0.35); }
+
+.priority-chip-hint { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; color: $text-muted; font-size: 0.7rem; font-style: italic; }
+.priority-chip-hint mat-icon { font-size: 14px; height: 14px; width: 14px; }
+
+// Map markers — emphasize HIGH priority with a subtle pulse.
+.map-marker--high { box-shadow: 0 0 12px currentColor; animation: priority-pulse 2.4s ease-in-out infinite; }
+@keyframes priority-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.7; } }
+
+// Right-side feed — empty-by-filter message + count divisor.
+.live-feed-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px; color: $text-muted; font-size: 0.78rem; text-align: center; font-style: italic; }
+.live-feed-empty mat-icon { color: $accent-orange; font-size: 32px; height: 32px; width: 32px; }
+.feed-count-of { color: $text-muted; font-weight: 500; }
+
 // ── RESPONSIVE ──
 @media (max-width: 1400px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } .recovery-body-grid { grid-template-columns: 1fr; } .recovery-chart-section { border-right: none; border-bottom: 1px solid $border; } }
 @media (max-width: 1024px) {

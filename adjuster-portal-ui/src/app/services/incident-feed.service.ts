@@ -4,12 +4,20 @@ import { catchError, map, timeout } from 'rxjs/operators';
 import { StormDataService } from './storm-data.service';
 import { FireIncidentService } from './fire-incident.service';
 import { DashboardService } from './dashboard.service';
+import { IncidentPriority, IncidentPriorityService } from './incident-priority.service';
 
 const LOG_PREFIX = '[IncidentFeed]';
 
 export interface NormalizedIncident {
   id: string;
+  /** High-level family: 'fire' | 'hail' | 'wind' | 'lightning' | 'crime' | etc. */
   type: string;
+  /** Raw PulsePoint call_type — load-bearing for priority classification. */
+  call_type?: string;
+  call_type_description?: string;
+  peril?: string;
+  /** Stamped by IncidentPriorityService at aggregation time — never sort or render priority without this. */
+  priority: IncidentPriority;
   address: string;
   city: string;
   state: string;
@@ -31,6 +39,7 @@ export class IncidentFeedService {
     private stormService: StormDataService,
     private fireService: FireIncidentService,
     private dashboardService: DashboardService,
+    private priorityService: IncidentPriorityService,
   ) {}
 
   /** Observable of current incidents. */
@@ -83,13 +92,20 @@ export class IncidentFeedService {
       map(({ fires, storms }) => {
         const items: NormalizedIncident[] = [];
 
-        // Normalize fire incidents
+        // Normalize fire incidents — preserve call_type so the
+        // priority service can distinguish "Structure Fire" (HIGH) from
+        // "Lift Assist" (LOW). Stamping every row as type:'fire' was
+        // the regression that turned this feed into dispatch noise.
         const fireItems = fires?.items || fires?.data || fires || [];
         if (Array.isArray(fireItems)) {
           for (const f of fireItems.slice(0, 100)) {
-            items.push({
+            const incident: NormalizedIncident = {
               id: f.id || `fire-${items.length}`,
               type: 'fire',
+              call_type: f.call_type || undefined,
+              call_type_description: f.call_type_description || undefined,
+              peril: f.peril || undefined,
+              priority: 'unknown',
               address: f.address || '',
               city: f.agency?.city || '',
               state: f.agency?.state || '',
@@ -99,16 +115,19 @@ export class IncidentFeedService {
               timestamp: f.received_at || f.created_at || new Date().toISOString(),
               lead_status: f.lead_id ? 'contacted' : 'not_contacted',
               estimated_property_value: null,
-            });
+            };
+            items.push(this.priorityService.tag(incident));
           }
         }
 
-        // Normalize storm events
+        // Normalize storm events — share the same priority gate.
         if (Array.isArray(storms)) {
           for (const s of storms.slice(0, 100)) {
-            items.push({
+            const incident: NormalizedIncident = {
               id: s.id || `storm-${items.length}`,
               type: s.event_type || 'storm',
+              peril: s.event_type || undefined,
+              priority: 'unknown',
               address: `${s.county || ''} County`,
               city: s.county || '',
               state: s.state || '',
@@ -118,7 +137,8 @@ export class IncidentFeedService {
               timestamp: s.reported_at ? (typeof s.reported_at === 'string' ? s.reported_at : new Date(s.reported_at).toISOString()) : new Date().toISOString(),
               lead_status: 'not_contacted',
               estimated_property_value: null,
-            });
+            };
+            items.push(this.priorityService.tag(incident));
           }
         }
 
@@ -130,17 +150,41 @@ export class IncidentFeedService {
   private getMockIncidents(): NormalizedIncident[] {
     const now = Date.now();
     const t = (min: number) => new Date(now - min * 60000).toISOString();
-    return [
-      { id: 'i1', type: 'fire', address: '4521 Oak Ridge Dr', city: 'Dallas', state: 'TX', zip: '75204', latitude: 32.79, longitude: -96.80, timestamp: t(2), lead_status: 'not_contacted', estimated_property_value: 285000 },
-      { id: 'i2', type: 'hail', address: 'Dallas County', city: 'Plano', state: 'TX', zip: '75024', latitude: 33.02, longitude: -96.75, timestamp: t(5), lead_status: 'contacted', estimated_property_value: 320000 },
-      { id: 'i3', type: 'wind', address: 'Tarrant County', city: 'Fort Worth', state: 'TX', zip: '76102', latitude: 32.76, longitude: -97.33, timestamp: t(8), lead_status: 'not_contacted', estimated_property_value: 245000 },
-      { id: 'i4', type: 'lightning', address: 'Hillsborough County', city: 'Tampa', state: 'FL', zip: '33601', latitude: 27.95, longitude: -82.46, timestamp: t(9), lead_status: 'not_contacted', estimated_property_value: 198000 },
-      { id: 'i5', type: 'crime', address: '890 Elm St', city: 'Chicago', state: 'IL', zip: '60601', latitude: 41.88, longitude: -87.63, timestamp: t(12), lead_status: 'not_contacted', estimated_property_value: 175000 },
-      { id: 'i6', type: 'fire', address: '1420 Oak St', city: 'Plano', state: 'TX', zip: '75075', latitude: 33.02, longitude: -96.70, timestamp: t(15), lead_status: 'converted', estimated_property_value: 310000 },
-      { id: 'i7', type: 'hail', address: 'Oklahoma County', city: 'Oklahoma City', state: 'OK', zip: '73102', latitude: 35.47, longitude: -97.52, timestamp: t(18), lead_status: 'not_contacted', estimated_property_value: 225000 },
-      { id: 'i8', type: 'wind', address: 'Fulton County', city: 'Atlanta', state: 'GA', zip: '30301', latitude: 33.75, longitude: -84.39, timestamp: t(22), lead_status: 'contacted', estimated_property_value: 275000 },
-      { id: 'i9', type: 'fire', address: '2100 Pine Blvd', city: 'Charlotte', state: 'NC', zip: '28202', latitude: 35.23, longitude: -80.84, timestamp: t(25), lead_status: 'not_contacted', estimated_property_value: 340000 },
-      { id: 'i10', type: 'hail', address: 'Travis County', city: 'Austin', state: 'TX', zip: '78701', latitude: 30.27, longitude: -97.74, timestamp: t(30), lead_status: 'not_contacted', estimated_property_value: 415000 },
+    // Mix HIGH (structure fire), MEDIUM (smoke, alarm, hail/wind),
+    // LOW (medical, lift assist) so dev mode actually exercises the
+    // priority gate.
+    const items: NormalizedIncident[] = [
+      { id: 'i1', type: 'fire', call_type: 'STRUCTURE FIRE', call_type_description: 'Structure Fire',
+        priority: 'unknown', address: '4521 Oak Ridge Dr', city: 'Dallas', state: 'TX', zip: '75204',
+        latitude: 32.79, longitude: -96.80, timestamp: t(2), lead_status: 'not_contacted', estimated_property_value: 285000 },
+      { id: 'i2', type: 'hail', peril: 'hail', priority: 'unknown',
+        address: 'Dallas County', city: 'Plano', state: 'TX', zip: '75024',
+        latitude: 33.02, longitude: -96.75, timestamp: t(5), lead_status: 'contacted', estimated_property_value: 320000 },
+      { id: 'i3', type: 'fire', call_type: 'SMOKE INVESTIGATION', call_type_description: 'Smoke Investigation',
+        priority: 'unknown', address: '888 Magnolia Ave', city: 'Fort Worth', state: 'TX', zip: '76102',
+        latitude: 32.76, longitude: -97.33, timestamp: t(8), lead_status: 'not_contacted', estimated_property_value: 245000 },
+      { id: 'i4', type: 'fire', call_type: 'MEDICAL EMERGENCY', call_type_description: 'Medical Emergency',
+        priority: 'unknown', address: '12 Bay St', city: 'Tampa', state: 'FL', zip: '33601',
+        latitude: 27.95, longitude: -82.46, timestamp: t(9), lead_status: 'not_contacted', estimated_property_value: 198000 },
+      { id: 'i5', type: 'crime', peril: 'burglary', priority: 'unknown',
+        address: '890 Elm St', city: 'Chicago', state: 'IL', zip: '60601',
+        latitude: 41.88, longitude: -87.63, timestamp: t(12), lead_status: 'not_contacted', estimated_property_value: 175000 },
+      { id: 'i6', type: 'fire', call_type: 'STRUCTURE FIRE', call_type_description: 'Structure Fire — Residential',
+        priority: 'unknown', address: '1420 Oak St', city: 'Plano', state: 'TX', zip: '75075',
+        latitude: 33.02, longitude: -96.70, timestamp: t(15), lead_status: 'converted', estimated_property_value: 310000 },
+      { id: 'i7', type: 'fire', call_type: 'LIFT ASSIST', call_type_description: 'Lift Assist',
+        priority: 'unknown', address: '300 Sunset Ln', city: 'Oklahoma City', state: 'OK', zip: '73102',
+        latitude: 35.47, longitude: -97.52, timestamp: t(18), lead_status: 'not_contacted', estimated_property_value: 225000 },
+      { id: 'i8', type: 'wind', peril: 'wind', priority: 'unknown',
+        address: 'Fulton County', city: 'Atlanta', state: 'GA', zip: '30301',
+        latitude: 33.75, longitude: -84.39, timestamp: t(22), lead_status: 'contacted', estimated_property_value: 275000 },
+      { id: 'i9', type: 'fire', call_type: 'FIRE ALARM', call_type_description: 'Fire Alarm — Commercial',
+        priority: 'unknown', address: '2100 Pine Blvd', city: 'Charlotte', state: 'NC', zip: '28202',
+        latitude: 35.23, longitude: -80.84, timestamp: t(25), lead_status: 'not_contacted', estimated_property_value: 340000 },
+      { id: 'i10', type: 'fire', call_type: 'TRAFFIC COLLISION', call_type_description: 'Traffic Collision',
+        priority: 'unknown', address: 'I-35 NB MM 232', city: 'Austin', state: 'TX', zip: '78701',
+        latitude: 30.27, longitude: -97.74, timestamp: t(30), lead_status: 'not_contacted', estimated_property_value: 415000 },
     ];
+    return this.priorityService.tagAll(items);
   }
 }

@@ -9,6 +9,7 @@ import { ClaimRecoveryEngineService } from 'src/app/shared/services/claim-recove
 import { ClaimOpportunityEngineService } from 'src/app/shared/services/claim-opportunity-engine.service';
 import { GovernanceTelemetryService, GovernanceTelemetry, VendorUsageRow, TopOperator } from 'src/app/services/governance-telemetry.service';
 import { WalletTelemetryService, WalletTelemetry, TopSpender, DailyBurnPoint } from 'src/app/services/wallet-telemetry.service';
+import { IncidentPriority, IncidentPriorityService } from 'src/app/services/incident-priority.service';
 import { PotentialClaimRow, ClaimOpportunity, OpportunityMetrics, PRIORITY_META, ACTION_META, SCORING_FACTOR_META, DEFAULT_SCORING_WEIGHTS } from 'src/app/shared/models/claim-opportunity.model';
 import { ClaimRecoveryRecord, RecoveryDashboardMetrics, RECOVERY_STATUS_META, RecoveryStatus } from 'src/app/shared/models/claim-recovery-metrics.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -68,6 +69,16 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   // Wallet + Token Economy
   wallet: WalletTelemetry | null = null;
 
+  // Incident priority filter chips — single source of truth that
+  // governs map, ticker, KPI counts, and right-side feed.
+  // Defaults: HIGH + MEDIUM on, LOW off (no dispatch noise).
+  priorityFilters: { high: boolean; medium: boolean; low: boolean } = {
+    high: true, medium: true, low: false,
+  };
+  filteredIncidents: NormalizedIncident[] = [];
+  filteredActivityFeed: PlatformActivityEvent[] = [];
+  priorityCounts: { high: number; medium: number; low: number; total: number } = { high: 0, medium: 0, low: 0, total: 0 };
+
   constructor(
     private incidentFeed: IncidentFeedService,
     private platformMetrics: PlatformMetricsService,
@@ -77,6 +88,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     private claimOpportunity: ClaimOpportunityEngineService,
     private governanceTelemetry: GovernanceTelemetryService,
     private walletTelemetry: WalletTelemetryService,
+    private incidentPriority: IncidentPriorityService,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
@@ -98,7 +110,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
 
     this.subs.push(this.incidentFeed.getIncidents().subscribe(incidents => {
       this.incidents = incidents;
-      this.tickerEvents = this.buildTicker(incidents);
+      this.recomputeFilteredViews();
       this.lastUpdated = new Date().toLocaleTimeString();
       this.loading = false;
       this.loadError = null;
@@ -119,6 +131,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
 
     this.subs.push(this.platformActivity.getEvents().subscribe(events => {
       this.activityFeed = events;
+      this.recomputeFilteredViews();
     }));
 
     this.loadRecovery();
@@ -208,22 +221,106 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
 
   private buildTicker(incidents: NormalizedIncident[]): TickerEvent[] {
     const em: Record<string, string> = { fire: '🔥', hail: '🧊', wind: '🌪', lightning: '⚡', crime: '🚓', tornado: '🌪', hurricane: '🌀' };
-    const lb: Record<string, string> = { fire: 'Structure Fire', hail: 'Hail Impact', wind: 'Wind Damage', lightning: 'Lightning Strike', crime: 'Break-in / Vandalism', tornado: 'Tornado', hurricane: 'Hurricane' };
-    return incidents.slice(0, 20).map(i => ({
-      emoji: em[i.type] || '⚠️',
-      text: `${lb[i.type] || i.type} – ${i.city || ''} ${i.state || ''} – ${this.timeAgo(i.timestamp)}`,
-    }));
+    // Prefer the real call_type_description (e.g. "Smoke Investigation")
+    // over the family label so the ticker reads like the dispatch
+    // record, not a cartoon.
+    const familyLabel: Record<string, string> = { fire: 'Fire', hail: 'Hail Impact', wind: 'Wind Damage', lightning: 'Lightning Strike', crime: 'Break-in / Vandalism', tornado: 'Tornado', hurricane: 'Hurricane' };
+    return incidents.slice(0, 20).map(i => {
+      const label = i.call_type_description || familyLabel[i.type] || i.type;
+      return {
+        emoji: em[i.type] || '⚠️',
+        text: `${label} – ${i.city || ''} ${i.state || ''} – ${this.timeAgo(i.timestamp)}`,
+      };
+    });
   }
 
   private buildKpiCards(m: PlatformMetrics): KpiCard[] {
+    // "Property Fires Today" = HIGH-priority property-loss fires only.
+    // We deliberately ignore m.fires_today (raw PulsePoint count) so
+    // the KPI matches the same priority gate as the map / ticker / feed.
+    const highFires = (this.incidents || []).filter(
+      i => i.type === 'fire' && i.priority === 'high',
+    ).length;
     return [
-      { label: 'Property Fires Today', value: m.fires_today, icon: 'local_fire_department', trend: 'up', change: 3, color: '#ff1744' },
+      { label: 'Property Fires Today', value: highFires, icon: 'local_fire_department', trend: 'up', change: 3, color: '#ff1744' },
       { label: 'Storm Damage Events', value: m.storm_events_today, icon: 'thunderstorm', trend: 'up', change: 5, color: '#2979ff' },
       { label: 'Potential Claims', value: m.potential_claims, icon: 'bolt', trend: 'up', change: 8, color: '#ffd600' },
       { label: 'New Leads Generated', value: m.new_leads_today, icon: 'person_add', trend: 'up', change: 12, color: '#00e676' },
       { label: 'Leads Contacted', value: m.leads_contacted, icon: 'phone_in_talk', trend: 'up', change: 7, color: '#00e5ff' },
       { label: 'Leads Converted', value: m.leads_converted, icon: 'verified', trend: 'up', change: 4, color: '#aa00ff' },
     ];
+  }
+
+  // ── Priority filter chips (single source of truth) ─────────────
+  togglePriority(p: 'high' | 'medium' | 'low'): void {
+    this.priorityFilters[p] = !this.priorityFilters[p];
+    // Disabling the last enabled chip would blank every panel; keep
+    // at least one tier on at all times.
+    if (!this.priorityFilters.high && !this.priorityFilters.medium && !this.priorityFilters.low) {
+      this.priorityFilters[p] = true;
+    }
+    this.recomputeFilteredViews();
+  }
+
+  selectAllPriorities(): void {
+    this.priorityFilters = { high: true, medium: true, low: true };
+    this.recomputeFilteredViews();
+  }
+
+  isPriorityActive(p: 'high' | 'medium' | 'low'): boolean {
+    return !!this.priorityFilters[p];
+  }
+
+  isAllActive(): boolean {
+    return this.priorityFilters.high && this.priorityFilters.medium && this.priorityFilters.low;
+  }
+
+  private recomputeFilteredViews(): void {
+    // ── Filter the incident set (drives map + ticker + KPI) ──
+    this.filteredIncidents = this.incidentPriority.filterByPriority(
+      this.incidents, this.priorityFilters,
+    );
+
+    // ── Refresh ticker from the filtered list ──
+    this.tickerEvents = this.buildTicker(this.filteredIncidents);
+
+    // ── Refresh KPI cards (Property Fires Today reads filtered) ──
+    if (this.platformMetrics) {
+      this.kpiCards = this.buildKpiCards(this.platformMetrics.getMetricsSnapshot());
+    }
+
+    // ── Filter the right-side activity feed ──
+    // PlatformActivityEvent doesn't carry call_type; for fire_incident
+    // events we infer priority from title/detail via the SAME
+    // IncidentPriorityService. Non-incident events (lead_created,
+    // claim_opened, voice_call, etc.) always pass through — they're
+    // operational signal, not dispatch traffic.
+    this.filteredActivityFeed = (this.activityFeed || []).filter(ev => {
+      if (ev.event_type !== 'fire_incident'
+          && ev.event_type !== 'storm_incident'
+          && ev.event_type !== 'crime_incident') return true;
+      const tier = this.incidentPriority.priorityFor({
+        type: ev.event_type, title: ev.title, detail: ev.detail,
+      });
+      if (tier === 'high'    && this.priorityFilters.high)    return true;
+      if (tier === 'medium'  && this.priorityFilters.medium)  return true;
+      if (tier === 'low'     && this.priorityFilters.low)     return true;
+      if (tier === 'unknown' && this.priorityFilters.low)     return true;
+      return false;
+    });
+
+    // ── Update the chip-row counters ──
+    const counts = { high: 0, medium: 0, low: 0, total: this.incidents.length };
+    for (const i of this.incidents) {
+      if (i.priority === 'high')   counts.high++;
+      else if (i.priority === 'medium') counts.medium++;
+      else counts.low++;
+    }
+    this.priorityCounts = counts;
+  }
+
+  priorityChipColor(p: 'high' | 'medium' | 'low'): string {
+    return this.incidentPriority.colorFor(p);
   }
 
   selectIncident(m: NormalizedIncident): void { this.selectedIncident = m; }

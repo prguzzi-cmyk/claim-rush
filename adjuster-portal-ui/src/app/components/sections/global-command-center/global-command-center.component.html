@@ -29,6 +29,40 @@
 
   <div class="gcc-body">
 
+    <!-- ══════ INCIDENT PRIORITY FILTER CHIPS ══════ -->
+    <!-- Single source of truth — drives map, ticker, KPI counts, and
+         right-side live feed. Default: HIGH + MEDIUM on; LOW off
+         (no dispatch noise). -->
+    <div class="priority-chip-row">
+      <span class="priority-chip-label"><mat-icon>filter_list</mat-icon> Priority</span>
+      <button class="priority-chip"
+              [class.priority-chip--active]="isPriorityActive('high')"
+              [style.--chip-color]="priorityChipColor('high')"
+              (click)="togglePriority('high')">
+        High <span class="priority-chip-count">{{ priorityCounts.high }}</span>
+      </button>
+      <button class="priority-chip"
+              [class.priority-chip--active]="isPriorityActive('medium')"
+              [style.--chip-color]="priorityChipColor('medium')"
+              (click)="togglePriority('medium')">
+        Medium <span class="priority-chip-count">{{ priorityCounts.medium }}</span>
+      </button>
+      <button class="priority-chip"
+              [class.priority-chip--active]="isPriorityActive('low')"
+              [style.--chip-color]="priorityChipColor('low')"
+              (click)="togglePriority('low')">
+        Low <span class="priority-chip-count">{{ priorityCounts.low }}</span>
+      </button>
+      <button class="priority-chip priority-chip--all"
+              [class.priority-chip--active]="isAllActive()"
+              (click)="selectAllPriorities()">
+        All <span class="priority-chip-count">{{ priorityCounts.total }}</span>
+      </button>
+      <span class="priority-chip-hint" *ngIf="!priorityFilters.low">
+        <mat-icon>visibility_off</mat-icon> Suppressing dispatch noise (medical, lift assist, traffic, alarms)
+      </span>
+    </div>
+
     <!-- ══════ SECTION 3: LEAD GENERATION MONITOR (KPI row) ══════ -->
     <div class="kpi-row">
       <div class="kpi-dark-card" *ngFor="let kpi of kpiCards" [style.borderTopColor]="kpi.color">
@@ -302,12 +336,13 @@
         <div class="map-area">
           <!-- Marker grid visualization -->
           <div class="marker-grid">
-            <div class="map-marker" *ngFor="let m of incidents"
+            <div class="map-marker" *ngFor="let m of filteredIncidents"
                  [style.left]="((m.longitude + 125) / 65 * 100) + '%'"
                  [style.top]="((50 - m.latitude) / 30 * 100) + '%'"
-                 [style.backgroundColor]="getMarkerColor(m.type)"
+                 [style.backgroundColor]="priorityChipColor(m.priority === 'unknown' ? 'low' : m.priority)"
+                 [class.map-marker--high]="m.priority === 'high'"
                  (click)="selectIncident(m)"
-                 [matTooltip]="m.type + ' — ' + m.address + ', ' + m.city + ' ' + m.state">
+                 [matTooltip]="(m.call_type_description || m.type) + ' — ' + m.address + ', ' + m.city + ' ' + m.state">
             </div>
           </div>
           <div class="map-nav-row">
@@ -317,7 +352,7 @@
           </div>
         </div>
         <div class="map-stats-bar">
-          <span class="map-stat-item"><mat-icon>thunderstorm</mat-icon> {{ incidents.length }} incidents tracked</span>
+          <span class="map-stat-item"><mat-icon>thunderstorm</mat-icon> {{ filteredIncidents.length }} of {{ priorityCounts.total }} incidents shown</span>
           <span class="map-stat-item"><mat-icon>gps_fixed</mat-icon> {{ kpiCards.length > 0 ? kpiCards[2].value : 0 }} potential claims</span>
           <span class="map-stat-item"><mat-icon>schedule</mat-icon> Updated {{ lastUpdated }}</span>
         </div>
@@ -620,10 +655,16 @@
       <mat-icon>timeline</mat-icon>
       <span>Real-Time Activity</span>
       <span class="live-pulse-small"></span>
-      <span class="feed-count" *ngIf="activityFeed.length">{{ activityFeed.length }}</span>
+      <span class="feed-count" *ngIf="filteredActivityFeed.length">
+        {{ filteredActivityFeed.length }}<span class="feed-count-of" *ngIf="activityFeed.length !== filteredActivityFeed.length">/{{ activityFeed.length }}</span>
+      </span>
     </div>
     <div class="live-feed-scroll">
-      <div class="live-feed-item" *ngFor="let item of activityFeed" (click)="navigateToEvent(item)">
+      <div class="live-feed-empty" *ngIf="filteredActivityFeed.length === 0 && activityFeed.length > 0">
+        <mat-icon>filter_alt</mat-icon>
+        <span>All current events filtered out by priority chips above.</span>
+      </div>
+      <div class="live-feed-item" *ngFor="let item of filteredActivityFeed" (click)="navigateToEvent(item)">
         <div class="live-feed-left">
           <div class="live-feed-dot" [style.backgroundColor]="getActivityColor(item.event_type)" [style.boxShadow]="'0 0 8px ' + getActivityColor(item.event_type)"></div>
           <div class="live-feed-connector"></div>
