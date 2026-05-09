@@ -221,8 +221,105 @@ $accent-blue: #2979ff;
   mat-icon { font-size: 14px !important; width: 14px !important; height: 14px !important; margin-right: 4px; }
 }
 .dismiss-btn { color: $text-muted !important; &:hover { color: $accent-red !important; } }
-.opp-empty { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 32px; color: $text-muted; font-size: 0.82rem;
-  mat-icon { font-size: 20px; width: 20px; height: 20px; color: $accent-green; }
+// ══════════════════════════════════════════════════════════════════
+// PREMIUM EMPTY STATES
+// Terminal-status badge style: small icon + uppercase wide-tracked
+// status line + soft hint. Used wherever a panel/card has no live
+// data yet. Replaces legacy .opp-empty / .gov-empty / .wallet-empty
+// (those shorthand classes are kept for non-template usage but the
+// HTML now emits .empty-state).
+// ══════════════════════════════════════════════════════════════════
+.empty-state {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 4px;
+  padding: 6px 0 4px;
+  font-style: normal;
+}
+.empty-state.empty-state--panel {
+  // Used for whole-panel placeholders (e.g. High-Prob Claims).
+  align-items: center; text-align: center; padding: 28px 18px 26px;
+  gap: 6px;
+}
+.empty-state-icon {
+  color: $text-muted;
+  opacity: 0.5;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin-bottom: 1px;
+}
+.empty-state.empty-state--panel .empty-state-icon {
+  font-size: 26px !important;
+  width: 26px !important;
+  height: 26px !important;
+  opacity: 0.4;
+  margin-bottom: 4px;
+}
+.empty-state-icon--lock {
+  // Locked card → slightly different tone, no operational hint behind it.
+  color: $text-muted;
+  opacity: 0.55;
+}
+.empty-state-status {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $text-secondary;
+  line-height: 1.2;
+}
+.empty-state.empty-state--panel .empty-state-status {
+  font-size: 0.7rem;
+}
+.empty-state-hint {
+  font-size: 0.66rem;
+  color: $text-muted;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  max-width: 28ch;
+}
+.empty-state.empty-state--panel .empty-state-hint {
+  max-width: 42ch;
+  font-size: 0.7rem;
+}
+.empty-state-hint-num {
+  font-family: 'SF Mono', monospace;
+  color: $text-secondary;
+  font-feature-settings: "tnum" 1;
+}
+.empty-state-caption {
+  margin-top: 4px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $text-muted;
+  opacity: 0.7;
+}
+
+// ── Skeleton sparkline (Daily Burn placeholder) ──
+// Same .wallet-spark grid, but bars use a desaturated gradient and
+// the whole strip is lower opacity. Communicates "this is what the
+// chart will look like" without faking any value.
+.wallet-spark--skeleton {
+  opacity: 0.5;
+}
+.wallet-spark--skeleton .wallet-spark-bar {
+  background: linear-gradient(180deg,
+              rgba(148, 163, 184, 0.5) 0%,
+              rgba(148, 163, 184, 0.08) 100%) !important;
+  border-radius: 1px 1px 0 0;
+}
+// Subtle breathing animation on skeleton — signals "ready, awaiting".
+@keyframes empty-state-breath {
+  0%,100% { opacity: 0.5; }
+  50%     { opacity: 0.65; }
+}
+.wallet-spark--skeleton {
+  animation: empty-state-breath 5s ease-in-out infinite;
 }
 
 // ── CLAIM OPPORTUNITY INTELLIGENCE ──
@@ -304,7 +401,7 @@ $accent-blue: #2979ff;
 .gov-card-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
 .gov-card-value { font-size: 1.8rem; font-weight: 800; color: $text-primary; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .gov-card-sub { font-size: 0.7rem; color: $text-muted; }
-.gov-empty { font-size: 0.74rem; color: $text-muted; font-style: italic; padding: 8px 0; }
+// .gov-empty — legacy (replaced by .empty-state in the template)
 
 .gov-budget-card { gap: 8px; }
 .gov-budget-numbers { display: flex; align-items: baseline; gap: 6px; font-family: 'SF Mono', monospace; }
@@ -347,7 +444,7 @@ $accent-blue: #2979ff;
 .wallet-card-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
 .wallet-card-value { font-size: 1.6rem; font-weight: 800; color: $text-primary; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .wallet-card-sub { font-size: 0.7rem; color: $text-muted; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.wallet-empty { font-size: 0.74rem; color: $text-muted; font-style: italic; padding: 4px 0; }
+// .wallet-empty — legacy (replaced by .empty-state in the template)
 
 .wallet-balance { font-size: 1.65rem; font-weight: 800; color: $accent-green; font-family: 'SF Mono', monospace; line-height: 1.1; }
 .wallet-balance-unit { font-size: 0.7rem; color: $text-muted; font-weight: 500; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -374,7 +471,7 @@ $accent-blue: #2979ff;
 
 .wallet-admin-locked { opacity: 0.55; align-items: center; justify-content: center; }
 .wallet-admin-locked .wallet-card-label { align-self: stretch; }
-.wallet-lock-icon { color: $text-muted; font-size: 28px; height: 28px; width: 28px; margin: 8px 0; }
+// .wallet-lock-icon — legacy (replaced by .empty-state-icon--lock)
 
 @media (max-width: 1400px) { .wallet-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }

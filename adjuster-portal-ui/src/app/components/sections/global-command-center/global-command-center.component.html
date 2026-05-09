@@ -96,7 +96,11 @@
         <!-- Stage breakdown -->
         <div class="gov-card gov-stages-card">
           <div class="gov-card-label">Vendor Usage by Stage (24h)</div>
-          <div *ngIf="governanceStages.length === 0" class="gov-empty">No paid stages have run yet.</div>
+          <div *ngIf="governanceStages.length === 0" class="empty-state">
+            <mat-icon class="empty-state-icon">schedule</mat-icon>
+            <div class="empty-state-status">Awaiting stage activity</div>
+            <div class="empty-state-hint">Stages run on demand · counters reset every 24h</div>
+          </div>
           <div *ngIf="governanceStages.length > 0" class="gov-stage-list">
             <div *ngFor="let s of governanceStages" class="gov-stage-row">
               <span class="gov-stage-name">{{ s.stage }}</span>
@@ -112,7 +116,11 @@
         <!-- Top operators -->
         <div class="gov-card gov-operators-card">
           <div class="gov-card-label">Top Operators (24h)</div>
-          <div *ngIf="governanceTopOperators.length === 0" class="gov-empty">No operator-attributed spend yet.</div>
+          <div *ngIf="governanceTopOperators.length === 0" class="empty-state">
+            <mat-icon class="empty-state-icon">person_outline</mat-icon>
+            <div class="empty-state-status">No actor attribution</div>
+            <div class="empty-state-hint">Populates when an operator triggers a paid stage</div>
+          </div>
           <div *ngIf="governanceTopOperators.length > 0" class="gov-op-list">
             <div *ngFor="let op of governanceTopOperators" class="gov-op-row">
               <span class="gov-op-id" [matTooltip]="op.operator_id">{{ shortOperatorId(op.operator_id) }}</span>
@@ -146,7 +154,11 @@
         <!-- My Wallet -->
         <div class="wallet-card wallet-mine-card">
           <div class="wallet-card-label">My Wallet</div>
-          <div *ngIf="!wallet.myWallet" class="wallet-empty">No wallet yet — first billable action will create one.</div>
+          <div *ngIf="!wallet.myWallet" class="empty-state">
+            <mat-icon class="empty-state-icon">account_balance_wallet</mat-icon>
+            <div class="empty-state-status">Wallet not yet provisioned</div>
+            <div class="empty-state-hint">Created automatically on first billable action</div>
+          </div>
           <ng-container *ngIf="wallet.myWallet">
             <div class="wallet-balance">{{ walletTokensFmt(wallet.myWallet.token_balance) }}<span class="wallet-balance-unit">tokens</span></div>
             <div class="wallet-card-sub">
@@ -174,7 +186,11 @@
         <!-- Projected Monthly -->
         <div class="wallet-card" *ngIf="wallet.adminVisible">
           <div class="wallet-card-label">Projected Monthly</div>
-          <div *ngIf="!wallet.projected" class="wallet-empty">No data yet.</div>
+          <div *ngIf="!wallet.projected" class="empty-state">
+            <mat-icon class="empty-state-icon">trending_flat</mat-icon>
+            <div class="empty-state-status">No burn to project</div>
+            <div class="empty-state-hint">Awaiting first month-to-date usage event</div>
+          </div>
           <ng-container *ngIf="wallet.projected">
             <div class="wallet-card-value">{{ fmtCents(wallet.projected.projected_cents) }}</div>
             <div class="wallet-card-sub">
@@ -185,14 +201,21 @@
         </div>
         <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
           <div class="wallet-card-label">Projected Monthly</div>
-          <mat-icon class="wallet-lock-icon">lock</mat-icon>
-          <div class="wallet-empty">Admin only</div>
+          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+          <div class="empty-state-status">Admin scope required</div>
+          <div class="empty-state-hint">Visible to operators with admin privileges</div>
         </div>
 
         <!-- Daily Burn (sparkline) -->
         <div class="wallet-card wallet-burn-card" *ngIf="wallet.adminVisible">
           <div class="wallet-card-label">Daily Burn (14d)</div>
-          <div *ngIf="walletBurnSparkBars().length === 0" class="wallet-empty">No usage events yet.</div>
+          <ng-container *ngIf="walletBurnSparkBars().length === 0">
+            <div class="wallet-spark wallet-spark--skeleton" aria-hidden="true">
+              <div *ngFor="let h of [14, 22, 16, 26, 18, 24, 18, 30, 22, 14, 20, 26, 18, 22]"
+                   class="wallet-spark-bar" [style.height.%]="h"></div>
+            </div>
+            <div class="empty-state-caption">Awaiting events · 14-day rolling window</div>
+          </ng-container>
           <div *ngIf="walletBurnSparkBars().length > 0" class="wallet-spark">
             <div *ngFor="let b of walletBurnSparkBars()"
                  class="wallet-spark-bar"
@@ -202,14 +225,19 @@
         </div>
         <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
           <div class="wallet-card-label">Daily Burn (14d)</div>
-          <mat-icon class="wallet-lock-icon">lock</mat-icon>
-          <div class="wallet-empty">Admin only</div>
+          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+          <div class="empty-state-status">Admin scope required</div>
+          <div class="empty-state-hint">Visible to operators with admin privileges</div>
         </div>
 
         <!-- Top Spenders -->
         <div class="wallet-card wallet-spenders-card" *ngIf="wallet.adminVisible">
           <div class="wallet-card-label">Top Spenders (24h)</div>
-          <div *ngIf="(wallet.topSpenders || []).length === 0" class="wallet-empty">No actor-attributed spend yet.</div>
+          <div *ngIf="(wallet.topSpenders || []).length === 0" class="empty-state">
+            <mat-icon class="empty-state-icon">leaderboard</mat-icon>
+            <div class="empty-state-status">No ranked actors</div>
+            <div class="empty-state-hint">Top 5 spenders surface once events accumulate</div>
+          </div>
           <div *ngIf="(wallet.topSpenders || []).length > 0" class="wallet-spenders-list">
             <div *ngFor="let s of wallet.topSpenders" class="wallet-spender-row">
               <span class="wallet-spender-id" [matTooltip]="s.actor_user_id">
@@ -223,8 +251,9 @@
         </div>
         <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
           <div class="wallet-card-label">Top Spenders (24h)</div>
-          <mat-icon class="wallet-lock-icon">lock</mat-icon>
-          <div class="wallet-empty">Admin only</div>
+          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+          <div class="empty-state-status">Admin scope required</div>
+          <div class="empty-state-hint">Visible to operators with admin privileges</div>
         </div>
       </div>
     </div>
@@ -285,9 +314,13 @@
         </table>
       </div>
       <ng-template #noOppClaims>
-        <div class="opp-empty">
-          <mat-icon>check_circle</mat-icon>
-          <span>No high-probability claims above score {{ oppMinScore }}</span>
+        <div class="empty-state empty-state--panel">
+          <mat-icon class="empty-state-icon">query_stats</mat-icon>
+          <div class="empty-state-status">No qualifying claims</div>
+          <div class="empty-state-hint">
+            Threshold ≥ <span class="empty-state-hint-num">{{ oppMinScore }}</span>
+            · adjust the slider above to widen scoring criteria
+          </div>
         </div>
       </ng-template>
     </div>
