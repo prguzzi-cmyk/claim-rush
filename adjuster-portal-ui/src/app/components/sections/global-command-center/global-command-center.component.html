@@ -51,6 +51,40 @@
         </div>
       </header>
 
+      <!-- ── Live operational counter strip — sourced from real
+              usage_event aggregations only. Empty values render as
+              "—" rather than zero so the strip never reads as fake. ── -->
+      <div class="exec-counter-strip" *ngIf="wallet?.adminVisible">
+        <span class="exec-counter-pulse" [class.exec-counter-pulse--idle]="!hasAnyTodayActivity()"></span>
+        <span class="exec-counter">
+          <span class="exec-counter-label">SMS Today</span>
+          <span class="exec-counter-value">{{ todayDisplayInt(wallet?.todaySnapshot?.sms_sent_today) }}</span>
+        </span>
+        <span class="exec-counter-divider">·</span>
+        <span class="exec-counter">
+          <span class="exec-counter-label">Spend</span>
+          <span class="exec-counter-value">{{ todayDisplayCents(wallet?.todaySnapshot?.estimated_spend_today_cents) }}</span>
+        </span>
+        <span class="exec-counter-divider">·</span>
+        <span class="exec-counter">
+          <span class="exec-counter-label">Operators</span>
+          <span class="exec-counter-value">{{ todayDisplayInt(wallet?.todaySnapshot?.active_operators_today) }}</span>
+        </span>
+        <span class="exec-counter-divider">·</span>
+        <span class="exec-counter">
+          <span class="exec-counter-label">MTD Proj</span>
+          <span class="exec-counter-value">{{ todayDisplayCents(wallet?.todaySnapshot?.projected_monthly_cents) }}</span>
+        </span>
+        <ng-container *ngIf="wallet?.todaySnapshot?.top_operator">
+          <span class="exec-counter-divider">·</span>
+          <span class="exec-counter">
+            <span class="exec-counter-label">Top</span>
+            <span class="exec-counter-value">{{ wallet.todaySnapshot.top_operator.name || shortOperatorId(wallet.todaySnapshot.top_operator.user_id) }}</span>
+            <span class="exec-counter-aux">{{ fmtCents(wallet.todaySnapshot.top_operator.spend_cents) }}</span>
+          </span>
+        </ng-container>
+      </div>
+
     <!-- ══════ GOVERNANCE + COST ══════ -->
     <div class="dark-panel governance-panel" *ngIf="governance">
       <div class="dark-panel-header executive-header">

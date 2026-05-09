@@ -584,6 +584,26 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     return opId.length > 12 ? opId.slice(0, 8) + '…' : opId;
   }
 
+  // ── Live counter-strip helpers ─────────────────────────────────
+  /** Render integer counter or em-dash when no real data has landed. */
+  todayDisplayInt(n: number | null | undefined): string {
+    if (n === null || n === undefined) return '—';
+    return Number(n) > 0 ? String(Math.round(Number(n))) : '—';
+  }
+  /** Render cents counter as $X.XX or em-dash when no real data has landed. */
+  todayDisplayCents(c: number | null | undefined): string {
+    if (c === null || c === undefined) return '—';
+    return Number(c) > 0 ? this.fmtCents(Number(c)) : '—';
+  }
+  /** True when any of today's counters carry real activity. */
+  hasAnyTodayActivity(): boolean {
+    const t = this.wallet?.todaySnapshot;
+    if (!t) return false;
+    return (t.sms_sent_today > 0)
+        || (t.estimated_spend_today_cents > 0)
+        || (t.active_operators_today > 0);
+  }
+
   // ── Wallet helpers ─────────────────────────────────────────────
   walletKindLabel(kind: string | undefined): string {
     if (!kind) return '—';

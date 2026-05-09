@@ -598,6 +598,68 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   margin-bottom: 10px;
   flex-wrap: wrap; gap: 10px;
 }
+
+// ── Live operational counter strip ────────────────────────────────
+// Bloomberg-terminal counter rail. Single row of label/value pairs
+// separated by middle-dots, monospace tabular figures, low chroma.
+// One pulse dot signals "actively streaming" (cyan) vs "idle" (muted).
+// Renders only when adminVisible — non-admin viewers don't see it.
+.exec-counter-strip {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0 10px; row-gap: 4px;
+  padding: 6px 2px 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid $exec-divider;
+  font-family: 'SF Mono', 'Roboto Mono', monospace;
+  font-feature-settings: "tnum" 1;
+}
+.exec-counter-pulse {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: $exec-cyan;
+  box-shadow: 0 0 6px rgba(34, 211, 238, 0.5);
+  animation: exec-counter-pulse 2.4s ease-in-out infinite;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.exec-counter-pulse--idle {
+  background: $exec-muted;
+  box-shadow: none;
+  animation-duration: 5s;
+  opacity: 0.55;
+}
+@keyframes exec-counter-pulse {
+  0%,100% { opacity: 1;   transform: scale(1); }
+  50%     { opacity: 0.45; transform: scale(0.85); }
+}
+.exec-counter {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  white-space: nowrap;
+}
+.exec-counter-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: $exec-muted;
+}
+.exec-counter-value {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $exec-text;
+  letter-spacing: -0.005em;
+}
+.exec-counter-aux {
+  font-size: 0.7rem;
+  color: $exec-cyan;
+  opacity: 0.85;
+  font-weight: 600;
+}
+.exec-counter-divider {
+  color: $exec-divider;
+  font-size: 0.7rem;
+  user-select: none;
+}
 .executive-suite-title {
   display: flex; align-items: center; gap: 9px;
 }

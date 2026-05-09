@@ -44,11 +44,26 @@ export interface ProjectedMonthly {
   projected_tokens: number;
 }
 
+export interface TodaySnapshot {
+  sms_sent_today: number;
+  estimated_spend_today_cents: number;
+  active_operators_today: number;
+  projected_monthly_cents: number;
+  top_operator: {
+    user_id: string;
+    name: string | null;
+    spend_cents: number;
+    event_count: number;
+  } | null;
+  schema_pending: boolean;
+}
+
 export interface WalletTelemetry {
   myWallet: MyWallet | null;
   topSpenders: TopSpender[];
   dailyBurn: DailyBurnPoint[];
   projected: ProjectedMonthly | null;
+  todaySnapshot: TodaySnapshot | null;
   /** True iff the caller is permitted to read admin endpoints. */
   adminVisible: boolean;
   /** Backend reachable on the last poll. */
@@ -96,14 +111,19 @@ export class WalletTelemetryService {
         timeout(10000),
         catchError(() => of(null)),
       ),
-    }).subscribe(({ myWallet, topSpenders, dailyBurn, projected }) => {
-      const adminVisible = !!(topSpenders || dailyBurn || projected);
+      todaySnapshot: this.http.get<TodaySnapshot>('admin/usage/today-snapshot').pipe(
+        timeout(10000),
+        catchError(() => of(null)),
+      ),
+    }).subscribe(({ myWallet, topSpenders, dailyBurn, projected, todaySnapshot }) => {
+      const adminVisible = !!(topSpenders || dailyBurn || projected || todaySnapshot);
       const reachable = !!(myWallet || adminVisible);
       this.telemetry$.next({
         myWallet: myWallet || null,
         topSpenders: topSpenders?.items || [],
         dailyBurn: dailyBurn?.series || [],
         projected: projected || null,
+        todaySnapshot: todaySnapshot || null,
         adminVisible,
         reachable,
       });
@@ -116,6 +136,7 @@ export class WalletTelemetryService {
       topSpenders: [],
       dailyBurn: [],
       projected: null,
+      todaySnapshot: null,
       adminVisible: false,
       reachable: false,
     };
