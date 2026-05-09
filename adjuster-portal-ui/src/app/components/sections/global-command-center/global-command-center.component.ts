@@ -248,13 +248,15 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     const highFires = (this.incidents || []).filter(
       i => i.type === 'fire' && i.priority === 'high',
     ).length;
+    // Refined palette — desaturated from the original neon. Still
+    // distinguishable per KPI but less "casino" / "battle mode".
     return [
-      { label: 'Property Fires Today', value: highFires, icon: 'local_fire_department', trend: 'up', change: 3, color: '#ff1744' },
-      { label: 'Storm Damage Events', value: m.storm_events_today, icon: 'thunderstorm', trend: 'up', change: 5, color: '#2979ff' },
-      { label: 'Potential Claims', value: m.potential_claims, icon: 'bolt', trend: 'up', change: 8, color: '#ffd600' },
-      { label: 'New Leads Generated', value: m.new_leads_today, icon: 'person_add', trend: 'up', change: 12, color: '#00e676' },
-      { label: 'Leads Contacted', value: m.leads_contacted, icon: 'phone_in_talk', trend: 'up', change: 7, color: '#00e5ff' },
-      { label: 'Leads Converted', value: m.leads_converted, icon: 'verified', trend: 'up', change: 4, color: '#aa00ff' },
+      { label: 'Property Fires Today', value: highFires,             icon: 'local_fire_department', trend: 'up', change: 3,  color: '#e11d48' },
+      { label: 'Storm Damage Events',  value: m.storm_events_today,  icon: 'thunderstorm',          trend: 'up', change: 5,  color: '#3b82f6' },
+      { label: 'Potential Claims',     value: m.potential_claims,    icon: 'bolt',                  trend: 'up', change: 8,  color: '#eab308' },
+      { label: 'New Leads Generated',  value: m.new_leads_today,     icon: 'person_add',            trend: 'up', change: 12, color: '#10b981' },
+      { label: 'Leads Contacted',      value: m.leads_contacted,     icon: 'phone_in_talk',         trend: 'up', change: 7,  color: '#22d3ee' },
+      { label: 'Leads Converted',      value: m.leads_converted,     icon: 'verified',              trend: 'up', change: 4,  color: '#a855f7' },
     ];
   }
 
