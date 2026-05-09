@@ -23,7 +23,7 @@
            current user.status === 'pending_w9'. -->
       <app-onboarding-banner *ngIf="role != 'customer' && role != null"></app-onboarding-banner>
 
-      <app-command-bar *ngIf="role != 'customer' && role != null"></app-command-bar>
+      <!-- app-command-bar removed (UI cleanup pass — top ticker eliminated) -->
 
       <mat-tab-group #tabGroup color="primary" [(selectedIndex)]="selectedIndex" id= "main-tab">
         <mat-tab>
@@ -68,7 +68,7 @@
   </mat-sidenav-content>
 </mat-sidenav-container>
 
-<app-live-activity-panel *ngIf="role != 'customer' && role != null"></app-live-activity-panel>
+<!-- app-live-activity-panel removed (UI cleanup pass — right-side live feed eliminated) -->
 
 <!-- <button mat-fab *ngIf="isImpersonating" class="impersonation-toggle" (click)="stopImpersonating()" color="warn">
   <mat-icon matTooltip="Stop impersonating {{user.first_name}}">transfer_within_a_station</mat-icon>

@@ -19,25 +19,7 @@
     </div>
   </div>
 
-  <!-- Intelligence Ticker Strip -->
-  <div class="ticker-strip" *ngIf="tickerItems.length > 0">
-    <div class="ticker-label">
-      <span class="ticker-pulse"></span>
-      <span>INTEL</span>
-    </div>
-    <div class="ticker-track">
-      <div class="ticker-scroll">
-        <button class="ticker-item"
-                *ngFor="let item of tickerItems"
-                (click)="onTickerClick(item)"
-                [matTooltip]="item.sublabel || ''">
-          <span class="ticker-emoji">{{ getEventEmoji(item.eventType) }}</span>
-          <span class="ticker-text">{{ item.label }}</span>
-          <span class="ticker-time">{{ getTimeAgo(item.timestamp) }}</span>
-        </button>
-      </div>
-    </div>
-  </div>
+  <!-- Intelligence Ticker Strip removed (UI cleanup pass) -->
 
   <!-- No Territory Banner -->
   <div class="no-territory-banner" *ngIf="noTerritoryAssigned">

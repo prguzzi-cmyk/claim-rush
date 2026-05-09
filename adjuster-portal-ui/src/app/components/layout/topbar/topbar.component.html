@@ -55,11 +55,8 @@
 
   <!-- Right: Live Feed + Pending leads + Notifications + User menu -->
   <div class="topbar-right">
-    <!-- Live Feed trigger -->
-    <button class="topbar-live-feed-btn" (click)="liveActivityService.drawerToggle$.next()" matTooltip="Live Activity Feed">
-      <span class="live-feed-dot"></span>
-      <span class="live-feed-label">Live Feed</span>
-    </button>
+    <!-- Live Feed trigger removed (UI cleanup pass — toggled the now-removed app-live-activity-panel) -->
+
 
     <a class="topbar-icon-btn" routerLink="/app/leads" [queryParams]="{ type:'pending'}" (click)="onNavigate('Leads')"
         *ngIf="(this.role == 'super-admin' || this.role == 'admin') && pendingLeadsCount">
