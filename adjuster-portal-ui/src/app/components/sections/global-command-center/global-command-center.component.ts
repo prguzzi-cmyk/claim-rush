@@ -8,6 +8,7 @@ import { EstimatingService } from 'src/app/services/estimating.service';
 import { ClaimRecoveryEngineService } from 'src/app/shared/services/claim-recovery-engine.service';
 import { ClaimOpportunityEngineService } from 'src/app/shared/services/claim-opportunity-engine.service';
 import { GovernanceTelemetryService, GovernanceTelemetry, VendorUsageRow, TopOperator } from 'src/app/services/governance-telemetry.service';
+import { WalletTelemetryService, WalletTelemetry, TopSpender, DailyBurnPoint } from 'src/app/services/wallet-telemetry.service';
 import { PotentialClaimRow, ClaimOpportunity, OpportunityMetrics, PRIORITY_META, ACTION_META, SCORING_FACTOR_META, DEFAULT_SCORING_WEIGHTS } from 'src/app/shared/models/claim-opportunity.model';
 import { ClaimRecoveryRecord, RecoveryDashboardMetrics, RECOVERY_STATUS_META, RecoveryStatus } from 'src/app/shared/models/claim-recovery-metrics.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -64,6 +65,9 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   governanceStages: { stage: string; row: VendorUsageRow }[] = [];
   governanceTopOperators: TopOperator[] = [];
 
+  // Wallet + Token Economy
+  wallet: WalletTelemetry | null = null;
+
   constructor(
     private incidentFeed: IncidentFeedService,
     private platformMetrics: PlatformMetricsService,
@@ -72,6 +76,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     private recoveryEngine: ClaimRecoveryEngineService,
     private claimOpportunity: ClaimOpportunityEngineService,
     private governanceTelemetry: GovernanceTelemetryService,
+    private walletTelemetry: WalletTelemetryService,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
@@ -143,6 +148,16 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
         this.governanceTopOperators = t.top_operators || [];
       })
     );
+
+    // Wallet + Token Economy — caller's wallet snapshot plus admin
+    // roll-ups (top spenders, daily burn, projected monthly). Admin
+    // sections gracefully hide for non-admin viewers (403 → empty).
+    this.walletTelemetry.startPolling(30000);
+    this.subs.push(
+      this.walletTelemetry.getTelemetry().subscribe(t => {
+        this.wallet = t;
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -153,6 +168,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     this.platformActivity.stopPolling();
     this.claimOpportunity.stopPolling();
     this.governanceTelemetry.stopPolling();
+    this.walletTelemetry.stopPolling();
   }
 
   private loadRecovery(): void {
@@ -403,6 +419,62 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   shortOperatorId(opId: string): string {
     if (!opId) return '—';
     return opId.length > 12 ? opId.slice(0, 8) + '…' : opId;
+  }
+
+  // ── Wallet helpers ─────────────────────────────────────────────
+  walletKindLabel(kind: string | undefined): string {
+    if (!kind) return '—';
+    const map: Record<string, string> = {
+      organization: 'Organization',
+      cp: 'Channel Partner',
+      rvp: 'Regional VP',
+      agent: 'Agent',
+      house: 'House Reserve',
+    };
+    return map[kind] || kind;
+  }
+
+  walletModeColor(mode: string | undefined): string {
+    const map: Record<string, string> = {
+      paused:       '#9e9e9e',
+      conservative: '#00e5ff',
+      aggressive:   '#ff6d00',
+      disaster:     '#ff1744',
+    };
+    return map[mode || 'conservative'] || '#64748b';
+  }
+
+  walletTokensFmt(n: number | null | undefined): string {
+    if (n === null || n === undefined) return '—';
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'k';
+    return String(n);
+  }
+
+  walletBurnSparkBars(): { date: string; pct: number; tokens: number }[] {
+    const series = this.wallet?.dailyBurn || [];
+    if (series.length === 0) return [];
+    const max = Math.max(1, ...series.map(d => d.tokens));
+    return series.map(d => ({
+      date: d.date,
+      tokens: d.tokens,
+      pct: Math.max(2, Math.round((d.tokens / max) * 100)),
+    }));
+  }
+
+  walletProjectedRunway(): string {
+    const w = this.wallet?.myWallet;
+    if (!w) return '—';
+    const dailyBurn = this.wallet?.dailyBurn || [];
+    const recent = dailyBurn.slice(-7);
+    if (recent.length === 0 || w.token_balance <= 0) return '—';
+    const avgDaily = recent.reduce((s, d) => s + (d.tokens || 0), 0) / recent.length;
+    if (avgDaily <= 0) return '∞';
+    const days = Math.floor(w.token_balance / avgDaily);
+    if (days >= 365) return '> 1 yr';
+    if (days >= 30) return Math.floor(days / 30) + ' mo';
+    if (days >= 7) return Math.floor(days / 7) + ' wk';
+    return days + ' d';
   }
 
   // ── Real-Time Activity Feed helpers ─────────────────────────────

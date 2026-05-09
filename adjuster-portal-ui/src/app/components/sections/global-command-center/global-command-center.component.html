@@ -117,6 +117,115 @@
       </div>
     </div>
 
+    <!-- ══════ TOKEN ECONOMY (WALLET + USAGE LEDGER) ══════ -->
+    <!-- Caller's wallet snapshot + admin roll-ups (top spenders,
+         daily burn, projected monthly). Admin sections gracefully
+         hide for non-admin viewers. -->
+    <div class="dark-panel wallet-panel" *ngIf="wallet">
+      <div class="dark-panel-header">
+        <mat-icon>account_balance_wallet</mat-icon> Token Economy
+        <span class="wallet-mode-chip"
+              *ngIf="wallet.myWallet"
+              [style.color]="walletModeColor(wallet.myWallet.governance_mode)"
+              [style.borderColor]="walletModeColor(wallet.myWallet.governance_mode)">
+          {{ wallet.myWallet.governance_mode | titlecase }}
+        </span>
+        <span class="wallet-status-chip"
+              [class.wallet-offline]="!wallet.reachable"
+              [class.wallet-restricted]="wallet.reachable && !wallet.adminVisible">
+          {{ !wallet.reachable ? 'Backend unreachable'
+              : (!wallet.adminVisible ? 'Personal view'
+                                       : 'Admin view') }}
+        </span>
+      </div>
+
+      <div class="wallet-grid">
+        <!-- My Wallet -->
+        <div class="wallet-card wallet-mine-card">
+          <div class="wallet-card-label">My Wallet</div>
+          <div *ngIf="!wallet.myWallet" class="wallet-empty">No wallet yet — first billable action will create one.</div>
+          <ng-container *ngIf="wallet.myWallet">
+            <div class="wallet-balance">{{ walletTokensFmt(wallet.myWallet.token_balance) }}<span class="wallet-balance-unit">tokens</span></div>
+            <div class="wallet-card-sub">
+              <span class="wallet-kind">{{ walletKindLabel(wallet.myWallet.wallet_kind) }}</span>
+              <span class="wallet-runway" matTooltip="Estimated runway based on 7-day burn">
+                <mat-icon class="wallet-runway-icon">timer</mat-icon>
+                {{ walletProjectedRunway() }}
+              </span>
+            </div>
+            <div class="wallet-spend-row">
+              <span class="wallet-spend-label">Today</span>
+              <span class="wallet-spend-val">{{ fmtCents(wallet.myWallet.daily_spend_cents) }}</span>
+            </div>
+            <div class="wallet-spend-row">
+              <span class="wallet-spend-label">This month</span>
+              <span class="wallet-spend-val">{{ fmtCents(wallet.myWallet.monthly_spend_cents) }}</span>
+            </div>
+            <div class="wallet-spend-row" *ngIf="wallet.myWallet.hard_limit_tokens !== null">
+              <span class="wallet-spend-label">Hard cap</span>
+              <span class="wallet-spend-val">{{ walletTokensFmt(wallet.myWallet.hard_limit_tokens) }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Projected Monthly -->
+        <div class="wallet-card" *ngIf="wallet.adminVisible">
+          <div class="wallet-card-label">Projected Monthly</div>
+          <div *ngIf="!wallet.projected" class="wallet-empty">No data yet.</div>
+          <ng-container *ngIf="wallet.projected">
+            <div class="wallet-card-value">{{ fmtCents(wallet.projected.projected_cents) }}</div>
+            <div class="wallet-card-sub">
+              MTD {{ fmtCents(wallet.projected.mtd_cents) }}
+              · {{ walletTokensFmt(wallet.projected.mtd_tokens) }} tokens
+            </div>
+          </ng-container>
+        </div>
+        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
+          <div class="wallet-card-label">Projected Monthly</div>
+          <mat-icon class="wallet-lock-icon">lock</mat-icon>
+          <div class="wallet-empty">Admin only</div>
+        </div>
+
+        <!-- Daily Burn (sparkline) -->
+        <div class="wallet-card wallet-burn-card" *ngIf="wallet.adminVisible">
+          <div class="wallet-card-label">Daily Burn (14d)</div>
+          <div *ngIf="walletBurnSparkBars().length === 0" class="wallet-empty">No usage events yet.</div>
+          <div *ngIf="walletBurnSparkBars().length > 0" class="wallet-spark">
+            <div *ngFor="let b of walletBurnSparkBars()"
+                 class="wallet-spark-bar"
+                 [style.height.%]="b.pct"
+                 [matTooltip]="b.date + ' · ' + walletTokensFmt(b.tokens) + ' tokens'"></div>
+          </div>
+        </div>
+        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
+          <div class="wallet-card-label">Daily Burn (14d)</div>
+          <mat-icon class="wallet-lock-icon">lock</mat-icon>
+          <div class="wallet-empty">Admin only</div>
+        </div>
+
+        <!-- Top Spenders -->
+        <div class="wallet-card wallet-spenders-card" *ngIf="wallet.adminVisible">
+          <div class="wallet-card-label">Top Spenders (24h)</div>
+          <div *ngIf="(wallet.topSpenders || []).length === 0" class="wallet-empty">No actor-attributed spend yet.</div>
+          <div *ngIf="(wallet.topSpenders || []).length > 0" class="wallet-spenders-list">
+            <div *ngFor="let s of wallet.topSpenders" class="wallet-spender-row">
+              <span class="wallet-spender-id" [matTooltip]="s.actor_user_id">
+                {{ shortOperatorId(s.actor_user_id) }}
+                <span class="wallet-spender-role" *ngIf="s.actor_role">· {{ s.actor_role }}</span>
+              </span>
+              <span class="wallet-spender-tokens">{{ walletTokensFmt(s.tokens) }}t</span>
+              <span class="wallet-spender-cents">{{ fmtCents(s.cents) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
+          <div class="wallet-card-label">Top Spenders (24h)</div>
+          <mat-icon class="wallet-lock-icon">lock</mat-icon>
+          <div class="wallet-empty">Admin only</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════ HIGH PROBABILITY CLAIMS PANEL ══════ -->
     <div class="dark-panel opp-panel">
       <div class="dark-panel-header">
