@@ -76,20 +76,38 @@
       </div>
     </div>
 
-    <!-- ══════ GOVERNANCE + COST TELEMETRY ══════ -->
-    <!-- Live posture of the enrichment cost-governance gate. Renders
-         "Backend unreachable" while logged out (auth-gated endpoint). -->
+    <!-- ══════ EXECUTIVE TREASURY ZONE ══════ -->
+    <!-- Dedicated finance/governance suite. Visually isolated from
+         incident operations: no LIVE pill, no urgency styling, calmer
+         palette. Hosts the governance gate + the wallet/token economy. -->
+    <section class="executive-suite" *ngIf="governance || wallet">
+
+      <header class="executive-suite-header">
+        <div class="executive-suite-title">
+          <span class="executive-suite-marker"></span>
+          <span class="executive-suite-eyebrow">Financial Governance &amp; Treasury</span>
+        </div>
+        <div class="executive-suite-meta">
+          <span class="executive-suite-meta-item"><mat-icon>verified_user</mat-icon> Operator oversight</span>
+          <span class="executive-suite-meta-divider">·</span>
+          <span class="executive-suite-meta-item">Token economy</span>
+          <span class="executive-suite-meta-divider">·</span>
+          <span class="executive-suite-meta-item">Cost governance</span>
+        </div>
+      </header>
+
+    <!-- ══════ GOVERNANCE + COST ══════ -->
     <div class="dark-panel governance-panel" *ngIf="governance">
-      <div class="dark-panel-header">
-        <mat-icon>shield</mat-icon> Governance &amp; Cost
-        <span class="gov-mode-chip" [style.color]="governanceModeColor()" [style.borderColor]="governanceModeColor()">
-          <mat-icon class="gov-mode-icon" [style.color]="governanceModeColor()">{{ governance.active_disaster_state ? 'warning' : 'tune' }}</mat-icon>
+      <div class="dark-panel-header executive-header">
+        <mat-icon>shield</mat-icon>
+        <span class="executive-panel-title">Governance &amp; Cost</span>
+        <span class="executive-mode-chip" [style.color]="governanceModeColor()" [style.borderColor]="governanceModeColor()">
           {{ governanceModeLabel() }}
         </span>
-        <span class="gov-status-chip"
-              [class.gov-offline]="!governance.reachable"
-              [class.gov-warming]="governance.reachable && governance.schema_pending">
-          {{ !governance.reachable ? 'Backend unreachable' : (governance.schema_pending ? 'Warming up' : 'Live') }}
+        <span class="executive-meta">
+          <span *ngIf="!governance.reachable" class="executive-meta-pill executive-meta-pill--offline">Offline</span>
+          <span *ngIf="governance.reachable && governance.schema_pending" class="executive-meta-pill executive-meta-pill--warming">Warming</span>
+          <span *ngIf="governance.reachable && !governance.schema_pending" class="executive-meta-time">Updated {{ governanceTimeAgo() }}</span>
         </span>
       </div>
 
@@ -152,24 +170,20 @@
     </div>
 
     <!-- ══════ TOKEN ECONOMY (WALLET + USAGE LEDGER) ══════ -->
-    <!-- Caller's wallet snapshot + admin roll-ups (top spenders,
-         daily burn, projected monthly). Admin sections gracefully
-         hide for non-admin viewers. -->
     <div class="dark-panel wallet-panel" *ngIf="wallet">
-      <div class="dark-panel-header">
-        <mat-icon>account_balance_wallet</mat-icon> Token Economy
-        <span class="wallet-mode-chip"
+      <div class="dark-panel-header executive-header">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <span class="executive-panel-title">Token Economy</span>
+        <span class="executive-mode-chip"
               *ngIf="wallet.myWallet"
               [style.color]="walletModeColor(wallet.myWallet.governance_mode)"
               [style.borderColor]="walletModeColor(wallet.myWallet.governance_mode)">
           {{ wallet.myWallet.governance_mode | titlecase }}
         </span>
-        <span class="wallet-status-chip"
-              [class.wallet-offline]="!wallet.reachable"
-              [class.wallet-restricted]="wallet.reachable && !wallet.adminVisible">
-          {{ !wallet.reachable ? 'Backend unreachable'
-              : (!wallet.adminVisible ? 'Personal view'
-                                       : 'Admin view') }}
+        <span class="executive-meta">
+          <span *ngIf="!wallet.reachable" class="executive-meta-pill executive-meta-pill--offline">Offline</span>
+          <span *ngIf="wallet.reachable && !wallet.adminVisible" class="executive-meta-pill executive-meta-pill--restricted">Personal view</span>
+          <span *ngIf="wallet.reachable" class="executive-meta-time">Updated {{ walletTimeAgo() }}</span>
         </span>
       </div>
 
@@ -259,6 +273,9 @@
         </div>
       </div>
     </div>
+
+    </section>
+    <!-- ══════ END EXECUTIVE TREASURY ZONE ══════ -->
 
     <!-- ══════ HIGH PROBABILITY CLAIMS PANEL ══════ -->
     <div class="dark-panel opp-panel">

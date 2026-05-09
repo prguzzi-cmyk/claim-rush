@@ -69,6 +69,11 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   // Wallet + Token Economy
   wallet: WalletTelemetry | null = null;
 
+  // Refresh timestamps for the executive treasury zone — replaces the
+  // "Live" pulse chips with quiet "updated Ns ago" copy.
+  governanceLastRefreshAt: number | null = null;
+  walletLastRefreshAt: number | null = null;
+
   // Incident priority filter chips — single source of truth that
   // governs map, ticker, KPI counts, and right-side feed.
   // Defaults: HIGH + MEDIUM on, LOW off (no dispatch noise).
@@ -159,6 +164,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
           .map(([stage, row]) => ({ stage, row }))
           .sort((a, b) => b.row.spend_cents - a.row.spend_cents);
         this.governanceTopOperators = t.top_operators || [];
+        if (t.reachable) this.governanceLastRefreshAt = Date.now();
       })
     );
 
@@ -169,6 +175,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.walletTelemetry.getTelemetry().subscribe(t => {
         this.wallet = t;
+        if (t.reachable) this.walletLastRefreshAt = Date.now();
       })
     );
   }
@@ -557,6 +564,23 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
       tokens: d.tokens,
       pct: Math.max(2, Math.round((d.tokens / max) * 100)),
     }));
+  }
+
+  // ── Executive zone helpers (calm, no urgency cues) ─────────────
+  /** "updated 12s ago" — soft tabular text for the governance card. */
+  governanceTimeAgo(): string {
+    return this.timeAgoSeconds(this.governanceLastRefreshAt);
+  }
+  walletTimeAgo(): string {
+    return this.timeAgoSeconds(this.walletLastRefreshAt);
+  }
+  private timeAgoSeconds(ts: number | null): string {
+    if (!ts) return '—';
+    const sec = Math.floor((Date.now() - ts) / 1000);
+    if (sec < 5) return 'just now';
+    if (sec < 60) return `${sec}s ago`;
+    if (sec < 3600) return `${Math.floor(sec / 60)}m ago`;
+    return `${Math.floor(sec / 3600)}h ago`;
   }
 
   walletProjectedRunway(): string {

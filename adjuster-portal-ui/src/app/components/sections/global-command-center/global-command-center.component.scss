@@ -430,6 +430,254 @@ $accent-blue: #2979ff;
 @media (max-width: 1400px) { .wallet-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }
 
+// ══════════════════════════════════════════════════════════════════
+// EXECUTIVE TREASURY ZONE
+// Dedicated finance/governance section. Calmer palette, tabular
+// numerics, no LIVE pulse, no urgency cues. Hosts Governance & Cost
+// + Token Economy. Visually isolated from the dispatch panels above
+// and the claim opportunity tables below.
+// ══════════════════════════════════════════════════════════════════
+$exec-ink:        #0b1018;          // deeper than $bg-primary
+$exec-surface:    rgba(15, 23, 42, 0.55);
+$exec-border:     rgba(30, 41, 59, 0.65);
+$exec-divider:    rgba(148, 163, 184, 0.10);
+$exec-cyan:       #22d3ee;          // softer than $accent-cyan
+$exec-emerald:    #10b981;          // refined positive
+$exec-amber:      #d97706;          // muted warning
+$exec-rose:       #b91c1c;          // restrained critical
+$exec-text:       #cbd5e1;
+$exec-muted:      #64748b;
+$exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
+
+.executive-suite {
+  margin: 28px 0 24px;
+  padding: 28px 26px 24px;
+  background: linear-gradient(180deg, $exec-ink 0%, #0a0e16 100%);
+  border: 1px solid $exec-border;
+  border-radius: 14px;
+  position: relative;
+
+  // Subtle accent rule across the top — signals "different zone"
+  // without screaming.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 26px; right: 26px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%,
+                rgba(34, 211, 238, 0.35) 50%, transparent 100%);
+  }
+}
+
+.executive-suite-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap; gap: 12px;
+}
+.executive-suite-title {
+  display: flex; align-items: center; gap: 10px;
+}
+.executive-suite-marker {
+  display: inline-block;
+  width: 3px; height: 14px;
+  background: $exec-cyan;
+  border-radius: 1px;
+  opacity: 0.75;
+}
+.executive-suite-eyebrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: $exec-text;
+}
+.executive-suite-meta {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.66rem;
+  color: $exec-muted;
+  letter-spacing: 0.06em;
+}
+.executive-suite-meta-item {
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.executive-suite-meta-item mat-icon {
+  font-size: 13px; height: 13px; width: 13px; color: $exec-muted;
+}
+.executive-suite-meta-divider {
+  color: $exec-divider; font-weight: 700;
+}
+
+// ── Panel overrides inside the executive zone ──────────────────
+.executive-suite .dark-panel {
+  background: $exec-surface;
+  border-color: $exec-border;
+  border-radius: 10px;
+  margin-bottom: 18px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+// Calmer panel header — no all-caps, no bright accents.
+.executive-suite .dark-panel-header,
+.executive-header {
+  background: rgba(11, 16, 24, 0.5);
+  border-bottom: 1px solid $exec-divider;
+  padding: 14px 18px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: $exec-text;
+  text-transform: none;
+}
+.executive-suite .dark-panel-header mat-icon {
+  color: $exec-muted;
+  font-size: 18px; height: 18px; width: 18px;
+}
+.executive-panel-title { font-weight: 600; color: $exec-text; }
+
+// ── Replacement chips: refined, square, low chroma ──
+.executive-mode-chip {
+  display: inline-flex; align-items: center;
+  margin-left: 8px;
+  padding: 2px 9px;
+  border: 1px solid;
+  border-radius: 4px;             // squarer = enterprise vs round = casual
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: rgba(0, 0, 0, 0.3);
+  // Inline color/borderColor still applied per-mode but the
+  // squared shape + low padding desaturates the urgency.
+  filter: saturate(0.7);          // refine inline color tones
+}
+
+.executive-meta {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.executive-meta-time {
+  font-family: $exec-tabular;
+  font-size: 0.66rem;
+  color: $exec-muted;
+  letter-spacing: 0.04em;
+  font-feature-settings: "tnum" 1;
+}
+.executive-meta-pill {
+  padding: 2px 9px;
+  border-radius: 3px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.executive-meta-pill--offline {
+  background: rgba(185, 28, 28, 0.10);
+  color: #fca5a5;
+  border: 1px solid rgba(185, 28, 28, 0.3);
+}
+.executive-meta-pill--warming {
+  background: rgba(217, 119, 6, 0.10);
+  color: #fbbf24;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+.executive-meta-pill--restricted {
+  background: rgba(100, 116, 139, 0.12);
+  color: $exec-muted;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+// ── Numeric values: tabular figures, refined accent palette ──
+.executive-suite .gov-card-value,
+.executive-suite .wallet-balance,
+.executive-suite .wallet-card-value,
+.executive-suite .gov-budget-spent,
+.executive-suite .gov-budget-cap,
+.executive-suite .wallet-spend-val,
+.executive-suite .gov-stage-spend,
+.executive-suite .gov-op-spend,
+.executive-suite .wallet-spender-tokens,
+.executive-suite .wallet-spender-cents {
+  font-family: $exec-tabular;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+// Soften vibrant accent colors inside the zone.
+.executive-suite .wallet-balance       { color: $exec-emerald; }
+.executive-suite .wallet-runway        { color: $exec-cyan; }
+.executive-suite .wallet-runway-icon   { color: $exec-cyan; }
+.executive-suite .gov-stage-spend,
+.executive-suite .gov-op-spend         { color: $exec-cyan; font-weight: 600; }
+.executive-suite .wallet-spender-tokens{ color: $exec-emerald; font-weight: 600; }
+.executive-suite .wallet-spender-cents { color: $exec-cyan; font-weight: 600; }
+.executive-suite .gov-allowed          { color: $exec-emerald; }
+.executive-suite .gov-suppressed       { color: $exec-amber; }
+
+// Calmer budget bar gradient — emerald → amber → restrained crimson.
+.executive-suite .gov-bar-fill {
+  background: linear-gradient(90deg, $exec-emerald 0%, $exec-emerald 65%, $exec-amber 88%, $exec-rose 100%) !important;
+}
+.executive-suite .gov-bar-track {
+  background: rgba(0, 0, 0, 0.5);
+  height: 6px; border-radius: 3px;
+}
+
+// Card surfaces inside the zone get a calmer treatment.
+.executive-suite .gov-card,
+.executive-suite .wallet-card {
+  background: rgba(8, 12, 20, 0.7);
+  border-color: $exec-border;
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-height: 124px;
+}
+.executive-suite .gov-card-label,
+.executive-suite .wallet-card-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: $exec-muted;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.executive-suite .gov-card-sub,
+.executive-suite .wallet-card-sub {
+  color: $exec-muted; font-size: 0.7rem;
+}
+
+// More breathing room in the grids — feels less crammed.
+.executive-suite .gov-grid { padding: 18px 18px; gap: 14px; }
+.executive-suite .wallet-grid { padding: 18px 18px; gap: 14px; }
+
+// Kill all pulse/glow animations within the zone.
+.executive-suite *,
+.executive-suite *::before,
+.executive-suite *::after {
+  animation: none !important;
+}
+
+// Hide the legacy .gov-status-chip / .wallet-status-chip that the
+// older templates still reference but no longer render — safety net
+// in case they're ever re-introduced.
+.executive-suite .gov-status-chip,
+.executive-suite .wallet-status-chip { display: none; }
+
+// Responsive — keep pairs side-by-side as long as feasible.
+@media (max-width: 1400px) {
+  .executive-suite .gov-grid,
+  .executive-suite .wallet-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .executive-suite { padding: 22px 18px; margin: 22px 0 18px; }
+  .executive-suite .gov-grid,
+  .executive-suite .wallet-grid { grid-template-columns: 1fr; }
+}
+
 // ── INCIDENT PRIORITY FILTER CHIPS ──
 .priority-chip-row { display: flex; align-items: center; gap: 8px; padding: 12px 0 16px; flex-wrap: wrap; border-bottom: 1px solid $border; margin-bottom: 16px; }
 .priority-chip-label { display: inline-flex; align-items: center; gap: 6px; color: $text-secondary; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding-right: 4px; }
