@@ -341,6 +341,50 @@ $accent-blue: #2979ff;
 .live-feed-loc mat-icon { color: $accent-cyan; }
 .live-feed-agent mat-icon { color: $accent-green; }
 
+// ── GOVERNANCE + COST TELEMETRY ──
+.governance-panel { margin-bottom: 16px; }
+.governance-panel .dark-panel-header { gap: 10px; }
+.gov-mode-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border: 1px solid; border-radius: 12px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(0,0,0,0.25); }
+.gov-mode-icon { font-size: 14px; height: 14px; width: 14px; }
+.gov-status-chip { margin-left: auto; padding: 2px 10px; border-radius: 12px; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(0,230,118,0.12); color: $accent-green; border: 1px solid rgba(0,230,118,0.5); }
+.gov-status-chip.gov-warming { background: rgba(255,214,0,0.12); color: $accent-yellow; border-color: rgba(255,214,0,0.5); }
+.gov-status-chip.gov-offline { background: rgba(255,23,68,0.12); color: $accent-red; border-color: rgba(255,23,68,0.5); }
+
+.gov-grid { display: grid; grid-template-columns: 1.4fr 0.8fr 1.6fr 1.4fr; gap: 12px; padding: 14px 16px; }
+.gov-card { background: $bg-panel-header; border: 1px solid $border; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+.gov-card-label { font-size: 0.68rem; color: $text-secondary; text-transform: uppercase; letter-spacing: 0.06em; }
+.gov-card-value { font-size: 1.8rem; font-weight: 800; color: $text-primary; font-family: 'SF Mono', monospace; line-height: 1.1; }
+.gov-card-sub { font-size: 0.7rem; color: $text-muted; }
+.gov-empty { font-size: 0.74rem; color: $text-muted; font-style: italic; padding: 8px 0; }
+
+.gov-budget-card { gap: 8px; }
+.gov-budget-numbers { display: flex; align-items: baseline; gap: 6px; font-family: 'SF Mono', monospace; }
+.gov-budget-spent { font-size: 1.4rem; font-weight: 800; color: $text-primary; }
+.gov-budget-sep { color: $text-muted; }
+.gov-budget-cap { font-size: 0.95rem; color: $text-secondary; }
+.gov-bar-track { height: 8px; background: rgba(0,0,0,0.4); border-radius: 4px; overflow: hidden; }
+.gov-bar-fill { height: 100%; transition: width 0.3s ease, background-color 0.3s ease; }
+
+.gov-stages-card .gov-stage-list,
+.gov-operators-card .gov-op-list { display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; }
+.gov-stage-row,
+.gov-op-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; font-size: 0.74rem; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
+.gov-stage-row:last-child,
+.gov-op-row:last-child { border-bottom: none; }
+.gov-stage-name { color: $text-primary; font-family: 'SF Mono', monospace; }
+.gov-stage-counts { display: inline-flex; gap: 8px; }
+.gov-allowed { color: $accent-green; font-weight: 700; }
+.gov-allowed::before { content: '✓ '; }
+.gov-suppressed { color: $accent-orange; font-weight: 700; }
+.gov-suppressed::before { content: '⊘ '; }
+.gov-stage-spend,
+.gov-op-spend { color: $accent-cyan; font-family: 'SF Mono', monospace; font-weight: 700; }
+.gov-op-id { color: $text-secondary; font-family: 'SF Mono', monospace; font-size: 0.7rem; }
+.gov-op-calls { color: $text-muted; font-size: 0.7rem; }
+
+@media (max-width: 1400px) { .gov-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px) { .gov-grid { grid-template-columns: 1fr; } }
+
 // ── RESPONSIVE ──
 @media (max-width: 1400px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } .recovery-body-grid { grid-template-columns: 1fr; } .recovery-chart-section { border-right: none; border-bottom: 1px solid $border; } }
 @media (max-width: 1024px) {

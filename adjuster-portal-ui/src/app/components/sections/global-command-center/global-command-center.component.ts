@@ -7,6 +7,7 @@ import { PlatformActivityService, PlatformActivityEvent } from 'src/app/services
 import { EstimatingService } from 'src/app/services/estimating.service';
 import { ClaimRecoveryEngineService } from 'src/app/shared/services/claim-recovery-engine.service';
 import { ClaimOpportunityEngineService } from 'src/app/shared/services/claim-opportunity-engine.service';
+import { GovernanceTelemetryService, GovernanceTelemetry, VendorUsageRow, TopOperator } from 'src/app/services/governance-telemetry.service';
 import { PotentialClaimRow, ClaimOpportunity, OpportunityMetrics, PRIORITY_META, ACTION_META, SCORING_FACTOR_META, DEFAULT_SCORING_WEIGHTS } from 'src/app/shared/models/claim-opportunity.model';
 import { ClaimRecoveryRecord, RecoveryDashboardMetrics, RECOVERY_STATUS_META, RecoveryStatus } from 'src/app/shared/models/claim-recovery-metrics.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -58,6 +59,11 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   showAllOpportunities = false;
   selectedOpp: ClaimOpportunity | null = null;
 
+  // Governance + Cost Telemetry (enrichment pipeline)
+  governance: GovernanceTelemetry | null = null;
+  governanceStages: { stage: string; row: VendorUsageRow }[] = [];
+  governanceTopOperators: TopOperator[] = [];
+
   constructor(
     private incidentFeed: IncidentFeedService,
     private platformMetrics: PlatformMetricsService,
@@ -65,6 +71,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     private estimatingService: EstimatingService,
     private recoveryEngine: ClaimRecoveryEngineService,
     private claimOpportunity: ClaimOpportunityEngineService,
+    private governanceTelemetry: GovernanceTelemetryService,
     private snackBar: MatSnackBar,
     private router: Router,
   ) {}
@@ -121,6 +128,21 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
         this.opportunityMetrics = this.claimOpportunity.computeMetrics(opps);
       })
     );
+
+    // Governance + Cost Telemetry — operator visibility into the
+    // enrichment cost-governance gate (mode, daily budget, suppressed
+    // counts, top spending operators). Auth-gated; while logged out
+    // the panel renders as "Backend unreachable" and stays harmless.
+    this.governanceTelemetry.startPolling(30000);
+    this.subs.push(
+      this.governanceTelemetry.getTelemetry().subscribe(t => {
+        this.governance = t;
+        this.governanceStages = Object.entries(t.vendor_usage_by_stage || {})
+          .map(([stage, row]) => ({ stage, row }))
+          .sort((a, b) => b.row.spend_cents - a.row.spend_cents);
+        this.governanceTopOperators = t.top_operators || [];
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -130,6 +152,7 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     this.platformMetrics.stopPolling();
     this.platformActivity.stopPolling();
     this.claimOpportunity.stopPolling();
+    this.governanceTelemetry.stopPolling();
   }
 
   private loadRecovery(): void {
@@ -338,6 +361,48 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
 
   getRecoveryStatusIcon(status: RecoveryStatus): string {
     return RECOVERY_STATUS_META[status]?.icon || 'info';
+  }
+
+  // ── Governance + Cost Telemetry helpers ────────────────────────
+  fmtCents(cents: number): string {
+    if (!cents || cents <= 0) return '$0';
+    const dollars = cents / 100;
+    if (dollars >= 1000) return '$' + Math.round(dollars).toLocaleString();
+    return '$' + dollars.toFixed(2);
+  }
+
+  governanceSpendPct(): number {
+    if (!this.governance || this.governance.daily_budget_cents <= 0) return 0;
+    const pct = (this.governance.daily_spend_cents / this.governance.daily_budget_cents) * 100;
+    return Math.min(Math.max(Math.round(pct), 0), 100);
+  }
+
+  governanceModeColor(): string {
+    const mode = this.governance?.mode || 'conservative';
+    const map: Record<string, string> = {
+      paused:       '#9e9e9e',  // grey — kill switch on
+      conservative: '#00e5ff',  // cyan — default safe state
+      aggressive:   '#ff6d00',  // orange — accelerated spend
+      disaster:     '#ff1744',  // red — operator override active
+    };
+    return map[mode] || '#64748b';
+  }
+
+  governanceModeLabel(): string {
+    const mode = this.governance?.mode || 'conservative';
+    return mode.charAt(0).toUpperCase() + mode.slice(1);
+  }
+
+  governanceBudgetBarColor(): string {
+    const pct = this.governanceSpendPct();
+    if (pct >= 90) return '#ff1744';   // red — at-the-wall
+    if (pct >= 70) return '#ff6d00';   // orange — warning
+    return '#00e676';                   // green — healthy
+  }
+
+  shortOperatorId(opId: string): string {
+    if (!opId) return '—';
+    return opId.length > 12 ? opId.slice(0, 8) + '…' : opId;
   }
 
   // ── Real-Time Activity Feed helpers ─────────────────────────────

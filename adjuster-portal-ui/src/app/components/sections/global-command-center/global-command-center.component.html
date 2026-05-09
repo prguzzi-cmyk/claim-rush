@@ -42,6 +42,81 @@
       </div>
     </div>
 
+    <!-- ══════ GOVERNANCE + COST TELEMETRY ══════ -->
+    <!-- Live posture of the enrichment cost-governance gate. Renders
+         "Backend unreachable" while logged out (auth-gated endpoint). -->
+    <div class="dark-panel governance-panel" *ngIf="governance">
+      <div class="dark-panel-header">
+        <mat-icon>shield</mat-icon> Governance &amp; Cost
+        <span class="gov-mode-chip" [style.color]="governanceModeColor()" [style.borderColor]="governanceModeColor()">
+          <mat-icon class="gov-mode-icon" [style.color]="governanceModeColor()">{{ governance.active_disaster_state ? 'warning' : 'tune' }}</mat-icon>
+          {{ governanceModeLabel() }}
+        </span>
+        <span class="gov-status-chip"
+              [class.gov-offline]="!governance.reachable"
+              [class.gov-warming]="governance.reachable && governance.schema_pending">
+          {{ !governance.reachable ? 'Backend unreachable' : (governance.schema_pending ? 'Warming up' : 'Live') }}
+        </span>
+      </div>
+
+      <div class="gov-grid">
+        <!-- Daily budget bar -->
+        <div class="gov-card gov-budget-card">
+          <div class="gov-card-label">Daily Spend / Budget</div>
+          <div class="gov-budget-numbers">
+            <span class="gov-budget-spent">{{ fmtCents(governance.daily_spend_cents) }}</span>
+            <span class="gov-budget-sep">/</span>
+            <span class="gov-budget-cap">{{ fmtCents(governance.daily_budget_cents) }}</span>
+          </div>
+          <div class="gov-bar-track">
+            <div class="gov-bar-fill"
+                 [style.width.%]="governanceSpendPct()"
+                 [style.backgroundColor]="governanceBudgetBarColor()"></div>
+          </div>
+          <div class="gov-card-sub">
+            {{ fmtCents(governance.remaining_cents) }} remaining
+            ({{ governanceSpendPct() }}% used)
+          </div>
+        </div>
+
+        <!-- Suppression counter -->
+        <div class="gov-card">
+          <div class="gov-card-label">Suppressed (24h)</div>
+          <div class="gov-card-value">{{ governance.suppressed_count_24h }}</div>
+          <div class="gov-card-sub">gate denials</div>
+        </div>
+
+        <!-- Stage breakdown -->
+        <div class="gov-card gov-stages-card">
+          <div class="gov-card-label">Vendor Usage by Stage (24h)</div>
+          <div *ngIf="governanceStages.length === 0" class="gov-empty">No paid stages have run yet.</div>
+          <div *ngIf="governanceStages.length > 0" class="gov-stage-list">
+            <div *ngFor="let s of governanceStages" class="gov-stage-row">
+              <span class="gov-stage-name">{{ s.stage }}</span>
+              <span class="gov-stage-counts">
+                <span class="gov-allowed" matTooltip="Allowed">{{ s.row.allowed }}</span>
+                <span class="gov-suppressed" matTooltip="Suppressed">{{ s.row.suppressed }}</span>
+              </span>
+              <span class="gov-stage-spend">{{ fmtCents(s.row.spend_cents) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top operators -->
+        <div class="gov-card gov-operators-card">
+          <div class="gov-card-label">Top Operators (24h)</div>
+          <div *ngIf="governanceTopOperators.length === 0" class="gov-empty">No operator-attributed spend yet.</div>
+          <div *ngIf="governanceTopOperators.length > 0" class="gov-op-list">
+            <div *ngFor="let op of governanceTopOperators" class="gov-op-row">
+              <span class="gov-op-id" [matTooltip]="op.operator_id">{{ shortOperatorId(op.operator_id) }}</span>
+              <span class="gov-op-calls">{{ op.calls }} calls</span>
+              <span class="gov-op-spend">{{ fmtCents(op.spend_cents) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════ HIGH PROBABILITY CLAIMS PANEL ══════ -->
     <div class="dark-panel opp-panel">
       <div class="dark-panel-header">
