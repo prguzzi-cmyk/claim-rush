@@ -146,6 +146,7 @@ import { CampaignBuilderComponent } from "./components/sections/outreach/campaig
 import { OutreachProfilesComponent } from "./components/sections/upa-outreach/outreach-profiles/outreach-profiles.component";
 import { UpaCampaignManagerComponent } from "./components/sections/upa-outreach/upa-campaign-manager/upa-campaign-manager.component";
 import { OutreachComplianceComponent } from "./components/sections/upa-outreach/outreach-compliance/outreach-compliance.component";
+import { AutomationControllerComponent } from "./components/sections/automation-controller/automation-controller.component";
 
 // Voice Campaign components
 import { VoiceCampaignDashboardComponent } from "./components/sections/voice-campaigns/voice-campaign-dashboard/voice-campaign-dashboard.component";
@@ -568,6 +569,10 @@ const routes: Routes = [
           {
             path: "outreach-compliance",
             component: OutreachComplianceComponent,
+          },
+          {
+            path: "automation-controller",
+            component: AutomationControllerComponent,
           },
           {
             path: "agent-setup",

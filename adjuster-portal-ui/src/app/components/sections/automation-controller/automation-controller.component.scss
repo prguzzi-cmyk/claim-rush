@@ -1,0 +1,128 @@
+.automation-controller-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .page-header {
+    h1 { margin: 0; font-size: 24px; }
+    .muted { color: #888; margin: 4px 0 0 0; font-size: 14px; }
+  }
+
+  .card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+
+    h2 { margin: 0 0 8px 0; font-size: 18px; }
+    .muted { color: #999; font-size: 13px; }
+    code { background: #0a0a0a; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+  }
+
+  .status-panel {
+    .row { display: flex; flex-wrap: wrap; gap: 24px; }
+    .kv {
+      display: flex; flex-direction: column;
+      .k { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+      .v { font-size: 16px; font-weight: 600; }
+      .v.on { color: #ff6b3d; }      // amber-warning when something is "on"
+      .v.off { color: #4caf50; }     // green when default-deny
+    }
+    .note { font-size: 12px; color: #888; margin-top: 12px; }
+  }
+
+  .emergency {
+    border-color: #5a2a2a;
+    .row { display: flex; gap: 12px; margin-top: 8px; }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+    label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 13px; color: #aaa;
+      input, select {
+        padding: 6px 8px;
+        background: #0a0a0a;
+        color: #eee;
+        border: 1px solid #333;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .weekdays {
+    margin-top: 16px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    .k { font-size: 13px; color: #aaa; margin-right: 8px; }
+    .day-chip {
+      padding: 6px 12px;
+      background: #0a0a0a;
+      color: #888;
+      border: 1px solid #333;
+      border-radius: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      &.active {
+        background: #2c5282;
+        color: #fff;
+        border-color: #2c5282;
+      }
+    }
+  }
+
+  .legal-floor {
+    margin-top: 16px;
+    padding: 12px;
+    background: #0d1f33;
+    border-left: 3px solid #2c5282;
+    border-radius: 0 4px 4px 0;
+    .k { font-size: 11px; color: #6a98c8; text-transform: uppercase; }
+    .v { display: block; font-weight: 600; margin-top: 2px; }
+    .legal-notes { margin: 4px 0 0 0; font-size: 12px; }
+  }
+
+  .rejection {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #3a1010;
+    color: #ff8a8a;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+
+  .row {
+    display: flex; gap: 8px; margin-top: 16px;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 12px;
+    border-collapse: collapse;
+    font-size: 13px;
+    th, td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #2a2a2a;
+      text-align: left;
+    }
+    th { color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+    .on { color: #4caf50; }
+    .off { color: #888; }
+  }
+
+  .dryrun-summary {
+    margin-top: 16px;
+    padding: 12px;
+    background: #0d1f33;
+    border-radius: 4px;
+    p { margin: 4px 0; font-size: 13px; }
+    ul { margin: 8px 0 0 0; padding-left: 20px; }
+    li { font-size: 13px; margin: 2px 0; }
+  }
+}

@@ -1,0 +1,233 @@
+<div class="automation-controller-page">
+
+  <header class="page-header">
+    <h1>Automation Controller</h1>
+    <p class="muted">
+      Phase A — eligibility scanner runs in dry-run mode only.
+      No SMS, no voice calls, no skip-traces are dispatched here.
+    </p>
+  </header>
+
+  <!-- ── Status panel ───────────────────────────────────── -->
+  <section class="card status-panel" *ngIf="status">
+    <div class="row">
+      <div class="kv">
+        <span class="k">Master switch</span>
+        <span class="v" [class.on]="status.auto_dispatch_enabled" [class.off]="!status.auto_dispatch_enabled">
+          {{ status.auto_dispatch_enabled ? 'ENABLED' : 'DISABLED (default-deny)' }}
+        </span>
+      </div>
+      <div class="kv">
+        <span class="k">Twilio</span>
+        <span class="v" [class.on]="status.twilio_enabled" [class.off]="!status.twilio_enabled">
+          {{ status.twilio_enabled ? 'ENABLED' : 'OFF' }}
+        </span>
+      </div>
+      <div class="kv">
+        <span class="k">Allowlist size</span>
+        <span class="v">{{ status.default_recipient_allowlist_size }}</span>
+      </div>
+      <div class="kv">
+        <span class="k">Scanner in beat</span>
+        <span class="v" [class.off]="!status.scanner_in_beat_schedule">
+          {{ status.scanner_in_beat_schedule ? 'YES' : 'NO' }}
+        </span>
+      </div>
+    </div>
+    <p class="note">{{ status.note }}</p>
+  </section>
+
+  <!-- ── Emergency stop ─────────────────────────────────── -->
+  <section class="card emergency">
+    <h2>Emergency stop</h2>
+    <p class="muted">
+      Activates <code>master_pause</code> in <code>outreach_compliance_config</code>.
+      All outreach paths that consult the compliance config halt immediately.
+      Use this if anything looks wrong while we're testing.
+    </p>
+    <div class="row">
+      <button mat-flat-button color="warn" (click)="emergencyStop(true)">Activate master pause</button>
+      <button mat-stroked-button (click)="emergencyStop(false)">Clear master pause</button>
+    </div>
+  </section>
+
+  <!-- ── New / edit hours config ────────────────────────── -->
+  <section class="card">
+    <h2>New outreach hours config</h2>
+    <p class="muted">
+      Hours saved here are validated client-side AND backend-side against the
+      legal contact floor for the lead's state. The UI cannot save illegal
+      hours, and the backend rejects them at HTTP 422 if it gets one.
+    </p>
+
+    <div class="grid">
+      <label>Scope
+        <select [(ngModel)]="scopeKind" (change)="refreshLegalWindow()">
+          <option value="global">global</option>
+          <option value="company">company</option>
+          <option value="territory">territory (state)</option>
+          <option value="user">user</option>
+        </select>
+      </label>
+
+      <label *ngIf="scopeKind !== 'global'">Scope ID
+        <input
+          type="text"
+          [(ngModel)]="scopeId"
+          (change)="refreshLegalWindow()"
+          [maxlength]="scopeKind === 'territory' ? 2 : 36"
+          [placeholder]="scopeKind === 'territory' ? '2-letter state' : 'UUID'"
+        />
+      </label>
+
+      <label>Start time
+        <input type="time" [(ngModel)]="startTime" (change)="revalidate()" />
+      </label>
+      <label>End time
+        <input type="time" [(ngModel)]="endTime" (change)="revalidate()" />
+      </label>
+
+      <label>Timezone
+        <input type="text" [(ngModel)]="timezone" />
+      </label>
+
+      <label>Daily cap (SMS)
+        <input type="number" [(ngModel)]="dailyCapSms" min="0" max="200" />
+      </label>
+      <label>Daily cap (voice)
+        <input type="number" [(ngModel)]="dailyCapVoice" min="0" max="200" />
+      </label>
+
+      <label>Channel sequence
+        <input type="text" [(ngModel)]="channelSequence" />
+      </label>
+    </div>
+
+    <div class="weekdays">
+      <span class="k">Weekdays</span>
+      <button
+        *ngFor="let d of [0,1,2,3,4,5,6]"
+        type="button"
+        class="day-chip"
+        [class.active]="selectedWeekdays.has(d)"
+        (click)="toggleWeekday(d)">
+        {{ weekdayLabels[d] }}
+      </button>
+    </div>
+
+    <!-- Legal-window readout + rejection message -->
+    <div class="legal-floor" *ngIf="legalWindow">
+      <span class="k">Legal floor for {{ legalWindow.state || 'federal' }}</span>
+      <span class="v">
+        {{ legalWindow.start }}–{{ legalWindow.end }} ·
+        {{ legalWindow.allowed_weekdays.length }} day(s) ·
+        {{ legalWindow.timezone }}
+      </span>
+      <p class="legal-notes muted">{{ legalWindow.notes }}</p>
+    </div>
+
+    <p class="rejection" *ngIf="legalRejection">
+      ⛔ {{ legalRejection }}
+    </p>
+
+    <div class="row">
+      <button
+        mat-flat-button
+        color="primary"
+        [disabled]="!!legalRejection"
+        (click)="saveConfig()">
+        Save hours config
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Existing hours configs ─────────────────────────── -->
+  <section class="card">
+    <h2>Active hours configs ({{ hoursConfigs.length }})</h2>
+    <table *ngIf="hoursConfigs.length > 0">
+      <thead>
+        <tr>
+          <th>Scope</th>
+          <th>Window</th>
+          <th>Days</th>
+          <th>TZ</th>
+          <th>SMS / Voice cap</th>
+          <th>Sequence</th>
+          <th>Active</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of hoursConfigs">
+          <td>{{ formatScope(c) }}</td>
+          <td>{{ c.start_time }}–{{ c.end_time }}</td>
+          <td>{{ formatWeekdays(c.weekday_mask) }}</td>
+          <td>{{ c.timezone }}</td>
+          <td>{{ c.daily_cap_sms }} / {{ c.daily_cap_voice }}</td>
+          <td><code>{{ c.channel_sequence }}</code></td>
+          <td>
+            <span [class.on]="c.is_active" [class.off]="!c.is_active">
+              {{ c.is_active ? 'YES' : 'no' }}
+            </span>
+          </td>
+          <td>
+            <button mat-icon-button matTooltip="Disable" (click)="disableConfig(c.id)">
+              <mat-icon>block</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="hoursConfigs.length === 0" class="muted">No hours configs saved yet.</p>
+  </section>
+
+  <!-- ── Dry-run scan ───────────────────────────────────── -->
+  <section class="card">
+    <h2>Dry-run eligibility scan</h2>
+    <p class="muted">
+      Evaluates leads in <code>READY_TO_TEXT</code> state against every gate
+      (legal hours, opt-out, daily cap, allowlist, etc.) and writes verdicts
+      to <code>outreach_decision_log</code>. Never dispatches anything.
+    </p>
+    <button mat-stroked-button (click)="runDryRun()">Run dry-run scan</button>
+    <div *ngIf="lastDryRun" class="dryrun-summary">
+      <p><strong>Run:</strong> <code>{{ lastDryRun.scan_run_id }}</code></p>
+      <p><strong>Leads evaluated:</strong> {{ lastDryRun.leads_evaluated }}</p>
+      <p><strong>Decisions:</strong></p>
+      <ul>
+        <li *ngFor="let kv of lastDryRun.decisions_by_kind | keyvalue">
+          <code>{{ kv.key }}</code> — {{ kv.value }}
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Decision log ───────────────────────────────────── -->
+  <section class="card">
+    <h2>Recent decisions ({{ decisionLog.length }})</h2>
+    <table *ngIf="decisionLog.length > 0">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Decision</th>
+          <th>Lead</th>
+          <th>Channel</th>
+          <th>Reason</th>
+          <th>Dry-run</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of decisionLog">
+          <td><small>{{ r.created_at }}</small></td>
+          <td><code>{{ r.decision }}</code></td>
+          <td><small>{{ r.lead_id || '—' }}</small></td>
+          <td>{{ r.channel || '—' }}</td>
+          <td><small>{{ r.reason || '—' }}</small></td>
+          <td>{{ r.dry_run ? 'yes' : 'NO' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="decisionLog.length === 0" class="muted">No decisions logged yet.</p>
+  </section>
+
+</div>
