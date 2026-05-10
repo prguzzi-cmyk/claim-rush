@@ -1,0 +1,217 @@
+<div class="mc-page">
+
+  <!-- ── Top bar ────────────────────────────────────────────────── -->
+  <header class="mc-header">
+    <div class="mc-title">
+      <span class="mc-dot pulse"></span>
+      <span class="mc-title-text">Mission Control · Outreach Orchestration</span>
+    </div>
+    <div class="mc-meta">
+      <span class="mc-as-of" *ngIf="asOf">as of {{ asOf | date:'medium' }}</span>
+      <span class="mc-lookback">
+        <button *ngFor="let h of [1,6,24,72]"
+                class="mc-pill"
+                [class.active]="lookbackHours === h"
+                (click)="changeLookback(h)">
+          {{ h }}h
+        </button>
+      </span>
+      <button class="mc-pill" (click)="refreshAll()">↻ Refresh</button>
+    </div>
+  </header>
+
+  <!-- ── Top metrics grid ───────────────────────────────────────── -->
+  <section class="mc-metric-grid" *ngIf="metrics; else loadingTpl">
+    <div class="mc-card">
+      <span class="k">Decisions in window</span>
+      <span class="v big">{{ metrics.total_decisions | number }}</span>
+      <span class="sub">{{ metrics.scan_runs_in_window }} scan runs</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Engaged homeowners</span>
+      <span class="v big sev-engagement">{{ metrics.engaged_homeowners | number }}</span>
+      <span class="sub">opt-outs: {{ metrics.opted_out | number }}</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Follow-up backlog</span>
+      <span class="v big" [class.sev-warning]="metrics.followup_backlog > 0">{{ metrics.followup_backlog | number }}</span>
+      <span class="sub">leads.followup_required=true</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Routed in window</span>
+      <span class="v big sev-info">{{ metrics.escalations_routed | number }}</span>
+      <span class="sub">suppressed: {{ metrics.escalations_suppressed | number }}</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Legal-hour blocks</span>
+      <span class="v big sev-warning">{{ metrics.legal_hour_suppressions | number }}</span>
+      <span class="sub">TCPA enforcement</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">DNC suppressions</span>
+      <span class="v big sev-muted">{{ metrics.dnc_suppressions | number }}</span>
+      <span class="sub">opt-outs + voice DNC</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Allowlist blocks</span>
+      <span class="v big">{{ metrics.allowlist_blocks | number }}</span>
+      <span class="sub">default-deny gate</span>
+    </div>
+    <div class="mc-card">
+      <span class="k">Skip-trace cycle</span>
+      <span class="v">{{ metrics.skip_traces_queued | number }} queued</span>
+      <span class="sub">{{ metrics.skip_traces_resolved }} resolved · {{ metrics.skip_traces_failed }} failed</span>
+    </div>
+  </section>
+
+  <ng-template #loadingTpl>
+    <section class="mc-metric-grid">
+      <div class="mc-card placeholder" *ngFor="let _ of [1,2,3,4,5,6,7,8]"></div>
+    </section>
+  </ng-template>
+
+  <!-- ── Main 3-column layout ───────────────────────────────────── -->
+  <section class="mc-grid">
+
+    <!-- Left: Live ticker -->
+    <div class="mc-panel mc-ticker-panel">
+      <div class="mc-panel-header">
+        <span class="mc-dot pulse small"></span>
+        <span>Live Operations Ticker</span>
+        <span class="mc-count">{{ tickerEvents.length }}</span>
+      </div>
+      <div class="mc-ticker">
+        <div *ngFor="let e of tickerEvents"
+             class="mc-ticker-row"
+             [ngClass]="severityClass[e.severity] || 'sev-info'"
+             (click)="e.lead_id && openLead(e.lead_id)">
+          <span class="t-time">{{ agoLabel(e.at) }}</span>
+          <span class="t-kind" [attr.data-kind]="e.kind">{{ e.kind }}</span>
+          <span class="t-title">{{ e.title }}</span>
+          <span class="t-body" *ngIf="e.body">{{ e.body }}</span>
+        </div>
+        <div *ngIf="tickerEvents.length === 0" class="mc-empty">
+          no orchestration events in the last 24 h — engine running quietly
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Action queue -->
+    <div class="mc-panel mc-action-panel">
+      <div class="mc-panel-header">
+        <span>Agent Action Queue</span>
+        <span class="mc-count">{{ actionLeads.length + actionNotifications.length }}</span>
+      </div>
+
+      <div class="mc-subhead">Leads requiring follow-up</div>
+      <div class="mc-action-list" *ngIf="actionLeads.length > 0; else noLeads">
+        <div *ngFor="let lead of actionLeads"
+             class="mc-action-row"
+             (click)="openLead(lead.lead_id)">
+          <span class="pri-chip" [ngClass]="priorityClass(lead.priority_score)">
+            {{ lead.priority_score ?? '—' }}
+          </span>
+          <span class="row-name">{{ lead.contact_name || 'Lead ' + (lead.lead_id | slice:0:8) }}</span>
+          <span class="row-state">{{ lead.contact_status || lead.outreach_state }}</span>
+          <span class="row-territory" *ngIf="lead.state_loss">{{ lead.state_loss }}</span>
+          <span class="row-time">{{ agoLabel(lead.last_routed_at) }}</span>
+        </div>
+      </div>
+      <ng-template #noLeads>
+        <div class="mc-empty">no leads requiring follow-up</div>
+      </ng-template>
+
+      <div class="mc-subhead">Notifications</div>
+      <div class="mc-action-list" *ngIf="actionNotifications.length > 0; else noNotifs">
+        <div *ngFor="let n of actionNotifications"
+             class="mc-action-row"
+             [class.is-unread]="!n.is_read"
+             (click)="n.lead_id && openLead(n.lead_id)">
+          <span class="row-name">{{ n.title }}</span>
+          <span class="row-state">{{ n.message | slice:0:80 }}</span>
+          <span class="row-time">{{ agoLabel(n.created_at) }}</span>
+        </div>
+      </div>
+      <ng-template #noNotifs>
+        <div class="mc-empty">no notifications</div>
+      </ng-template>
+    </div>
+
+    <!-- Right: territory + decision pivots -->
+    <div class="mc-panel mc-pivot-panel" *ngIf="metrics">
+      <div class="mc-panel-header"><span>Operational Pivots</span></div>
+
+      <div class="mc-subhead">Top territories</div>
+      <table class="mc-pivot-table">
+        <tr *ngFor="let t of metrics.top_territories">
+          <td class="cell-key">{{ t.state }}</td>
+          <td class="cell-bar">
+            <span class="bar" [style.width.%]="(t.lead_count / (metrics.top_territories[0]?.lead_count || 1)) * 100"></span>
+          </td>
+          <td class="cell-val">{{ t.lead_count | number }}</td>
+          <td class="cell-pri" [ngClass]="priorityClass(t.max_priority)">{{ t.max_priority ?? '—' }}</td>
+        </tr>
+        <tr *ngIf="metrics.top_territories.length === 0"><td class="mc-empty" colspan="4">no territory activity</td></tr>
+      </table>
+
+      <div class="mc-subhead">Top decisions ({{ lookbackHours }}h)</div>
+      <table class="mc-pivot-table">
+        <tr *ngFor="let d of decisionEntries()">
+          <td class="cell-key cell-decision">{{ d.key }}</td>
+          <td class="cell-val">{{ d.value | number }}</td>
+        </tr>
+      </table>
+
+      <div class="mc-subhead">Lead-state breakdown</div>
+      <table class="mc-pivot-table">
+        <tr *ngFor="let kv of metrics.leads_by_outreach_state | keyvalue">
+          <td class="cell-key">{{ kv.key }}</td>
+          <td class="cell-val">{{ kv.value | number }}</td>
+        </tr>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ── Lead Intelligence drawer ─────────────────────────────── -->
+  <div class="mc-drawer" *ngIf="selectedLeadId" (click)="closeLead()">
+    <div class="mc-drawer-inner" (click)="$event.stopPropagation()">
+      <button class="mc-drawer-close" (click)="closeLead()">✕</button>
+      <h2>Lead Intelligence · {{ (selectedTimeline?.contact_name) || ('Lead ' + (selectedLeadId | slice:0:8)) }}</h2>
+      <ng-container *ngIf="selectedTimeline; else loadingDrawer">
+        <div class="mc-lead-header">
+          <span class="pri-chip" [ngClass]="priorityClass(selectedTimeline.priority_score)">
+            priority {{ selectedTimeline.priority_score ?? '—' }}
+          </span>
+          <span class="lead-pill" *ngIf="selectedTimeline.outreach_state">{{ selectedTimeline.outreach_state }}</span>
+          <span class="lead-pill" *ngIf="selectedTimeline.contact_status">{{ selectedTimeline.contact_status }}</span>
+          <span class="lead-pill" *ngIf="selectedTimeline.peril">{{ selectedTimeline.peril }}</span>
+          <span class="lead-pill" *ngIf="selectedTimeline.state_loss">{{ selectedTimeline.state_loss }}</span>
+          <span class="lead-pill" *ngIf="selectedTimeline.followup_required">FOLLOW-UP REQUIRED</span>
+        </div>
+        <div class="mc-lead-meta">
+          <span *ngIf="selectedTimeline.contact_phone">📞 {{ selectedTimeline.contact_phone }}</span>
+          <span *ngIf="selectedTimeline.last_reply">💬 last reply: "{{ selectedTimeline.last_reply | slice:0:160 }}"</span>
+          <span *ngIf="selectedTimeline.last_routed_role">
+            routed → {{ selectedTimeline.last_routed_role }} {{ agoLabel(selectedTimeline.last_routed_at) }} ago
+          </span>
+        </div>
+        <h3>Timeline · {{ selectedTimeline.timeline_event_count }} events</h3>
+        <div class="mc-timeline">
+          <div *ngFor="let ev of selectedTimeline.timeline"
+               class="mc-timeline-row"
+               [ngClass]="severityClass[ev.severity] || 'sev-info'">
+            <span class="tl-time">{{ ev.at | date:'shortTime' }}</span>
+            <span class="tl-kind">{{ ev.kind }}</span>
+            <span class="tl-title">{{ ev.title }}</span>
+            <span class="tl-body" *ngIf="ev.body">{{ ev.body }}</span>
+          </div>
+          <div *ngIf="selectedTimeline.timeline.length === 0" class="mc-empty">no timeline events recorded</div>
+        </div>
+      </ng-container>
+      <ng-template #loadingDrawer><div class="mc-empty">loading…</div></ng-template>
+    </div>
+  </div>
+
+  <div class="mc-error" *ngIf="loadError">{{ loadError }}</div>
+</div>

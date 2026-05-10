@@ -393,6 +393,7 @@ import { OutreachProfilesComponent } from './components/sections/upa-outreach/ou
 import { UpaCampaignManagerComponent } from './components/sections/upa-outreach/upa-campaign-manager/upa-campaign-manager.component';
 import { OutreachComplianceComponent } from './components/sections/upa-outreach/outreach-compliance/outreach-compliance.component';
 import { AutomationControllerComponent } from './components/sections/automation-controller/automation-controller.component';
+import { MissionControlComponent } from './components/sections/mission-control/mission-control.component';
 
 // Inspection Calendar & Performance
 import { InspectionCalendarComponent } from './components/sections/inspection-calendar/inspection-calendar.component';
@@ -745,6 +746,7 @@ export function tokenGetter() {
     UpaCampaignManagerComponent,
     OutreachComplianceComponent,
     AutomationControllerComponent,
+    MissionControlComponent,
     CampaignBuilderComponent,
     CreateCampaignFromLeadsDialogComponent,
     InspectionCalendarComponent,
