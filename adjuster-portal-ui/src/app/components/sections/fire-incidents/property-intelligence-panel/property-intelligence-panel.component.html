@@ -28,10 +28,8 @@
     <div class="section-card">
       <div class="section-label">ADDRESS</div>
       <div class="address-text">{{ intel.address || incident?.address || '—' }}</div>
-      <div class="location-line" *ngIf="incident?.city || leadTimeline?.state_loss">
-        <span *ngIf="incident?.city">{{ incident!.city }}</span>
-        <span *ngIf="incident?.city && leadTimeline?.state_loss">, </span>
-        <span *ngIf="leadTimeline?.state_loss">{{ leadTimeline!.state_loss }}</span>
+      <div class="location-line" *ngIf="leadTimeline?.state_loss">
+        <span>{{ leadTimeline!.state_loss }}</span>
       </div>
     </div>
 
@@ -167,12 +165,14 @@
     <div class="section-card" *ngIf="leadTimeline && incident?.lead_id">
       <div class="section-label">RECENT DECISIONS</div>
       <div *ngIf="(leadTimeline.timeline?.length || 0) === 0" class="muted-line">none</div>
-      <div *ngFor="let ev of (leadTimeline.timeline || []).slice(-5).reverse()"
-           class="decision-chip-row" [ngClass]="severityClass[ev.severity] || 'sev-info'"
-           *ngIf="ev.kind === 'decision'">
-        <span class="dec-title">{{ ev.title }}</span>
-        <span class="dec-time">{{ agoLabel(ev.at) }}</span>
-      </div>
+      <ng-container *ngFor="let ev of (leadTimeline.timeline || []).slice(-5).reverse()">
+        <div *ngIf="ev.kind === 'decision'"
+             class="decision-chip-row"
+             [ngClass]="severityClass[ev.severity] || 'sev-info'">
+          <span class="dec-title">{{ ev.title }}</span>
+          <span class="dec-time">{{ agoLabel(ev.at) }}</span>
+        </div>
+      </ng-container>
     </div>
 
     <!-- Incident context -->
