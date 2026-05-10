@@ -282,3 +282,148 @@
 .incident-context {
   background: var(--surface-muted);
 }
+
+/* ────────────────────────────────────────────────────────────────
+   Lead Intelligence sections (added: orchestration timeline,
+   routing, decisions, status row). Keeps existing property-intel
+   styles above and only ADDS new selectors. The old action-btn
+   classes for sms/skip-trace/call are now unused but left in place
+   for compatibility with any remaining template references.
+   ──────────────────────────────────────────────────────────────── */
+
+.intel-panel {
+  .location-line {
+    margin-top: 4px;
+    color: var(--text-secondary, #6b7280);
+    font-size: var(--text-sm, 13px);
+  }
+
+  .status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 var(--space-3, 12px);
+    margin-bottom: var(--space-3, 12px);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(0,0,0,0.04);
+    color: var(--text-primary, #111);
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+
+    &.muted { color: var(--text-secondary, #6b7280); }
+
+    &.status-enriched { background: #dcfce7; color: #166534; border-color: #86efac; }
+    &.status-failed   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    &.status-pending  { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+
+    &.pri-critical { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    &.pri-high     { background: #ffedd5; color: #9a3412; border-color: #fdba74; }
+    &.pri-med      { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+    &.pri-low      { background: rgba(0,0,0,0.04); color: var(--text-secondary, #6b7280); }
+    &.pri-none     { background: transparent; color: var(--text-tertiary, #9ca3af); border: 1px dashed var(--text-tertiary, #9ca3af); }
+  }
+
+  .section-label-with-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2, 8px);
+
+    .section-label { margin-bottom: 0; }
+    .link-btn { font-size: 11px; min-width: 0; padding: 0 6px; }
+  }
+
+  .timeline-row {
+    display: grid;
+    grid-template-columns: 78px 70px 1fr;
+    gap: 8px;
+    padding: 4px 0;
+    align-items: baseline;
+    font-size: 12px;
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+    margin-bottom: 2px;
+
+    .tl-time { color: var(--text-tertiary, #9ca3af); font-family: monospace; font-size: 11px; }
+    .tl-kind { color: var(--text-secondary, #6b7280); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .tl-title { font-weight: 600; }
+    .tl-body  { grid-column: 3; color: var(--text-secondary, #6b7280); font-size: 11px; }
+
+    &.sev-critical   { border-left-color: #dc2626; .tl-title { color: #991b1b; } }
+    &.sev-engagement { border-left-color: #16a34a; .tl-title { color: #15803d; } }
+    &.sev-info       { border-left-color: #2563eb; .tl-title { color: #1d4ed8; } }
+    &.sev-warning    { border-left-color: #d97706; .tl-title { color: #b45309; } }
+    &.sev-muted      { border-left-color: #9ca3af; .tl-title { color: #6b7280; } opacity: 0.85; }
+  }
+
+  .decision-chip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 3px 8px;
+    margin-bottom: 4px;
+    background: rgba(0,0,0,0.025);
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    font-size: 11px;
+
+    .dec-title { font-weight: 600; }
+    .dec-time  { color: var(--text-tertiary, #9ca3af); font-family: monospace; }
+
+    &.sev-critical   { border-left-color: #dc2626; .dec-title { color: #991b1b; } }
+    &.sev-engagement { border-left-color: #16a34a; .dec-title { color: #15803d; } }
+    &.sev-info       { border-left-color: #2563eb; .dec-title { color: #1d4ed8; } }
+    &.sev-warning    { border-left-color: #d97706; .dec-title { color: #b45309; } }
+    &.sev-muted      { border-left-color: #9ca3af; .dec-title { color: #6b7280; } opacity: 0.85; }
+  }
+
+  .reply-block {
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.03);
+    border-left: 3px solid var(--accent, #2563eb);
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+    color: var(--text-primary, #111);
+    font-size: 12px;
+  }
+
+  .muted-line {
+    color: var(--text-secondary, #6b7280);
+    font-size: 11px;
+    margin: 4px 0;
+  }
+  .mono { font-family: monospace; font-size: 11px; color: var(--text-secondary, #6b7280); }
+
+  .start-outreach-btn {
+    width: 100%;
+    margin-top: 4px;
+
+    &[disabled] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  }
+  .action-hint {
+    margin-top: 8px;
+    line-height: 1.4;
+    color: var(--text-secondary, #6b7280);
+    font-size: 11px;
+  }
+}

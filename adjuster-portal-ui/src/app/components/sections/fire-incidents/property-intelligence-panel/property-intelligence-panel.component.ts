@@ -3,6 +3,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FireIncident, PropertyIntelligence } from 'src/app/models/fire-incident.model';
 import { FireIncidentService } from 'src/app/services/fire-incident.service';
+import {
+  LeadTimelineResponse,
+  OperationsService,
+  TickerSeverity,
+} from 'src/app/services/operations.service';
 import { ConvertToLeadDialogComponent } from '../convert-to-lead-dialog/convert-to-lead-dialog.component';
 
 @Component({
@@ -19,28 +24,40 @@ export class PropertyIntelligencePanelComponent implements OnChanges {
   isLoading = false;
   errorMsg: string | null = null;
 
-  // Action state
-  smsSending = false;
-  smsSent = false;
-  skipTraceRunning = false;
-  smsMessage = '';
+  // Orchestration data (Phase B-6a + Mission Control)
+  leadTimeline: LeadTimelineResponse | null = null;
+  isLoadingTimeline = false;
+  timelineErrorMsg: string | null = null;
 
-  private readonly defaultSmsTemplate =
-    'Hi {owner_name}, this is UPA. We noticed a fire incident at your property. We help homeowners with insurance claims at no upfront cost. Reply YES if you\'d like to learn more.';
+  // UI state
+  timelineExpanded = false;
+
+  severityClass: Record<TickerSeverity, string> = {
+    critical: 'sev-critical',
+    engagement: 'sev-engagement',
+    info: 'sev-info',
+    warning: 'sev-warning',
+    muted: 'sev-muted',
+  };
 
   constructor(
     private fireIncidentService: FireIncidentService,
+    private operationsService: OperationsService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['incident'] && this.incident) {
-      this.smsSent = false;
+      this.leadTimeline = null;
+      this.timelineErrorMsg = null;
+      this.timelineExpanded = false;
       this.loadIntelligence();
+      this.loadLeadTimeline();
     }
   }
 
+  // ── Data loaders ────────────────────────────────────────────────
   loadIntelligence(): void {
     if (!this.incident) return;
     this.isLoading = true;
@@ -51,7 +68,6 @@ export class PropertyIntelligencePanelComponent implements OnChanges {
       next: (data) => {
         this.intel = data;
         this.isLoading = false;
-        this.buildSmsMessage();
       },
       error: () => {
         this.errorMsg = 'Unable to load property intelligence.';
@@ -60,69 +76,36 @@ export class PropertyIntelligencePanelComponent implements OnChanges {
     });
   }
 
+  loadLeadTimeline(): void {
+    // Only fetch when the incident has been converted to a lead.
+    const leadId = this.incident?.lead_id;
+    if (!leadId) {
+      this.leadTimeline = null;
+      return;
+    }
+    this.isLoadingTimeline = true;
+    this.timelineErrorMsg = null;
+    this.operationsService.leadTimeline(leadId).subscribe({
+      next: (data) => {
+        this.leadTimeline = data;
+        this.isLoadingTimeline = false;
+      },
+      error: () => {
+        this.timelineErrorMsg = 'Unable to load orchestration timeline.';
+        this.isLoadingTimeline = false;
+      },
+    });
+  }
+
   close(): void {
     this.closed.emit();
   }
 
-  // --- Action Methods ---
-
-  buildSmsMessage(): void {
-    const ownerName = this.intel?.owner_name || 'there';
-    this.smsMessage = this.defaultSmsTemplate.replace('{owner_name}', ownerName);
-  }
-
-  sendSms(): void {
-    if (!this.incident || !this.intel?.phone || this.smsSending) return;
-    this.smsSending = true;
-
-    this.fireIncidentService.sendOutreachSms(
-      this.incident.id,
-      this.intel.phone,
-      this.smsMessage,
-    ).subscribe({
-      next: (res) => {
-        this.smsSending = false;
-        this.smsSent = true;
-        this.snackBar.open(
-          res.success ? 'SMS sent successfully' : `SMS failed: ${res.message}`,
-          'OK',
-          { duration: 4000 },
-        );
-      },
-      error: (err) => {
-        this.smsSending = false;
-        this.snackBar.open(
-          err.error?.detail || 'Failed to send SMS',
-          'OK',
-          { duration: 4000 },
-        );
-      },
-    });
-  }
-
-  runSkipTrace(): void {
-    if (!this.incident || this.skipTraceRunning) return;
-    this.skipTraceRunning = true;
-
-    this.fireIncidentService.skipTrace(this.incident.id).subscribe({
-      next: (result) => {
-        this.skipTraceRunning = false;
-        if (result.residents && result.residents.length > 0) {
-          this.snackBar.open('Skip trace completed — owner data found', 'OK', { duration: 3000 });
-          // Reload intelligence to pick up new data
-          this.loadIntelligence();
-        } else {
-          this.snackBar.open('Skip trace completed — no residents found', 'OK', { duration: 3000 });
-        }
-      },
-      error: () => {
-        this.skipTraceRunning = false;
-        this.snackBar.open('Skip trace failed', 'OK', { duration: 3000 });
-      },
-    });
-  }
-
-  openConvertToLead(): void {
+  // ── Single allowed outreach action ──────────────────────────────
+  // Opens the Convert-to-Lead dialog, which is the canonical entry
+  // point to start an outreach sequence. The drawer itself is
+  // read-only; this is the only mutation surface here.
+  startOutreach(): void {
     if (!this.incident) return;
     this.dialog.open(ConvertToLeadDialogComponent, {
       width: '500px',
@@ -130,8 +113,11 @@ export class PropertyIntelligencePanelComponent implements OnChanges {
     });
   }
 
-  // --- Status Helpers ---
+  toggleTimeline(): void {
+    this.timelineExpanded = !this.timelineExpanded;
+  }
 
+  // ── Display helpers ─────────────────────────────────────────────
   getStatusClass(status: string): string {
     switch (status) {
       case 'enriched': return 'status-enriched';
@@ -163,5 +149,29 @@ export class PropertyIntelligencePanelComponent implements OnChanges {
       case 'landline': return 'type-landline';
       default: return 'type-unknown';
     }
+  }
+
+  priorityClass(score: number | null | undefined): string {
+    if (score == null) return 'pri-none';
+    if (score >= 90) return 'pri-critical';
+    if (score >= 70) return 'pri-high';
+    if (score >= 40) return 'pri-med';
+    return 'pri-low';
+  }
+
+  agoLabel(iso: string | null | undefined): string {
+    if (!iso) return '';
+    const then = new Date(iso).getTime();
+    const sec = Math.max(0, (Date.now() - then) / 1000);
+    if (sec < 60) return `${Math.round(sec)}s ago`;
+    if (sec < 3600) return `${Math.round(sec / 60)}m ago`;
+    if (sec < 86400) return `${Math.round(sec / 3600)}h ago`;
+    return `${Math.round(sec / 86400)}d ago`;
+  }
+
+  visibleTimelineEvents() {
+    if (!this.leadTimeline) return [];
+    const events = this.leadTimeline.timeline || [];
+    return this.timelineExpanded ? events : events.slice(-10).reverse();
   }
 }
