@@ -43,7 +43,12 @@ const items = {
   campaigns:       { to: "/portal/rin/campaigns",        label: "Campaigns",           icon: "\u{1F4E2}", rinRoute: "/app/outreach/campaigns" },
 
   // ── CLOSE ──
-  signClient:      { to: "/portal/rin/sign",             label: "Sign Client",         icon: "\u{270D}\uFE0F", rinRoute: "/app/agreements" },
+  // UPASign \u2014 sidebar entry surfaces the existing iframe wrapper at
+  // /portal/rin/sign \u2192 adjuster-portal-ui /app/agreements (Angular). No
+  // new component. Label "UPASign" matches the Angular sidebar + AxisCoach
+  // documentation. Dashboard's separate "Sign Client" tile button is left
+  // unchanged on purpose.
+  signClient:      { to: "/portal/rin/sign",             label: "UPASign",             icon: "\u{270D}\uFE0F", rinRoute: "/app/agreements" },
 
   // ── MY CLIENTS (read-only — scoped by territory/ownership in backend) ──
   myClients:       { to: "/portal/my-clients",           label: "My Clients",          icon: "\u{1F465}", page: "clients" },
@@ -75,6 +80,7 @@ const items = {
 export const AGENT_NAV = [
   { group: null, items: [items.dashboard] },
   { group: "FIND LEADS",  items: [items.fireLeads] },
+  { group: "CLOSE",       items: [items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -84,6 +90,7 @@ export const AGENT_NAV = [
 export const RVP_NAV = [
   { group: null, items: [items.dashboard, items.managerOversight] },
   { group: "FIND LEADS",  items: [items.fireLeads] },
+  { group: "CLOSE",       items: [items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -94,7 +101,7 @@ export const RVP_NAV = [
 export const CP_NAV = [
   { group: null, items: [items.dashboard, items.managerOversight] },
   { group: "FIND LEADS",  items: [items.fireLeads] },
-  { group: "CLOSE",       items: [items.pitchMode] },
+  { group: "CLOSE",       items: [items.pitchMode, items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -111,6 +118,7 @@ export const ADJUSTER_NAV = [
   // (filtered by assignment). My Clients is also hidden by the
   // permission filter for the adjuster role anyway.
   { group: "WORK", items: [items.myCases] },
+  { group: "CLOSE", items: [items.signClient] },
   // RESOURCES group (Training Center / Storm Alerts) removed — backend
   // /v1/seminars/* endpoints don't exist yet. Re-add when seminar service
   // ships.
