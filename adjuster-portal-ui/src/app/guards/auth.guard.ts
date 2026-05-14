@@ -19,6 +19,12 @@ export class AuthGuard {
   ): Observable<boolean> | Promise<boolean> | boolean {
     if ((environment as any).devAutoLogin) return true;
 
+    // Cross-origin auth handoff: when ClaimRush iframes a RIN route, the
+    // parent passes the JWT as ?access_token=... — pick it up before the
+    // localStorage check so the iframe renders the requested route
+    // instead of bouncing to /login.
+    this.authService.hydrateFromUrl();
+
     if (this.authService.isAuthenticated()) {
       return true;
     }
