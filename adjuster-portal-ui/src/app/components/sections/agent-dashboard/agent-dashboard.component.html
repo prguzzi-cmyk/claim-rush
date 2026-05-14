@@ -248,6 +248,10 @@
             <mat-icon>trending_up</mat-icon> Escalated (Level {{ lead.escalation_level }})
           </div>
         </div>
+        <div *ngIf="!assignedLeads.length"
+             style="text-align:center; color:#6b7280; padding:48px 16px; font-size:13px;">
+          No leads assigned yet.
+        </div>
       </div>
     </div>
   </div>
