@@ -37,6 +37,7 @@
         <div class="kpi-big-label">Conversion Rate</div>
       </div>
     </div>
+    <div *ngIf="!kpis" style="text-align:center; color:#6b7280; padding:24px 16px; font-size:13px;">No KPI data yet</div>
 
     <div class="panels-row">
 
@@ -45,7 +46,7 @@
         <div class="dark-panel-header">
           <mat-icon>bar_chart</mat-icon> Daily Activity (7 Days)
         </div>
-        <div class="chart-body">
+        <div class="chart-body" *ngIf="dailyMetrics.length">
           <div class="bar-chart">
             <div *ngFor="let day of dailyMetrics" class="bar-group">
               <div class="bars">
@@ -62,6 +63,7 @@
             <span class="legend-item"><span class="legend-dot signed"></span> Signed</span>
           </div>
         </div>
+        <div *ngIf="!dailyMetrics.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No daily activity yet</div>
       </div>
 
       <!-- ══════ STATUS FUNNEL ══════ -->
@@ -69,7 +71,7 @@
         <div class="dark-panel-header">
           <mat-icon>filter_alt</mat-icon> Pipeline Funnel
         </div>
-        <div class="funnel-body">
+        <div class="funnel-body" *ngIf="statusBreakdown.length">
           <div *ngFor="let s of statusBreakdown" class="funnel-row">
             <div class="funnel-label">{{ s.label }}</div>
             <div class="funnel-bar-wrap">
@@ -79,6 +81,7 @@
             <div class="funnel-pct">{{ s.percentage }}%</div>
           </div>
         </div>
+        <div *ngIf="!statusBreakdown.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No pipeline data yet</div>
       </div>
     </div>
 
@@ -89,7 +92,7 @@
         <div class="dark-panel-header">
           <mat-icon>leaderboard</mat-icon> Agent Performance
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" *ngIf="agentStats.length">
           <table class="dark-table">
             <thead>
               <tr>
@@ -122,6 +125,7 @@
             </tbody>
           </table>
         </div>
+        <div *ngIf="!agentStats.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No agent performance data yet</div>
       </div>
 
       <!-- ══════ CLAIM TYPE BREAKDOWN ══════ -->
@@ -129,7 +133,7 @@
         <div class="dark-panel-header">
           <mat-icon>pie_chart</mat-icon> Claim Type Breakdown
         </div>
-        <div class="breakdown-body">
+        <div class="breakdown-body" *ngIf="claimTypeBreakdown.length">
           <div *ngFor="let t of claimTypeBreakdown" class="breakdown-row">
             <div class="breakdown-icon">
               <mat-icon>{{ getClaimIcon(t.type) }}</mat-icon>
@@ -144,6 +148,7 @@
             <div class="breakdown-pct">{{ t.percentage }}%</div>
           </div>
         </div>
+        <div *ngIf="!claimTypeBreakdown.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No claim type data yet</div>
       </div>
     </div>
 
