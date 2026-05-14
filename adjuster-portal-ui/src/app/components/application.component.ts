@@ -124,10 +124,21 @@ export class ApplicationComponent implements OnInit {
 
   ngOnInit() {
     // Detect embed mode once at boot. Read-only, no state mutations.
+    // HashLocationStrategy quirk: Angular canonicalizes the URL after
+    // bootstrap, moving the query string from location.search to inside
+    // the hash. Read from both sources so detection is stable whether
+    // ngOnInit fires before or after the canonicalization.
     try {
-      this.isEmbedded =
-        typeof window !== 'undefined' &&
-        new URLSearchParams(window.location.search).get('embed') === 'claim-rush';
+      if (typeof window !== 'undefined') {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashStr = window.location.hash || '';
+        const hashQueryIdx = hashStr.indexOf('?');
+        const hashParams = hashQueryIdx >= 0
+          ? new URLSearchParams(hashStr.slice(hashQueryIdx))
+          : new URLSearchParams();
+        const embed = searchParams.get('embed') || hashParams.get('embed');
+        this.isEmbedded = embed === 'claim-rush';
+      }
     } catch {
       this.isEmbedded = false;
     }

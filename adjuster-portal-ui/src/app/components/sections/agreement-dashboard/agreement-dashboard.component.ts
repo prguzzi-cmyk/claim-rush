@@ -37,8 +37,10 @@ export class AgreementDashboardComponent implements OnInit {
   view: View = 'dashboard';
   statusFilter = '';
 
-  // KPIs
-  kpis = { sentToday: 8, completed: 5, pending: 12, avgTime: '2.4h' };
+  // KPIs — zeroed until a real backend endpoint exists. Numbers stay 0;
+  // avgTime renders as an em-dash so an empty surface doesn't pretend
+  // there's a measured average.
+  kpis = { sentToday: 0, completed: 0, pending: 0, avgTime: '—' };
 
   // Documents
   documents: DocRow[] = [];
@@ -78,10 +80,11 @@ export class AgreementDashboardComponent implements OnInit {
   constructor(private router: Router, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
-    console.log('[UPASign] Dashboard component mounted');
-    this.documents = this.getMockDocs();
-    this.filteredDocs = this.documents;
-    console.log('[UPASign] Loaded', this.documents.length, 'documents,', this.certifiedCount, 'certified');
+    // No backend endpoint yet — documents stay empty until one is wired.
+    // The template already renders the "No documents found" empty state
+    // when filteredDocs is empty (us-empty block, *ngIf="filteredDocs.length === 0").
+    this.documents = [];
+    this.filteredDocs = [];
   }
 
   // ── Filtering ──────────────────────────────────────────────────
@@ -287,14 +290,4 @@ export class AgreementDashboardComponent implements OnInit {
     return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
-  private getMockDocs(): DocRow[] {
-    const t = (d: number) => new Date(Date.now() - d * 86400000).toISOString();
-    return [
-      { id: 'd1', name: 'Claim Representation Agreement', clientName: 'Robert Chen', status: 'signed', sentDate: t(5), lastActivity: 'Signed 4 days ago', agent: 'Mike Torres', signingMode: 'standard', email: 'rchen@example.com' },
-      { id: 'd2', name: 'Property Inspection Auth', clientName: 'Maria Gonzalez', status: 'viewed', sentDate: t(2), lastActivity: 'Viewed 1 day ago', agent: 'Sarah Kim', signingMode: 'certified', email: 'mgonzalez@example.com', cert: { documentHash: 'a3f8c1d9e2b4f6a7c0d1e3f5a8b2c4d6e9f1a3b5c7d9e2f4a6b8c0d2e4f6a8b0', signedBy: 'Maria Gonzalez', signedAt: new Date(Date.now() - 86400000).toISOString(), ipAddress: '192.168.1.42', deviceType: 'iPhone 15 Pro', browser: 'Safari 17.3', location: 'Fort Worth, TX', tamperStatus: 'verified', auditCount: 7 } },
-      { id: 'd3', name: 'Claim Representation Agreement', clientName: 'David Thompson', status: 'sent', sentDate: t(1), lastActivity: 'Sent yesterday', agent: 'James Rivera', signingMode: 'standard', email: 'dthompson@example.com' },
-      { id: 'd4', name: 'Supplemental Agreement', clientName: 'Jennifer Adams', status: 'draft', sentDate: null, lastActivity: 'Created today', agent: 'You', signingMode: 'standard', email: 'jadams@example.com' },
-      { id: 'd5', name: 'Assignment of Benefits', clientName: 'William Brown', status: 'expired', sentDate: t(35), lastActivity: 'Expired', agent: 'Lisa Park', signingMode: 'standard', email: 'wbrown@example.com' },
-    ];
-  }
 }

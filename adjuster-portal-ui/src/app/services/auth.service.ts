@@ -76,7 +76,17 @@ export class AuthService {
   hydrateFromUrl(): void {
     try {
       if (typeof window === 'undefined') return;
-      const tokenFromUrl = new URLSearchParams(window.location.search).get('access_token');
+      // Read access_token from either location.search (initial URL shape)
+      // or the hash-tail query (Angular HashLocationStrategy canonicalizes
+      // the URL post-bootstrap, moving the query string into the hash).
+      // Either source is acceptable; check both so timing doesn't matter.
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashStr = window.location.hash || '';
+      const hashQueryIdx = hashStr.indexOf('?');
+      const hashParams = hashQueryIdx >= 0
+        ? new URLSearchParams(hashStr.slice(hashQueryIdx))
+        : new URLSearchParams();
+      const tokenFromUrl = searchParams.get('access_token') || hashParams.get('access_token');
       if (!tokenFromUrl) return;
       try {
         if (this.jwtHelper.isTokenExpired(tokenFromUrl)) return;
