@@ -61,6 +61,13 @@ export class ApplicationComponent implements OnInit {
   role: string;
   readonly isDevPortal: boolean = !!(environment as any).devAutoLogin;
 
+  // When ClaimRush iframes a RIN route, IframeFeature.jsx appends
+  // ?embed=claim-rush. In that case we render only the routed child
+  // component — no sidebar, topbar, banners, or tab chrome — so the
+  // ClaimRush shell isn't wrapping a duplicate RIN portal shell. Direct
+  // visits to rin.aciunited.com (no ?embed=) keep the full chrome.
+  isEmbedded: boolean = false;
+
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChild('outlet', { read: ViewContainerRef }) outletRef: ViewContainerRef;
   @ViewChild('content', { read: TemplateRef }) contentRef: TemplateRef<any>;
@@ -116,6 +123,14 @@ export class ApplicationComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Detect embed mode once at boot. Read-only, no state mutations.
+    try {
+      this.isEmbedded =
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('embed') === 'claim-rush';
+    } catch {
+      this.isEmbedded = false;
+    }
 
     this.userService.currentUser.subscribe((user) => {
       this.user = user;
