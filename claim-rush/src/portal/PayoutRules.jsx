@@ -161,13 +161,22 @@ export default function PayoutRules() {
     });
   }, []);
 
-  // Impact preview calculations
-  const mockUsers = { CP: 4, RVP: 12, Agent: 45 };
-  const totalLicensing = mockUsers.CP * rules.licensing.CP.fee + mockUsers.RVP * rules.licensing.RVP.fee + mockUsers.Agent * rules.licensing.Agent.fee;
-  const totalOverrides = (rules.overrides.cpOnRvp.enabled ? mockUsers.RVP * rules.licensing.RVP.fee * rules.overrides.cpOnRvp.pct / 100 : 0) +
-    (rules.overrides.rvpOnAgent.enabled ? mockUsers.Agent * rules.licensing.Agent.fee * rules.overrides.rvpOnAgent.pct / 100 : 0) +
-    (rules.overrides.cpOnAgent.enabled ? mockUsers.Agent * rules.licensing.Agent.fee * rules.overrides.cpOnAgent.pct / 100 : 0);
+  // Preview calculator — admin-entered scenario counts, NOT live org data.
+  // This is a configuration/planning tool for modeling licensing impact at
+  // an arbitrary fleet size. Starts at zero so the panel reads as empty
+  // until the admin types projected counts.
+  const [previewCounts, setPreviewCounts] = useState({ CP: 0, RVP: 0, Agent: 0 });
+  const setPreviewCount = (role, raw) => {
+    const n = Math.max(0, Math.floor(Number(raw) || 0));
+    setPreviewCounts(prev => ({ ...prev, [role]: n }));
+  };
+
+  const totalLicensing = previewCounts.CP * rules.licensing.CP.fee + previewCounts.RVP * rules.licensing.RVP.fee + previewCounts.Agent * rules.licensing.Agent.fee;
+  const totalOverrides = (rules.overrides.cpOnRvp.enabled ? previewCounts.RVP * rules.licensing.RVP.fee * rules.overrides.cpOnRvp.pct / 100 : 0) +
+    (rules.overrides.rvpOnAgent.enabled ? previewCounts.Agent * rules.licensing.Agent.fee * rules.overrides.rvpOnAgent.pct / 100 : 0) +
+    (rules.overrides.cpOnAgent.enabled ? previewCounts.Agent * rules.licensing.Agent.fee * rules.overrides.cpOnAgent.pct / 100 : 0);
   const companyRetained = totalLicensing - totalOverrides;
+  const retentionPct = totalLicensing > 0 ? Math.round((companyRetained / totalLicensing) * 100) : null;
 
   const prodPlan = rules.production.plans;
   const prodClaim = rules.production.claims;
@@ -383,13 +392,20 @@ export default function PayoutRules() {
 
         {/* ── RIGHT: Sticky Summary + Actions ──────────────────────────────── */}
         <div style={{ position: "sticky", top: 24, alignSelf: "start" }}>
-          {/* Impact Preview */}
-          <Panel title="IMPACT PREVIEW" color="#00E6A8">
+          {/* Preview Calculator */}
+          <Panel title="PREVIEW CALCULATOR" color="#00E6A8">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>AFFECTED USERS</div>
-                <div style={{ fontSize: 22, color: "#FFFFFF", fontWeight: 700, ...mono }}>{mockUsers.CP + mockUsers.RVP + mockUsers.Agent}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", ...mono }}>{mockUsers.CP} CP · {mockUsers.RVP} RVP · {mockUsers.Agent} Agent</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600, marginBottom: 4 }}>SCENARIO COUNTS</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.40)", ...mono, lineHeight: 1.4, marginBottom: 8 }}>
+                  Enter projected counts to model licensing impact. Not live org data.
+                </div>
+                {["CP", "RVP", "Agent"].map(role => (
+                  <div key={role} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "3px 0" }}>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.70)", ...mono }}>{role}</span>
+                    <NumInput value={previewCounts[role]} onChange={v => setPreviewCount(role, v)} width={70} />
+                  </div>
+                ))}
               </div>
               <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
               <div>
@@ -407,9 +423,9 @@ export default function PayoutRules() {
               <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: 1, ...mono, fontWeight: 600 }}>RETENTION RATE</div>
               <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)" }}>
-                <div style={{ height: "100%", borderRadius: 3, width: `${Math.round((companyRetained / totalLicensing) * 100)}%`, background: "#00E6A8", transition: "width 0.4s ease" }} />
+                <div style={{ height: "100%", borderRadius: 3, width: retentionPct !== null ? `${retentionPct}%` : "0%", background: "#00E6A8", transition: "width 0.4s ease" }} />
               </div>
-              <div style={{ fontSize: 13, color: "#00E6A8", ...mono, fontWeight: 700 }}>{Math.round((companyRetained / totalLicensing) * 100)}%</div>
+              <div style={{ fontSize: 13, color: "#00E6A8", ...mono, fontWeight: 700 }}>{retentionPct !== null ? `${retentionPct}%` : "—"}</div>
 
               {claimWarning && (
                 <div style={{ padding: "8px 10px", background: "rgba(224,80,80,0.08)", border: "1px solid rgba(224,80,80,0.20)", borderRadius: 6, fontSize: 12, color: "#E05050", ...mono, fontWeight: 600 }}>

@@ -12,12 +12,12 @@
                 [class.rev-tf-active]="timeFilter === f"
                 (click)="setTimeFilter(f)">{{ f === 'today' ? 'Today' : f }}</button>
       </div>
-      <span class="rev-clock">Updated {{ lastUpdated }}</span>
+      <span class="rev-clock">{{ hasAnyData ? 'Updated ' + lastUpdated : 'Awaiting data' }}</span>
     </div>
   </div>
 
   <!-- ══════ KPI ROW ══════ -->
-  <div class="rev-kpi-row">
+  <div class="rev-kpi-row" *ngIf="kpis.length">
     <div class="rev-kpi" *ngFor="let k of kpis" [style.borderTopColor]="k.color">
       <mat-icon [style.color]="k.color">{{ k.icon }}</mat-icon>
       <div class="rev-kpi-val">{{ k.value }}</div>
@@ -25,14 +25,16 @@
       <div class="rev-kpi-trend" *ngIf="k.trend">{{ k.trend }}</div>
     </div>
   </div>
+  <div *ngIf="!kpis.length" style="text-align:center; color:#6b7280; padding:24px 16px; font-size:13px;">No performance data yet</div>
 
   <!-- ══════ REVENUE ROW ══════ -->
-  <div class="rev-revenue-row">
+  <div class="rev-revenue-row" *ngIf="revenueKpis.length">
     <div class="rev-rev-card" *ngFor="let r of revenueKpis">
       <div class="rev-rev-val" [style.color]="r.color">{{ r.value }}</div>
       <div class="rev-rev-lbl">{{ r.label }}</div>
     </div>
   </div>
+  <div *ngIf="!revenueKpis.length" style="text-align:center; color:#6b7280; padding:24px 16px; font-size:13px;">No revenue data yet</div>
 
   <!-- ══════ FUNNEL + ACTIVITY ══════ -->
   <div class="rev-grid-2">
@@ -40,7 +42,7 @@
     <!-- Funnel -->
     <div class="rev-panel">
       <div class="rev-panel-header"><mat-icon>filter_alt</mat-icon> Conversion Funnel</div>
-      <div class="rev-funnel">
+      <div class="rev-funnel" *ngIf="funnel.length">
         <div class="rev-funnel-step" *ngFor="let s of funnel; let i = index">
           <div class="rev-funnel-bar-wrap">
             <div class="rev-funnel-bar" [style.width.%]="(s.count / funnelMaxCount) * 100" [style.backgroundColor]="s.color"></div>
@@ -55,12 +57,13 @@
           </div>
         </div>
       </div>
+      <div *ngIf="!funnel.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No conversion data yet</div>
     </div>
 
     <!-- Activity Feed -->
     <div class="rev-panel">
-      <div class="rev-panel-header"><mat-icon>timeline</mat-icon> Live Activity <span class="rev-live-dot"></span></div>
-      <div class="rev-activity-scroll">
+      <div class="rev-panel-header"><mat-icon>timeline</mat-icon> Live Activity <span class="rev-live-dot" *ngIf="activities.length"></span></div>
+      <div class="rev-activity-scroll" *ngIf="activities.length">
         <div class="rev-act-item" *ngFor="let a of activities">
           <div class="rev-act-dot" [style.backgroundColor]="a.color">
             <mat-icon>{{ a.icon }}</mat-icon>
@@ -71,13 +74,14 @@
           </div>
         </div>
       </div>
+      <div *ngIf="!activities.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No activity yet</div>
     </div>
   </div>
 
   <!-- ══════ AGENT PERFORMANCE ══════ -->
   <div class="rev-panel rev-full">
     <div class="rev-panel-header"><mat-icon>leaderboard</mat-icon> Agent Performance</div>
-    <div class="rev-table-scroll">
+    <div class="rev-table-scroll" *ngIf="agents.length">
       <table class="rev-table">
         <thead>
           <tr>
@@ -102,6 +106,7 @@
         </tbody>
       </table>
     </div>
+    <div *ngIf="!agents.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No agent performance data yet</div>
   </div>
 
   <!-- ══════ SOURCE + VOICE + CERTIFIED ══════ -->
@@ -110,7 +115,7 @@
     <!-- Lead Sources -->
     <div class="rev-panel">
       <div class="rev-panel-header"><mat-icon>source</mat-icon> Lead Sources</div>
-      <div class="rev-source-list">
+      <div class="rev-source-list" *ngIf="sources.length">
         <div class="rev-source-row" *ngFor="let s of sources">
           <mat-icon [style.color]="s.color">{{ s.icon }}</mat-icon>
           <span class="rev-src-name">{{ s.source }}</span>
@@ -119,12 +124,13 @@
           <span class="rev-src-rate" [style.color]="s.rate >= 15 ? '#16a34a' : '#d97706'">{{ s.rate }}%</span>
         </div>
       </div>
+      <div *ngIf="!sources.length" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No lead source data yet</div>
     </div>
 
     <!-- Voice + AI -->
     <div class="rev-panel">
       <div class="rev-panel-header"><mat-icon>phone_in_talk</mat-icon> Voice & AI</div>
-      <div class="rev-metric-grid">
+      <div class="rev-metric-grid" *ngIf="voiceMetrics">
         <div class="rev-metric">
           <span class="rev-m-val">{{ voiceMetrics.answered }}</span>
           <span class="rev-m-lbl">Calls Answered</span>
@@ -146,12 +152,13 @@
           <span class="rev-m-lbl">Manual Conversion</span>
         </div>
       </div>
+      <div *ngIf="!voiceMetrics" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No call data yet</div>
     </div>
 
     <!-- Certified -->
     <div class="rev-panel">
       <div class="rev-panel-header"><mat-icon>verified</mat-icon> Certified Signatures</div>
-      <div class="rev-metric-grid">
+      <div class="rev-metric-grid" *ngIf="certifiedMetrics">
         <div class="rev-metric">
           <span class="rev-m-val" style="color:#7c3aed;">{{ certifiedMetrics.certifiedPct }}%</span>
           <span class="rev-m-lbl">Using Certified</span>
@@ -165,6 +172,7 @@
           <span class="rev-m-lbl">Standard Completion</span>
         </div>
       </div>
+      <div *ngIf="!certifiedMetrics" style="text-align:center; color:#6b7280; padding:32px 16px; font-size:13px;">No certified signature data yet</div>
     </div>
   </div>
 
