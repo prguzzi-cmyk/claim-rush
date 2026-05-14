@@ -100,16 +100,25 @@ export class SalesKpiDashboardComponent implements OnInit, OnDestroy {
   }
 
   private computeDailyMetrics(): void {
-    // Mock daily metrics for last 7 days
-    this.dailyMetrics = [
-      { date: 'Mar 10', conversations: 3, qualified: 1, signed: 0 },
-      { date: 'Mar 11', conversations: 5, qualified: 2, signed: 0 },
-      { date: 'Mar 12', conversations: 4, qualified: 2, signed: 1 },
-      { date: 'Mar 13', conversations: 6, qualified: 3, signed: 0 },
-      { date: 'Mar 14', conversations: 8, qualified: 4, signed: 1 },
-      { date: 'Mar 15', conversations: 5, qualified: 3, signed: 1 },
-      { date: 'Mar 16', conversations: 3, qualified: 1, signed: 0 },
-    ];
+    // Bucket conversations by YYYY-MM-DD of createdAt. No fabricated rows:
+    // empty conversations yield an empty array, which the template's
+    // empty-state guard renders honestly.
+    const byDay = new Map<string, { conversations: number; qualified: number; signed: number }>();
+    for (const c of this.conversations) {
+      const day = (c.createdAt || '').slice(0, 10);
+      if (!day) continue;
+      const entry = byDay.get(day) || { conversations: 0, qualified: 0, signed: 0 };
+      entry.conversations += 1;
+      if (['qualified', 'appointment_set', 'client_signed'].includes(c.status)) entry.qualified += 1;
+      if (c.status === 'client_signed') entry.signed += 1;
+      byDay.set(day, entry);
+    }
+    this.dailyMetrics = Array.from(byDay.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, m]) => ({
+        date: new Date(day + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        ...m,
+      }));
   }
 
   getClaimIcon(type: string): string {
