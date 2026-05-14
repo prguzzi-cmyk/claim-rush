@@ -595,23 +595,11 @@ export class AgentDashboardComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        // Fallback to mock data on API error
-        this.initMockLeads();
+        // Honest empty state on API error — never fabricate leads.
+        // The 30-second poll will retry; transient outages self-heal.
+        this.assignedLeads = [];
       },
     });
-  }
-
-  private initMockLeads() {
-    const now = Date.now();
-    const allLeads: AssignedLead[] = [
-      { id: 'mock-1', refString: 'Lead #4821', contactName: 'Maria Gonzalez', address: '4521 Oak Ridge Dr, Dallas TX', source: 'UPA Incident Intelligence Network', assignedAt: new Date(now - 90000), expiresAt: new Date(now + 1725000), status: 'pending', remainingSeconds: 1725, state: 'TX', county: 'Dallas', zip_code: '75204' },
-      { id: 'mock-2', refString: 'Lead #4819', contactName: 'Robert Chen', address: '912 Maple Ave, Fort Worth TX', source: 'UPA Incident Intelligence Network', assignedAt: new Date(now - 300000), expiresAt: new Date(now + 1500000), status: 'pending', remainingSeconds: 1500, state: 'TX', county: 'Tarrant', zip_code: '76104' },
-      { id: 'mock-3', refString: 'Lead #4817', contactName: 'Sarah Kim', address: '7800 Greenville Ave, Dallas TX', source: 'UPA Incident Intelligence Network', assignedAt: new Date(now - 480000), expiresAt: new Date(now + 1320000), status: 'pending', remainingSeconds: 1320, state: 'TX', county: 'Dallas', zip_code: '75231' },
-      { id: 'mock-4', refString: 'Lead #4815', contactName: 'James Wilson', address: '1200 Commerce St, Arlington TX', source: 'UPA Incident Intelligence Network', assignedAt: new Date(now - 600000), expiresAt: new Date(now + 600000), status: 'pending', remainingSeconds: 600, state: 'TX', county: 'Tarrant', zip_code: '76011' },
-      { id: 'mock-5', refString: 'Lead #4812', contactName: 'Patricia Hernandez', address: '350 W 5th St, Denton TX', source: 'UPA Incident Intelligence Network', assignedAt: new Date(now - 900000), expiresAt: new Date(now + 180000), status: 'pending', remainingSeconds: 180, state: 'TX', county: 'Denton', zip_code: '76201' },
-    ];
-
-    this.assignedLeads = this.applyTerritoryFilter(allLeads);
   }
 
   private startLeadPolling() {
