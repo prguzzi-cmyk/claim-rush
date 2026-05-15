@@ -20,12 +20,16 @@
 // RIN side, and stay visible based on the per-role nav list below.
 const items = {
   // ── Native ClaimRush ──
+  missionControl:  { to: "/portal/mission",             label: "Mission Control",     icon: "\u{1F6F0}️", accent: "#D4A853", sub: "AI Chief of Operations" },
   dashboard:       { to: "/portal",                     label: "Dashboard",           icon: "\u{1F4CA}", end: true, page: "dashboard" },
   pitchMode:       { to: "/portal/pitch",               label: "Pitch Mode",          icon: "\u{1F3AF}", page: "pitch" },
   managerOversight:{ to: "/portal/oversight",           label: "Oversight Queue",     icon: "\u{1F441}️", page: "oversight" },
   myCases:         { to: "/portal/my-cases",            label: "My Cases",            icon: "\u{1F4C2}" },
 
   // ── INTELLIGENCE NETWORK ── operational accent color per module
+  operationsCommand:  { to: "/portal/operations-command",  label: "Operations Command",  icon: "\u{1F3AF}", accent: "#FF6D00", sub: "AI Deployment Engine" },
+  operationsInsights: { to: "/portal/operations-insights", label: "Operations Insights", icon: "\u{1F9E0}", accent: "#00E6A8", sub: "Self-Improving Network" },
+  opportunityNetwork: { to: "/portal/opportunity-network", label: "Opportunity Network", icon: "\u{1F6F0}️", accent: "#D4A853", sub: "Cross-Signal Fusion" },
   fireLeads:       { to: "/portal/fire-leads",           label: "Fire Leads",          icon: "\u{1F525}", page: "fire-leads", accent: "#00E6A8", sub: "Active Threat Feed" },
   waterLeads:      { to: "/portal/rin/water-leads",      label: "Water Leads",         icon: "\u{1F4A7}", rinRoute: "/app/fire-leads", rinQuery: "peril=flood", accent: "#3B82F6" },
   stormIntel:      { to: "/portal/storm-intel",          label: "Storm Intel",         icon: "\u26C8\uFE0F", accent: "#E05050", sub: "National Monitoring" },
@@ -44,7 +48,23 @@ const items = {
   campaigns:       { to: "/portal/rin/campaigns",        label: "Campaigns",           icon: "\u{1F4E2}", rinRoute: "/app/outreach/campaigns" },
 
   // ── CLOSE ──
-  signClient:      { to: "/portal/rin/sign",             label: "Sign Client",         icon: "\u{270D}\uFE0F", rinRoute: "/app/agreements" },
+  // UPASign \u2014 sidebar entry surfaces the existing iframe wrapper at
+  // /portal/rin/sign \u2192 adjuster-portal-ui /app/agreements (Angular). No
+  // new component. Label "UPASign" matches the Angular sidebar + AxisCoach
+  // documentation. Dashboard's separate "Sign Client" tile button is left
+  // unchanged on purpose.
+  signClient:      { to: "/portal/rin/sign",             label: "UPASign",             icon: "\u{270D}\uFE0F", rinRoute: "/app/agreements" },
+
+  // Estimating — iframes the Angular RIN estimating module (/app/estimating).
+  // Per the capability-gating rule (memory: estimating-capability-gated),
+  // estimating is a 6-month-to-1-year skill and must NOT be exposed to
+  // CP/RVP/Agent on role alone. Currently appears ONLY in HOME_OFFICE_NAV
+  // — only the two estimating execs (Timothy Clauss + Jason Bruning) and
+  // other Home Office users see it. When capability-matrix wiring lands
+  // (memory: capability-additive-roles), refactor to a per-item permission
+  // check (e.g. permissions["estimating.create"]) and the role-block gating
+  // can be removed.
+  estimating:      { to: "/portal/rin/estimating",       label: "Estimating",          icon: "\u{1F9EE}", rinRoute: "/app/estimating" },
 
   // ── MY CLIENTS (read-only — scoped by territory/ownership in backend) ──
   myClients:       { to: "/portal/my-clients",           label: "My Clients",          icon: "\u{1F465}", page: "clients" },
@@ -62,6 +82,10 @@ const items = {
   seminarTraining: { to: "/portal/seminar-training",     label: "Training Center",     icon: "\u{1F393}" },
   mySeminars:      { to: "/portal/my-seminars",          label: "My Seminars",         icon: "\u{1F3A4}" },
   stormAlerts:     { to: "/portal/storm-alerts",         label: "Storm Alerts",        icon: "\u26A1" },
+
+  // \u2500\u2500 ADMIN / HOME OFFICE \u2014 executive operations surface (home_office + super_admin only) \u2500\u2500
+  homeOffice:      { to: "/portal/home-office",              label: "Home Office",   icon: "\u{1F3DB}\uFE0F", accent: "#00E6A8", sub: "Executive Command" },
+  payoutRules:     { to: "/portal/home-office/payout-rules", label: "Payout Rules",  icon: "\u{1F4B2}",       sub: "Licensing + Overrides" },
 };
 
 
@@ -74,8 +98,9 @@ const items = {
 // in App.jsx so direct deep-links still render; no sidebar advertises
 // them until the seminar service ships.
 export const AGENT_NAV = [
-  { group: null, items: [items.dashboard] },
-  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  { group: null, items: [items.missionControl, items.dashboard] },
+  { group: "INTELLIGENCE NETWORK", items: [items.operationsCommand, items.operationsInsights, items.opportunityNetwork, items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  { group: "CLOSE",       items: [items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -83,8 +108,14 @@ export const AGENT_NAV = [
 // ── RVP ─────────────────────────────────────────────────────────────────────
 // Same delivery-clean pass as AGENT — placeholders removed, oversight kept.
 export const RVP_NAV = [
-  { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  { group: null, items: [items.missionControl, items.dashboard, items.managerOversight] },
+  { group: "INTELLIGENCE NETWORK", items: [items.operationsCommand, items.operationsInsights, items.opportunityNetwork, items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  // Communications tooling. Skip Trace pairs with Response Desk in
+  // the same group so the find-owner → draft-message flow lives in
+  // one nav surface. No send wiring; Response Desk's Send button
+  // stays disabled.
+  { group: "OUTREACH",    items: [items.skipTrace, items.responseDesk] },
+  { group: "CLOSE",       items: [items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -93,9 +124,14 @@ export const RVP_NAV = [
 // Delivery-clean: keeps Pitch Mode + Manager Oversight (both real, fully-
 // built native pages). Placeholders + SEMINARS removed.
 export const CP_NAV = [
-  { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
-  { group: "CLOSE",       items: [items.pitchMode] },
+  { group: null, items: [items.missionControl, items.dashboard, items.managerOversight] },
+  { group: "INTELLIGENCE NETWORK", items: [items.operationsCommand, items.operationsInsights, items.opportunityNetwork, items.fireLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  // Communications tooling. Skip Trace pairs with Response Desk in
+  // the same group so the find-owner → draft-message flow lives in
+  // one nav surface. No send wiring; Response Desk's Send button
+  // stays disabled.
+  { group: "OUTREACH",    items: [items.skipTrace, items.responseDesk] },
+  { group: "CLOSE",       items: [items.pitchMode, items.signClient] },
   { group: "MY CLIENTS",  items: [items.myClients] },
   { group: "PERFORMANCE", items: [items.commission] },
 ];
@@ -105,13 +141,14 @@ export const CP_NAV = [
 // assigned, view client info, manage their own profile. Adjusters do NOT
 // see oversight, recruiting, commission, RIN admin chrome, or pitch tools.
 export const ADJUSTER_NAV = [
-  { group: null, items: [items.dashboard] },
+  { group: null, items: [items.missionControl, items.dashboard] },
   // Adjusters are claim handlers, not lead acquisition users — Fire Leads
   // and My Clients (sales-specialist surfaces) replaced with My Cases,
   // a claim-centric board fed by /v1/reports/claims/advanced-search
   // (filtered by assignment). My Clients is also hidden by the
   // permission filter for the adjuster role anyway.
   { group: "WORK", items: [items.myCases] },
+  { group: "CLOSE", items: [items.signClient] },
   // RESOURCES group (Training Center / Storm Alerts) removed — backend
   // /v1/seminars/* endpoints don't exist yet. Re-add when seminar service
   // ships.
@@ -119,11 +156,12 @@ export const ADJUSTER_NAV = [
 
 // ── HOME OFFICE ─────────────────────────────────────────────────────────────
 export const HOME_OFFICE_NAV = [
-  { group: null, items: [items.dashboard, items.managerOversight] },
-  { group: "INTELLIGENCE NETWORK", items: [items.fireLeads, items.waterLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
+  { group: null, items: [items.missionControl, items.dashboard, items.managerOversight] },
+  { group: "ADMIN", items: [items.homeOffice, items.payoutRules] },
+  { group: "INTELLIGENCE NETWORK", items: [items.operationsCommand, items.operationsInsights, items.opportunityNetwork, items.fireLeads, items.waterLeads, items.stormIntel, items.roofIntel, items.crimeIntel] },
   { group: "THE ACI TEAM", items: [items.marcus, items.victoria, items.sophia, items.aciLegal] },
-  { group: "OUTREACH", items: [items.communityOut, items.campaigns] },
-  { group: "CLIENTS", items: [items.myClients, items.signClient] },
+  { group: "OUTREACH", items: [items.skipTrace, items.responseDesk, items.communityOut, items.campaigns] },
+  { group: "CLIENTS", items: [items.myClients, items.estimating, items.signClient] },
   { group: "TEAM", items: [items.agentPerf] },
   { group: "RECRUITING", items: [items.myRecruits] },
   { group: "EARNINGS", items: [items.commission] },
