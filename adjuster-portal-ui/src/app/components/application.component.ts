@@ -61,11 +61,15 @@ export class ApplicationComponent implements OnInit {
   role: string;
   readonly isDevPortal: boolean = !!(environment as any).devAutoLogin;
 
-  // When ClaimRush iframes a RIN route, IframeFeature.jsx appends
-  // ?embed=claim-rush. In that case we render only the routed child
-  // component — no sidebar, topbar, banners, or tab chrome — so the
-  // ClaimRush shell isn't wrapping a duplicate RIN portal shell. Direct
-  // visits to rin.aciunited.com (no ?embed=) keep the full chrome.
+  // When this Angular app is rendered inside an iframe (anywhere — but in
+  // practice that's ClaimRush iframing UPASign / Estimate / etc.), suppress
+  // the RIN sidebar + topbar + ticker chrome so the ClaimRush outer shell
+  // isn't wrapping a duplicate portal shell. Detection uses iframe context
+  // (window.self !== window.top), not URL params, because Angular's
+  // HashLocationStrategy strips the query string during URL canonicalization
+  // — so an earlier ?embed=claim-rush URL-param approach never saw the
+  // signal by the time ngOnInit ran. Direct visits to rin.aciunited.com
+  // (window.self === window.top) keep the full chrome unchanged.
   isEmbedded: boolean = false;
 
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
@@ -123,24 +127,18 @@ export class ApplicationComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Detect embed mode once at boot. Read-only, no state mutations.
-    // HashLocationStrategy quirk: Angular canonicalizes the URL after
-    // bootstrap, moving the query string from location.search to inside
-    // the hash. Read from both sources so detection is stable whether
-    // ngOnInit fires before or after the canonicalization.
+    // Detect embed mode once at boot via iframe context. window.self ===
+    // window.top is the standard browser signal for "this document is the
+    // top-level document"; if they differ, we're inside an iframe. This is
+    // immune to URL canonicalization, hash routing, query stripping, and
+    // any other URL-shape quirks that broke the prior URL-param approach.
     try {
-      if (typeof window !== 'undefined') {
-        const searchParams = new URLSearchParams(window.location.search);
-        const hashStr = window.location.hash || '';
-        const hashQueryIdx = hashStr.indexOf('?');
-        const hashParams = hashQueryIdx >= 0
-          ? new URLSearchParams(hashStr.slice(hashQueryIdx))
-          : new URLSearchParams();
-        const embed = searchParams.get('embed') || hashParams.get('embed');
-        this.isEmbedded = embed === 'claim-rush';
-      }
+      this.isEmbedded =
+        typeof window !== 'undefined' && window.self !== window.top;
     } catch {
-      this.isEmbedded = false;
+      // Some cross-origin contexts throw on window.top access; that itself
+      // is a reliable signal we're in a sandboxed/cross-origin iframe.
+      this.isEmbedded = true;
     }
 
     this.userService.currentUser.subscribe((user) => {
