@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C } from "./theme";
 import PageHeader from "./shared/PageHeader";
+import PreviewDataBanner from "./PreviewDataBanner";
 import { useAxisContext } from "./AxisContext";
 
 const mono = { fontFamily: "'Courier New', monospace" };
@@ -73,6 +74,8 @@ export default function HomeOfficeOps() {
   return (
     <div style={{ maxWidth: 1200, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(12px)", transition: "all 0.5s ease" }}>
       <style>{`@keyframes hoFade { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
+
+      <PreviewDataBanner label="Sample Home Office KPIs + alerts — live integration pending" />
 
       <PageHeader
         title="Home Office Operations"
