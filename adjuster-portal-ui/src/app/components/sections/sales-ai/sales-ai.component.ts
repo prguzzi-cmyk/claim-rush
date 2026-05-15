@@ -76,7 +76,12 @@ export class SalesAiComponent implements OnInit {
   meetings: MeetingBooking[] = [];
   meetingForm = { date: '', time: '', agent: '', type: 'teams' as MeetingBooking['meetingType'], notes: '' };
   timeSlots: string[] = [];
-  agents = ['Sarah Mitchell', 'James Carter', 'Maria Santos', 'David Kim', 'Emily Parker'];
+  // Empty until a real agent-roster endpoint is wired. Was previously
+  // seeded with 5 fake agent names (Sarah Mitchell, James Carter, Maria
+  // Santos, David Kim, Emily Parker) that appeared in the meeting-
+  // scheduler dropdown — operators could pick a fake name to "schedule"
+  // a meeting that resolved against nobody.
+  agents: string[] = [];
   meetingTypes: { value: MeetingBooking['meetingType']; label: string }[] = [
     { value: 'teams', label: 'Microsoft Teams' },
     { value: 'zoom', label: 'Zoom' },
@@ -107,26 +112,16 @@ export class SalesAiComponent implements OnInit {
     }
   }
 
-  // ── Mock Data ──────────────────────────────────────────────────────
+  // No-op until a real backend endpoint is wired. Was previously seeded
+  // with 5 fake leads (Robert Williams, Jennifer Martinez, Michael
+  // Thompson, Lisa Anderson, Thomas Garcia), 2 fake scheduled meetings
+  // (Teams + Zoom), and 3 fake contracts INCLUDING one in "signed"
+  // state — which had real legal-implication risk if shown to a
+  // prospect as evidence of platform activity.
   private loadMockData(): void {
-    this.leads = [
-      { id: 'L001', leadName: 'Robert Williams', incidentType: 'Fire', propertyAddress: '1420 Elm St', city: 'Dallas', state: 'TX', contactStatus: 'not_contacted', qualificationStatus: 'pending', notes: 'Property sustained significant smoke damage. Homeowner has active insurance policy.', stage: 'lead_detected', aiScore: null, createdAt: '2026-03-15T14:30:00Z', assignedAgent: 'Sarah Mitchell' },
-      { id: 'L002', leadName: 'Jennifer Martinez', incidentType: 'Hail', propertyAddress: '892 Oak Ave', city: 'Oklahoma City', state: 'OK', contactStatus: 'contacted', qualificationStatus: 'qualified', notes: 'Roof and siding damage from recent hailstorm. Estimate requested.', stage: 'ai_qualification', aiScore: 87, createdAt: '2026-03-14T10:15:00Z', assignedAgent: 'James Carter' },
-      { id: 'L003', leadName: 'Michael Thompson', incidentType: 'Wind', propertyAddress: '3300 Pine Rd', city: 'Houston', state: 'TX', contactStatus: 'contacted', qualificationStatus: 'qualified', notes: 'Fence and garage roof damaged by high winds. Previous claim history clean.', stage: 'meeting_scheduled', aiScore: 92, createdAt: '2026-03-13T16:45:00Z', assignedAgent: 'Maria Santos' },
-      { id: 'L004', leadName: 'Lisa Anderson', incidentType: 'Fire', propertyAddress: '567 Maple Dr', city: 'Phoenix', state: 'AZ', contactStatus: 'follow_up', qualificationStatus: 'pending', notes: 'Kitchen fire — partial structural damage. Awaiting insurance verification.', stage: 'lead_detected', aiScore: null, createdAt: '2026-03-15T08:20:00Z', assignedAgent: 'David Kim' },
-      { id: 'L005', leadName: 'Thomas Garcia', incidentType: 'Hail', propertyAddress: '1100 Birch Ln', city: 'Denver', state: 'CO', contactStatus: 'converted', qualificationStatus: 'qualified', notes: 'Full roof replacement needed. High-value claim, priority handling.', stage: 'contract_handoff', aiScore: 95, createdAt: '2026-03-12T11:00:00Z', assignedAgent: 'Emily Parker' },
-    ];
-
-    this.meetings = [
-      { id: 'M001', leadId: 'L003', leadName: 'Michael Thompson', meetingDate: '2026-03-17', meetingTime: '10:00 AM', assignedAgent: 'Maria Santos', meetingType: 'teams', status: 'scheduled', notes: 'Initial property assessment discussion' },
-      { id: 'M002', leadId: 'L002', leadName: 'Jennifer Martinez', meetingDate: '2026-03-18', meetingTime: '2:30 PM', assignedAgent: 'James Carter', meetingType: 'zoom', status: 'scheduled', notes: 'Review estimate and coverage options' },
-    ];
-
-    this.contracts = [
-      { id: 'C001', leadId: 'L005', leadName: 'Thomas Garcia', contractStatus: 'sent_for_signing', sentAt: '2026-03-15T09:00:00Z', signedAt: null, clientFileId: null, assignedAgent: 'Emily Parker' },
-      { id: 'C002', leadId: 'L003', leadName: 'Michael Thompson', contractStatus: 'pending_review', sentAt: null, signedAt: null, clientFileId: null, assignedAgent: 'Maria Santos' },
-      { id: 'C003', leadId: 'L002', leadName: 'Jennifer Martinez', contractStatus: 'signed', sentAt: '2026-03-13T10:00:00Z', signedAt: '2026-03-14T15:30:00Z', clientFileId: null, assignedAgent: 'James Carter' },
-    ];
+    this.leads = [];
+    this.meetings = [];
+    this.contracts = [];
   }
 
   // ── Workflow Bar ───────────────────────────────────────────────────

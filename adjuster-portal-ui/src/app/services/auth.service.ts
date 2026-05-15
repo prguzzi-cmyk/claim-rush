@@ -52,6 +52,62 @@ export class AuthService {
     return raw ? JSON.parse(raw) : null;
   }
 
+  /**
+   * Cross-origin auth handoff. When the Angular app is iframed from
+   * ClaimRush (aciunited.com), the parent forwards the user's JWT as
+   * ?access_token=<jwt> in the iframe URL. Because localStorage is
+   * per-origin, this Angular instance starts with an empty localStorage
+   * at the rin.aciunited.com origin — AuthGuard would otherwise bounce
+   * to /login inside the iframe.
+   *
+   * This method picks up the URL token (idempotent, safe to call on
+   * every AuthGuard activation) and persists it in the same shape
+   * AuthService.login() writes, so isAuthenticated() and downstream
+   * HTTP interceptors pick it up unchanged.
+   *
+   * Safety:
+   *   - Validates the URL-provided token is a parseable, unexpired JWT
+   *     before writing anything.
+   *   - Never overwrites a valid existing localStorage token — a stale
+   *     URL token cannot replace a fresh native session.
+   *   - All localStorage / URL access is in try/catch; failure falls
+   *     through to the normal AuthGuard rejection path.
+   */
+  hydrateFromUrl(): void {
+    try {
+      if (typeof window === 'undefined') return;
+      // Read access_token from either location.search (initial URL shape)
+      // or the hash-tail query (Angular HashLocationStrategy canonicalizes
+      // the URL post-bootstrap, moving the query string into the hash).
+      // Either source is acceptable; check both so timing doesn't matter.
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashStr = window.location.hash || '';
+      const hashQueryIdx = hashStr.indexOf('?');
+      const hashParams = hashQueryIdx >= 0
+        ? new URLSearchParams(hashStr.slice(hashQueryIdx))
+        : new URLSearchParams();
+      const tokenFromUrl = searchParams.get('access_token') || hashParams.get('access_token');
+      if (!tokenFromUrl) return;
+      try {
+        if (this.jwtHelper.isTokenExpired(tokenFromUrl)) return;
+      } catch {
+        return;
+      }
+      const existingRaw = localStorage.getItem('access_token');
+      if (existingRaw) {
+        try {
+          const existing = JSON.parse(existingRaw);
+          if (existing && !this.jwtHelper.isTokenExpired(existing)) return;
+        } catch { /* fall through and overwrite the corrupt token */ }
+      }
+      localStorage.setItem('access_token', JSON.stringify(tokenFromUrl));
+      this.clearLoggedOutFlag();
+    } catch {
+      // localStorage access can throw in restrictive contexts; AuthGuard
+      // will fall back to its normal /login redirect.
+    }
+  }
+
   // ─── Password login ───
   login(email: string, password: string) {
     return this.http

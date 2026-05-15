@@ -61,6 +61,40 @@ export class ApplicationComponent implements OnInit {
   role: string;
   readonly isDevPortal: boolean = !!(environment as any).devAutoLogin;
 
+  // Embed mode suppresses RIN sidebar + topbar + ticker chrome when this
+  // Angular app is iframed from ClaimRush. MUST be computed synchronously
+  // at construction time — not in ngOnInit — because the template has two
+  // primary <router-outlet>s gated on `isEmbedded` / `!isEmbedded`. If the
+  // first template render sees `isEmbedded=false`, the route binds to the
+  // inner outlet inside the chrome; flipping `isEmbedded=true` in ngOnInit
+  // afterwards destroys that outlet without re-activating the route in the
+  // top-level outlet, so the chrome stays visible. Initializing here means
+  // the very first render already has the correct value.
+  //
+  // Signals checked (any one trips embed mode):
+  //   1. window.self !== window.top — standard iframe-context signal.
+  //   2. ?embed=claim-rush in the URL search OR the hash tail (Angular's
+  //      HashLocationStrategy moves the query into the hash after
+  //      canonicalization, so check both).
+  //   3. Any access exception on window.top — sandboxed/cross-origin
+  //      iframes throw SecurityError, which is itself a reliable embed
+  //      signal.
+  isEmbedded: boolean = ApplicationComponent.detectEmbedded();
+
+  private static detectEmbedded(): boolean {
+    try {
+      if (typeof window === 'undefined') return false;
+      if (window.self !== window.top) return true;
+      const search = window.location.search || '';
+      const hash = window.location.hash || '';
+      if (search.includes('embed=claim-rush')) return true;
+      if (hash.includes('embed=claim-rush')) return true;
+      return false;
+    } catch {
+      return true;
+    }
+  }
+
   @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
   @ViewChild('outlet', { read: ViewContainerRef }) outletRef: ViewContainerRef;
   @ViewChild('content', { read: TemplateRef }) contentRef: TemplateRef<any>;
@@ -116,6 +150,9 @@ export class ApplicationComponent implements OnInit {
   }
 
   ngOnInit() {
+    // `isEmbedded` was computed synchronously in the property initializer
+    // so the first template render already has the correct value — see
+    // the property declaration above for rationale.
 
     this.userService.currentUser.subscribe((user) => {
       this.user = user;
