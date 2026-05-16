@@ -1,10 +1,10 @@
 <div class="gcc-dark" [class.gcc-dark--treasury-focus]="treasuryFocus">
 
   <!-- Page Header -->
-  <div class="gcc-header">
+  <div class="gcc-header" [class.gcc-header--agent]="viewIsAgent()">
     <div>
-      <h1>Global Intelligence Command Center</h1>
-      <p class="gcc-subtitle">Real-time national incident monitoring, lead generation intelligence, and claim recovery analytics.</p>
+      <h1>{{ gccHeaderTitle() }}</h1>
+      <p class="gcc-subtitle">{{ gccHeaderSubtitle() }}</p>
     </div>
     <div class="gcc-meta">
       <span class="gcc-clock">Last update: {{ lastUpdated }}</span>
@@ -12,7 +12,532 @@
     </div>
   </div>
 
-  <div class="gcc-body">
+  <div class="gcc-body" [class.gcc-body--agent]="viewIsAgent()">
+
+    <!-- ══════════════════════════════════════════════════════════════
+         Phase 5 — AGENT WORKSPACE
+         True role differentiation. When the active reserve view is
+         "agent" we render a purpose-built tactical workspace instead
+         of the executive layout. Other roles fall through to the
+         existing command-center content below.
+         ══════════════════════════════════════════════════════════════ -->
+    <ng-container *ngIf="viewIsAgent()">
+      <div class="agent-workspace" [class.agent-workspace--loading]="agentLoading()">
+
+        <!-- ── Phase 9 · First-session welcome line ──
+             Single inline strip. Premium, dismissible, only renders
+             on the first session before the agent has any activity.
+             "Operational welcome" not "SaaS onboarding popup". -->
+        <div class="agent-welcome" *ngIf="showAgentWelcome()">
+          <span class="agent-welcome-pulse"></span>
+          <span class="agent-welcome-title">Welcome.</span>
+          <span class="agent-welcome-body">
+            Your operations workspace is ready. Start by claiming your first lead from the rotation queue.
+          </span>
+          <button mat-button class="agent-welcome-cta" (click)="nav('/app/rotation-leads')">
+            Open Lead Rotation <mat-icon>arrow_forward</mat-icon>
+          </button>
+          <button mat-icon-button class="agent-welcome-dismiss"
+                  matTooltip="Dismiss"
+                  (click)="dismissAgentWelcome()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- ── HUD (top tactical bar) ── -->
+        <div class="agent-hud">
+
+          <!-- Credits available — primary, dominant. -->
+          <div class="agent-hud-zone agent-hud-credits"
+               matTooltip="Used when you run skip trace, SMS, voice, or email outreach.">
+            <span class="agent-hud-label">Credits Available</span>
+            <span class="agent-hud-credits-number"
+                  [appOdometer]="agentBalance()"
+                  [appOdometerDuration]="900">—</span>
+            <span class="agent-hud-credits-sub">
+              <mat-icon class="agent-hud-credits-icon">bolt</mat-icon>
+              {{ agentDailyActivity().ops_today }} actions today
+            </span>
+          </div>
+
+          <!-- Rank + progress -->
+          <div class="agent-hud-zone agent-hud-rank"
+               matTooltip="Your tactical execution rank — earned by consistent field activity.">
+
+            <span class="agent-hud-label">Rank</span>
+            <div class="agent-hud-rank-row">
+              <span class="agent-hud-medal"
+                    [style.color]="prestigeRank().color"
+                    [style.borderColor]="prestigeRank().color"
+                    [style.boxShadow]="'0 0 22px ' + prestigeRank().glow">
+                <mat-icon>military_tech</mat-icon>
+              </span>
+              <div class="agent-hud-rank-text">
+                <span class="agent-hud-rank-name"
+                      [style.color]="prestigeRank().color">{{ prestigeRank().name }}</span>
+                <span class="agent-hud-rank-position">{{ agentRankSubline() }}</span>
+              </div>
+            </div>
+            <div class="agent-hud-progress" *ngIf="prestigeNextRank() as nextRank">
+              <div class="agent-hud-progress-track">
+                <div class="agent-hud-progress-fill"
+                     [style.width.%]="prestigeProgressPct()"
+                     [style.backgroundColor]="prestigeRank().color"
+                     [style.boxShadow]="'0 0 10px ' + prestigeRank().glow"></div>
+              </div>
+              <span class="agent-hud-progress-caption">
+                {{ prestigeProgressPct() }}% to <strong>{{ nextRank }}</strong>
+              </span>
+            </div>
+          </div>
+
+          <!-- Daily activity micro-counters -->
+          <div class="agent-hud-zone agent-hud-today"
+               matTooltip="Today’s actions, claims signed, and your active-days streak.">
+
+            <span class="agent-hud-label">Daily Activity</span>
+            <div class="agent-hud-today-grid">
+              <div class="agent-hud-today-stat">
+                <span class="agent-hud-today-val">{{ agentDailyActivity().ops_today }}</span>
+                <span class="agent-hud-today-lbl">Actions</span>
+              </div>
+              <div class="agent-hud-today-stat">
+                <span class="agent-hud-today-val agent-hud-today-val--green">{{ agentDailyActivity().signed_today }}</span>
+                <span class="agent-hud-today-lbl">Claims</span>
+              </div>
+              <div class="agent-hud-today-stat">
+                <span class="agent-hud-today-val agent-hud-today-val--yellow">{{ agentDailyActivity().streak_days }}d</span>
+                <span class="agent-hud-today-lbl">Streak</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick navigation actions (NOT credit-costing) -->
+          <div class="agent-hud-zone agent-hud-quick"
+               matTooltip="Jump straight to your most common workflows.">
+
+            <span class="agent-hud-label">Quick Actions</span>
+            <div class="agent-hud-quick-grid">
+              <button *ngFor="let q of agentQuickActions()"
+                      type="button"
+                      class="agent-quick-btn"
+                      (click)="nav(q.route)">
+                <mat-icon>{{ q.icon }}</mat-icon>
+                <span>{{ q.label }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MAIN WORKSPACE GRID ── -->
+        <div class="agent-main-grid">
+
+          <!-- Row 1: My Pipeline (full width) -->
+          <div class="agent-card agent-pipeline-card agent-card--span">
+            <div class="agent-card-head">
+              <mat-icon>view_kanban</mat-icon>
+              <span class="agent-card-title">My Pipeline</span>
+              <span class="agent-card-sub">{{ agentMyLeads().total }} leads tracked</span>
+              <button mat-button class="agent-card-link" (click)="nav('/app/workflow-queues')">
+                Open <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+            <div class="agent-card-help">Move leads left-to-right: outreach until contacted, then qualify and sign.</div>
+            <div class="agent-pipeline-strip" *ngIf="agentHasPipelineData()">
+              <div *ngFor="let s of agentMyPipeline(); let last = last"
+                   class="agent-pipeline-stage"
+                   [style.borderColor]="s.color">
+                <span class="agent-pipeline-stage-count"
+                      [style.color]="s.color"
+                      [style.textShadow]="'0 0 12px ' + s.color + '55'">
+                  {{ s.count }}
+                </span>
+                <span class="agent-pipeline-stage-label">{{ s.label }}</span>
+                <span class="agent-pipeline-arrow" *ngIf="!last">→</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasPipelineData()">
+              <mat-icon class="agent-empty-icon">view_kanban</mat-icon>
+              <div class="agent-empty-title">Your first lead will appear here</div>
+              <div class="agent-empty-sub">Leads route to you through the rotation queue. Each one fills in stage by stage.</div>
+              <button mat-button class="agent-empty-cta" (click)="nav('/app/rotation-leads')">
+                Open Lead Rotation <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 2: My Leads · My Conversion · Streaks -->
+          <div class="agent-card agent-leads-card">
+            <div class="agent-card-head">
+              <mat-icon>group</mat-icon>
+              <span class="agent-card-title">My Leads</span>
+            </div>
+            <div class="agent-card-help">Prospects you’re working right now.</div>
+            <div class="agent-stat-row" *ngIf="agentHasLeadsData()">
+              <div class="agent-stat agent-stat--hero">
+                <span class="agent-stat-val">{{ agentMyLeads().total }}</span>
+                <span class="agent-stat-lbl">Total</span>
+              </div>
+              <div class="agent-stat">
+                <span class="agent-stat-val agent-stat-val--cyan">{{ agentMyLeads().new_today }}</span>
+                <span class="agent-stat-lbl">New today</span>
+              </div>
+              <div class="agent-stat">
+                <span class="agent-stat-val agent-stat-val--yellow">{{ agentMyLeads().working }}</span>
+                <span class="agent-stat-lbl">Working</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasLeadsData()">
+              <mat-icon class="agent-empty-icon">group_add</mat-icon>
+              <div class="agent-empty-title">No leads yet</div>
+              <div class="agent-empty-sub">Claim one from the rotation queue to start working.</div>
+              <button mat-button class="agent-empty-cta" (click)="nav('/app/rotation-leads')">
+                Open Lead Rotation <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="agent-card agent-conv-card">
+            <div class="agent-card-head">
+              <mat-icon>trending_up</mat-icon>
+              <span class="agent-card-title">My Conversion</span>
+            </div>
+            <div class="agent-card-help">Share of your leads that became signed clients.</div>
+            <ng-container *ngIf="agentHasConversionData(); else convEmpty">
+              <div class="agent-conv-body">
+                <span class="agent-conv-pct">{{ agentConversion().pct }}%</span>
+                <span class="agent-conv-delta"
+                      *ngIf="agentConversion().delta_pct !== null"
+                      [class.agent-conv-delta--up]="agentConversion().delta_pct! > 0"
+                      [class.agent-conv-delta--down]="agentConversion().delta_pct! < 0">
+                  <mat-icon>{{ agentConversion().delta_pct! >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+                  {{ agentConversion().delta_pct! > 0 ? '+' : '' }}{{ agentConversion().delta_pct }}%
+                </span>
+              </div>
+              <span class="agent-conv-window">{{ agentConversion().window }}</span>
+            </ng-container>
+            <ng-template #convEmpty>
+              <div class="agent-empty">
+                <mat-icon class="agent-empty-icon">trending_up</mat-icon>
+                <div class="agent-empty-title">No conversion yet</div>
+                <div class="agent-empty-sub">Sign your first claim to start tracking.</div>
+              </div>
+            </ng-template>
+          </div>
+
+          <div class="agent-card agent-streaks-card">
+            <div class="agent-card-head">
+              <mat-icon>local_fire_department</mat-icon>
+              <span class="agent-card-title">Streaks</span>
+            </div>
+            <div class="agent-card-help">Consistency you’ve earned · keep it going.</div>
+            <div class="agent-streaks-list" *ngIf="agentHasStreaksData()">
+              <div *ngFor="let s of agentStreaks()" class="agent-streak-row">
+                <span class="agent-streak-dot" [style.backgroundColor]="s.color"
+                      [style.boxShadow]="'0 0 8px ' + s.color"></span>
+                <span class="agent-streak-label">{{ s.label }}</span>
+                <span class="agent-streak-val" [style.color]="s.color">{{ s.value }}</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasStreaksData()">
+              <mat-icon class="agent-empty-icon">local_fire_department</mat-icon>
+              <div class="agent-empty-title">Complete your first action</div>
+              <div class="agent-empty-sub">Streaks start once you log any outreach.</div>
+            </div>
+          </div>
+
+          <!-- Row 3: My Outreach (wide) · Recent Wins (wide) -->
+          <div class="agent-card agent-outreach-card agent-card--span-2">
+            <div class="agent-card-head">
+              <mat-icon>campaign</mat-icon>
+              <span class="agent-card-title">My Outreach</span>
+            </div>
+            <div class="agent-card-help">Calls, texts, and emails you’ve sent to leads.</div>
+            <div class="agent-stat-row" *ngIf="agentHasOutreachData()">
+              <div class="agent-stat agent-stat--hero">
+                <span class="agent-stat-val">{{ agentMyOutreach().sent_today }}</span>
+                <span class="agent-stat-lbl">Sent today</span>
+              </div>
+              <div class="agent-stat">
+                <span class="agent-stat-val">{{ agentMyOutreach().sent_week }}</span>
+                <span class="agent-stat-lbl">Sent · 7d</span>
+              </div>
+              <div class="agent-stat">
+                <span class="agent-stat-val agent-stat-val--green">
+                  {{ agentMyOutreach().response_rate_pct !== null ? agentMyOutreach().response_rate_pct + '%' : '—' }}
+                </span>
+                <span class="agent-stat-lbl">Response rate</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasOutreachData()">
+              <mat-icon class="agent-empty-icon">campaign</mat-icon>
+              <div class="agent-empty-title">No outreach activity yet</div>
+              <div class="agent-empty-sub">After your first lead lands, use Available Actions to contact the homeowner.</div>
+            </div>
+          </div>
+
+          <div class="agent-card agent-wins-card">
+            <div class="agent-card-head">
+              <mat-icon>emoji_events</mat-icon>
+              <span class="agent-card-title">Recent Wins</span>
+            </div>
+            <div class="agent-card-help">Signed agreements · last 30 days.</div>
+            <div class="agent-wins-list" *ngIf="agentHasWinsData()">
+              <div *ngFor="let w of agentRecentWins()" class="agent-win-row">
+                <span class="agent-win-client">{{ w.client }}</span>
+                <span class="agent-win-value" *ngIf="w.peril">{{ w.peril | titlecase }}</span>
+                <span class="agent-win-value" *ngIf="!w.peril">—</span>
+                <span class="agent-win-when">{{ w.when }}</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasWinsData()">
+              <mat-icon class="agent-empty-icon">emoji_events</mat-icon>
+              <div class="agent-empty-title">No wins yet</div>
+              <div class="agent-empty-sub">Your first signed claim will land here.</div>
+            </div>
+          </div>
+
+          <!-- Row 4: My Tasks · Available Actions -->
+          <div class="agent-card agent-tasks-card">
+            <div class="agent-card-head">
+              <mat-icon>task_alt</mat-icon>
+              <span class="agent-card-title">My Tasks</span>
+              <span class="agent-card-sub">{{ agentMyTasks().length }} open</span>
+            </div>
+            <div class="agent-card-help">Next actions on your plate.</div>
+            <div class="agent-tasks-list" *ngIf="agentHasTasksData()">
+              <div *ngFor="let t of agentMyTasks()" class="agent-task-row">
+                <span class="agent-task-icon-wrap"
+                      [style.color]="agentTaskColor(t.kind)"
+                      [style.borderColor]="agentTaskColor(t.kind)">
+                  <mat-icon>{{ agentTaskIcon(t.kind) }}</mat-icon>
+                </span>
+                <span class="agent-task-label">{{ t.label }}</span>
+                <span class="agent-task-due">{{ t.due }}</span>
+              </div>
+            </div>
+            <div class="agent-empty" *ngIf="!agentHasTasksData()">
+              <mat-icon class="agent-empty-icon">task_alt</mat-icon>
+              <div class="agent-empty-title">No tasks scheduled</div>
+              <div class="agent-empty-sub">Set a follow-up on a lead to see it here.</div>
+            </div>
+          </div>
+
+          <div class="agent-card agent-actions-card agent-card--span-2">
+            <div class="agent-card-head">
+              <mat-icon>bolt</mat-icon>
+              <span class="agent-card-title">Available Actions</span>
+              <span class="agent-card-sub">{{ agentBalance() | number }} credits ready</span>
+            </div>
+            <div class="agent-card-help">Each action uses your credits · click to start.</div>
+            <div class="agent-actions-grid">
+              <button *ngFor="let a of agentActions"
+                      type="button"
+                      class="agent-action-btn"
+                      [class.agent-action-btn--busy]="agentActionInFlight === a.key"
+                      [class.agent-action-btn--disabled]="(!canAffordAgentAction(a) && a.credits > 0) || isAgentActionBlockedByNoLeads(a)"
+                      [disabled]="!!agentActionInFlight || (!canAffordAgentAction(a) && a.credits > 0) || isAgentActionBlockedByNoLeads(a)"
+                      (click)="triggerAgentAction(a)"
+                      [matTooltip]="isAgentActionBlockedByNoLeads(a) ? 'Get your first lead to use Skip Trace' : a.descriptor">
+                <mat-icon class="agent-action-icon">{{ agentActionInFlight === a.key ? 'autorenew' : a.icon }}</mat-icon>
+                <span class="agent-action-label">{{ a.label }}</span>
+                <span class="agent-action-cost" *ngIf="a.credits > 0">
+                  {{ a.credits }} credit<span *ngIf="a.credits !== 1">s</span>
+                </span>
+                <span class="agent-action-cost agent-action-cost--free" *ngIf="a.credits === 0">Free</span>
+              </button>
+            </div>
+            <div class="agent-action-flash" *ngIf="agentActionFlash as flash"
+                 [style.color]="flash.color"
+                 [style.borderColor]="flash.color">
+              <mat-icon>{{ flash.color === '#00e676' ? 'check_circle' : 'error_outline' }}</mat-icon>
+              <span>{{ flash.text }}</span>
+            </div>
+
+            <!-- ── Recent Activity ledger — last 8 wallet-debiting actions, with
+                 live state derivation. Only renders when there's history. -->
+            <div class="agent-ledger" *ngIf="agentHasRecentActions()">
+              <div class="agent-ledger-head">
+                <mat-icon>history</mat-icon>
+                <span>Recent Activity</span>
+              </div>
+              <div class="agent-ledger-list">
+                <div *ngFor="let r of agentRecentActions()" class="agent-ledger-row">
+                  <span class="agent-ledger-dot"
+                        [style.backgroundColor]="agentRecentStateColor(r.state)"
+                        [style.boxShadow]="'0 0 6px ' + agentRecentStateColor(r.state)"></span>
+                  <span class="agent-ledger-cost" *ngIf="r.cost > 0">−{{ r.cost }}</span>
+                  <span class="agent-ledger-cost agent-ledger-cost--zero" *ngIf="r.cost === 0">·</span>
+                  <span class="agent-ledger-label">
+                    {{ r.label }}
+                    <span class="agent-ledger-lead" *ngIf="r.lead_label">· {{ r.lead_label }}</span>
+                  </span>
+                  <span class="agent-ledger-when">{{ r.when }}</span>
+                  <span class="agent-ledger-state"
+                        [style.color]="agentRecentStateColor(r.state)">{{ r.state }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── BOTTOM: lightweight leaderboard + territory rank ── -->
+        <div class="agent-bottom-row">
+          <div class="dark-panel agent-bottom-card agent-leaderboard-card">
+            <div class="dark-panel-header leaderboard-card-header"
+                 matTooltip="Ranked by claims signed this month across all agents.">
+              <mat-icon>military_tech</mat-icon>
+              <span>Top Agents</span>
+              <span class="leaderboard-card-scope">· this month</span>
+            </div>
+            <div class="leaderboard-list">
+              <div *ngFor="let a of mockTopAgents(); let i = index" class="leaderboard-row">
+                <span class="leaderboard-rank">#{{ i + 1 }}</span>
+                <span class="leaderboard-name">
+                  {{ a.name }}
+                  <span class="leaderboard-sub">· {{ a.team }}</span>
+                </span>
+                <span class="leaderboard-signed" matTooltip="Leads signed">
+                  <mat-icon>verified</mat-icon>{{ a.signed }}
+                </span>
+                <span class="leaderboard-ops" matTooltip="Operations">
+                  <mat-icon>bolt</mat-icon>{{ a.ops }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dark-panel agent-bottom-card agent-territory-card">
+            <div class="dark-panel-header leaderboard-card-header">
+              <mat-icon>public</mat-icon>
+              <span>Territory Rank</span>
+              <span class="leaderboard-card-scope">· {{ agentTerritoryRank().territory }}</span>
+            </div>
+            <div class="agent-territory-body">
+              <div class="agent-territory-rank-block">
+                <span class="agent-territory-label">Your position</span>
+                <span class="agent-territory-rank-val">
+                  #{{ agentTerritoryRank().my_rank }}
+                  <span class="agent-territory-rank-of">of {{ agentTerritoryRank().total }}</span>
+                </span>
+              </div>
+              <div class="agent-territory-divider"></div>
+              <div class="agent-territory-stat-block">
+                <span class="agent-territory-label">Signed this month</span>
+                <span class="agent-territory-stat-val">{{ agentTerritoryRank().signed_this_month }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </ng-container>
+
+    <!-- Non-agent roles fall through to the existing executive layout. -->
+    <ng-container *ngIf="!viewIsAgent()">
+
+    <!-- ══════ OPERATIONAL RESERVE — persistent header strip ══════
+         Premium, always-visible operational top bar. Renders as soon
+         as the wallet telemetry service responds; before that it shows
+         a quiet skeleton so the page doesn't reflow on first poll.
+         All numbers run through the [appOdometer] directive for the
+         Bloomberg-terminal tick feel. Visual only — does not enforce. -->
+    <div class="reserve-strip" *ngIf="wallet" [class.reserve-strip--celebrating]="!!activeGrant">
+      <!-- Phase 3A: reserve-grant celebration chip. Renders only when
+           a positive token_balance delta was detected by the
+           telemetry service. Auto-dismisses via timer in the component
+           (6s). The strip's overall pulse-glow is bumped during the
+           celebration via .reserve-strip--celebrating. -->
+      <div class="reserve-grant-chip" *ngIf="activeGrant" aria-live="polite">
+        <mat-icon class="reserve-grant-chip-icon">auto_awesome</mat-icon>
+        <span class="reserve-grant-chip-amount">+{{ activeGrant.amount | number }}</span>
+        <span class="reserve-grant-chip-label">Credits granted</span>
+      </div>
+      <div class="reserve-strip-brand">
+        <span class="reserve-strip-pulse" [class.reserve-strip-pulse--idle]="!livePulseActive()"></span>
+        <div class="reserve-strip-brand-text">
+          <span class="reserve-strip-eyebrow">{{ vocabEyebrow() }}</span>
+          <!-- Mode whisper only renders for roles that should see the
+               governance posture (master + cp). RVP / Agent never see
+               the mode language — they live in "I have credits / I take
+               actions" framing per the role UX rule. -->
+          <span class="reserve-strip-sub-eyebrow" *ngIf="showModeChip()"
+                [matTooltip]="reserveEnforcementMode() === 'enforced'
+                  ? 'Hard cap active.'
+                  : 'Operating normally · no actions are being blocked.'">
+            <span class="reserve-strip-sub-dot"
+                  [style.backgroundColor]="reserveEnforcementColor()"></span>
+            {{ reserveEnforcementLabel() }} mode
+          </span>
+        </div>
+      </div>
+
+      <div class="reserve-strip-stats">
+        <!-- Primary capacity stat: label adapts to view vocabulary. -->
+        <div class="reserve-strip-stat">
+          <span class="reserve-strip-stat-label">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'master'">Reserve Capacity</ng-container>
+              <ng-container *ngSwitchCase="'cp'">Territory Reserve</ng-container>
+              <ng-container *ngSwitchCase="'rvp'">Team Credits</ng-container>
+              <ng-container *ngSwitchCase="'agent'">Credits Available</ng-container>
+            </ng-container>
+          </span>
+          <span class="reserve-strip-stat-value reserve-strip-stat-value--primary"
+                [appOdometer]="reserveCapacity()"
+                [appOdometerDuration]="900"
+                [appOdometerCompact]="false">—</span>
+        </div>
+        <div class="reserve-strip-stat" *ngIf="earnedTodayCredits() > 0">
+          <span class="reserve-strip-stat-label">Earned Today</span>
+          <span class="reserve-strip-stat-value reserve-strip-stat-value--earned"
+                [appOdometer]="earnedTodayCredits()"
+                [appOdometerPrefix]="'+'">—</span>
+        </div>
+        <div class="reserve-strip-stat">
+          <!-- Vocabulary: master/cp = "Deployed", rvp = "Used by Team", agent = "Used Today" -->
+          <span class="reserve-strip-stat-label">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'master'">Used Today</ng-container>
+              <ng-container *ngSwitchCase="'cp'">Used Today</ng-container>
+              <ng-container *ngSwitchCase="'rvp'">Used by Team</ng-container>
+              <ng-container *ngSwitchCase="'agent'">Used Today</ng-container>
+            </ng-container>
+          </span>
+          <span class="reserve-strip-stat-value reserve-strip-stat-value--deployed"
+                [appOdometer]="reserveCredits(reserveDeployedTodayCents())">—</span>
+        </div>
+        <div class="reserve-strip-stat">
+          <span class="reserve-strip-stat-label">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'rvp'">Funded Actions</ng-container>
+              <ng-container *ngSwitchCase="'agent'">Actions Today</ng-container>
+              <ng-container *ngSwitchDefault>Operations Today</ng-container>
+            </ng-container>
+          </span>
+          <span class="reserve-strip-stat-value"
+                [appOdometer]="operationsTodayCount()">—</span>
+        </div>
+        <!-- Projected Monthly is a master/cp concept; rvp and agent don't see it. -->
+        <div class="reserve-strip-stat" *ngIf="viewIsMaster() || viewIsCp()">
+          <span class="reserve-strip-stat-label">Projected Monthly</span>
+          <span class="reserve-strip-stat-value"
+                [appOdometer]="reserveCredits(wallet?.projected?.projected_cents)"
+                [appOdometerCompact]="true">—</span>
+        </div>
+      </div>
+
+      <div class="reserve-strip-tier" *ngIf="showStripTierChip() && vocabTier()">
+        <span class="reserve-strip-stat-label">{{ vocabTier() }}</span>
+        <span class="reserve-strip-tier-chip"
+              [style.color]="cpTier().color"
+              [style.borderColor]="cpTier().color"
+              [style.boxShadow]="'0 0 22px ' + cpTier().glow">
+          <mat-icon class="reserve-strip-tier-icon">workspace_premium</mat-icon>
+          {{ cpTier().name }}
+        </span>
+      </div>
+    </div>
 
     <!-- ══════ SECTION 3: LEAD GENERATION MONITOR (KPI row) ══════ -->
     <div class="kpi-row">
@@ -40,14 +565,16 @@
       <header class="executive-suite-header">
         <div class="executive-suite-title">
           <span class="executive-suite-marker"></span>
-          <span class="executive-suite-eyebrow">Financial Governance &amp; Treasury</span>
+          <div class="executive-suite-titlestack">
+            <span class="executive-suite-eyebrow">{{ suiteSectionEyebrow() }}</span>
+            <span class="executive-suite-subtitle">{{ suiteSectionSubtitle() }}</span>
+          </div>
         </div>
         <div class="executive-suite-meta">
-          <span class="executive-suite-meta-item"><mat-icon>verified_user</mat-icon> Operator oversight</span>
-          <span class="executive-suite-meta-divider">·</span>
-          <span class="executive-suite-meta-item">Token economy</span>
-          <span class="executive-suite-meta-divider">·</span>
-          <span class="executive-suite-meta-item">Cost governance</span>
+          <ng-container *ngFor="let m of suiteSectionMeta(); let last = last">
+            <span class="executive-suite-meta-item"><mat-icon>{{ m.icon }}</mat-icon> {{ m.label }}</span>
+            <span class="executive-suite-meta-divider" *ngIf="!last">·</span>
+          </ng-container>
         </div>
       </header>
 
@@ -85,12 +612,20 @@
         </ng-container>
       </div>
 
-    <!-- ══════ GOVERNANCE + COST ══════ -->
-    <div class="dark-panel governance-panel" *ngIf="governance">
+    <!-- ══════ GOVERNANCE + COST ══════
+         Role visibility (Phase 4):
+           master / cp  → full multi-card governance grid
+           rvp          → compact one-line summary (team-focused framing)
+           agent        → entire panel hidden
+    -->
+    <div class="dark-panel governance-panel" *ngIf="governance && showGovernanceSection()"
+         [class.governance-panel--compact]="showGovernanceCompactBar()">
       <div class="dark-panel-header executive-header">
-        <mat-icon>shield</mat-icon>
-        <span class="executive-panel-title">Governance &amp; Cost</span>
-        <span class="executive-mode-chip" [style.color]="governanceModeColor()" [style.borderColor]="governanceModeColor()">
+        <mat-icon>{{ viewIsRvp() ? 'insights' : 'shield' }}</mat-icon>
+        <span class="executive-panel-title">{{ governancePanelTitle() }}</span>
+        <span class="executive-mode-chip"
+              *ngIf="!viewIsRvp()"
+              [style.color]="governanceModeColor()" [style.borderColor]="governanceModeColor()">
           {{ governanceModeLabel() }}
         </span>
         <span class="executive-meta">
@@ -100,7 +635,34 @@
         </span>
       </div>
 
-      <div class="gov-grid">
+      <!-- RVP-only: single compact strip — daily spend + suppressed.
+           No stage breakdown, no top-operators block, no oversight
+           language. Team performance is what RVPs actually need. -->
+      <div class="gov-compact-bar" *ngIf="showGovernanceCompactBar()">
+        <div class="gov-compact-item">
+          <span class="gov-compact-label">Team Spend / Budget</span>
+          <span class="gov-compact-value">
+            {{ fmtCents(governance.daily_spend_cents) }}
+            <span class="gov-compact-sep">/</span>
+            <span class="gov-compact-cap">{{ fmtCents(governance.daily_budget_cents) }}</span>
+          </span>
+          <div class="gov-compact-bar-track">
+            <div class="gov-compact-bar-fill"
+                 [style.width.%]="governanceSpendPct()"
+                 [style.backgroundColor]="governanceBudgetBarColor()"></div>
+          </div>
+        </div>
+        <div class="gov-compact-item gov-compact-item--narrow">
+          <span class="gov-compact-label">Operations Today</span>
+          <span class="gov-compact-value gov-compact-value--ops">{{ operationsTodayCount() }}</span>
+        </div>
+        <div class="gov-compact-item gov-compact-item--narrow">
+          <span class="gov-compact-label">Active Operators</span>
+          <span class="gov-compact-value gov-compact-value--funded">{{ governanceTopOperators.length || '—' }}</span>
+        </div>
+      </div>
+
+      <div class="gov-grid" *ngIf="showGovernanceFullGrid()">
         <!-- Daily budget bar -->
         <div class="gov-card gov-budget-card">
           <div class="gov-card-label">Daily Spend / Budget</div>
@@ -166,134 +728,581 @@
       </div>
     </div>
 
-    <!-- ══════ TOKEN ECONOMY (WALLET + USAGE LEDGER) ══════ -->
-    <div class="dark-panel wallet-panel" *ngIf="wallet">
-      <div class="dark-panel-header executive-header">
-        <mat-icon>account_balance_wallet</mat-icon>
-        <span class="executive-panel-title">Token Economy</span>
-        <span class="executive-mode-chip"
-              *ngIf="wallet.myWallet"
-              [style.color]="walletModeColor(wallet.myWallet.governance_mode)"
-              [style.borderColor]="walletModeColor(wallet.myWallet.governance_mode)">
-          {{ wallet.myWallet.governance_mode | titlecase }}
+    <!-- ══════ OPERATIONAL RESERVE (canonical wallet + usage_event) ══════
+         Phase 1 observation mode: this panel is a re-skin of the
+         underlying wallet + usage_event telemetry. No hard blocks
+         are active; the "Observation" chip below makes that explicit.
+         When an operator sets hard_limit_tokens on any wallet, the
+         chip flips to "Enforced".
+    -->
+    <div class="dark-panel wallet-panel reserve-panel" *ngIf="wallet">
+      <!-- Cinematic scanline at the panel top: subtle moving highlight
+           that suggests live monitoring without becoming visual noise. -->
+      <div class="reserve-panel-scanline" aria-hidden="true"></div>
+      <div class="dark-panel-header executive-header reserve-panel-header">
+        <mat-icon>shield_moon</mat-icon>
+        <span class="executive-panel-title">{{ vocabEyebrow() }}</span>
+        <!-- Mode whisper: master + cp only. Agents and RVPs never see governance posture. -->
+        <span class="reserve-mode-whisper" *ngIf="showModeChip()"
+              [matTooltip]="reserveEnforcementMode() === 'enforced'
+                ? 'Hard cap active — paid operations may be blocked when capacity is exhausted.'
+                : 'Operating normally — no actions are being blocked.'">
+          <span class="reserve-mode-whisper-dot"
+                [style.backgroundColor]="reserveEnforcementColor()"></span>
+          {{ reserveEnforcementLabel() }}
         </span>
         <span class="executive-meta">
           <span *ngIf="!wallet.reachable" class="executive-meta-pill executive-meta-pill--offline">Offline</span>
-          <span *ngIf="wallet.reachable && !wallet.adminVisible" class="executive-meta-pill executive-meta-pill--restricted">Personal view</span>
+          <span *ngIf="wallet.reachable && !wallet.adminVisible && viewIsMaster()" class="executive-meta-pill executive-meta-pill--restricted">Personal view</span>
           <span *ngIf="wallet.reachable" class="executive-meta-time">Updated {{ walletTimeAgo() }}</span>
         </span>
       </div>
 
-      <div class="wallet-grid">
-        <!-- My Wallet -->
-        <div class="wallet-card wallet-mine-card">
-          <div class="wallet-card-label">My Wallet</div>
+      <!-- Provider Cost Warning — master + cp only. RVP / Agent are
+           shielded from the governance-y phrasing. -->
+      <div *ngIf="showProviderWarning() && providerCostWarning() as warn"
+           class="reserve-warning"
+           [class.reserve-warning--critical]="warn.level === 'critical'"
+           [class.reserve-warning--warn]="warn.level === 'warn'">
+        <mat-icon>report_problem</mat-icon>
+        <span class="reserve-warning-text">{{ warn.text }}</span>
+      </div>
+
+      <div class="wallet-grid reserve-grid">
+        <!-- Reserve Capacity + glowing gauge ─────────────────────── -->
+        <div class="wallet-card wallet-mine-card reserve-capacity-card reserve-hero-card">
+          <div class="wallet-card-label">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'master'">Reserve Capacity</ng-container>
+              <ng-container *ngSwitchCase="'cp'">Territory Reserve</ng-container>
+              <ng-container *ngSwitchCase="'rvp'">Team Credits</ng-container>
+              <ng-container *ngSwitchCase="'agent'">Your Credits</ng-container>
+            </ng-container>
+          </div>
           <div *ngIf="!wallet.myWallet" class="empty-state">
-            <mat-icon class="empty-state-icon">account_balance_wallet</mat-icon>
-            <div class="empty-state-status">Wallet not yet provisioned</div>
-            <div class="empty-state-hint">Created automatically on first billable action</div>
+            <mat-icon class="empty-state-icon">shield_moon</mat-icon>
+            <div class="empty-state-status">Reserve not yet provisioned</div>
+            <div class="empty-state-hint">Created automatically on first Intelligence operation</div>
           </div>
           <ng-container *ngIf="wallet.myWallet">
-            <div class="wallet-balance">{{ walletTokensFmt(wallet.myWallet.token_balance) }}<span class="wallet-balance-unit">tokens</span></div>
+            <div class="reserve-gauge-wrap">
+              <svg class="reserve-gauge"
+                   viewBox="0 0 160 160"
+                   role="img"
+                   [attr.aria-label]="reserveGaugeBandLabel() + ' · ' + reserveGaugePct() + ' percent'">
+                <defs>
+                  <filter id="gaugeGlow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="4" result="b" />
+                    <feMerge>
+                      <feMergeNode in="b" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <!-- background track (270° sweep, starts at 135°) -->
+                <circle cx="80" cy="80" r="60"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.08)"
+                        stroke-width="10"
+                        stroke-linecap="round"
+                        [attr.stroke-dasharray]="reserveGaugeArcLength() + ' ' + (2 * 3.14159 * 60)"
+                        transform="rotate(135 80 80)" />
+                <!-- active arc -->
+                <circle cx="80" cy="80" r="60"
+                        fill="none"
+                        [attr.stroke]="reserveGaugeColor()"
+                        stroke-width="10"
+                        stroke-linecap="round"
+                        [attr.stroke-dasharray]="reserveGaugeArcLength() + ' ' + (2 * 3.14159 * 60)"
+                        [attr.stroke-dashoffset]="reserveGaugeDashOffset()"
+                        transform="rotate(135 80 80)"
+                        filter="url(#gaugeGlow)"
+                        class="reserve-gauge-arc" />
+              </svg>
+              <div class="reserve-gauge-numbers">
+                <div class="reserve-gauge-value"
+                     [appOdometer]="reserveCapacity()"
+                     [appOdometerCompact]="true"
+                     [appOdometerDuration]="900">—</div>
+                <div class="reserve-gauge-unit">{{ vocabCredits() }}</div>
+                <!-- Band label: master + cp use the governance-y "OPERATIONAL CAPACITY"
+                     language; rvp uses "Team Capacity"; agent shows nothing (avoids
+                     financial framing). -->
+                <div class="reserve-gauge-band-label" *ngIf="!viewIsAgent()"
+                     [style.color]="reserveGaugeColor()">
+                  <ng-container [ngSwitch]="reserveView()">
+                    <ng-container *ngSwitchCase="'master'">{{ reserveGaugeBandLabel() }}</ng-container>
+                    <ng-container *ngSwitchCase="'cp'">{{ reserveGaugeBandLabel() }}</ng-container>
+                    <ng-container *ngSwitchCase="'rvp'">Team Capacity</ng-container>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
             <div class="wallet-card-sub">
               <span class="wallet-kind">{{ walletKindLabel(wallet.myWallet.wallet_kind) }}</span>
-              <span class="wallet-runway" matTooltip="Estimated runway based on 7-day burn">
+              <span class="wallet-runway" matTooltip="Estimated runway based on 7-day Intelligence throughput">
                 <mat-icon class="wallet-runway-icon">timer</mat-icon>
                 {{ walletProjectedRunway() }}
               </span>
             </div>
             <div class="wallet-spend-row">
-              <span class="wallet-spend-label">Today</span>
-              <span class="wallet-spend-val">{{ fmtCents(wallet.myWallet.daily_spend_cents) }}</span>
+              <span class="wallet-spend-label">Used Today</span>
+              <span class="wallet-spend-val"
+                    [appOdometer]="reserveCredits(reserveDeployedTodayCents())">—</span>
             </div>
             <div class="wallet-spend-row">
-              <span class="wallet-spend-label">This month</span>
-              <span class="wallet-spend-val">{{ fmtCents(wallet.myWallet.monthly_spend_cents) }}</span>
+              <span class="wallet-spend-label">Used This Month</span>
+              <span class="wallet-spend-val"
+                    [appOdometer]="usageSpentMonth()"
+                    [appOdometerCompact]="true">—</span>
             </div>
-            <div class="wallet-spend-row" *ngIf="wallet.myWallet.hard_limit_tokens !== null">
-              <span class="wallet-spend-label">Hard cap</span>
+            <!-- Phase 6: monthly reward earnings + admin bonus rollup.
+                 Renders only when the monthly summary endpoint
+                 responded. Both labels stay calm + executive — no
+                 game-y language. -->
+            <div class="wallet-spend-row" *ngIf="wallet.monthly">
+              <span class="wallet-spend-label"
+                    matTooltip="Rewards earned this calendar month from onboarding, claim signings, and operational milestones. Operational reserve credits are spendable on platform tools.">
+                Rewards Earned This Month
+              </span>
+              <span class="wallet-spend-val wallet-spend-val--earned"
+                    [appOdometer]="rewardsEarnedMonth()"
+                    [appOdometerPrefix]="'+'"
+                    [appOdometerCompact]="true">—</span>
+            </div>
+            <div class="wallet-spend-row"
+                 *ngIf="wallet.monthly && bonusCreditsMonth() > 0">
+              <span class="wallet-spend-label"
+                    matTooltip="Manual operational credit adjustments applied by administration this month.">
+                Admin-Adjusted Bonus
+              </span>
+              <span class="wallet-spend-val wallet-spend-val--earned"
+                    [appOdometer]="bonusCreditsMonth()"
+                    [appOdometerPrefix]="'+'"
+                    [appOdometerCompact]="true">—</span>
+            </div>
+            <div class="wallet-spend-row">
+              <span class="wallet-spend-label">Operations Today</span>
+              <span class="wallet-spend-val"
+                    [appOdometer]="intelligenceOpsToday()">—</span>
+            </div>
+            <div class="wallet-spend-row" *ngIf="wallet.myWallet.hard_limit_tokens !== null && !viewIsAgent()">
+              <span class="wallet-spend-label"
+                    matTooltip="Maximum operational reserve credits the wallet may carry. Acts as a ceiling, not a ledger — refilled by monthly grants.">
+                Monthly Reserve Cap
+              </span>
               <span class="wallet-spend-val">{{ walletTokensFmt(wallet.myWallet.hard_limit_tokens) }}</span>
             </div>
-          </ng-container>
-        </div>
-
-        <!-- Projected Monthly -->
-        <div class="wallet-card" *ngIf="wallet.adminVisible">
-          <div class="wallet-card-label">Projected Monthly</div>
-          <div *ngIf="!wallet.projected" class="empty-state">
-            <mat-icon class="empty-state-icon">trending_flat</mat-icon>
-            <div class="empty-state-status">No burn to project</div>
-            <div class="empty-state-hint">Awaiting first month-to-date usage event</div>
-          </div>
-          <ng-container *ngIf="wallet.projected">
-            <div class="wallet-card-value">{{ fmtCents(wallet.projected.projected_cents) }}</div>
-            <div class="wallet-card-sub">
-              MTD {{ fmtCents(wallet.projected.mtd_cents) }}
-              · {{ walletTokensFmt(wallet.projected.mtd_tokens) }} tokens
+            <!-- Tier ribbon — hidden for agent (no governance framing for agents). -->
+            <div class="reserve-tier-block" *ngIf="showTierBlock() && vocabTier()">
+              <div class="reserve-tier-row">
+                <span class="reserve-tier-label">{{ vocabTier() }}</span>
+                <span class="reserve-tier-chip"
+                      [style.color]="cpTier().color"
+                      [style.borderColor]="cpTier().color"
+                      [style.boxShadow]="'0 0 22px ' + cpTier().glow">
+                  <mat-icon class="reserve-tier-icon">workspace_premium</mat-icon>
+                  {{ cpTier().name }}
+                </span>
+              </div>
+              <div class="reserve-tier-progress" *ngIf="cpTierNext() as next">
+                <div class="reserve-tier-progress-track">
+                  <div class="reserve-tier-progress-fill"
+                       [style.width.%]="cpTierProgressPct()"
+                       [style.backgroundColor]="cpTier().color"></div>
+                </div>
+                <div class="reserve-tier-progress-caption">
+                  {{ cpTierProgressPct() }}% to {{ next }}
+                </div>
+              </div>
             </div>
           </ng-container>
         </div>
-        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
-          <div class="wallet-card-label">Projected Monthly</div>
-          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
-          <div class="empty-state-status">Admin scope required</div>
-          <div class="empty-state-hint">Visible to operators with admin privileges</div>
-        </div>
 
-        <!-- Daily Burn (sparkline) -->
-        <div class="wallet-card wallet-burn-card" *ngIf="wallet.adminVisible">
-          <div class="wallet-card-label">Daily Burn (14d)</div>
-          <ng-container *ngIf="walletBurnSparkBars().length === 0">
-            <div class="wallet-spark wallet-spark--skeleton" aria-hidden="true">
-              <div *ngFor="let h of [14, 22, 16, 26, 18, 24, 18, 30, 22, 14, 20, 26, 18, 22]"
-                   class="wallet-spark-bar" [style.height.%]="h"></div>
-            </div>
-            <div class="empty-state-caption">Awaiting events · 14-day rolling window</div>
-          </ng-container>
-          <div *ngIf="walletBurnSparkBars().length > 0" class="wallet-spark">
-            <div *ngFor="let b of walletBurnSparkBars()"
-                 class="wallet-spark-bar"
-                 [style.height.%]="b.pct"
-                 [matTooltip]="b.date + ' · ' + walletTokensFmt(b.tokens) + ' tokens'"></div>
-          </div>
-        </div>
-        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
-          <div class="wallet-card-label">Daily Burn (14d)</div>
-          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
-          <div class="empty-state-status">Admin scope required</div>
-          <div class="empty-state-hint">Visible to operators with admin privileges</div>
-        </div>
+        <!-- Supporting rail: stacked secondary cards, half-width of hero -->
+        <div class="reserve-rail">
 
-        <!-- Top Spenders -->
-        <div class="wallet-card wallet-spenders-card" *ngIf="wallet.adminVisible">
-          <div class="wallet-card-label">Top Spenders (24h)</div>
-          <div *ngIf="(wallet.topSpenders || []).length === 0" class="empty-state">
-            <mat-icon class="empty-state-icon">leaderboard</mat-icon>
-            <div class="empty-state-status">No ranked actors</div>
-            <div class="empty-state-hint">Top 5 spenders surface once events accumulate</div>
-          </div>
-          <div *ngIf="(wallet.topSpenders || []).length > 0" class="wallet-spenders-list">
-            <div *ngFor="let s of wallet.topSpenders" class="wallet-spender-row">
-              <span class="wallet-spender-id" [matTooltip]="s.actor_user_id">
-                {{ shortOperatorId(s.actor_user_id) }}
-                <span class="wallet-spender-role" *ngIf="s.actor_role">· {{ s.actor_role }}</span>
+          <!-- ══════ Phase 4: Prestige Rank — visible on every role ══════
+               Simple 5-tier progression card. Lives in the reserve rail
+               so it reads as a "you" card alongside Credits/Actions.
+               Demo-progression data; real scoring lands later. -->
+          <div class="wallet-card reserve-rail-card prestige-card">
+            <div class="wallet-card-label">Operator Rank</div>
+            <div class="prestige-row">
+              <span class="prestige-medal"
+                    [style.color]="prestigeRank().color"
+                    [style.borderColor]="prestigeRank().color"
+                    [style.boxShadow]="'0 0 18px ' + prestigeRank().glow">
+                <mat-icon class="prestige-medal-icon">military_tech</mat-icon>
               </span>
-              <span class="wallet-spender-tokens">{{ walletTokensFmt(s.tokens) }}t</span>
-              <span class="wallet-spender-cents">{{ fmtCents(s.cents) }}</span>
+              <div class="prestige-name-block">
+                <div class="prestige-name" [style.color]="prestigeRank().color">{{ prestigeRank().name }}</div>
+                <div class="prestige-position">
+                  <mat-icon class="prestige-position-icon">leaderboard</mat-icon>
+                  Position
+                  <strong>#{{ leaderboardPosition().rank }}</strong>
+                  <span class="prestige-position-of">of {{ leaderboardPosition().total }}</span>
+                  <span class="prestige-position-scope">{{ leaderboardPosition().scope }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="prestige-progress" *ngIf="prestigeNextRank() as nextRank">
+              <div class="prestige-progress-track">
+                <div class="prestige-progress-fill"
+                     [style.width.%]="prestigeProgressPct()"
+                     [style.backgroundColor]="prestigeRank().color"
+                     [style.boxShadow]="'0 0 10px ' + prestigeRank().glow"></div>
+              </div>
+              <div class="prestige-progress-caption">
+                {{ prestigeProgressPct() }}% to <span class="prestige-progress-next">{{ nextRank }}</span>
+              </div>
+            </div>
+            <div class="prestige-progress prestige-progress--max" *ngIf="!prestigeNextRank()">
+              <div class="prestige-progress-caption prestige-progress-caption--max">
+                Apex tier · max rank
+              </div>
             </div>
           </div>
+
+          <!-- ── CP-only: Downline Usage rollup ────────────────────── -->
+          <div class="wallet-card reserve-rail-card reserve-downline-card" *ngIf="showDownlineCard()">
+            <div class="wallet-card-label">Downline Usage · This Month</div>
+            <div class="reserve-downline-list">
+              <div *ngFor="let row of mockDownlineRows()" class="reserve-downline-row">
+                <span class="reserve-downline-dot"
+                      [style.backgroundColor]="downlineStatusColor(row.status)"></span>
+                <span class="reserve-downline-name">
+                  {{ row.name }}
+                  <span class="reserve-downline-role">· {{ row.role }}</span>
+                </span>
+                <span class="reserve-downline-bar">
+                  <span class="reserve-downline-bar-fill"
+                        [style.width.%]="pctUsed(row.used, row.capacity)"
+                        [style.backgroundColor]="downlineStatusColor(row.status)"></span>
+                </span>
+                <span class="reserve-downline-num">
+                  {{ walletTokensFmt(row.used) }}<span class="reserve-downline-num-sep">/</span>{{ walletTokensFmt(row.capacity) }}
+                </span>
+              </div>
+            </div>
+            <div class="reserve-downline-footnote">Refreshes nightly · drill into any operator from the Operators panel.</div>
+          </div>
+
+          <!-- ── RVP-only: Team Agent Usage ────────────────────────── -->
+          <div class="wallet-card reserve-rail-card reserve-team-card" *ngIf="showTeamAgentCard()">
+            <div class="wallet-card-label">Your Team · This Month</div>
+            <div class="reserve-team-list">
+              <div *ngFor="let row of mockTeamAgentRows()" class="reserve-team-row">
+                <span class="reserve-team-name">{{ row.name }}</span>
+                <span class="reserve-team-bar">
+                  <span class="reserve-team-bar-fill"
+                        [style.width.%]="pctUsed(row.used, row.capacity)"></span>
+                </span>
+                <span class="reserve-team-credits">{{ walletTokensFmt(row.used) }}<span class="reserve-team-credits-sep">/</span>{{ walletTokensFmt(row.capacity) }}</span>
+                <span class="reserve-team-funded" matTooltip="Funded actions this month">
+                  <mat-icon class="reserve-team-funded-icon">bolt</mat-icon>
+                  {{ row.funded_actions }}
+                </span>
+                <span class="reserve-team-signed" matTooltip="Leads signed">
+                  <mat-icon class="reserve-team-signed-icon">verified</mat-icon>
+                  {{ row.leads_signed }}
+                </span>
+              </div>
+            </div>
+            <div class="reserve-downline-footnote">Refreshes nightly · open an agent for full activity history.</div>
+          </div>
+
+          <!-- ── Agent-only: Action surface ────────────────────────── -->
+          <div class="wallet-card reserve-rail-card reserve-actions-card" *ngIf="showAgentActions()">
+            <div class="wallet-card-label">Available Actions</div>
+            <div class="reserve-actions-grid">
+              <button *ngFor="let a of agentActions"
+                      type="button"
+                      class="reserve-action-btn"
+                      [class.reserve-action-btn--busy]="agentActionInFlight === a.key"
+                      [class.reserve-action-btn--disabled]="!canAffordAgentAction(a) && a.credits > 0"
+                      [disabled]="!!agentActionInFlight || (!canAffordAgentAction(a) && a.credits > 0)"
+                      (click)="triggerAgentAction(a)"
+                      [matTooltip]="a.descriptor">
+                <mat-icon class="reserve-action-icon">{{ agentActionInFlight === a.key ? 'autorenew' : a.icon }}</mat-icon>
+                <span class="reserve-action-label">{{ a.label }}</span>
+                <span class="reserve-action-cost" *ngIf="a.credits > 0">
+                  {{ a.credits }} credit<span *ngIf="a.credits !== 1">s</span>
+                </span>
+                <span class="reserve-action-cost reserve-action-cost--free" *ngIf="a.credits === 0">Free</span>
+              </button>
+            </div>
+            <div class="reserve-action-flash" *ngIf="agentActionFlash as flash"
+                 [style.color]="flash.color"
+                 [style.borderColor]="flash.color">
+              <mat-icon class="reserve-action-flash-icon">{{ flash.color === '#00e676' ? 'check_circle' : 'error_outline' }}</mat-icon>
+              <span>{{ flash.text }}</span>
+            </div>
+          </div>
+
+          <!-- Projected Monthly Throughput with MoM delta chip -->
+          <div class="wallet-card reserve-rail-card" *ngIf="wallet.adminVisible && showProjectedCard()">
+            <div class="wallet-card-label">Projected Monthly Throughput</div>
+            <div *ngIf="!wallet.projected" class="empty-state">
+              <mat-icon class="empty-state-icon">trending_flat</mat-icon>
+              <div class="empty-state-status">No throughput to project</div>
+              <div class="empty-state-hint">Awaiting first month-to-date Intelligence op</div>
+            </div>
+            <ng-container *ngIf="wallet.projected">
+              <div class="reserve-rail-value-row">
+                <span class="wallet-card-value reserve-rail-value">{{ fmtCents(wallet.projected.projected_cents) }}</span>
+                <span class="reserve-delta-chip"
+                      [style.color]="projectedMoMDelta().color"
+                      [style.borderColor]="projectedMoMDelta().color">
+                  {{ projectedMoMDelta().symbol }} {{ projectedMoMDelta().pct }}%
+                </span>
+              </div>
+              <div class="wallet-card-sub reserve-rail-sub">
+                <span>MTD {{ fmtCents(wallet.projected.mtd_cents) }}</span>
+                <span class="reserve-rail-sub-divider">·</span>
+                <span>{{ walletTokensFmt(wallet.projected.mtd_tokens) }} reserve</span>
+              </div>
+            </ng-container>
+          </div>
+          <div class="wallet-card reserve-rail-card wallet-admin-locked" *ngIf="!wallet.adminVisible && showProjectedCard()">
+            <div class="wallet-card-label">Projected Monthly Throughput</div>
+            <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+            <div class="empty-state-status">Admin scope required</div>
+          </div>
+
+          <!-- Intelligence Throughput sparkline (master + cp only) -->
+          <div class="wallet-card reserve-rail-card wallet-burn-card reserve-throughput-card" *ngIf="wallet.adminVisible && showSparkline()">
+            <div class="reserve-throughput-header">
+              <span class="wallet-card-label">Intelligence Throughput · 14d</span>
+              <span class="reserve-throughput-stamps" *ngIf="walletBurnSparkBars().length > 0">
+                <span class="reserve-throughput-today">
+                  TODAY
+                  <strong [appOdometer]="sparklineTodayValue()" [appOdometerCompact]="true">—</strong>
+                  <span class="reserve-throughput-delta"
+                        [style.color]="sparklineDeltaColor()">
+                    {{ sparklineDeltaSymbol() }} {{ sparklineDeltaPct() }}%
+                  </span>
+                </span>
+                <span class="reserve-throughput-peak">
+                  PEAK <strong [appOdometer]="sparklinePeakValue()" [appOdometerCompact]="true">—</strong>
+                </span>
+              </span>
+            </div>
+            <ng-container *ngIf="walletBurnSparkBars().length === 0">
+              <div class="wallet-spark wallet-spark--skeleton" aria-hidden="true">
+                <div *ngFor="let h of [14, 22, 16, 26, 18, 24, 18, 30, 22, 14, 20, 26, 18, 22]"
+                     class="wallet-spark-bar" [style.height.%]="h"></div>
+              </div>
+              <div class="empty-state-caption">Awaiting events · 14-day rolling window</div>
+            </ng-container>
+            <div *ngIf="walletBurnSparkBars().length > 0" class="wallet-spark reserve-spark">
+              <div *ngFor="let b of walletBurnSparkBars(); let last = last"
+                   class="wallet-spark-bar"
+                   [class.wallet-spark-bar--today]="last"
+                   [style.height.%]="b.pct"
+                   [matTooltip]="b.date + ' · ' + walletTokensFmt(b.tokens) + ' reserve'"></div>
+            </div>
+          </div>
+          <div class="wallet-card reserve-rail-card wallet-admin-locked" *ngIf="!wallet.adminVisible && showSparkline()">
+            <div class="wallet-card-label">Intelligence Throughput · 14d</div>
+            <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+            <div class="empty-state-status">Admin scope required</div>
+          </div>
+
+          <!-- Top Operators (24h) — master only -->
+          <div class="wallet-card reserve-rail-card wallet-spenders-card" *ngIf="wallet.adminVisible && showTopOperatorsCard()">
+            <div class="wallet-card-label">Top Operators · 24h</div>
+            <div *ngIf="(wallet.topSpenders || []).length === 0" class="empty-state">
+              <mat-icon class="empty-state-icon">leaderboard</mat-icon>
+              <div class="empty-state-status">No ranked operators</div>
+            </div>
+            <div *ngIf="(wallet.topSpenders || []).length > 0" class="wallet-spenders-list reserve-spenders-list">
+              <div *ngFor="let s of wallet.topSpenders; let i = index"
+                   class="wallet-spender-row reserve-spender-row">
+                <span class="reserve-spender-rank">#{{ i + 1 }}</span>
+                <span class="wallet-spender-id" [matTooltip]="s.actor_user_id">
+                  {{ shortOperatorId(s.actor_user_id) }}
+                  <span class="wallet-spender-role" *ngIf="s.actor_role">· {{ s.actor_role }}</span>
+                </span>
+                <span class="wallet-spender-tokens">{{ walletTokensFmt(s.tokens) }}r</span>
+                <span class="wallet-spender-cents">{{ fmtCents(s.cents) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="wallet-card reserve-rail-card wallet-admin-locked" *ngIf="!wallet.adminVisible && showTopOperatorsCard()">
+            <div class="wallet-card-label">Top Operators · 24h</div>
+            <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
+            <div class="empty-state-status">Admin scope required</div>
+          </div>
         </div>
-        <div class="wallet-card wallet-admin-locked" *ngIf="!wallet.adminVisible">
-          <div class="wallet-card-label">Top Spenders (24h)</div>
-          <mat-icon class="empty-state-icon empty-state-icon--lock">lock</mat-icon>
-          <div class="empty-state-status">Admin scope required</div>
-          <div class="empty-state-hint">Visible to operators with admin privileges</div>
+      </div>
+
+      <!-- ══════ BONUS ACHIEVEMENTS — Phase 6 rewards feed ══════
+           Renders recent reward-engine events from the monthly summary
+           endpoint. Visible to every role; amount = configured reward
+           value (0 until admin activates a given event type). Empty
+           state stays honest: "No achievements yet this month" rather
+           than fake celebrations. -->
+      <div class="reserve-mission-log reserve-bonus-achievements"
+           *ngIf="wallet.monthly">
+        <div class="reserve-mission-log-header">
+          <mat-icon>military_tech</mat-icon>
+          <span class="reserve-mission-log-title">Bonus Achievements</span>
+          <span class="reserve-mission-log-sub">
+            Operational reserve credits earned for milestones this month
+          </span>
+        </div>
+        <div *ngIf="rewardEventsMonth().length === 0"
+             class="empty-state empty-state--inline">
+          <mat-icon class="empty-state-icon">workspace_premium</mat-icon>
+          <div class="empty-state-status">No achievements yet this month</div>
+          <div class="empty-state-hint">
+            Credits land when you complete onboarding, sign a claim, close
+            a paid claim, recruit a paid user, or hit a monthly milestone.
+          </div>
+        </div>
+        <div *ngIf="rewardEventsMonth().length > 0"
+             class="reserve-mission-log-list">
+          <div *ngFor="let evt of rewardEventsMonth()"
+               class="reserve-mission-log-row reserve-mission-log-row--narrative reserve-mission-log-row--terminal">
+            <span class="reserve-mission-log-stamp">
+              {{ rewardEventTimeLabel(evt.created_at) }}
+            </span>
+            <span class="reserve-mission-log-rail"
+                  [style.background]="rewardEventColor(evt)"></span>
+            <span class="reserve-mission-log-narrative">
+              <strong>{{ rewardEventLabel(evt.operation_type) }}</strong>
+              <span class="reserve-mission-log-meta" *ngIf="evt.note">
+                · {{ evt.note }}
+              </span>
+            </span>
+            <span class="reserve-mission-log-amount"
+                  [style.color]="evt.credit_amount > 0 ? '#00e676' : 'rgba(255,255,255,0.4)'">
+              <ng-container *ngIf="evt.credit_amount > 0">
+                +{{ evt.credit_amount | number }}
+              </ng-container>
+              <ng-container *ngIf="evt.credit_amount === 0">
+                Logged
+              </ng-container>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mission Log — hidden for agent. RVP shows only success rows
+           via filteredMissionLog(). Header label adapts per role. -->
+      <div class="reserve-mission-log" *ngIf="showMissionLog()">
+        <div class="reserve-mission-log-header">
+          <mat-icon>history</mat-icon>
+          <span class="reserve-mission-log-title">{{ vocabMissionTitle() }}</span>
+          <span class="reserve-mission-log-sub">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'master'">Recent Intelligence operations</ng-container>
+              <ng-container *ngSwitchCase="'cp'">Territory operations</ng-container>
+              <ng-container *ngSwitchCase="'rvp'">Funded team actions</ng-container>
+            </ng-container>
+          </span>
+        </div>
+        <div *ngIf="filteredMissionLog().length === 0" class="empty-state empty-state--inline">
+          <mat-icon class="empty-state-icon">history_edu</mat-icon>
+          <div class="empty-state-status">
+            <ng-container [ngSwitch]="reserveView()">
+              <ng-container *ngSwitchCase="'rvp'">No funded actions yet</ng-container>
+              <ng-container *ngSwitchDefault>No Intelligence operations yet</ng-container>
+            </ng-container>
+          </div>
+          <div class="empty-state-hint">The log fills as your team runs new actions.</div>
+        </div>
+        <div *ngIf="filteredMissionLog().length > 0" class="reserve-mission-log-list">
+          <div *ngFor="let e of filteredMissionLog()"
+               class="reserve-mission-log-row reserve-mission-log-row--narrative reserve-mission-log-row--terminal">
+            <span class="reserve-mission-log-stamp"
+                  [matTooltip]="e.created_at || ''">{{ missionLogStamp(e) }}</span>
+            <span class="reserve-mission-log-rail"
+                  [style.backgroundColor]="missionLogStatusColor(e)"></span>
+            <span class="reserve-mission-log-dot reserve-mission-log-dot--lg"
+                  [style.backgroundColor]="missionLogStatusColor(e)"
+                  [style.boxShadow]="'0 0 10px ' + missionLogStatusColor(e)"></span>
+            <span class="reserve-mission-log-narrative">{{ missionLogNarrative(e) }}</span>
+            <span class="reserve-mission-log-relative">{{ e.created_at ? timeAgo(e.created_at) : '—' }}</span>
+          </div>
         </div>
       </div>
     </div>
 
     </section>
     <!-- ══════ END EXECUTIVE TREASURY ZONE ══════ -->
+
+    <!-- ══════ Phase 4: Leaderboards row ══════
+         Three lightweight visual leaderboards visible on every role.
+         Placeholder data — wired to live aggregations in a later phase. -->
+    <div class="leaderboards-row" *ngIf="wallet">
+      <div class="dark-panel leaderboard-card">
+        <div class="dark-panel-header leaderboard-card-header">
+          <mat-icon>military_tech</mat-icon>
+          <span>Top Agents</span>
+          <span class="leaderboard-card-scope">· this month</span>
+        </div>
+        <div class="leaderboard-list">
+          <div *ngFor="let a of mockTopAgents(); let i = index" class="leaderboard-row">
+            <span class="leaderboard-rank">#{{ i + 1 }}</span>
+            <span class="leaderboard-name">
+              {{ a.name }}
+              <span class="leaderboard-sub">· {{ a.team }}</span>
+            </span>
+            <span class="leaderboard-signed" matTooltip="Leads signed">
+              <mat-icon>verified</mat-icon>{{ a.signed }}
+            </span>
+            <span class="leaderboard-ops" matTooltip="Operations">
+              <mat-icon>bolt</mat-icon>{{ a.ops }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-panel leaderboard-card">
+        <div class="dark-panel-header leaderboard-card-header">
+          <mat-icon>groups</mat-icon>
+          <span>Top Teams</span>
+          <span class="leaderboard-card-scope">· this month</span>
+        </div>
+        <div class="leaderboard-list">
+          <div *ngFor="let t of mockTopTeams(); let i = index" class="leaderboard-row">
+            <span class="leaderboard-rank">#{{ i + 1 }}</span>
+            <span class="leaderboard-name">
+              {{ t.name }}
+              <span class="leaderboard-sub">· lead {{ t.lead }}</span>
+            </span>
+            <span class="leaderboard-signed" matTooltip="Leads signed">
+              <mat-icon>verified</mat-icon>{{ t.signed }}
+            </span>
+            <span class="leaderboard-ops" matTooltip="Team operations">
+              <mat-icon>bolt</mat-icon>{{ t.ops | number }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-panel leaderboard-card">
+        <div class="dark-panel-header leaderboard-card-header">
+          <mat-icon>public</mat-icon>
+          <span>Top Territories</span>
+          <span class="leaderboard-card-scope">· this month</span>
+        </div>
+        <div class="leaderboard-list">
+          <div *ngFor="let t of mockTopTerritories(); let i = index" class="leaderboard-row">
+            <span class="leaderboard-rank">#{{ i + 1 }}</span>
+            <span class="leaderboard-name">{{ t.name }}</span>
+            <span class="leaderboard-signed" matTooltip="Leads signed">
+              <mat-icon>verified</mat-icon>{{ t.signed }}
+            </span>
+            <span class="leaderboard-ops leaderboard-recovery" matTooltip="Recovery this month">
+              <mat-icon>account_balance</mat-icon>{{ fmtCents(t.recovery_cents) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ══════ HIGH PROBABILITY CLAIMS PANEL ══════ -->
     <div class="dark-panel opp-panel">
@@ -686,6 +1695,59 @@
       <button mat-stroked-button class="dark-btn" (click)="nav('/app/potential-claims')"><mat-icon>analytics</mat-icon> Claim Scoring</button>
       <button mat-stroked-button class="dark-btn" (click)="nav('/app/agreements')"><mat-icon>draw</mat-icon> UPASign</button>
     </div>
+
+    </ng-container>
+    <!-- ══════ END non-agent executive layout ══════ -->
+
   </div>
+
+  <!-- ══════ DEV-ONLY: role preview switcher ══════
+       Floating bottom-right pill. *ngIf is gated to !environment.production
+       so this widget never renders in a prod build. Choices override the
+       Operational Reserve UI only — backend/auth/wallet records are not
+       mutated. Persists to sessionStorage. -->
+  <aside class="dev-role-switcher" *ngIf="showDevPreviewSwitcher()"
+         role="region" aria-label="Local role preview switcher">
+    <header class="dev-role-switcher-header">
+      <mat-icon class="dev-role-switcher-icon">science</mat-icon>
+      <span class="dev-role-switcher-banner">LOCAL PREVIEW ONLY</span>
+    </header>
+    <div class="dev-role-switcher-label">Reserve view as…</div>
+    <div class="dev-role-switcher-row">
+      <button type="button"
+              class="dev-role-switcher-btn"
+              [class.dev-role-switcher-btn--active]="!devPreviewRole"
+              (click)="setDevPreviewRole(null)">
+        Auto
+      </button>
+      <button type="button"
+              class="dev-role-switcher-btn"
+              [class.dev-role-switcher-btn--active]="devPreviewRole === 'master'"
+              (click)="setDevPreviewRole('master')">
+        Home Office
+      </button>
+      <button type="button"
+              class="dev-role-switcher-btn"
+              [class.dev-role-switcher-btn--active]="devPreviewRole === 'cp'"
+              (click)="setDevPreviewRole('cp')">
+        CP
+      </button>
+      <button type="button"
+              class="dev-role-switcher-btn"
+              [class.dev-role-switcher-btn--active]="devPreviewRole === 'rvp'"
+              (click)="setDevPreviewRole('rvp')">
+        RVP
+      </button>
+      <button type="button"
+              class="dev-role-switcher-btn"
+              [class.dev-role-switcher-btn--active]="devPreviewRole === 'agent'"
+              (click)="setDevPreviewRole('agent')">
+        Agent
+      </button>
+    </div>
+    <div class="dev-role-switcher-foot">
+      Frontend-only · no DB / auth / wallet writes
+    </div>
+  </aside>
 
 </div>

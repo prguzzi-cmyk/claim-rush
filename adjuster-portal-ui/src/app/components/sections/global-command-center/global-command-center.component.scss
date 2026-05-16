@@ -468,6 +468,1188 @@ $accent-blue: #2979ff;
 @media (max-width: 1400px) { .wallet-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 768px) { .wallet-grid { grid-template-columns: 1fr; } }
 
+// ── Operational Reserve — Phase 1 cosmetic layer ──────────────────
+// Re-skin on top of the wallet panel. Driven by .reserve-panel
+// modifier; everything else is shared with the underlying wallet UI.
+.reserve-mode-chip { font-weight: 600; }
+.reserve-warning {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 12px 8px; padding: 7px 10px;
+  border-radius: 6px; font-size: 0.78rem;
+  background: rgba(255, 109, 0, 0.08);
+  border: 1px solid rgba(255, 109, 0, 0.35);
+  color: #ffb066;
+  mat-icon { font-size: 18px; height: 18px; width: 18px; }
+}
+.reserve-warning--warn {
+  background: rgba(255, 109, 0, 0.08);
+  border-color: rgba(255, 109, 0, 0.35);
+  color: #ffb066;
+}
+.reserve-warning--critical {
+  background: rgba(255, 23, 68, 0.10);
+  border-color: rgba(255, 23, 68, 0.45);
+  color: #ff8896;
+}
+.reserve-mission-log {
+  margin: 6px 12px 12px; padding: 10px 12px;
+  background: $bg-panel-header; border: 1px solid $border; border-radius: 6px;
+}
+.reserve-mission-log-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  mat-icon { font-size: 18px; height: 18px; width: 18px; color: $text-secondary; }
+}
+.reserve-mission-log-title {
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em;
+  color: $text-primary; font-weight: 700;
+}
+.reserve-mission-log-sub {
+  font-size: 0.7rem; color: $text-muted; margin-left: auto;
+}
+.reserve-mission-log-list {
+  display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto;
+}
+.reserve-mission-log-row {
+  display: grid;
+  grid-template-columns: 12px 1.4fr 0.8fr 0.6fr 0.6fr;
+  align-items: center; gap: 8px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  &:last-child { border-bottom: none; }
+}
+.reserve-mission-log-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.reserve-mission-log-op { color: $text-primary; font-weight: 600; }
+.reserve-mission-log-vendor { color: $text-muted; font-size: 0.72rem; }
+.reserve-mission-log-cents { color: $accent-cyan; font-family: 'SF Mono', monospace; text-align: right; }
+.reserve-mission-log-when { color: $text-muted; text-align: right; font-size: 0.72rem; }
+.empty-state--inline { padding: 12px 6px; }
+
+// ══════════════════════════════════════════════════════════════════
+// PHASE 2 — VISUAL ECONOMY LAYER (polished)
+// Premium Bloomberg-terminal styling for the Operational Reserve.
+// Polish pass: rhythm, hierarchy, asymmetric grid, terminal log,
+// gauge prominence, scanline accent.
+// ══════════════════════════════════════════════════════════════════
+
+// Shared ease token — same curve everywhere so motion reads coherent.
+$reserve-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+// ── Persistent top reserve strip (polish pass) ─────────────────────
+.reserve-strip {
+  margin: 0 16px 18px;
+  padding: 18px 24px;
+  min-height: 88px;
+  display: flex;
+  align-items: stretch;            // brand + stats + tier share full height
+  gap: 28px;
+  background:
+    linear-gradient(180deg, rgba(35, 46, 68, 0.62) 0%, rgba(21, 29, 44, 0.68) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.10);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.025) inset,
+    0 18px 38px -22px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+
+  // Ambient radial wash — a single restrained light source from upper
+  // right makes the strip read as a lit panel, not a flat card.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 100% at 90% 0%, rgba(0, 229, 255, 0.07), transparent 60%),
+      radial-gradient(ellipse 40% 100% at 0% 100%, rgba(170, 0, 255, 0.04), transparent 60%);
+    pointer-events: none;
+  }
+
+  // Top scanline highlight — 1px gradient that suggests illumination
+  // from above. Static (no animation) so it doesn't fight focus.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(0, 229, 255, 0.35) 22%,
+      rgba(0, 229, 255, 0.55) 50%,
+      rgba(0, 229, 255, 0.35) 78%,
+      transparent 100%);
+    pointer-events: none;
+  }
+}
+
+.reserve-strip-brand {
+  display: flex;
+  align-items: center;             // vertically center against stat values
+  gap: 14px;
+  padding-right: 26px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.reserve-strip-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reserve-strip-eyebrow {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: $text-primary;
+  font-weight: 700;
+  line-height: 1;
+}
+
+// Quiet sub-eyebrow line; carries the mode posture without the
+// loud chip border. Dot + lowercase keeps Observation present but
+// never dominant.
+.reserve-strip-sub-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: $text-muted;
+  line-height: 1;
+}
+
+.reserve-strip-sub-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+
+// Pulse breath: wider scale + lower idle opacity for calmer presence.
+@keyframes reserveStripPulse {
+  0%   { transform: scale(1);    opacity: 0.95; box-shadow: 0 0 0 0    rgba(0, 229, 255, 0.50); }
+  60%  { transform: scale(1.55); opacity: 0.20; box-shadow: 0 0 0 12px rgba(0, 229, 255, 0); }
+  100% { transform: scale(1);    opacity: 0.95; box-shadow: 0 0 0 0    rgba(0, 229, 255, 0); }
+}
+
+.reserve-strip-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: $accent-cyan;
+  animation: reserveStripPulse 2.6s ease-out infinite;
+  flex-shrink: 0;
+
+  &.reserve-strip-pulse--idle {
+    background: $text-muted;
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
+.reserve-strip-stats {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  flex: 1;
+  z-index: 1;
+}
+
+.reserve-strip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;                    // allow numbers to ellipse if needed
+}
+
+.reserve-strip-stat-label {
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: $text-muted;
+  line-height: 1;
+}
+
+.reserve-strip-stat-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  transition: color 200ms $reserve-ease, text-shadow 250ms $reserve-ease;
+}
+
+.reserve-strip-stat-value--primary {
+  font-size: 1.95rem;
+  color: $accent-cyan;
+  text-shadow: 0 0 22px rgba(0, 229, 255, 0.45);
+}
+
+.reserve-strip-stat-value--earned {
+  color: $accent-green;
+  text-shadow: 0 0 16px rgba(0, 230, 118, 0.35);
+}
+
+.reserve-strip-stat-value--deployed {
+  color: #ffb066;
+}
+
+// Tier slot lives outside the stats flex; right-anchored, vertically
+// centered. Less crowding, more presence.
+.reserve-strip-tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  padding-left: 22px;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+  z-index: 1;
+
+  .reserve-strip-stat-label { text-align: right; }
+}
+
+.reserve-strip-tier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.42);
+  transition: box-shadow 320ms $reserve-ease, transform 220ms $reserve-ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  mat-icon.reserve-strip-tier-icon {
+    font-size: 17px; height: 17px; width: 17px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .reserve-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px 18px;
+    min-height: 0;
+  }
+  .reserve-strip-brand {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0 0 12px;
+  }
+  .reserve-strip-tier {
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 12px 0 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .reserve-strip-stats { gap: 22px; flex-wrap: wrap; }
+}
+
+// ── Operational Reserve panel: scanline + asymmetric hero/rail ─────
+.reserve-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.reserve-panel-scanline {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 229, 255, 0.35) 30%,
+    rgba(0, 229, 255, 0.55) 50%,
+    rgba(0, 229, 255, 0.35) 70%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+// Whisper-thin mode pill in the panel header. Replaces the loud
+// outlined chip. Reads as posture, not call-to-action.
+.reserve-mode-whisper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: $text-muted;
+  padding: 2px 0;
+  margin-left: 2px;
+}
+
+.reserve-mode-whisper-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  opacity: 0.85;
+}
+
+// Asymmetric grid: hero card on the left (~58%), supporting rail
+// on the right (~42%) — three stacked cards. At ≤1100px collapses
+// to a single column.
+.reserve-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.reserve-hero-card {
+  position: relative;
+  padding: 14px 16px 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  // Hero-card border accent on the left — a vertical color rail.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(180deg,
+      rgba(0, 229, 255, 0.55),
+      rgba(0, 229, 255, 0.06));
+  }
+}
+
+.reserve-rail {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 10px;
+  min-height: 0;
+}
+
+.reserve-rail-card {
+  padding: 12px 14px;
+  min-height: 0;
+}
+
+.reserve-rail-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.reserve-rail-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.reserve-delta-chip {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.30);
+}
+
+.reserve-rail-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: $text-muted;
+}
+
+.reserve-rail-sub-divider { opacity: 0.5; }
+
+.reserve-throughput-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.reserve-throughput-stamps {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  color: $text-muted;
+  letter-spacing: 0.06em;
+
+  strong {
+    margin-left: 4px;
+    color: $text-primary;
+    font-weight: 700;
+  }
+}
+
+.reserve-throughput-today strong { color: $accent-cyan; }
+.reserve-throughput-peak strong { color: $text-primary; }
+
+.reserve-throughput-delta {
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+.reserve-spark {
+  height: 56px;
+  gap: 3px;
+  align-items: flex-end;
+  display: flex;
+}
+
+.wallet-spark-bar--today {
+  background: $accent-cyan !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+}
+
+.reserve-spenders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.reserve-spender-row {
+  display: grid;
+  grid-template-columns: 26px 1.4fr 0.6fr 0.7fr;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 0.78rem;
+}
+
+.reserve-spender-rank {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  color: $text-muted;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 1100px) {
+  .reserve-grid { grid-template-columns: 1fr; }
+  .reserve-rail { grid-template-rows: auto auto auto; }
+  .reserve-hero-card { padding-left: 14px; }
+  .reserve-hero-card::before { display: none; }
+}
+
+// Compact phone breakpoint — gauge + value stack vertically so the
+// number doesn't truncate against the column edge.
+@media (max-width: 600px) {
+  .reserve-capacity-card .reserve-gauge-wrap {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 0;
+  }
+  .reserve-gauge { width: 140px; height: 140px; }
+  .reserve-gauge-numbers { align-items: center; text-align: center; }
+  .reserve-gauge-value { font-size: 2.1rem; }
+  .reserve-rail-value { font-size: 1.4rem; }
+  .reserve-throughput-stamps { gap: 10px; font-size: 0.66rem; }
+  .reserve-mission-log-row--terminal {
+    grid-template-columns: 66px 3px 10px 1fr 56px;
+    gap: 8px;
+    font-size: 0.78rem;
+  }
+  .reserve-mission-log-stamp { font-size: 0.66rem; }
+}
+
+// ── Reserve gauge (polish: bigger + brighter) ──────────────────────
+.reserve-capacity-card .reserve-gauge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 6px 0 8px;
+  position: relative;
+}
+
+.reserve-gauge {
+  width: 162px;
+  height: 162px;
+  flex-shrink: 0;
+  // Subtle outer aura — only visible where the arc is, via SVG filter.
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.12));
+}
+
+.reserve-gauge-arc {
+  transition:
+    stroke-dashoffset 950ms $reserve-ease,
+    stroke 320ms ease;
+}
+
+.reserve-gauge-numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.reserve-gauge-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 2.35rem;
+  font-weight: 800;
+  color: $text-primary;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.08);
+}
+
+.reserve-gauge-unit {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: $text-muted;
+  font-weight: 600;
+}
+
+.reserve-gauge-band-label {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+// ── CP Tier block (in Reserve Capacity card) ───────────────────────
+.reserve-tier-block {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.reserve-tier-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+
+.reserve-tier-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: $text-muted;
+}
+
+.reserve-tier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.40);
+  transition: box-shadow 320ms $reserve-ease, transform 220ms $reserve-ease;
+
+  &:hover { transform: translateY(-1px); }
+
+  mat-icon.reserve-tier-icon {
+    font-size: 16px; height: 16px; width: 16px;
+  }
+}
+
+.reserve-tier-progress { margin-top: 10px; }
+
+.reserve-tier-progress-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+
+  // Faint tick at the right edge that marks "next tier" target.
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -4px;
+    bottom: -4px;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+}
+
+.reserve-tier-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 800ms $reserve-ease;
+  box-shadow: 0 0 12px currentColor;
+}
+
+.reserve-tier-progress-caption {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: $text-muted;
+  letter-spacing: 0.04em;
+}
+
+// ── Mission Log narrative — terminal-style (polish pass) ───────────
+.reserve-mission-log {
+  margin: 8px 12px 14px;
+  padding: 12px 14px 10px;
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 8px;
+  position: relative;
+
+  // Inner top hairline accent — same scanline language as the panel.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.25), transparent);
+    pointer-events: none;
+  }
+}
+
+.reserve-mission-log-row--terminal {
+  display: grid;
+  grid-template-columns: 78px 3px 12px 1fr 80px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 6px 2px;
+  font-size: 0.82rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  transition: background 180ms $reserve-ease, transform 220ms $reserve-ease;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: rgba(0, 229, 255, 0.03);
+    transform: translateX(2px);
+  }
+}
+
+.reserve-mission-log-stamp {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: $text-muted;
+  opacity: 0.7;
+}
+
+.reserve-mission-log-rail {
+  width: 3px;
+  height: 22px;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.reserve-mission-log-dot--lg {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.reserve-mission-log-narrative {
+  color: $text-primary;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  font-size: 0.86rem;
+}
+
+.reserve-mission-log-relative {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: $text-muted;
+  text-align: right;
+  opacity: 0.6;
+}
+
+// ── Phase 3A: reserve-grant celebration ─────────────────────────────
+// Floats a transient chip from below the strip up and out. The strip
+// itself gets a brief outer glow boost via .reserve-strip--celebrating
+// while the chip is active.
+
+@keyframes reserveGrantPop {
+  0%   { transform: translate(-50%, 28px) scale(0.92); opacity: 0; }
+  10%  { opacity: 1; transform: translate(-50%, 0) scale(1.02); }
+  18%  { transform: translate(-50%, 0) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { transform: translate(-50%, -36px) scale(0.96); opacity: 0; }
+}
+
+@keyframes reserveStripCelebrate {
+  0%   { box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.025) inset,
+            0 18px 38px -22px rgba(0, 0, 0, 0.7),
+            0 0 0 0 rgba(0, 230, 118, 0.0); }
+  20%  { box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.04) inset,
+            0 18px 38px -22px rgba(0, 0, 0, 0.7),
+            0 0 40px -4px rgba(0, 230, 118, 0.55); }
+  100% { box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.025) inset,
+            0 18px 38px -22px rgba(0, 0, 0, 0.7),
+            0 0 0 0 rgba(0, 230, 118, 0.0); }
+}
+
+.reserve-strip--celebrating {
+  animation: reserveStripCelebrate 5.2s $reserve-ease forwards;
+
+  // Bump the brand pulse + tier glow during the celebration for
+  // operational continuity (the whole strip is "lit up" for a moment).
+  .reserve-strip-pulse {
+    background: $accent-green;
+    box-shadow: 0 0 14px rgba(0, 230, 118, 0.7);
+  }
+}
+
+.reserve-grant-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translate(-50%, 0);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg,
+    rgba(0, 230, 118, 0.95) 0%,
+    rgba(0, 200, 90, 0.95) 100%);
+  color: #08130c;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 26px rgba(0, 230, 118, 0.55),
+    0 8px 22px -6px rgba(0, 0, 0, 0.45);
+  animation: reserveGrantPop 6s $reserve-ease forwards;
+  z-index: 5;
+  pointer-events: none;
+  white-space: nowrap;
+
+  .reserve-grant-chip-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+
+  .reserve-grant-chip-amount {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .reserve-grant-chip-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.85;
+  }
+}
+
+@media (max-width: 600px) {
+  .reserve-grant-chip {
+    bottom: 8px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    .reserve-grant-chip-amount { font-size: 0.95rem; }
+    .reserve-grant-chip-label { font-size: 0.66rem; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PHASE 3B — Role-aware Operational Reserve cards
+// ══════════════════════════════════════════════════════════════════
+
+// ── CP: Downline Usage ─────────────────────────────────────────────
+.reserve-downline-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reserve-downline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.reserve-downline-row {
+  display: grid;
+  grid-template-columns: 10px 1.2fr 1fr 90px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+.reserve-downline-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.reserve-downline-name {
+  color: $text-primary;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reserve-downline-role {
+  color: $text-muted;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 4px;
+}
+.reserve-downline-bar {
+  position: relative;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  display: block;
+}
+.reserve-downline-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 99px;
+  transition: width 600ms $reserve-ease;
+}
+.reserve-downline-num {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+  color: $text-secondary;
+  text-align: right;
+}
+.reserve-downline-num-sep {
+  color: $text-muted;
+  margin: 0 2px;
+  opacity: 0.6;
+}
+.reserve-downline-footnote {
+  margin-top: 6px;
+  font-size: 0.62rem;
+  color: $text-muted;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+// ── RVP: Team Agent Usage ──────────────────────────────────────────
+.reserve-team-card { display: flex; flex-direction: column; gap: 8px; }
+.reserve-team-list {
+  display: flex; flex-direction: column; gap: 7px;
+}
+.reserve-team-row {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr 80px 56px 48px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+.reserve-team-name {
+  color: $text-primary;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reserve-team-bar {
+  position: relative;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+  display: block;
+}
+.reserve-team-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 99px;
+  background: $accent-cyan;
+  transition: width 600ms $reserve-ease;
+  // width applied inline; default ensures graceful fallback
+  &[style*="width"] { /* respects inline width */ }
+}
+.reserve-team-credits {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+  color: $accent-cyan;
+  text-align: right;
+}
+.reserve-team-credits-sep { color: $text-muted; margin: 0 2px; opacity: 0.6; }
+.reserve-team-funded, .reserve-team-signed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $text-secondary;
+  font-size: 0.74rem;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+.reserve-team-funded-icon, .reserve-team-signed-icon {
+  font-size: 14px;
+  height: 14px;
+  width: 14px;
+  color: $accent-green;
+}
+
+// ── Agent: Action surface ──────────────────────────────────────────
+.reserve-actions-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reserve-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.reserve-action-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(0, 229, 255, 0.05) 0%, rgba(0, 229, 255, 0.02) 100%);
+  color: $text-primary;
+  cursor: pointer;
+  text-align: left;
+  transition: all 200ms $reserve-ease;
+  font-family: inherit;
+  min-height: 70px;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(0, 229, 255, 0.55);
+    background:
+      linear-gradient(180deg, rgba(0, 229, 255, 0.12) 0%, rgba(0, 229, 255, 0.04) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px -10px rgba(0, 229, 255, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &.reserve-action-btn--busy {
+    border-color: $accent-green;
+    background: rgba(0, 230, 118, 0.08);
+    cursor: progress;
+
+    .reserve-action-icon {
+      animation: reserveActionSpin 0.9s linear infinite;
+      color: $accent-green;
+    }
+  }
+
+  &.reserve-action-btn--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+.reserve-action-icon {
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
+  color: $accent-cyan;
+}
+.reserve-action-label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.reserve-action-cost {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  color: $text-muted;
+  letter-spacing: 0.04em;
+}
+.reserve-action-cost--free {
+  color: $accent-green;
+  font-weight: 700;
+}
+.reserve-action-flash {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.30);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  align-self: flex-start;
+  animation: reserveActionFlashIn 240ms $reserve-ease;
+
+  .reserve-action-flash-icon {
+    font-size: 16px;
+    height: 16px;
+    width: 16px;
+  }
+}
+
+@keyframes reserveActionSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes reserveActionFlashIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .reserve-actions-grid { grid-template-columns: 1fr; }
+  .reserve-downline-row {
+    grid-template-columns: 8px 1fr 70px;
+    font-size: 0.74rem;
+    .reserve-downline-bar { display: none; }
+  }
+  .reserve-team-row {
+    grid-template-columns: 1fr 70px 44px 36px;
+    font-size: 0.72rem;
+    .reserve-team-bar { display: none; }
+  }
+}
+
+// ── Dev-only role preview switcher ─────────────────────────────────
+// Floating bottom-right pill. Visually marked with an amber accent
+// so it can't be mistaken for production UI; the *ngIf in the
+// template prevents it from rendering in prod builds at all.
+.dev-role-switcher {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 1000;
+  background:
+    linear-gradient(180deg, rgba(28, 22, 12, 0.96) 0%, rgba(19, 15, 9, 0.96) 100%);
+  border: 1px solid rgba(255, 179, 0, 0.45);
+  border-radius: 10px;
+  padding: 10px 12px 8px;
+  width: 280px;
+  box-shadow:
+    0 14px 30px -10px rgba(0, 0, 0, 0.55),
+    0 0 28px -8px rgba(255, 179, 0, 0.35);
+  font-family: inherit;
+  backdrop-filter: blur(6px);
+
+  // Diagonal stripe pattern at the top — small but unmistakable
+  // visual that this is non-production tooling.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: repeating-linear-gradient(
+      45deg,
+      #ffb300 0 8px,
+      transparent 8px 16px
+    );
+    border-radius: 10px 10px 0 0;
+    opacity: 0.6;
+  }
+}
+
+.dev-role-switcher-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dev-role-switcher-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  color: #ffb300;
+}
+
+.dev-role-switcher-banner {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ffb300;
+}
+
+.dev-role-switcher-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d8c69b;
+  margin-bottom: 6px;
+}
+
+.dev-role-switcher-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  gap: 4px;
+}
+
+.dev-role-switcher-btn {
+  appearance: none;
+  background: rgba(255, 179, 0, 0.05);
+  border: 1px solid rgba(255, 179, 0, 0.22);
+  border-radius: 5px;
+  padding: 5px 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #f1deb6;
+  cursor: pointer;
+  transition: all 160ms $reserve-ease;
+  font-family: inherit;
+
+  &:hover {
+    background: rgba(255, 179, 0, 0.15);
+    border-color: rgba(255, 179, 0, 0.55);
+    color: #fff5dc;
+  }
+
+  &.dev-role-switcher-btn--active {
+    background: rgba(255, 179, 0, 0.30);
+    border-color: #ffb300;
+    color: #0d1320;
+    box-shadow: 0 0 12px rgba(255, 179, 0, 0.45);
+  }
+}
+
+.dev-role-switcher-foot {
+  margin-top: 7px;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  color: #9a886a;
+  opacity: 0.75;
+}
+
+@media (max-width: 600px) {
+  .dev-role-switcher {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════
 // CONTEXTUAL FOCUS HIERARCHY
 // IntersectionObserver toggles `.gcc-dark--treasury-focus` when the
@@ -586,9 +1768,21 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 }
 
 .executive-suite-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 10px;
-  flex-wrap: wrap; gap: 10px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap; gap: 12px;
+}
+// Title + 1-line operational subtitle stack — premium onboarding helper.
+.executive-suite-titlestack {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.executive-suite-subtitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: $exec-muted;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
 }
 
 // ── Live operational counter strip ────────────────────────────────
@@ -653,7 +1847,7 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   user-select: none;
 }
 .executive-suite-title {
-  display: flex; align-items: center; gap: 9px;
+  display: flex; align-items: flex-start; gap: 9px;
 }
 .executive-suite-marker {
   display: inline-block;
@@ -870,3 +2064,1139 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 }
 @media (max-width: 768px) { .gcc-header { flex-direction: column; gap: 8px; } .adj-kpi-row { flex-wrap: wrap; } .recovery-comparison { flex-wrap: wrap; } .recovery-compare-vs { display: none; } .recovery-metrics-row { flex-wrap: wrap; } .recovery-metric { min-width: 50%; } }
 @media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr; } .gcc-body { padding: 0 16px 16px; } }
+
+// ══════════════════════════════════════════════════════════════════
+// Phase 4 — Prestige rank card, RVP compact governance, leaderboards
+// Visual language matches existing reserve-rail and gov-card surfaces;
+// no cartoon styling, all glow values stay in the existing palette.
+// ══════════════════════════════════════════════════════════════════
+
+// ── RVP-only compact governance summary ──────────────────────────
+.governance-panel--compact { .dark-panel-header { border-bottom: 1px solid $border; } }
+.gov-compact-bar {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent 70%);
+}
+.gov-compact-item { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.gov-compact-item--narrow { align-items: flex-start; }
+.gov-compact-label {
+  font-size: 0.62rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.gov-compact-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $text-primary;
+  font-feature-settings: "tnum" 1;
+  display: flex; align-items: baseline; gap: 4px;
+}
+.gov-compact-sep { color: $text-muted; opacity: 0.6; font-weight: 500; }
+.gov-compact-cap { color: $text-secondary; font-weight: 600; }
+.gov-compact-value--ops { color: $accent-cyan; }
+.gov-compact-value--funded { color: $accent-green; }
+.gov-compact-bar-track {
+  height: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.gov-compact-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease, background 0.4s ease;
+  box-shadow: 0 0 8px currentColor;
+}
+@media (max-width: 1024px) {
+  .gov-compact-bar { grid-template-columns: 1fr 1fr; }
+}
+
+// ── Prestige rank card ───────────────────────────────────────────
+.prestige-card {
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.04), transparent 60%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 70%);
+    pointer-events: none;
+  }
+}
+.prestige-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.prestige-medal {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
+  transition: box-shadow 0.4s ease;
+}
+.prestige-medal-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+  color: inherit;
+}
+.prestige-name-block { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.prestige-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.prestige-position {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: $text-muted;
+  font-feature-settings: "tnum" 1;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; color: $text-secondary; }
+  strong { color: $text-primary; font-family: 'SF Mono', 'Menlo', monospace; font-weight: 700; }
+}
+.prestige-position-of { opacity: 0.85; }
+.prestige-position-scope {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid $border;
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-secondary;
+}
+.prestige-progress { margin-top: 10px; }
+.prestige-progress-track {
+  height: 5px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.prestige-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.prestige-progress-caption {
+  margin-top: 5px;
+  font-size: 0.7rem;
+  color: $text-muted;
+  letter-spacing: 0.02em;
+  font-feature-settings: "tnum" 1;
+}
+.prestige-progress-next { color: $text-secondary; font-weight: 600; }
+.prestige-progress-caption--max { color: $text-secondary; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.66rem; }
+
+// ── Leaderboards row (3 lightweight cards) ───────────────────────
+.leaderboards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.leaderboard-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.leaderboard-card-header mat-icon { color: $accent-cyan; }
+.leaderboard-card-scope {
+  margin-left: auto;
+  font-size: 0.66rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+.leaderboard-list { padding: 6px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 0.78rem;
+  transition: background 0.2s ease;
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba(255, 255, 255, 0.015); }
+}
+.leaderboard-rank {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $text-muted;
+  letter-spacing: 0.02em;
+  text-align: right;
+}
+// Operational prestige — quiet accent on top three, no glow halo.
+// Tasteful hierarchy without casino-style shine.
+.leaderboard-row:nth-child(1) .leaderboard-rank { color: #d4a857; }
+.leaderboard-row:nth-child(2) .leaderboard-rank { color: #b5bcc8; }
+.leaderboard-row:nth-child(3) .leaderboard-rank { color: #a07449; }
+.leaderboard-name {
+  color: $text-primary;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.leaderboard-sub { color: $text-muted; font-weight: 400; font-size: 0.72rem; margin-left: 4px; }
+.leaderboard-signed, .leaderboard-ops {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+  font-feature-settings: "tnum" 1;
+  font-weight: 700;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; }
+}
+.leaderboard-signed { color: $accent-green; }
+.leaderboard-ops { color: $accent-cyan; }
+.leaderboard-recovery { color: $accent-yellow; }
+@media (max-width: 1024px) {
+  .leaderboards-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 768px) {
+  .leaderboards-row { grid-template-columns: 1fr; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Phase 5 — AGENT WORKSPACE
+// True role differentiation. A tactical, action-oriented layout that
+// replaces the executive shell entirely when reserveView() === 'agent'.
+// Same palette and dark aesthetic; bigger numbers, more breathing
+// room, fewer cards, larger primary actions, mobile-friendly grid.
+// ══════════════════════════════════════════════════════════════════
+
+.gcc-header--agent {
+  h1 { letter-spacing: -0.02em; }
+  .gcc-subtitle { color: $text-secondary; }
+}
+.gcc-body--agent { padding: 0 22px 24px; }
+
+.agent-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 6px;
+}
+
+// ── HUD ──────────────────────────────────────────────────────────
+.agent-hud {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1fr 1.5fr;
+  gap: 18px;
+  padding: 22px 24px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 229, 255, 0.05), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(124, 77, 255, 0.04), transparent 60%),
+    linear-gradient(180deg, $bg-panel, $bg-primary 90%);
+  border: 1px solid $border;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 6px 22px rgba(0, 0, 0, 0.35);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(0, 229, 255, 0.45),
+      rgba(124, 77, 255, 0.35),
+      transparent);
+  }
+}
+
+.agent-hud-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.agent-hud-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+// Credits — dominant number
+.agent-hud-credits-number {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: $accent-cyan;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 26px rgba(0, 229, 255, 0.35);
+}
+.agent-hud-credits-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: $text-secondary;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; color: $accent-yellow; }
+}
+
+// Rank zone
+.agent-hud-rank-row { display: flex; align-items: center; gap: 12px; }
+.agent-hud-medal {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  background: rgba(0, 0, 0, 0.40);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  mat-icon { font-size: 24px; width: 24px; height: 24px; color: inherit; }
+}
+.agent-hud-rank-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.agent-hud-rank-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+}
+.agent-hud-rank-position {
+  font-size: 0.72rem;
+  color: $text-muted;
+  font-feature-settings: "tnum" 1;
+  strong { color: $text-primary; font-family: 'SF Mono', 'Menlo', monospace; font-weight: 700; }
+}
+.agent-hud-progress { display: flex; flex-direction: column; gap: 4px; }
+.agent-hud-progress-track {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.agent-hud-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+.agent-hud-progress-caption {
+  font-size: 0.7rem;
+  color: $text-muted;
+  font-feature-settings: "tnum" 1;
+  strong { color: $text-secondary; font-weight: 600; }
+}
+
+// Daily activity micro-grid
+.agent-hud-today-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.agent-hud-today-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 7px;
+  transition: border-color 0.2s ease;
+  &:hover { border-color: rgba(255, 255, 255, 0.10); }
+}
+.agent-hud-today-val {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: $text-primary;
+  line-height: 1.05;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+.agent-hud-today-val--green  { color: $accent-green;  text-shadow: 0 0 10px rgba(0, 230, 118, 0.40); }
+.agent-hud-today-val--yellow { color: $accent-yellow; text-shadow: 0 0 10px rgba(255, 214,   0, 0.40); }
+.agent-hud-today-lbl {
+  font-size: 0.6rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+// Quick action grid (HUD)
+.agent-hud-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.agent-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 44px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: $text-primary;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $accent-cyan; }
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 229, 255, 0.35);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), 0 0 12px rgba(0, 229, 255, 0.15);
+    background: rgba(0, 229, 255, 0.04);
+  }
+}
+
+// ── MAIN GRID ────────────────────────────────────────────────────
+.agent-main-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.agent-card {
+  background: $bg-panel;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  &:hover { border-color: rgba(0, 229, 255, 0.18); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+}
+.agent-card--span   { grid-column: span 3; }
+.agent-card--span-2 { grid-column: span 2; }
+
+.agent-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  mat-icon { color: $accent-cyan; font-size: 18px; width: 18px; height: 18px; }
+}
+.agent-card-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $text-primary;
+}
+.agent-card-sub {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: $text-muted;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+.agent-card-link {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: $accent-cyan;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; margin-left: 2px; }
+}
+
+// Inline onboarding helper — single muted line right under each
+// card head explaining what the section is. Non-intrusive, premium.
+.agent-card-help {
+  font-size: 0.72rem;
+  color: $text-muted;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  margin: -4px 0 2px;
+}
+
+// Phase 9 · First-session welcome strip — single inline row above
+// the HUD. Premium, tactical, dismissible. Renders only when the
+// agent has zero activity AND hasn't dismissed it this session.
+.agent-welcome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background:
+    linear-gradient(90deg, rgba(0, 229, 255, 0.06), rgba(124, 77, 255, 0.04) 50%, rgba(0, 229, 255, 0.05));
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: 9px;
+  position: relative;
+  overflow: hidden;
+  animation: agent-welcome-in 0.4s ease-out;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 60%);
+    pointer-events: none;
+  }
+}
+@keyframes agent-welcome-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.agent-welcome-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $accent-cyan;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.7);
+  animation: pulse 2.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.agent-welcome-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: $text-primary;
+}
+.agent-welcome-body {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+}
+.agent-welcome-cta {
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+  color: $accent-cyan !important;
+  flex-shrink: 0;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; margin-left: 3px; }
+}
+.agent-welcome-dismiss {
+  color: $text-muted;
+  flex-shrink: 0;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { color: $text-primary; }
+}
+@media (max-width: 768px) {
+  .agent-welcome { flex-wrap: wrap; gap: 10px; }
+  .agent-welcome-body { flex-basis: 100%; order: 2; }
+  .agent-welcome-cta  { order: 3; }
+  .agent-welcome-dismiss { order: 1; margin-left: auto; }
+}
+
+// Empty-state CTA — small inline link button. Premium, no boxy
+// blue button; reads as "next step" not "onboarding popup".
+.agent-empty-cta {
+  margin-top: 6px;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: $accent-cyan !important;
+  letter-spacing: 0.01em !important;
+  padding: 4px 10px !important;
+  min-height: 28px !important;
+  line-height: 1 !important;
+  border-radius: 6px !important;
+  transition: all 0.18s ease;
+  mat-icon { font-size: 14px; width: 14px; height: 14px; margin-left: 3px; }
+  &:hover {
+    background: rgba(0, 229, 255, 0.06) !important;
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.18);
+  }
+}
+
+// Premium empty state — shown per card when the agent has zero
+// real data on that signal. No fake numbers, no cartoon. Centered
+// in the card body with a soft icon and a 2-line operational hint.
+.agent-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  padding: 22px 14px 18px;
+  min-height: 96px;
+}
+.agent-empty-icon {
+  font-size: 26px !important;
+  width: 26px;
+  height: 26px;
+  color: $text-muted;
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+.agent-empty-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: -0.005em;
+}
+.agent-empty-sub {
+  font-size: 0.74rem;
+  color: $text-muted;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  max-width: 280px;
+}
+
+// Pipeline stage strip — visually reinforces left-to-right progression
+// (New → Contacted → Active → Qualified → Signed) with a faint
+// gradient rail behind the stages and directional accent at the right
+// edge of each stage card.
+.agent-pipeline-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  padding: 10px 4px 4px;
+  position: relative;
+
+  // Connector rail — sits behind the stages at vertical center,
+  // gradients from the entry color (cyan) to the exit color (green)
+  // so the eye reads progression even when stage counts vary.
+  &::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: calc(50% + 4px);
+    height: 1px;
+    background: linear-gradient(90deg,
+      rgba(0, 229, 255, 0.0),
+      rgba(0, 229, 255, 0.30) 12%,
+      rgba(41, 121, 255, 0.30) 35%,
+      rgba(255, 200,  87, 0.30) 55%,
+      rgba(124,  77, 255, 0.30) 75%,
+      rgba(0, 230, 118, 0.30) 92%,
+      rgba(0, 230, 118, 0.0));
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+.agent-pipeline-stage {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 92px;
+  justify-content: center;
+  z-index: 1;
+  transition: transform 0.18s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.30);
+  }
+}
+.agent-pipeline-stage-count {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+.agent-pipeline-stage-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: $text-secondary;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+.agent-pipeline-arrow {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: $text-secondary;
+  opacity: 0.55;
+  font-size: 1rem;
+  line-height: 1;
+  z-index: 2;
+  background: $bg-panel;
+  padding: 0 2px;
+}
+
+// Stat row (Leads, Outreach)
+.agent-stat-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+.agent-stat { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.agent-stat-val {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: $text-primary;
+  line-height: 1.05;
+  font-feature-settings: "tnum" 1;
+}
+.agent-stat--hero .agent-stat-val { font-size: 2.1rem; color: $accent-cyan; text-shadow: 0 0 16px rgba(0, 229, 255, 0.30); }
+.agent-stat-val--cyan   { color: $accent-cyan; }
+.agent-stat-val--green  { color: $accent-green; text-shadow: 0 0 12px rgba(0, 230, 118, 0.30); }
+.agent-stat-val--yellow { color: $accent-yellow; }
+.agent-stat-lbl {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $text-muted;
+}
+
+// Conversion card — secondary tier (Credits is the hero number)
+.agent-conv-body { display: flex; align-items: baseline; gap: 10px; }
+.agent-conv-pct {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: $accent-cyan;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.22);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.015em;
+}
+.agent-conv-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; }
+  &.agent-conv-delta--up   { color: $accent-green; border-color: rgba(0, 230, 118, 0.45); }
+  &.agent-conv-delta--down { color: #ff8896;       border-color: rgba(255, 136, 150, 0.45); }
+}
+.agent-conv-window { font-size: 0.68rem; color: $text-muted; letter-spacing: 0.04em; }
+
+// Streaks — tactical, no badges
+.agent-streaks-list { display: flex; flex-direction: column; gap: 4px; }
+.agent-streak-row {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 0.82rem;
+  &:last-child { border-bottom: none; }
+}
+.agent-streak-dot { width: 8px; height: 8px; border-radius: 50%; }
+.agent-streak-label { color: $text-secondary; }
+.agent-streak-val {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-feature-settings: "tnum" 1;
+}
+
+// Wins
+.agent-wins-list { display: flex; flex-direction: column; gap: 2px; }
+.agent-win-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 0.82rem;
+  &:last-child { border-bottom: none; }
+}
+.agent-win-client { color: $text-primary; font-weight: 600; }
+.agent-win-value {
+  color: $accent-green;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-weight: 800;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+}
+.agent-win-when { color: $text-muted; font-size: 0.7rem; font-family: 'SF Mono', 'Menlo', monospace; }
+
+// Tasks
+.agent-tasks-list { display: flex; flex-direction: column; gap: 4px; }
+.agent-task-row {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 0.8rem;
+  &:last-child { border-bottom: none; }
+}
+.agent-task-icon-wrap {
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.30);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  mat-icon { font-size: 15px; width: 15px; height: 15px; color: inherit; }
+}
+.agent-task-label { color: $text-primary; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agent-task-due { color: $text-muted; font-size: 0.7rem; font-family: 'SF Mono', 'Menlo', monospace; }
+
+// Available Actions — large tactical buttons. Phase 6 polish:
+// stronger hover (cyan rim + inner glow), clearer cost chip,
+// :active depth-press for tactile feedback, :focus-visible for a11y.
+.agent-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.agent-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 12px 16px;
+  min-height: 108px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 10px;
+  color: $text-primary;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.14), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.22s ease;
+    pointer-events: none;
+  }
+  &:hover:not(.agent-action-btn--disabled):not(.agent-action-btn--busy) {
+    transform: translateY(-2px);
+    border-color: rgba(0, 229, 255, 0.65);
+    box-shadow:
+      0 10px 26px rgba(0, 0, 0, 0.45),
+      0 0 22px rgba(0, 229, 255, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    background:
+      linear-gradient(180deg, rgba(0, 229, 255, 0.06), rgba(255, 255, 255, 0.015));
+    &::before { opacity: 1; }
+    .agent-action-icon { transform: scale(1.06); }
+  }
+  &:active:not(.agent-action-btn--disabled):not(.agent-action-btn--busy) {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.40);
+  }
+  &:focus-visible {
+    outline: 2px solid rgba(0, 229, 255, 0.65);
+    outline-offset: 2px;
+  }
+}
+.agent-action-icon {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+  color: $accent-cyan;
+  transition: transform 0.16s ease;
+}
+.agent-action-btn--busy { opacity: 0.92; border-color: $accent-yellow;
+  .agent-action-icon { color: $accent-yellow; animation: pulse 1.4s ease-in-out infinite; }
+}
+.agent-action-btn--disabled { opacity: 0.42; cursor: not-allowed; }
+.agent-action-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+.agent-action-cost {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-feature-settings: "tnum" 1;
+  color: $accent-cyan;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.agent-action-cost--free {
+  color: $accent-green;
+  background: rgba(0, 230, 118, 0.08);
+  border-color: rgba(0, 230, 118, 0.30);
+}
+
+.agent-action-flash {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  background: rgba(0, 0, 0, 0.35);
+  animation: agent-flash-in 0.22s ease-out;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+@keyframes agent-flash-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Recent Activity ledger strip ─────────────────────────────────
+// Lives inside the Available Actions card. Confidence-building:
+// every wallet-debiting click leaves a row here with timestamp + state.
+.agent-ledger {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+.agent-ledger-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: $text-muted;
+  font-weight: 600;
+  margin-bottom: 6px;
+  mat-icon { font-size: 13px; width: 13px; height: 13px; }
+}
+.agent-ledger-list { display: flex; flex-direction: column; gap: 2px; }
+.agent-ledger-row {
+  display: grid;
+  grid-template-columns: 8px auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 2px;
+  font-size: 0.76rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
+  &:last-child { border-bottom: none; }
+}
+.agent-ledger-dot { width: 8px; height: 8px; border-radius: 50%; }
+.agent-ledger-cost {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $accent-cyan;
+  font-feature-settings: "tnum" 1;
+  min-width: 28px;
+  text-align: right;
+}
+.agent-ledger-cost--zero { color: $text-muted; font-weight: 500; }
+.agent-ledger-label {
+  color: $text-primary;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-ledger-lead { color: $text-muted; font-weight: 400; margin-left: 4px; }
+.agent-ledger-when {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: $text-muted;
+  font-size: 0.7rem;
+  font-feature-settings: "tnum" 1;
+}
+.agent-ledger-state {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+// ── Loading skeleton — soft pulse on empty states while the first
+// poll is still in-flight. Avoids the "your first lead will appear
+// here" message ghosting in for ~600ms before real data arrives.
+.agent-workspace--loading .agent-empty {
+  animation: agent-skel-pulse 1.6s ease-in-out infinite;
+}
+@keyframes agent-skel-pulse {
+  0%,100% { opacity: 0.55; }
+  50%     { opacity: 1; }
+}
+// Prevent layout jumps when empty-state swaps to data-state.
+.agent-card { min-height: 120px; }
+.agent-pipeline-card { min-height: 168px; }
+.agent-actions-card { min-height: 220px; }
+
+// ── BOTTOM ROW ───────────────────────────────────────────────────
+.agent-bottom-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+.agent-bottom-card { display: flex; flex-direction: column; min-height: 0; }
+.agent-leaderboard-card .leaderboard-list { padding: 6px 12px 12px; }
+
+.agent-territory-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 16px;
+}
+.agent-territory-rank-block,
+.agent-territory-stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.agent-territory-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: $text-muted;
+  font-weight: 600;
+}
+.agent-territory-rank-val {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: $accent-cyan;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.22);
+}
+.agent-territory-rank-of {
+  font-size: 0.78rem;
+  color: $text-muted;
+  margin-left: 6px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+.agent-territory-stat-val {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: $accent-green;
+  line-height: 1;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 14px rgba(0, 230, 118, 0.30);
+}
+.agent-territory-divider {
+  width: 1px;
+  align-self: stretch;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.10), transparent);
+}
+
+// ── Responsive — mobile-first collapse ─────────────────────────
+@media (max-width: 1200px) {
+  .agent-hud { grid-template-columns: 1fr 1fr; row-gap: 22px; }
+}
+@media (max-width: 1024px) {
+  .agent-main-grid { grid-template-columns: repeat(2, 1fr); }
+  .agent-card--span   { grid-column: span 2; }
+  .agent-card--span-2 { grid-column: span 2; }
+  .agent-actions-grid { grid-template-columns: repeat(2, 1fr); }
+  .agent-bottom-row { grid-template-columns: 1fr; }
+  .agent-hud-quick-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .agent-hud { grid-template-columns: 1fr; padding: 18px 18px; gap: 20px; }
+  .agent-main-grid { grid-template-columns: 1fr; gap: 12px; }
+  .agent-card--span,
+  .agent-card--span-2 { grid-column: span 1; }
+  .agent-pipeline-strip { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .agent-pipeline-strip::before { display: none; }   // rail off when stages wrap
+  .agent-pipeline-arrow { display: none; }
+  .agent-hud-credits-number { font-size: 2.2rem; }
+  .agent-conv-pct { font-size: 1.9rem; }
+  .agent-territory-rank-val { font-size: 1.7rem; }
+  .agent-territory-body { flex-wrap: wrap; gap: 18px; }
+  .agent-territory-divider { display: none; }
+}
+@media (max-width: 600px) {
+  .gcc-body--agent { padding: 0 14px 18px; }
+  .agent-workspace { gap: 14px; }
+  .agent-pipeline-strip { grid-template-columns: 1fr; }
+  .agent-actions-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .agent-action-btn { min-height: 100px; padding: 16px 10px; }
+  .agent-stat-row { grid-template-columns: 1fr 1fr; row-gap: 12px; }
+  .agent-hud-today-val { font-size: 1.3rem; }
+  .agent-quick-btn { font-size: 0.78rem; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// Phase 6 — Bonus Achievements feed (reward-engine events) & monthly
+// reward stat rows. Inherits the calm terminal-row aesthetic from the
+// Mission Log; overrides the grid because we surface an amount column
+// instead of the cost/duration column the operations log shows.
+// ══════════════════════════════════════════════════════════════════════
+
+.reserve-bonus-achievements {
+  // Override the parent grid: stamp / rail / narrative / amount
+  .reserve-mission-log-row--terminal {
+    grid-template-columns: 96px 3px 1fr 110px;
+  }
+}
+
+.reserve-mission-log-amount {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+.reserve-mission-log-meta {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.74rem;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+// Earned credits highlight on the wallet hero spend rows. Reuses the
+// monospace baseline of .wallet-spend-val and tints it the same
+// "positive-grant" green the celebration chip uses, with a soft glow
+// to flag earned (vs. spent) credit movement.
+.wallet-spend-val--earned {
+  color: #00e676;
+  text-shadow: 0 0 12px rgba(0, 230, 118, 0.35);
+}
