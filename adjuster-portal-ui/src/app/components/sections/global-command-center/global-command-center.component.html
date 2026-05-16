@@ -638,6 +638,107 @@
         </span>
       </div>
 
+      <!-- ── Cheat Sheet: how the wallet works, in one glance ──────────
+           Two-column "earn / spend" reference card pinned to the top
+           of the panel so a brand-new operator can grok the system
+           without leaving the page. Numbers are hardcoded here on
+           purpose — they mirror the live TOKEN_REWARDS_BY_EVENT
+           defaults and the agentActions costs, but they're meant to
+           read as the operator-visible price list, not the runtime
+           config (which the admin will edit through a coming screen).
+      -->
+      <div class="rewards-wallet-cheatsheet">
+        <!-- "What this is" — lead with the plain-language truth so a
+             first-time reader knows what they're looking at before any
+             numbers or columns appear. -->
+        <div class="rewards-wallet-cheatsheet-explainer">
+          <div class="rewards-wallet-cheatsheet-explainer-block">
+            <div class="rewards-wallet-cheatsheet-explainer-heading">
+              <mat-icon>help_outline</mat-icon> What this is
+            </div>
+            <div class="rewards-wallet-cheatsheet-explainer-body">
+              A built-in credit account every user on the platform has.
+              You don't put real money in. The platform automatically
+              <strong>adds credits</strong> when you hit milestones
+              (signing a claim, closing a claim, recruiting someone,
+              finishing training), and automatically
+              <strong>takes credits out</strong> when you use platform
+              tools (SMS, skip trace, AI calls).
+            </div>
+          </div>
+          <div class="rewards-wallet-cheatsheet-explainer-block">
+            <div class="rewards-wallet-cheatsheet-explainer-heading">
+              <mat-icon>lightbulb</mat-icon> Why it exists
+            </div>
+            <div class="rewards-wallet-cheatsheet-explainer-body">
+              Two reasons: it <strong>rewards production</strong>
+              without you having to write checks, and it
+              <strong>controls cost</strong> by giving every user a
+              budget for paid platform tools instead of letting anyone
+              burn unlimited dollars on outreach.
+            </div>
+          </div>
+        </div>
+
+        <div class="rewards-wallet-cheatsheet-tagline">
+          <mat-icon class="rewards-wallet-cheatsheet-tagline-icon">menu_book</mat-icon>
+          <span>
+            Below: what earns credits, what spends credits. Admin can
+            also grant <strong>bonus credits</strong> at any time.
+          </span>
+        </div>
+        <div class="rewards-wallet-cheatsheet-grid">
+          <div class="rewards-wallet-cheatsheet-col rewards-wallet-cheatsheet-col--earn">
+            <div class="rewards-wallet-cheatsheet-col-header">
+              <mat-icon>military_tech</mat-icon>
+              How You <strong>Earn</strong>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>New user enrolled</span><span class="amount">+500</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Onboarding completed</span><span class="amount">+1,500</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Claim signed by homeowner</span><span class="amount">+2,500</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Claim closed &amp; paid</span><span class="amount">+5,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Recruit becomes paying</span><span class="amount">+7,500</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Training completed</span><span class="amount">+1,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Monthly goal hit</span><span class="amount">+10,000</span>
+            </div>
+          </div>
+          <div class="rewards-wallet-cheatsheet-col rewards-wallet-cheatsheet-col--spend">
+            <div class="rewards-wallet-cheatsheet-col-header">
+              <mat-icon>bolt</mat-icon>
+              How You <strong>Spend</strong>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Send an SMS</span><span class="amount amount--spend">−1</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Skip trace (find a property owner)</span><span class="amount amount--spend">−1</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>AI voice call</span><span class="amount amount--spend">−5</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Send an email</span><span class="amount amount--free">Free</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--note">
+              <span>Bonus from admin</span><span class="amount amount--bonus">manual grant</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="rewards-wallet-card-grid">
         <!-- 1. Current Credits — the live balance. Primary card. -->
         <div class="rewards-wallet-card rewards-wallet-card--primary">
@@ -649,7 +750,7 @@
                [appOdometer]="reserveCapacity()"
                [appOdometerCompact]="false"
                [appOdometerDuration]="900">—</div>
-          <div class="rewards-wallet-card-meta">Available now</div>
+          <div class="rewards-wallet-card-meta">What you have right now</div>
         </div>
 
         <!-- 2. Rewards Earned This Month -->
@@ -662,7 +763,7 @@
                [appOdometer]="rewardsEarnedMonth()"
                [appOdometerPrefix]="'+'"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">From rewardable events</div>
+          <div class="rewards-wallet-card-meta">Credits added for hitting milestones since the 1st</div>
         </div>
 
         <!-- 3. Bonus Credits — admin-adjusted only. Always visible
@@ -676,7 +777,7 @@
                [appOdometer]="bonusCreditsMonth()"
                [appOdometerPrefix]="'+'"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">Admin-granted this month</div>
+          <div class="rewards-wallet-card-meta">Extra credits manually granted by admin this month</div>
         </div>
 
         <!-- 4. Credits Spent This Month -->
@@ -688,7 +789,7 @@
           <div class="rewards-wallet-card-value rewards-wallet-card-value--spent"
                [appOdometer]="usageSpentMonth()"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">On platform tools</div>
+          <div class="rewards-wallet-card-meta">Credits used on SMS, skip trace, AI calls since the 1st</div>
         </div>
 
         <!-- 5. Monthly Reserve Cap — ceiling, not balance. Hidden when
@@ -703,7 +804,7 @@
           <div class="rewards-wallet-card-value rewards-wallet-card-value--cap">
             {{ walletTokensFmt(monthlyReserveCap()) }}
           </div>
-          <div class="rewards-wallet-card-meta">Ceiling for this wallet</div>
+          <div class="rewards-wallet-card-meta">The most credits this wallet can ever hold</div>
         </div>
       </div>
 
