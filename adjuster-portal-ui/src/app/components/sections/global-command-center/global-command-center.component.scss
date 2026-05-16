@@ -3164,6 +3164,297 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 }
 
 // ══════════════════════════════════════════════════════════════════════
+// Clarity polish (2026-05-16) — Rewards Wallet · Operational Reserve
+// panel. Sits at the top of the executive treasury zone and acts as the
+// primary user-facing wallet surface. Five plain-language stat cards
+// over an embedded Bonus Achievements feed. Inherits .dark-panel
+// chrome from the surrounding palette so it reads as a peer to the
+// other premium panels without re-skinning the dashboard.
+// ══════════════════════════════════════════════════════════════════════
+
+.rewards-wallet-panel {
+  position: relative;
+  margin-bottom: 14px;
+  // Subtle accent border to mark this as the primary wallet surface
+  // among the panel stack. Uses the same teal accent used by the
+  // reserve-strip and gauge so the visual language is consistent.
+  border-top: 1px solid rgba(0, 229, 255, 0.22);
+  box-shadow:
+    0 1px 0 rgba(0, 229, 255, 0.05) inset,
+    0 14px 28px -22px rgba(0, 0, 0, 0.65);
+}
+
+.rewards-wallet-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 14px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid $border;
+}
+
+.rewards-wallet-header-icon {
+  color: $accent-cyan;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.35));
+}
+
+.rewards-wallet-titlestack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rewards-wallet-title {
+  color: $text-primary;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.rewards-wallet-subtitle {
+  color: $text-secondary;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  max-width: 78ch;
+}
+
+.rewards-wallet-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 16px 18px 14px;
+}
+
+.rewards-wallet-card {
+  position: relative;
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+  transition: transform 220ms $reserve-ease, border-color 220ms $reserve-ease;
+
+  &:hover {
+    border-color: rgba(0, 229, 255, 0.35);
+    transform: translateY(-1px);
+  }
+
+  // Card-specific accent: a 2px top hairline keyed to the card kind.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    opacity: 0.55;
+  }
+
+  &--primary::before { background: linear-gradient(90deg, transparent, $accent-cyan,  transparent); }
+  &--earned::before  { background: linear-gradient(90deg, transparent, $accent-green, transparent); }
+  &--bonus::before   { background: linear-gradient(90deg, transparent, $accent-yellow,transparent); }
+  &--spent::before   { background: linear-gradient(90deg, transparent, $accent-orange,transparent); }
+  &--cap::before     { background: linear-gradient(90deg, transparent, $accent-purple,transparent); }
+}
+
+.rewards-wallet-card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-muted;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.rewards-wallet-card-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.85;
+}
+
+.rewards-wallet-card-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: 0.01em;
+
+  &--earned {
+    color: $accent-green;
+    text-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+  }
+  &--bonus {
+    color: $accent-yellow;
+    text-shadow: 0 0 14px rgba(255, 214, 0, 0.30);
+  }
+  &--spent {
+    color: $accent-orange;
+  }
+  &--cap {
+    color: $text-primary;
+    font-size: 1.3rem;
+  }
+}
+
+.rewards-wallet-card-meta {
+  color: $text-muted;
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+  margin-top: auto;
+}
+
+// ── Embedded Bonus Achievements feed (premium command-center look) ──
+.rewards-wallet-achievements {
+  margin: 4px 14px 16px;
+  padding: 12px 14px 10px;
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 10px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.25), transparent);
+    pointer-events: none;
+  }
+}
+
+.rewards-wallet-achievements-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+
+  mat-icon {
+    color: $accent-yellow;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.rewards-wallet-achievements-title {
+  color: $text-primary;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 0.9rem;
+}
+
+.rewards-wallet-achievements-sub {
+  color: $text-muted;
+  font-size: 0.74rem;
+  margin-left: auto;
+}
+
+.rewards-wallet-achievements-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.rewards-wallet-achievements-row {
+  display: grid;
+  grid-template-columns: 110px 3px 1fr 110px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 4px;
+  font-size: 0.82rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  transition: background 180ms $reserve-ease, transform 220ms $reserve-ease;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: rgba(0, 229, 255, 0.03);
+    transform: translateX(2px);
+  }
+}
+
+.rewards-wallet-achievements-stamp {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: $text-muted;
+  opacity: 0.75;
+}
+
+.rewards-wallet-achievements-rail {
+  width: 3px;
+  height: 22px;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.rewards-wallet-achievements-narrative {
+  color: $text-primary;
+  font-weight: 500;
+  font-size: 0.86rem;
+}
+
+.rewards-wallet-achievements-meta {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.74rem;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.rewards-wallet-achievements-amount {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+
+// Mobile breakpoint — collapse the card grid to a single column and
+// loosen the achievements row layout so timestamps wrap above the
+// narrative instead of clipping. Keeps the premium look without
+// requiring horizontal scroll.
+@media (max-width: 720px) {
+  .rewards-wallet-header {
+    grid-template-columns: auto 1fr;
+    .executive-meta { display: none; }
+  }
+  .rewards-wallet-card-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .rewards-wallet-card { min-height: 96px; }
+  .rewards-wallet-card-value { font-size: 1.35rem; }
+  .rewards-wallet-achievements-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "stamp     amount"
+      "narrative narrative";
+    row-gap: 4px;
+  }
+  .rewards-wallet-achievements-stamp     { grid-area: stamp; }
+  .rewards-wallet-achievements-amount    { grid-area: amount; }
+  .rewards-wallet-achievements-narrative { grid-area: narrative; }
+  .rewards-wallet-achievements-rail      { display: none; }
+}
+
+@media (max-width: 420px) {
+  .rewards-wallet-card-grid { grid-template-columns: 1fr; }
+}
+
+// ══════════════════════════════════════════════════════════════════════
 // Phase 6 — Bonus Achievements feed (reward-engine events) & monthly
 // reward stat rows. Inherits the calm terminal-row aesthetic from the
 // Mission Log; overrides the grid because we surface an amount column

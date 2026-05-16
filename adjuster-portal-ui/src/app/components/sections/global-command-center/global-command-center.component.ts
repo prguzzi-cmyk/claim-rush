@@ -205,6 +205,17 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   rewardEventsMonth(): RewardEvent[] {
     return this.wallet?.monthly?.reward_events_month || [];
   }
+  /** Clarity polish: ceiling-style cap for the wallet (null when no
+   *  cap is configured — free-tier / uncapped wallets). Sourced from
+   *  monthly_reserve first (= hard_limit_tokens server-side), with a
+   *  fallback to the direct myWallet field so the card surfaces a
+   *  number on first paint before the monthly summary has landed. */
+  monthlyReserveCap(): number | null {
+    const fromMonthly = this.wallet?.monthly?.monthly_reserve;
+    if (typeof fromMonthly === 'number') return fromMonthly;
+    const fromWallet = this.wallet?.myWallet?.hard_limit_tokens;
+    return typeof fromWallet === 'number' ? fromWallet : null;
+  }
   rewardCatalogAmount(eventType: string): number {
     const catalog = this.wallet?.monthly?.reward_catalog || {};
     return Number(catalog[eventType] ?? 0);
@@ -1038,9 +1049,13 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   }
 
   reserveEnforcementLabel(): string {
+    // Clarity polish (2026-05-16): the underlying mode is still
+    // 'observation' / 'enforced' for backend parity, but the visible
+    // label uses plain English so non-admin readers don't see
+    // "Observation Mode" and wonder what is being observed.
     return this.reserveEnforcementMode() === 'enforced'
-      ? 'Enforced'
-      : 'Observation';
+      ? 'Cap Active'
+      : 'Tracking Only';
   }
 
   reserveEnforcementColor(): string {
@@ -1392,15 +1407,20 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
 
   /** Header label for the embedded governance panel per role. */
   governancePanelTitle(): string {
+    // Clarity polish (2026-05-16): admin-oriented title now reads as a
+    // companion to the user-facing Rewards Wallet panel that sits above
+    // it. RVPs keep their team framing.
     if (this.viewIsRvp()) return 'Team Performance';
-    return 'Governance & Cost';
+    return 'Admin · Governance & Cost Controls';
   }
 
   /** Eyebrow for the executive-suite section header per role. */
   suiteSectionEyebrow(): string {
     if (this.viewIsAgent()) return 'Your Workspace';
     if (this.viewIsRvp())   return 'Team Performance';
-    return 'Operational Reserve & Governance';
+    // Clarity polish (2026-05-16): the wallet is the headline now, so
+    // the section eyebrow leads with rewards rather than governance.
+    return 'Rewards Wallet & Operational Reserve';
   }
 
   /** Page header title — agent gets a tactical workspace title; every

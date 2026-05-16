@@ -612,11 +612,162 @@
         </ng-container>
       </div>
 
+    <!-- ══════════════════════════════════════════════════════════════
+         REWARDS WALLET · OPERATIONAL RESERVE
+         Plain-language summary panel sitting at the top of the
+         treasury zone. Five user-facing stat cards + the achievements
+         feed. Visible to every authenticated role — agents, RVPs, CPs,
+         and admins all read the same shape. The technical governance
+         and detailed reserve panels below remain for power users.
+         No new data fetch — all values come from the existing wallet
+         + monthly summary telemetry already polled every 30s.
+    ══════════════════════════════════════════════════════════════ -->
+    <div class="dark-panel rewards-wallet-panel" *ngIf="wallet">
+      <div class="dark-panel-header rewards-wallet-header">
+        <mat-icon class="rewards-wallet-header-icon">account_balance_wallet</mat-icon>
+        <div class="rewards-wallet-titlestack">
+          <span class="rewards-wallet-title">Rewards Wallet · Operational Reserve</span>
+          <span class="rewards-wallet-subtitle">
+            Credits earned from claim activity, training, recruiting, and
+            production bonuses. Credits help offset platform tools and usage.
+          </span>
+        </div>
+        <span class="executive-meta">
+          <span *ngIf="!wallet.reachable" class="executive-meta-pill executive-meta-pill--offline">Offline</span>
+          <span *ngIf="wallet.reachable" class="executive-meta-time">Updated {{ walletTimeAgo() }}</span>
+        </span>
+      </div>
+
+      <div class="rewards-wallet-card-grid">
+        <!-- 1. Current Credits — the live balance. Primary card. -->
+        <div class="rewards-wallet-card rewards-wallet-card--primary">
+          <div class="rewards-wallet-card-eyebrow">
+            <mat-icon class="rewards-wallet-card-icon">savings</mat-icon>
+            Current Credits
+          </div>
+          <div class="rewards-wallet-card-value"
+               [appOdometer]="reserveCapacity()"
+               [appOdometerCompact]="false"
+               [appOdometerDuration]="900">—</div>
+          <div class="rewards-wallet-card-meta">Available now</div>
+        </div>
+
+        <!-- 2. Rewards Earned This Month -->
+        <div class="rewards-wallet-card rewards-wallet-card--earned">
+          <div class="rewards-wallet-card-eyebrow">
+            <mat-icon class="rewards-wallet-card-icon">military_tech</mat-icon>
+            Rewards Earned This Month
+          </div>
+          <div class="rewards-wallet-card-value rewards-wallet-card-value--earned"
+               [appOdometer]="rewardsEarnedMonth()"
+               [appOdometerPrefix]="'+'"
+               [appOdometerCompact]="true">—</div>
+          <div class="rewards-wallet-card-meta">From rewardable events</div>
+        </div>
+
+        <!-- 3. Bonus Credits — admin-adjusted only. Always visible
+                 so users see whether bonus grants happened this month. -->
+        <div class="rewards-wallet-card rewards-wallet-card--bonus">
+          <div class="rewards-wallet-card-eyebrow">
+            <mat-icon class="rewards-wallet-card-icon">redeem</mat-icon>
+            Bonus Credits
+          </div>
+          <div class="rewards-wallet-card-value rewards-wallet-card-value--bonus"
+               [appOdometer]="bonusCreditsMonth()"
+               [appOdometerPrefix]="'+'"
+               [appOdometerCompact]="true">—</div>
+          <div class="rewards-wallet-card-meta">Admin-granted this month</div>
+        </div>
+
+        <!-- 4. Credits Spent This Month -->
+        <div class="rewards-wallet-card rewards-wallet-card--spent">
+          <div class="rewards-wallet-card-eyebrow">
+            <mat-icon class="rewards-wallet-card-icon">bolt</mat-icon>
+            Credits Spent This Month
+          </div>
+          <div class="rewards-wallet-card-value rewards-wallet-card-value--spent"
+               [appOdometer]="usageSpentMonth()"
+               [appOdometerCompact]="true">—</div>
+          <div class="rewards-wallet-card-meta">On platform tools</div>
+        </div>
+
+        <!-- 5. Monthly Reserve Cap — ceiling, not balance. Hidden when
+                 unset (free-tier wallets), surfaced when an admin has
+                 capped the wallet. -->
+        <div class="rewards-wallet-card rewards-wallet-card--cap"
+             *ngIf="monthlyReserveCap() !== null">
+          <div class="rewards-wallet-card-eyebrow">
+            <mat-icon class="rewards-wallet-card-icon">shield</mat-icon>
+            Monthly Reserve Cap
+          </div>
+          <div class="rewards-wallet-card-value rewards-wallet-card-value--cap">
+            {{ walletTokensFmt(monthlyReserveCap()) }}
+          </div>
+          <div class="rewards-wallet-card-meta">Ceiling for this wallet</div>
+        </div>
+      </div>
+
+      <!-- Bonus Achievements feed lives directly inside the Rewards
+           Wallet panel so users see "what I earned this month" alongside
+           "how many I have". Mirrors the same data + helpers used by the
+           lower technical panel; the duplicate is intentional so a user
+           who only reads this top panel still gets the full earn picture. -->
+      <div class="rewards-wallet-achievements">
+        <div class="rewards-wallet-achievements-header">
+          <mat-icon>workspace_premium</mat-icon>
+          <span class="rewards-wallet-achievements-title">Bonus Achievements</span>
+          <span class="rewards-wallet-achievements-sub">
+            Credits earned this month for milestones
+          </span>
+        </div>
+        <div *ngIf="rewardEventsMonth().length === 0"
+             class="empty-state empty-state--inline">
+          <mat-icon class="empty-state-icon">workspace_premium</mat-icon>
+          <div class="empty-state-status">No achievements yet this month</div>
+          <div class="empty-state-hint">
+            Credits land when you complete onboarding, sign a claim, close
+            a paid claim, recruit a paid user, or hit a monthly milestone.
+          </div>
+        </div>
+        <div *ngIf="rewardEventsMonth().length > 0"
+             class="rewards-wallet-achievements-list">
+          <div *ngFor="let evt of rewardEventsMonth()"
+               class="rewards-wallet-achievements-row">
+            <span class="rewards-wallet-achievements-stamp">
+              {{ rewardEventTimeLabel(evt.created_at) }}
+            </span>
+            <span class="rewards-wallet-achievements-rail"
+                  [style.background]="rewardEventColor(evt)"></span>
+            <span class="rewards-wallet-achievements-narrative">
+              <strong>{{ rewardEventLabel(evt.operation_type) }}</strong>
+              <span class="rewards-wallet-achievements-meta" *ngIf="evt.note">
+                · {{ evt.note }}
+              </span>
+            </span>
+            <span class="rewards-wallet-achievements-amount"
+                  [style.color]="evt.credit_amount > 0 ? '#00e676' : 'rgba(255,255,255,0.45)'">
+              <ng-container *ngIf="evt.credit_amount > 0">
+                +{{ evt.credit_amount | number }}
+              </ng-container>
+              <ng-container *ngIf="evt.credit_amount === 0">
+                Logged
+              </ng-container>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══════ GOVERNANCE + COST ══════
          Role visibility (Phase 4):
            master / cp  → full multi-card governance grid
            rvp          → compact one-line summary (team-focused framing)
            agent        → entire panel hidden
+
+         Note (clarity polish 2026-05-16): the Rewards Wallet panel
+         above is the primary user-facing surface. This Governance
+         panel and the detailed Reserve panel below it remain for
+         master / CP power-users who need the technical breakdown.
     -->
     <div class="dark-panel governance-panel" *ngIf="governance && showGovernanceSection()"
          [class.governance-panel--compact]="showGovernanceCompactBar()">
