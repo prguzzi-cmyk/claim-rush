@@ -8,6 +8,9 @@ import { RoleGuard } from "./guards/role.guard";
 import { AiSalesAgentGuard } from "./guards/ai-sales-agent.guard";
 import { ApplicationComponent } from "./components/application.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
+import { RoleFallbackComponent } from "./components/role-fallback/role-fallback.component";
+import { LaunchReadinessComponent } from "./components/sections/launch-readiness/launch-readiness.component";
+import { FounderDemoComponent } from "./components/sections/founder-demo/founder-demo.component";
 import { UsersComponent } from "./components/sections/users/users.component";
 import { AgentsListComponent } from "./components/sections/agents-list/agents-list.component";
 import { AgentProfileDetailComponent } from "./components/sections/agent-profile-detail/agent-profile-detail.component";
@@ -94,6 +97,7 @@ import {TerritoryControlPanelComponent} from "./components/sections/territory-co
 import {LeadDeploymentSettingsComponent} from "./components/sections/lead-deployment-settings/lead-deployment-settings.component";
 import {TerritoryAssignmentsComponent} from "./components/sections/territory-assignments/territory-assignments.component";
 import {LaunchControlComponent} from "./components/sections/launch-control/launch-control.component";
+import {TreasuryOperationsComponent} from "./components/sections/treasury-operations/treasury-operations.component";
 import {UserPortalComponent} from "./components/sections/user-portal/user-portal.component";
 import {PublicIntakeComponent} from "./components/public/public-intake/public-intake.component";
 import {CommunityLandingComponent} from "./components/public/community-landing/community-landing.component";
@@ -259,9 +263,33 @@ const routes: Routes = [
         canActivate: [RoleGuard],
         data: { allowedRoles: ['admin', 'super-admin'] },
       },
+      // Treasury Operations Console — Phase 3A. Live-editable pricing
+      // for every Pax-platform tool; saved edits land in
+      // treasury_config and become effective within the 60s
+      // read-through cache without a backend redeploy.
+      {
+        path: "admin/treasury",
+        component: TreasuryOperationsComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
+      },
       {
         path: "admin/commissions",
         component: CommissionsAdminViewComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
+      },
+      {
+        path: "admin/launch-readiness",
+        component: LaunchReadinessComponent,
+        canActivate: [RoleGuard],
+        data: { allowedRoles: ['admin', 'super-admin'] },
+      },
+      {
+        // Hidden operator-only launch guide. Not in the sidebar at large —
+        // only the admin sidebar entry surfaces it. Same RoleGuard contract.
+        path: "founder-demo",
+        component: FounderDemoComponent,
         canActivate: [RoleGuard],
         data: { allowedRoles: ['admin', 'super-admin'] },
       },
@@ -293,10 +321,11 @@ const routes: Routes = [
         path: "sidebar",
         component: SidebarComponent,
       },
-      {
-        path: "resources",
-        component: ResourcesComponent,
-      },
+      // Bare /app/resources has an empty template (the ResourcesComponent
+      // was an unfinished scaffold). The sidebar always links to a real
+      // sub-route — this redirect catches anyone who pastes /app/resources
+      // directly so they land somewhere usable instead of a blank pane.
+      { path: "resources", redirectTo: "resources/business-documents", pathMatch: "full" },
       { path: "usertask/create", component: CreateuserTaskComponent },
       { path: "usertask/usertask-list", component: TaskBoardComponent },
 
@@ -718,8 +747,11 @@ const routes: Routes = [
   { path: "signup", redirectTo: "app/agreements", pathMatch: "full" },
   { path: "register", redirectTo: "app/agreements", pathMatch: "full" },
   { path: "upasign", redirectTo: "app/agreements", pathMatch: "full" },
-  // Catch-all redirect to app dashboard
-  { path: "**", redirectTo: "app/dashboard" },
+  // Catch-all → role-aware fallback. Previously `redirectTo: "app/dashboard"`,
+  // which dropped CP/RVP/Agent on the admin global Home Office dashboard.
+  // RoleFallbackComponent reads the cached `role-name` and routes to the
+  // surface that role can actually use (see component for the map).
+  { path: "**", component: RoleFallbackComponent },
 ];
 
 @NgModule({

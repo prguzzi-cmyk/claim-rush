@@ -1,0 +1,186 @@
+<section class="treasury-console">
+
+  <!-- Section header — Operational Reserve framing, premium tone. -->
+  <header class="treasury-console-header">
+    <div class="treasury-console-titlestack">
+      <span class="treasury-console-eyebrow">
+        <span class="treasury-console-eyebrow-dot"></span>
+        TREASURY OPERATIONS CONSOLE
+      </span>
+      <h1 class="treasury-console-title">
+        Pricing Control
+        <span class="treasury-console-title-tag">Phase 3A · live</span>
+      </h1>
+      <p class="treasury-console-subtitle">
+        Tune the per-operation reserve cost of every Pax-platform tool.
+        Saved edits take effect within the platform's
+        <strong>60-second config refresh window</strong> — no redeploy
+        required. Every change writes an audit row with operator
+        attribution.
+      </p>
+    </div>
+
+    <div class="treasury-console-meta">
+      <span class="treasury-console-meta-pill" *ngIf="loading">Loading…</span>
+      <span class="treasury-console-meta-pill treasury-console-meta-pill--err"
+            *ngIf="loadError">{{ loadError }}</span>
+      <button mat-stroked-button
+              class="treasury-console-meta-btn"
+              (click)="refresh()"
+              [disabled]="loading">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- Pricing Control card — the only section live this slice. -->
+  <div class="treasury-card treasury-card--pricing"
+       *ngIf="!loadError">
+
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">tune</mat-icon>
+      <span class="treasury-card-header-title">Per-Operation Reserve Cost</span>
+      <span class="treasury-card-header-sub">
+        Intelligence Credits consumed when the operator runs each tool
+      </span>
+    </div>
+
+    <table class="treasury-pricing-table">
+      <thead>
+        <tr>
+          <th class="th-label">Operation</th>
+          <th class="th-key">Config Key</th>
+          <th class="th-value">Live Value</th>
+          <th class="th-edit">Edit</th>
+          <th class="th-delta">Δ</th>
+          <th class="th-source">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of pricing"
+            [class.treasury-pricing-row--dirty]="editValues[row.key] !== row.live_value">
+          <td class="td-label">{{ row.label }}</td>
+          <td class="td-key">
+            <code>{{ row.key }}</code>
+          </td>
+          <td class="td-value">
+            <span class="td-value-num">{{ row.live_value | number }}</span>
+          </td>
+          <td class="td-edit">
+            <input class="td-edit-input"
+                   type="number"
+                   min="0"
+                   step="10"
+                   inputmode="numeric"
+                   [(ngModel)]="editValues[row.key]"
+                   [attr.aria-label]="'Edit ' + row.label">
+          </td>
+          <td class="td-delta"
+              [class.td-delta--up]="deltaFor(row) > 0"
+              [class.td-delta--down]="deltaFor(row) < 0">
+            <ng-container *ngIf="deltaFor(row) !== 0; else dashTpl">
+              {{ deltaFor(row) > 0 ? '+' : '' }}{{ deltaFor(row) | number }}
+              <span class="td-delta-pct"
+                    *ngIf="row.live_value > 0">
+                ({{ deltaPercent(row) > 0 ? '+' : '' }}{{ deltaPercent(row) }}%)
+              </span>
+            </ng-container>
+            <ng-template #dashTpl>—</ng-template>
+          </td>
+          <td class="td-source">
+            <span class="td-source-chip"
+                  [class.td-source-chip--db]="row.source === 'db'"
+                  [class.td-source-chip--fallback]="row.source === 'fallback'">
+              {{ row.source === 'db' ? 'LIVE' : 'CONSTANT' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Save bar — only the note + actions; the table stays the focal point. -->
+    <div class="treasury-card-savebar">
+      <input class="treasury-savebar-note"
+             type="text"
+             maxlength="200"
+             placeholder="Optional note for the audit log (e.g. 'May cost review')"
+             [(ngModel)]="saveNote">
+      <button mat-button
+              (click)="cancelEdits()"
+              [disabled]="!hasUnsavedChanges() || saving">
+        Reset
+      </button>
+      <button mat-flat-button
+              color="primary"
+              class="treasury-savebar-save"
+              (click)="save()"
+              [disabled]="!hasUnsavedChanges() || saving">
+        <mat-icon *ngIf="!saving">save</mat-icon>
+        <mat-icon *ngIf="saving" class="treasury-savebar-spin">refresh</mat-icon>
+        {{ saving ? 'Applying…' : 'Apply Treasury Update' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Audit log strip — last 20 pricing edits. -->
+  <div class="treasury-card treasury-card--audit"
+       *ngIf="!loadError">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">history</mat-icon>
+      <span class="treasury-card-header-title">Recent Treasury Edits</span>
+      <span class="treasury-card-header-sub">Pricing audit log, newest first</span>
+    </div>
+
+    <div *ngIf="audit.length === 0" class="treasury-audit-empty">
+      <mat-icon>inbox</mat-icon>
+      No treasury edits yet. The first Save above will land here.
+    </div>
+
+    <div *ngIf="audit.length > 0" class="treasury-audit-list">
+      <div *ngFor="let row of audit" class="treasury-audit-row">
+        <span class="treasury-audit-stamp">{{ fmtTimestamp(row.changed_at) }}</span>
+        <span class="treasury-audit-key"><code>{{ fmtKey(row.config_key) }}</code></span>
+        <span class="treasury-audit-change">
+          <span class="treasury-audit-old">{{ row.old_value || '∅' }}</span>
+          <mat-icon class="treasury-audit-arrow">arrow_forward</mat-icon>
+          <span class="treasury-audit-new">{{ row.new_value }}</span>
+        </span>
+        <span class="treasury-audit-note" *ngIf="row.note">{{ row.note }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3B–3D placeholder. Honest empty-state so the user sees what
+       sections are coming WITHOUT us shipping shells that pretend to work. -->
+  <div class="treasury-card treasury-card--planned">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">construction</mat-icon>
+      <span class="treasury-card-header-title">Coming in Phase 3B–3D</span>
+      <span class="treasury-card-header-sub">Sections scheduled but not yet shipped</span>
+    </div>
+    <div class="treasury-planned-grid">
+      <div class="treasury-planned-item">
+        <span class="treasury-planned-title">Monthly Allocations</span>
+        <span class="treasury-planned-body">Editable per-role Operational Allocation (Agent / RVP / CP / Executive Operator). Same DB pattern as pricing.</span>
+      </div>
+      <div class="treasury-planned-item">
+        <span class="treasury-planned-title">Treasury Promotions</span>
+        <span class="treasury-planned-body">Manual reserve grants — backend helper already lives; UI form to wrap it.</span>
+      </div>
+      <div class="treasury-planned-item">
+        <span class="treasury-planned-title">Reserve Analytics</span>
+        <span class="treasury-planned-body">KPI cards: total generated, total consumed, top operators, reserve burn by operation, treasury liability estimate.</span>
+      </div>
+      <div class="treasury-planned-item">
+        <span class="treasury-planned-title">Vendor Cost Attribution</span>
+        <span class="treasury-planned-body">Pax infra / ACI subsidy / admin promotion split per operation. Structure-only scaffold.</span>
+      </div>
+      <div class="treasury-planned-item">
+        <span class="treasury-planned-title">Reversal &amp; Adjustment</span>
+        <span class="treasury-planned-body">Reverse a grant or usage debit by correlation_id. Audit-only structure.</span>
+      </div>
+    </div>
+  </div>
+
+</section>

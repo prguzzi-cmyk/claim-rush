@@ -381,6 +381,22 @@
            mat-button routerLink="/app/revenue-dashboard" routerLinkActive="active">
           <mat-icon>monetization_on</mat-icon><span class="label">Revenue Dashboard</span>
         </a>
+        <a *ngIf="canShowRoute('/app/launch-control')"
+           mat-button routerLink="/app/launch-control" routerLinkActive="active">
+          <mat-icon>rocket_launch</mat-icon><span class="label">Launch Control</span>
+        </a>
+        <a *ngIf="canShowRoute('/app/admin/launch-readiness')"
+           mat-button routerLink="/app/admin/launch-readiness" routerLinkActive="active">
+          <mat-icon>fact_check</mat-icon><span class="label">Launch Readiness</span>
+        </a>
+        <a *ngIf="canShowRoute('/app/admin/treasury')"
+           mat-button routerLink="/app/admin/treasury" routerLinkActive="active">
+          <mat-icon>account_balance</mat-icon><span class="label">Treasury Operations</span>
+        </a>
+        <a *ngIf="canShowRoute('/app/founder-demo')"
+           mat-button routerLink="/app/founder-demo" routerLinkActive="active">
+          <mat-icon>auto_stories</mat-icon><span class="label">Founder Demo</span>
+        </a>
         <a *ngIf="canShowRoute('/app/administration/users')"
            mat-button routerLink="/app/administration/users" routerLinkActive="active">
           <mat-icon>manage_accounts</mat-icon><span class="label">Users</span>

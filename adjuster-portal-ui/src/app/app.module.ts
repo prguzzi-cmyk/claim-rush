@@ -98,6 +98,9 @@ import { LoginComponent } from "./components/login/login.component";
 import { ApplicationComponent } from "./components/application.component";
 import { SidebarComponent } from "./components/layout/sidebar/sidebar.component";
 import { DashboardComponent } from "./components/sections/dashboard/dashboard.component";
+import { RoleFallbackComponent } from "./components/role-fallback/role-fallback.component";
+import { LaunchReadinessComponent } from "./components/sections/launch-readiness/launch-readiness.component";
+import { FounderDemoComponent } from "./components/sections/founder-demo/founder-demo.component";
 import { CommandCenterIntroComponent } from "./components/sections/dashboard/command-center-intro/command-center-intro.component";
 import { UsersComponent } from "./components/sections/users/users.component";
 import { AgentsListComponent } from "./components/sections/agents-list/agents-list.component";
@@ -176,6 +179,7 @@ import { AdminMembersComponent } from "./components/sections/admin-members/admin
 import { AdminMemberTemplatesComponent } from "./components/sections/admin-members/templates/admin-member-templates.component";
 import { W9UploadComponent } from "./components/sections/w9-upload/w9-upload.component";
 import { OnboardingBannerComponent } from "./components/shared/onboarding-banner/onboarding-banner.component";
+import { PreviewDataBannerComponent } from "./components/shared/preview-data-banner/preview-data-banner.component";
 import { CompPlanDialogComponent } from "./components/sections/commissions-admin-view/comp-plan-dialog/comp-plan-dialog.component";
 import { NewClaimDialogComponent } from "./components/sections/commissions-admin-view/new-claim-dialog/new-claim-dialog.component";
 import { RecordSettlementDialogComponent } from "./components/sections/commissions-admin-view/record-settlement-dialog/record-settlement-dialog.component";
@@ -268,6 +272,7 @@ import { CustomerDashboardComponent } from './components/sections/customer-dashb
 import { CustomerClaimsComponent } from './components/sections/claims/customer-claims/customer-claims.component';
 import { CustomerClaimComponent } from "./components/sections/claims/customer-claim/customer-claim.component";
 import { ClickOutsideDirective } from './directives/click-outside.directive';
+import { OdometerDirective } from './directives/odometer.directive';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { MyPersonalDocsDialogComponent } from './components/dialogs/user-personal-file-dialog/my-personal-docs-dialog.component';
 import { FireIncidentsComponent } from './components/sections/fire-incidents/fire-incidents.component';
@@ -345,6 +350,7 @@ import { LeadDeploymentSettingsComponent } from './components/sections/lead-depl
 import { TerritoryAssignmentsComponent } from './components/sections/territory-assignments/territory-assignments.component';
 import { LaunchControlComponent } from './components/sections/launch-control/launch-control.component';
 import { EnrollUserDialogComponent } from './components/sections/launch-control/enroll-user-dialog/enroll-user-dialog.component';
+import { TreasuryOperationsComponent } from './components/sections/treasury-operations/treasury-operations.component';
 import { UserPortalComponent } from './components/sections/user-portal/user-portal.component';
 import { PublicIntakeComponent } from './components/public/public-intake/public-intake.component';
 import { CommunityLandingComponent } from './components/public/community-landing/community-landing.component';
@@ -484,6 +490,9 @@ export function tokenGetter() {
     LoginComponent,
     SharedFilesComponent,
     DashboardComponent,
+    RoleFallbackComponent,
+    LaunchReadinessComponent,
+    FounderDemoComponent,
     CommandCenterIntroComponent,
     ApplicationComponent,
     SidebarComponent,
@@ -565,6 +574,7 @@ export function tokenGetter() {
     AdminMemberTemplatesComponent,
     W9UploadComponent,
     OnboardingBannerComponent,
+    PreviewDataBannerComponent,
     CompPlanDialogComponent,
     NewClaimDialogComponent,
     RecordSettlementDialogComponent,
@@ -648,6 +658,7 @@ export function tokenGetter() {
     TeamMgrOverrideGraphComponentComponent,
     MyPersonalDocsDialogComponent,
     ClickOutsideDirective,
+    OdometerDirective,
     FireIncidentsComponent,
     FireIncidentsListComponent,
     FireIncidentsMapComponent,
@@ -690,6 +701,7 @@ export function tokenGetter() {
     TerritoryAssignmentsComponent,
     LaunchControlComponent,
     EnrollUserDialogComponent,
+    TreasuryOperationsComponent,
     UserPortalComponent,
     PublicIntakeComponent,
     CommunityLandingComponent,
