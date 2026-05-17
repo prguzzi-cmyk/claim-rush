@@ -19,6 +19,7 @@ $accent-green:     #00e676;
 $accent-red:       #ff1744;
 $accent-orange:    #ff6d00;
 $accent-yellow:    #ffd600;
+$accent-purple:    #aa00ff;
 
 $ease: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -797,6 +798,212 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
     &--consumed {
       color: $accent-orange;
     }
+  }
+}
+
+// ── Phase 3D Promotion form ─────────────────────────────────────
+.treasury-promo-form {
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.treasury-promo-form-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.4fr;
+  gap: 12px;
+}
+
+.treasury-promo-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+
+  &--credits   { grid-column: 2; }
+  &--kind      { grid-column: 3; }
+  &--full      { grid-column: 1 / span 2; }
+  &--campaign  { grid-column: 3; }
+}
+
+.treasury-promo-input {
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  color: $text-primary;
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-family: inherit;
+
+  &--num {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    text-align: right;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $accent-cyan;
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.18);
+  }
+}
+
+select.treasury-promo-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 26px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, $text-muted 50%),
+    linear-gradient(135deg, $text-muted 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 9px)  50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.treasury-promo-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255,255,255,0.06);
+  padding-top: 12px;
+}
+
+.treasury-promo-form-hint {
+  flex: 1;
+  color: $text-muted;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+// ── Phase 3D Activity table ─────────────────────────────────────
+.treasury-activity-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 11px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.84rem;
+  }
+
+  thead th {
+    color: $text-muted;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    background: rgba(255,255,255,0.015);
+  }
+
+  tbody tr {
+    transition: background 180ms $ease;
+
+    &:last-child td { border-bottom: none; }
+    &:hover { background: rgba(0,229,255,0.025); }
+  }
+
+  .th-stamp,    .td-stamp    { width: 13%; white-space: nowrap; }
+  .th-op,       .td-op       { width: 22%; }
+  .th-operator, .td-operator { width: 12%; }
+  .th-amount,   .td-amount   { width:  9%; text-align: right;
+                               font-family: 'SF Mono', 'Menlo', monospace;
+                               font-weight: 700; }
+  .th-note,     .td-note     { width: 24%; color: $text-secondary;
+                               font-style: italic; font-size: 0.78rem; }
+  .th-status,   .td-status   { width: 10%; text-align: center; }
+  .th-action,   .td-action   { width: 10%; text-align: right; }
+}
+
+.treasury-activity-event {
+  color: $text-primary;
+  font-weight: 600;
+  display: block;
+}
+.treasury-activity-cid {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.7rem;
+  color: $text-muted;
+  cursor: help;
+}
+
+.td-stamp {
+  color: $text-muted;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+}
+.td-operator {
+  color: $text-secondary;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+.td-amount {
+  &--credit { color: $accent-green; }
+  &--debit  { color: $accent-orange; }
+}
+
+.treasury-activity-chip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  border: 1px solid;
+
+  &--applied {
+    color: $accent-green;
+    border-color: rgba(0,230,118,0.5);
+    background: rgba(0,230,118,0.08);
+  }
+  &--reversal {
+    color: $accent-purple;
+    border-color: rgba(170,0,255,0.5);
+    background: rgba(170,0,255,0.08);
+  }
+  &--reversed {
+    color: $text-muted;
+    border-color: $border;
+    background: rgba(255,255,255,0.04);
+    text-decoration: line-through;
+  }
+  &--failed {
+    color: $accent-red;
+    border-color: rgba(255,23,68,0.5);
+    background: rgba(255,23,68,0.08);
+  }
+}
+
+.treasury-activity-row--reversed {
+  opacity: 0.55;
+
+  .td-amount, .treasury-activity-event {
+    text-decoration: line-through;
+  }
+}
+.treasury-activity-row--reversal {
+  background: rgba(170,0,255,0.04);
+}
+
+.treasury-activity-reverse-btn {
+  height: 30px;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }
 

@@ -67,6 +67,28 @@ interface TreasuryAnalytics {
   schema_pending: boolean;
 }
 
+interface PromotionKind {
+  slug: string;
+  label: string;
+}
+
+interface ActivityRow {
+  id: string;
+  correlation_id: string | null;
+  actor_user_id: string | null;
+  actor_role: string | null;
+  operator_label: string;
+  operation_type: string;
+  vendor: string | null;
+  token_debit: number;
+  wallet_id: string | null;
+  note: string | null;
+  success: boolean | null;
+  created_at: string | null;
+  is_reversal: boolean;
+  is_reversed: boolean;
+}
+
 interface TopSpender {
   actor_user_id: string;
   actor_role: string | null;
@@ -139,6 +161,20 @@ export class TreasuryOperationsComponent implements OnInit {
   topSpenders: TopSpender[] = [];
   dailyBurn: DailyBurnPoint[] = [];
   projected: ProjectedMonthly | null = null;
+
+  // ── Phase 3D — Promotions form + Activity feed ─────────────────────
+  promotionKinds: PromotionKind[] = [];
+  promo = {
+    targetUserId: '',
+    credits: 0,
+    kind: 'treasury.production_contest',
+    reason: '',
+    campaign: '',
+  };
+  submittingPromo = false;
+  activity: ActivityRow[] = [];
+  activityPending = false;
+  reversingId: string | null = null;
 
   constructor(
     private http: HttpClient,
@@ -222,6 +258,23 @@ export class TreasuryOperationsComponent implements OnInit {
     this.http.get<ProjectedMonthly>('admin/usage/projected-monthly').subscribe({
       next: (resp) => { this.projected = resp; },
       error: () => {},
+    });
+
+    // Phase 3D — promotion taxonomy + treasury activity feed
+    if (this.promotionKinds.length === 0) {
+      this.http.get<{ items: PromotionKind[] }>('admin/treasury/promotion-kinds').subscribe({
+        next: (resp) => { this.promotionKinds = resp.items || []; },
+        error: () => {},
+      });
+    }
+    this.http.get<{ items: ActivityRow[]; schema_pending: boolean }>(
+      'admin/treasury/activity?days=14&limit=50',
+    ).subscribe({
+      next: (resp) => {
+        this.activity = resp.items || [];
+        this.activityPending = !!resp.schema_pending;
+      },
+      error: () => { this.activity = []; },
     });
   }
 
@@ -531,5 +584,141 @@ export class TreasuryOperationsComponent implements OnInit {
     try {
       return new Date(point.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     } catch { return point.date; }
+  }
+
+  // ── Phase 3D Promotion form handler ─────────────────────────────────
+  submitPromotion(): void {
+    if (this.submittingPromo) return;
+
+    const uid = this.promo.targetUserId?.trim();
+    if (!uid || !/^[0-9a-fA-F-]{32,36}$/.test(uid)) {
+      this.snack.open('Enter a valid target user UUID.', 'Dismiss', { duration: 5000 });
+      return;
+    }
+    const credits = Math.round(Number(this.promo.credits) || 0);
+    if (!Number.isFinite(credits) || credits <= 0) {
+      this.snack.open('Credits must be a positive integer.', 'Dismiss', { duration: 5000 });
+      return;
+    }
+    const reason = this.promo.reason?.trim();
+    if (!reason) {
+      this.snack.open('Reason is required for every treasury grant.', 'Dismiss', { duration: 5000 });
+      return;
+    }
+    // Soft confirmation for large grants
+    if (credits >= 1_000_000) {
+      const ok = window.confirm(
+        `This grant is ${credits.toLocaleString()} Intelligence Credits. ` +
+        `Confirm to apply.`,
+      );
+      if (!ok) return;
+    }
+
+    this.submittingPromo = true;
+    this.http.post<{ granted: boolean; credits: number; correlation_id: string }>(
+      'admin/treasury/grants',
+      {
+        target_user_id: uid,
+        credits,
+        kind: this.promo.kind,
+        reason,
+        campaign: this.promo.campaign?.trim() || null,
+      },
+    ).subscribe({
+      next: (resp) => {
+        this.submittingPromo = false;
+        this.snack.open(
+          `Grant issued · +${resp.credits.toLocaleString()} credits · ` +
+          `correlation_id ${resp.correlation_id.substring(0, 8)}…`,
+          'OK',
+          { duration: 5000 },
+        );
+        // reset everything but the kind dropdown
+        this.promo.targetUserId = '';
+        this.promo.credits = 0;
+        this.promo.reason = '';
+        this.promo.campaign = '';
+        this.refresh();
+      },
+      error: (err) => {
+        this.submittingPromo = false;
+        const detail = err?.error?.detail || err?.statusText || `HTTP ${err?.status}`;
+        this.snack.open(`Grant failed: ${detail}`, 'Dismiss', { duration: 6000 });
+      },
+    });
+  }
+
+  // ── Phase 3D Reversal handler ───────────────────────────────────────
+  /** True if this activity row should expose a Reverse button:
+   *    has a correlation_id, is NOT a reversal itself, NOT already reversed. */
+  canReverse(row: ActivityRow): boolean {
+    return !!row.correlation_id && !row.is_reversal && !row.is_reversed;
+  }
+
+  reverseActivity(row: ActivityRow): void {
+    if (!this.canReverse(row) || this.reversingId === row.id) return;
+    const reason = window.prompt(
+      `Reverse "${this.operationLabel(row.operation_type)}" ` +
+      `(${row.token_debit.toLocaleString()} credits)?\n\n` +
+      `Enter a reason for the audit trail:`,
+      '',
+    );
+    if (reason === null) return;
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      this.snack.open('A reason is required for any reversal.', 'Dismiss', { duration: 5000 });
+      return;
+    }
+
+    this.reversingId = row.id;
+    this.http.post<{ ok: boolean }>('admin/treasury/reverse', {
+      correlation_id: row.correlation_id,
+      reason: trimmed,
+    }).subscribe({
+      next: () => {
+        this.reversingId = null;
+        this.snack.open('Reversal applied · ledger inverse posted.', 'OK', { duration: 4000 });
+        this.refresh();
+      },
+      error: (err) => {
+        this.reversingId = null;
+        const detail = err?.error?.detail || err?.statusText || `HTTP ${err?.status}`;
+        this.snack.open(`Reversal failed: ${detail}`, 'Dismiss', { duration: 6000 });
+      },
+    });
+  }
+
+  /** Humanize an operation_type for the activity feed. Reward keys
+   *  go through the existing rewardLabelFor; treasury.* keys get
+   *  their slug Title-Cased. Everything else falls through to the
+   *  pricing label or the raw operation_type. */
+  operationLabel(operationType: string): string {
+    if (operationType?.startsWith('reward.')) return this.rewardLabelFor(operationType);
+    if (operationType?.startsWith('treasury.')) {
+      const kind = this.promotionKinds.find(k => k.slug === operationType);
+      if (kind) return kind.label;
+      if (operationType === 'treasury.reversal') return 'Treasury Reversal';
+      return operationType.replace(/^treasury\./, '').replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+    return this.pricingLabelFor(operationType);
+  }
+
+  /** Compact "May 17 · 3:42 PM" stamp for the activity feed. */
+  activityTimestamp(ts: string | null): string {
+    if (!ts) return '';
+    try {
+      return new Date(ts).toLocaleString(undefined, {
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      });
+    } catch { return ts; }
+  }
+
+  /** Plain-English signed-credit label for a token_debit value. */
+  activityCreditLabel(debit: number): string {
+    if (!debit) return '0';
+    const pretty = Math.abs(debit).toLocaleString();
+    return debit < 0 ? `+${pretty}` : `−${pretty}`;
   }
 }

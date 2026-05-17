@@ -504,26 +504,197 @@
     </div>
   </div>
 
-  <!-- Phase 3D placeholder. Honest empty-state so the user sees what
-       sections are coming WITHOUT us shipping shells that pretend to work. -->
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 5 — Treasury Promotions (Phase 3D, live)
+       Admin-issued reserve grants. Wraps treasury_grant() backend
+       helper; every grant gets a fresh correlation_id so it's
+       reversible from the Activity feed below.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="treasury-card treasury-card--promotions" *ngIf="!loadError">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">redeem</mat-icon>
+      <span class="treasury-card-header-title">Treasury Promotions</span>
+      <span class="treasury-card-header-sub">
+        Issue a manual reserve grant — every grant is auditable and reversible
+      </span>
+    </div>
+
+    <div class="treasury-promo-form">
+      <div class="treasury-promo-form-row">
+        <label class="treasury-promo-label">
+          <span>Target user UUID</span>
+          <input class="treasury-promo-input"
+                 type="text"
+                 placeholder="00000000-0000-0000-0000-000000000000"
+                 maxlength="40"
+                 [(ngModel)]="promo.targetUserId">
+        </label>
+        <label class="treasury-promo-label treasury-promo-label--credits">
+          <span>Credits</span>
+          <input class="treasury-promo-input treasury-promo-input--num"
+                 type="number"
+                 min="1"
+                 step="1000"
+                 placeholder="25000"
+                 [(ngModel)]="promo.credits">
+        </label>
+        <label class="treasury-promo-label treasury-promo-label--kind">
+          <span>Promotion type</span>
+          <select class="treasury-promo-input" [(ngModel)]="promo.kind">
+            <option *ngFor="let k of promotionKinds" [value]="k.slug">
+              {{ k.label }}
+            </option>
+          </select>
+        </label>
+      </div>
+      <div class="treasury-promo-form-row">
+        <label class="treasury-promo-label treasury-promo-label--full">
+          <span>Reason (required, written to audit log)</span>
+          <input class="treasury-promo-input"
+                 type="text"
+                 maxlength="300"
+                 placeholder="Reason for the grant — required"
+                 [(ngModel)]="promo.reason">
+        </label>
+        <label class="treasury-promo-label treasury-promo-label--campaign">
+          <span>Campaign label · optional</span>
+          <input class="treasury-promo-input"
+                 type="text"
+                 maxlength="80"
+                 placeholder="may-contest-2026"
+                 [(ngModel)]="promo.campaign">
+        </label>
+      </div>
+      <div class="treasury-promo-form-actions">
+        <span class="treasury-promo-form-hint">
+          A fresh correlation_id is auto-generated. Find the grant in the
+          Activity feed below to reverse it.
+        </span>
+        <button mat-flat-button
+                color="primary"
+                class="treasury-savebar-save"
+                (click)="submitPromotion()"
+                [disabled]="submittingPromo">
+          <mat-icon *ngIf="!submittingPromo">redeem</mat-icon>
+          <mat-icon *ngIf="submittingPromo" class="treasury-savebar-spin">refresh</mat-icon>
+          {{ submittingPromo ? 'Issuing…' : 'Issue Reserve Grant' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 6 — Treasury Activity feed (Phase 3D)
+       Recent treasury-relevant ledger events with reversal status.
+       Reverse button only renders for rows that are reversible.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="treasury-card treasury-card--activity" *ngIf="!loadError">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">receipt_long</mat-icon>
+      <span class="treasury-card-header-title">Treasury Activity</span>
+      <span class="treasury-card-header-sub">
+        Grants, rewards, and reversals · last 14 days · newest first
+      </span>
+    </div>
+
+    <div *ngIf="activityPending"
+         class="treasury-analytics-pending">
+      <mat-icon>info</mat-icon>
+      Activity ledger is still warming up — the feed will populate on the next event.
+    </div>
+
+    <div *ngIf="!activityPending && activity.length === 0"
+         class="treasury-audit-empty">
+      <mat-icon>inbox</mat-icon>
+      No treasury activity in the last 14 days.
+    </div>
+
+    <table *ngIf="activity.length > 0" class="treasury-activity-table">
+      <thead>
+        <tr>
+          <th class="th-stamp">When</th>
+          <th class="th-op">Event</th>
+          <th class="th-operator">Operator</th>
+          <th class="th-amount">Credits</th>
+          <th class="th-note">Note</th>
+          <th class="th-status">Status</th>
+          <th class="th-action"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of activity"
+            [class.treasury-activity-row--reversal]="row.is_reversal"
+            [class.treasury-activity-row--reversed]="row.is_reversed">
+          <td class="td-stamp">{{ activityTimestamp(row.created_at) }}</td>
+          <td class="td-op">
+            <span class="treasury-activity-event">{{ operationLabel(row.operation_type) }}</span>
+            <span class="treasury-activity-cid"
+                  *ngIf="row.correlation_id"
+                  [matTooltip]="row.correlation_id">
+              cid {{ row.correlation_id.substring(0, 8) }}…
+            </span>
+          </td>
+          <td class="td-operator">{{ row.operator_label }}</td>
+          <td class="td-amount"
+              [class.td-amount--credit]="row.token_debit < 0"
+              [class.td-amount--debit]="row.token_debit > 0">
+            {{ activityCreditLabel(row.token_debit) }}
+          </td>
+          <td class="td-note">{{ row.note || '—' }}</td>
+          <td class="td-status">
+            <span *ngIf="row.is_reversal" class="treasury-activity-chip treasury-activity-chip--reversal">
+              REVERSAL
+            </span>
+            <span *ngIf="row.is_reversed" class="treasury-activity-chip treasury-activity-chip--reversed">
+              REVERSED
+            </span>
+            <span *ngIf="!row.is_reversal && !row.is_reversed && row.success === false"
+                  class="treasury-activity-chip treasury-activity-chip--failed">
+              FAILED
+            </span>
+            <span *ngIf="!row.is_reversal && !row.is_reversed && row.success !== false"
+                  class="treasury-activity-chip treasury-activity-chip--applied">
+              APPLIED
+            </span>
+          </td>
+          <td class="td-action">
+            <button mat-stroked-button
+                    *ngIf="canReverse(row)"
+                    class="treasury-activity-reverse-btn"
+                    (click)="reverseActivity(row)"
+                    [disabled]="reversingId === row.id">
+              <mat-icon *ngIf="reversingId !== row.id">undo</mat-icon>
+              <mat-icon *ngIf="reversingId === row.id" class="treasury-savebar-spin">refresh</mat-icon>
+              {{ reversingId === row.id ? 'Reversing…' : 'Reverse' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phase 4+ placeholder. -->
   <div class="treasury-card treasury-card--planned">
     <div class="treasury-card-header">
       <mat-icon class="treasury-card-header-icon">construction</mat-icon>
-      <span class="treasury-card-header-title">Coming in Phase 3D</span>
-      <span class="treasury-card-header-sub">Sections scheduled but not yet shipped</span>
+      <span class="treasury-card-header-title">Roadmap · post-3D</span>
+      <span class="treasury-card-header-sub">Scaffold in place; live accounting requires deliberate next-phase work</span>
     </div>
     <div class="treasury-planned-grid">
       <div class="treasury-planned-item">
-        <span class="treasury-planned-title">Treasury Promotions</span>
-        <span class="treasury-planned-body">Manual reserve grants — backend helper already lives; UI form to wrap it.</span>
+        <span class="treasury-planned-title">Vendor Cost Attribution (live)</span>
+        <span class="treasury-planned-body">
+          usage_event.vendor_split JSONB column is now live and nullable.
+          A future phase will populate it during dispatch with the real
+          Pax infra / ACI subsidy / admin promotion split per operation.
+        </span>
       </div>
       <div class="treasury-planned-item">
-        <span class="treasury-planned-title">Vendor Cost Attribution</span>
-        <span class="treasury-planned-body">Pax infra / ACI subsidy / admin promotion split per operation. Structure-only scaffold.</span>
-      </div>
-      <div class="treasury-planned-item">
-        <span class="treasury-planned-title">Reversal &amp; Adjustment</span>
-        <span class="treasury-planned-body">Reverse a grant or usage debit by correlation_id. Audit-only structure.</span>
+        <span class="treasury-planned-title">Billing &amp; Subscription</span>
+        <span class="treasury-planned-body">
+          Stripe/Pax billing integration — explicitly out of scope until
+          founder approves.
+        </span>
       </div>
     </div>
   </div>
