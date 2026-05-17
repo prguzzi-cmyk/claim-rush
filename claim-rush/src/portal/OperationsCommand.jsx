@@ -138,7 +138,7 @@ function SectionStrip({ label, color = GREEN, right }) {
 // deploy/snooze/archive decision in one card: kind chip, state chip,
 // urgency-encoded edge, AI title + reasoning, operator + workflow,
 // confidence + priority + region, transition buttons.
-function ActionCard({ action, onTransition, onOutcome }) {
+function ActionCard({ action, onTransition, onOutcome, backendOverlay, killSwitchOff, isDispatching }) {
   const km = KIND_META[action.kind] || { label: action.kind, color: GOLD, icon: "•" };
   const sm = STATE_META[action.state] || STATE_META.QUEUED;
   const uColor = URGENCY_COLOR[action.urgency] || GOLD;
@@ -380,6 +380,86 @@ function ActionCard({ action, onTransition, onOutcome }) {
           )}
         </div>
 
+        {/* Phase 4B — backend overlay (only renders for cards that
+            have been Deployed via the backend dispatch chain). Shows
+            the authoritative backend state, correlation_id chip,
+            actual reserve debit, and any failure reason. */}
+        {backendOverlay && (
+          <div style={{
+            padding: "8px 12px",
+            background: "rgba(0, 229, 255, 0.04)",
+            border: "1px solid rgba(0, 229, 255, 0.22)",
+            borderRadius: 6,
+            display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+            ...mono, fontSize: 11, letterSpacing: 0.5,
+          }}>
+            <span style={{
+              ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
+              color: "#00E5FF", textTransform: "uppercase",
+            }}>
+              Backend
+            </span>
+            {/* state chip */}
+            <span style={{
+              padding: "2px 8px",
+              background: "rgba(0,229,255,0.10)",
+              border: "1px solid rgba(0,229,255,0.45)",
+              borderRadius: 3,
+              color: "#00E5FF", fontWeight: 800, letterSpacing: 1.2,
+              textTransform: "uppercase",
+            }}>
+              {backendOverlay.state}
+            </span>
+            {/* correlation_id short chip — clickable copy in future, hover shows full id */}
+            {backendOverlay.id && (
+              <span title={backendOverlay.id}
+                    style={{ color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>
+                cid {backendOverlay.id.substring(0, 8)}…
+              </span>
+            )}
+            {/* actual reserve debit */}
+            {typeof backendOverlay.reserve_actual_debit === "number" && (
+              <span style={{
+                color: backendOverlay.reserve_actual_debit > 0
+                  ? "#FF6D00"
+                  : "rgba(255,255,255,0.45)",
+                fontWeight: 700,
+              }}>
+                {backendOverlay.reserve_actual_debit > 0
+                  ? `−${backendOverlay.reserve_actual_debit.toLocaleString()} consumed`
+                  : "no reserve consumed"}
+              </span>
+            )}
+            {/* refund chip when applicable */}
+            {typeof backendOverlay.reserve_refunded === "number"
+             && backendOverlay.reserve_refunded > 0 && (
+              <span style={{
+                color: "#00E676", fontWeight: 700,
+              }}>
+                +{backendOverlay.reserve_refunded.toLocaleString()} refunded
+              </span>
+            )}
+            {/* failure reason */}
+            {backendOverlay.failure_reason && (
+              <span style={{
+                color: "#E05050", fontStyle: "italic",
+                whiteSpace: "normal", wordBreak: "break-word",
+              }}>
+                · {backendOverlay.failure_reason}
+              </span>
+            )}
+            {/* honest "state-only" label */}
+            {backendOverlay.state === "COMPLETED"
+             && backendOverlay.reserve_actual_debit === 0 && (
+              <span style={{
+                color: "rgba(255,255,255,0.45)", fontStyle: "italic",
+              }}>
+                · No execution target — state-only deployment
+              </span>
+            )}
+          </div>
+        )}
+
         {/* State-transition buttons */}
         {allowed.length > 0 && (
           <div style={{
@@ -391,10 +471,27 @@ function ActionCard({ action, onTransition, onOutcome }) {
             {allowed.filter(s => s !== "ARCHIVED").slice(0, 2).map(targetState => {
               const sMeta = STATE_META[targetState];
               const isPrimary = targetState === "DEPLOYED" || targetState === "EXECUTED" || targetState === "MONITORING";
+              // Phase 4B — Deploy button is disabled when:
+              //   • admin kill switch has dispatch_enabled=false, OR
+              //   • this specific action is mid-flight (preventing
+              //     a double-click that would still be idempotent
+              //     on the backend but produce UI confusion)
+              const isDeployBtn = targetState === "DEPLOYED";
+              const btnDisabled = (isDeployBtn && killSwitchOff)
+                              || (isDeployBtn && isDispatching);
+              const disabledLabel = isDeployBtn && killSwitchOff
+                ? "✕ Dispatch Disabled"
+                : isDeployBtn && isDispatching
+                  ? "⟳ Dispatching…"
+                  : null;
               return (
                 <button
                   key={targetState}
-                  onClick={() => onTransition(action.id, targetState)}
+                  disabled={btnDisabled}
+                  title={isDeployBtn && killSwitchOff
+                    ? "Admin kill switch is active. Re-enable in Operations Admin to dispatch."
+                    : undefined}
+                  onClick={() => { if (!btnDisabled) onTransition(action.id, targetState); }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = `linear-gradient(135deg, ${sMeta.color}48 0%, ${sMeta.color}1c 100%)`;
                     e.currentTarget.style.boxShadow = `0 0 18px ${sMeta.color}55, inset 0 0 0 1px ${sMeta.color}aa`;
@@ -427,7 +524,9 @@ function ActionCard({ action, onTransition, onOutcome }) {
                     display: "inline-flex", alignItems: "center", gap: 6,
                   }}
                 >
-                  {targetState === "DEPLOYED" ? "▶ Deploy"
+                  {disabledLabel
+                    ? disabledLabel
+                    : targetState === "DEPLOYED" ? "▶ Deploy"
                     : targetState === "MONITORING" ? "● Monitor"
                     : targetState === "EXECUTED" ? "✓ Executed"
                     : targetState === "ESCALATED" ? "▲ Escalate"
@@ -749,6 +848,18 @@ export default function OperationsCommand() {
   const [monthly,       setMonthly]       = useState(null);
   const [walletError,   setWalletError]   = useState(null);
 
+  // ── Phase 4B — backend execution wiring ──────────────────────────
+  // Map keyed by client_action_id (the engine's stable id) → backend
+  // action row. When a card has a backend row, the UI reads its state
+  // chip / correlation_id / actual debit from this map instead of the
+  // local engine. Local persistence (localStorage) still owns the
+  // queue display itself; backend is the source of truth for any
+  // action that's been Deployed (POST /v1/operations/actions/.../dispatch).
+  const [backendActions, setBackendActions] = useState({});
+  const [killSwitch, setKillSwitch] = useState({ dispatch_enabled: true, note: null, updated_at: null });
+  const [dispatchingId, setDispatchingId] = useState(null);
+  const pollingRef = useRef({});  // { [client_action_id]: timeoutId }
+
   useEffect(() => {
     let cancelled = false;
     async function loadReserve() {
@@ -835,7 +946,203 @@ export default function OperationsCommand() {
   const queue = sorted.filter(a => a.state !== "ARCHIVED" && a.state !== "EXECUTED" && a.state !== "DEPLOYED" && a.state !== "MONITORING");
   const history = sorted.filter(a => a.state === "EXECUTED" || a.state === "ARCHIVED" || a.state === "FAILED").slice(0, 8);
 
+  // ── Phase 4B — kill-switch fetch + per-card backend state =====
+  useEffect(() => {
+    let cancelled = false;
+    apiJson("/operations/kill-switch")
+      .then(ks => { if (!cancelled) setKillSwitch(ks); })
+      .catch(() => { /* leave default permissive; backend may be cold */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Cleanup any in-flight polls on unmount.
+  useEffect(() => () => {
+    Object.values(pollingRef.current).forEach(t => clearTimeout(t));
+    pollingRef.current = {};
+  }, []);
+
+  // Persist an action row to the backend (PROPOSED) if it doesn't
+  // already have a backend id. Idempotent — same client_action_id
+  // returns the existing backend uuid.
+  async function persistActionToBackend(action) {
+    return apiJson("/operations/actions", {
+      method: "POST",
+      body: JSON.stringify({
+        client_action_id: action.id,
+        kind:             action.kind,
+        title:            action.title,
+        reasoning:        action.reasoning,
+        urgency:          action.urgency,
+        confidence:       action.confidence,
+        priority_score:   action.priority_score,
+        region:           action.region,
+        meta:             action.meta || {},
+        reserve_estimate: action.reserve_estimate || 0,
+      }),
+    });
+  }
+
+  /** Backend dispatch poll — re-reads /actions/{id} every 12s while
+   *  the action is in a non-terminal state. Hard ceiling at 12 polls
+   *  (2.5 minutes) so a hung backend never stalls the UI forever. */
+  function startPolling(clientActionId, backendId) {
+    let polls = 0;
+    const tick = async () => {
+      polls += 1;
+      try {
+        const fresh = await apiJson(`/operations/actions/${backendId}`);
+        setBackendActions(prev => ({ ...prev, [clientActionId]: fresh }));
+        const terminal = ["COMPLETED", "FAILED", "CANCELLED"].includes(fresh.state);
+        if (terminal || polls >= 12) {
+          delete pollingRef.current[clientActionId];
+          // One last wallet refresh so the reserve hero reflects any
+          // debit the dispatch produced.
+          refreshReserve();
+          return;
+        }
+        pollingRef.current[clientActionId] = setTimeout(tick, 12_000);
+      } catch {
+        delete pollingRef.current[clientActionId];
+      }
+    };
+    pollingRef.current[clientActionId] = setTimeout(tick, 12_000);
+  }
+
+  /** Wallet hero refresh — called once after dispatch lands. */
+  async function refreshReserve() {
+    try {
+      const w = await apiJson("/wallet/me");
+      setWallet(w || null);
+    } catch { /* hero already has a graceful empty state */ }
+    try {
+      const m = await apiJson("/wallet/me/monthly-summary");
+      setMonthly(m || null);
+    } catch { /* supplementary */ }
+  }
+
+  /** Maps a backend dispatch error code to user-facing copy. Keeps
+   *  ugly stack traces out of the UI. */
+  function dispatchErrorCopy(err) {
+    const code = err?.error_code || err?.detail || err?.statusText || "";
+    const messageRaw = err?.error || err?.detail || err?.message || "";
+    const map = {
+      kill_switch_active:
+        "Platform-wide dispatch is currently disabled by an admin. " +
+        "Action was saved but no outbound was sent.",
+      insufficient_reserve:
+        "Your Operational Reserve isn't high enough for this action's estimated cost. " +
+        "Wait for the monthly grant or request an Admin promotional grant.",
+      territory_mismatch:
+        "This action is outside your assigned territory. " +
+        "Ask an admin to reassign or approve cross-territory dispatch.",
+      voice_provider_disabled:
+        "AI voice provider isn't provisioned in this environment yet. " +
+        "Voice dispatch will be re-enabled when credentials land.",
+      rate_limit_exceeded:
+        "You've hit the per-operator dispatch limit (20 per hour). " +
+        "Wait a few minutes and retry.",
+    };
+    return map[code] || messageRaw || "Backend execution failed. Action was not deployed.";
+  }
+
+  /** Phase 4B — the real Deploy click handler. Manual confirmation,
+   *  then create → approve → dispatch chain. No outbound happens
+   *  without the operator clicking through the confirm prompt. */
+  async function deployActionToBackend(action) {
+    if (!killSwitch.dispatch_enabled) {
+      window.alert(
+        "Dispatch is currently disabled by an admin kill switch.\n\n" +
+        (killSwitch.note ? `Reason: ${killSwitch.note}\n\n` : "") +
+        "The action stays in your queue but won't be sent."
+      );
+      return;
+    }
+    // Phase 4B safety: every dispatch requires explicit confirmation
+    // with the estimated reserve cost visible to the operator.
+    const est = action.reserve_estimate || 0;
+    const proceed = window.confirm(
+      `Deploy "${action.title}"?\n\n` +
+      `Estimated Operational Reserve: ${est > 0 ? `≈ ${est.toLocaleString()} credits` : "no reserve cost"}.\n\n` +
+      `This will run all safety gates (kill switch, wallet, territory, ` +
+      `compliance, rate limit) and either dispatch or fail cleanly. ` +
+      `No outbound calls or SMS happen if any gate refuses.\n\n` +
+      `Continue?`
+    );
+    if (!proceed) return;
+
+    setDispatchingId(action.id);
+
+    // 1. Local state moves to QUEUED so the card UI reflects motion
+    // immediately; backend dispatch happens in parallel.
+    try {
+      setActionState(action.id, "DEPLOYED");
+      setActions(loadActions());
+    } catch { /* local engine state is best-effort */ }
+
+    try {
+      // 2. Persist to backend (idempotent on client_action_id).
+      const created = await persistActionToBackend(action);
+      const backendId = created.id;
+
+      // 3. Approve (PROPOSED → APPROVED).
+      await apiJson(`/operations/actions/${backendId}/approve`, { method: "POST" });
+
+      // 4. Dispatch — backend runs all 6 gates and either deploys or
+      // fails cleanly. NO sms_target_phone/body in this slice means
+      // it's a state-only deployment (Phase 4A semantics).
+      const result = await apiJson(`/operations/actions/${backendId}/dispatch`, {
+        method: "POST",
+        body: JSON.stringify({
+          idempotency_key: `${action.id}__${Date.now()}`,
+        }),
+      });
+
+      // 5. Update the per-card backend state map.
+      const fresh = await apiJson(`/operations/actions/${backendId}`);
+      setBackendActions(prev => ({ ...prev, [action.id]: fresh }));
+
+      // 6. Honest result feedback — backend may have refused via a gate.
+      if (result?.ok === false) {
+        const copy = dispatchErrorCopy(result);
+        window.alert(`Dispatch refused\n\n${copy}`);
+        // Roll back the optimistic local DEPLOYED if backend failed.
+        try {
+          setActionState(action.id, "QUEUED");
+          setActions(loadActions());
+        } catch {}
+      } else {
+        // 7. Start polling for any further state movement.
+        if (fresh.state && !["COMPLETED", "FAILED", "CANCELLED"].includes(fresh.state)) {
+          startPolling(action.id, backendId);
+        }
+        // 8. Refresh the reserve hero in case a debit landed.
+        await refreshReserve();
+      }
+    } catch (err) {
+      const copy = dispatchErrorCopy(err);
+      window.alert(`Dispatch failed\n\n${copy}`);
+      // Optimistic-revert local card on backend-side error.
+      try {
+        setActionState(action.id, "QUEUED");
+        setActions(loadActions());
+      } catch {}
+    } finally {
+      setDispatchingId(null);
+    }
+  }
+
   function handleTransition(id, newState) {
+    // Phase 4B routing: a transition to DEPLOYED is the operator
+    // hitting the "Deploy" button. Route through the backend chain.
+    // Every other transition stays local (ARCHIVED, EXECUTED, etc.)
+    // because those are operator-side bookkeeping, not real outbound.
+    if (newState === "DEPLOYED") {
+      const action = actions.find(a => a.id === id);
+      if (action) {
+        deployActionToBackend(action);
+        return;
+      }
+    }
     const updated = setActionState(id, newState);
     if (updated) setActions(loadActions());
   }
@@ -861,6 +1168,43 @@ export default function OperationsCommand() {
       `}</style>
 
       <PreviewDataBanner label="Preview Data — sample deployment actions render below. Deploy button does NOT place real outbound calls, SMS, or AI voice yet; live execution is gated until wiring is verified." />
+
+      {/* Phase 4B — admin kill switch banner. Shows when an admin
+          has disabled platform-wide dispatch. Deploy buttons stay
+          visible but are disabled with a clear notice. */}
+      {killSwitch && killSwitch.dispatch_enabled === false && (
+        <div style={{
+          marginBottom: 14,
+          padding: "12px 16px",
+          background: `linear-gradient(90deg, ${RED}1a, ${RED}05)`,
+          border: `1px solid ${RED}66`,
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#fff",
+          boxShadow: `0 0 18px ${RED}22`,
+        }}>
+          <span style={{
+            width: 10, height: 10, borderRadius: 5,
+            background: RED, boxShadow: `0 0 6px ${RED}`,
+            animation: "ocPulse 1.4s ease-in-out infinite",
+          }} />
+          <span>
+            <strong>Execution disabled by admin kill switch.</strong>
+            {killSwitch.note && (
+              <span style={{ opacity: 0.85, marginLeft: 6 }}>
+                · {killSwitch.note}
+              </span>
+            )}
+            <span style={{ display: "block", marginTop: 4, fontWeight: 400, fontSize: 13, opacity: 0.85 }}>
+              Suggested actions remain visible and approval flows still work, but no outbound dispatch will fire until an admin re-enables.
+            </span>
+          </span>
+        </div>
+      )}
 
       <PageHeader
         title="Operations Command"
@@ -1023,7 +1367,15 @@ export default function OperationsCommand() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
           {queue.map(a => (
-            <ActionCard key={a.id} action={a} onTransition={handleTransition} onOutcome={handleOutcome} />
+            <ActionCard
+              key={a.id}
+              action={a}
+              onTransition={handleTransition}
+              onOutcome={handleOutcome}
+              backendOverlay={backendActions[a.id] || null}
+              killSwitchOff={killSwitch?.dispatch_enabled === false}
+              isDispatching={dispatchingId === a.id}
+            />
           ))}
         </div>
       )}
