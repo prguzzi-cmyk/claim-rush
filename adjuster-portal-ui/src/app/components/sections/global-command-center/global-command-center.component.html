@@ -628,8 +628,10 @@
         <div class="rewards-wallet-titlestack">
           <span class="rewards-wallet-title">Rewards Wallet · Operational Reserve</span>
           <span class="rewards-wallet-subtitle">
-            Credits earned from claim activity, training, recruiting, and
-            production bonuses. Credits help offset platform tools and usage.
+            Your monthly platform fee funds your baseline Operational
+            Reserve. ACI may add bonus credits for production, training,
+            recruiting, and claim activity. Credits help offset approved
+            platform tools and usage.
           </span>
         </div>
         <span class="executive-meta">
@@ -648,43 +650,85 @@
            config (which the admin will edit through a coming screen).
       -->
       <div class="rewards-wallet-cheatsheet">
-        <!-- "What this is" — lead with the plain-language truth so a
-             first-time reader knows what they're looking at before any
-             numbers or columns appear. -->
-        <div class="rewards-wallet-cheatsheet-explainer">
-          <div class="rewards-wallet-cheatsheet-explainer-block">
-            <div class="rewards-wallet-cheatsheet-explainer-heading">
-              <mat-icon>help_outline</mat-icon> What this is
-            </div>
-            <div class="rewards-wallet-cheatsheet-explainer-body">
-              A built-in credit account every user on the platform has.
-              You don't put real money in. The platform automatically
-              <strong>adds credits</strong> when you hit milestones
-              (signing a claim, closing a claim, recruiting someone,
-              finishing training), and automatically
-              <strong>takes credits out</strong> when you use platform
-              tools (SMS, skip trace, AI calls).
-            </div>
+        <!-- How Credits Work — seven-row definition list mapped to the
+             business model: Pax Equitas funds the baseline reserve via
+             the monthly platform fee; ACI separately funds production
+             bonus credits; admin can issue promotions; usage offsets
+             approved platform tools. Plain definitions, no game-y
+             language — the system reads as an enterprise treasury. -->
+        <div class="rewards-wallet-cheatsheet-overview">
+          <div class="rewards-wallet-cheatsheet-overview-header">
+            <mat-icon>menu_book</mat-icon>
+            How Credits Work
           </div>
-          <div class="rewards-wallet-cheatsheet-explainer-block">
-            <div class="rewards-wallet-cheatsheet-explainer-heading">
-              <mat-icon>lightbulb</mat-icon> Why it exists
+          <dl class="rewards-wallet-cheatsheet-defs">
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>receipt_long</mat-icon> Monthly Platform Fee</dt>
+              <dd>
+                Your subscription with <strong>Pax Equitas</strong>, the
+                platform infrastructure provider. Billed monthly.
+              </dd>
             </div>
-            <div class="rewards-wallet-cheatsheet-explainer-body">
-              Two reasons: it <strong>rewards production</strong>
-              without you having to write checks, and it
-              <strong>controls cost</strong> by giving every user a
-              budget for paid platform tools instead of letting anyone
-              burn unlimited dollars on outreach.
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>account_balance</mat-icon> Baseline Reserve Allocation</dt>
+              <dd>
+                A portion of your monthly platform fee is converted into
+                <strong>Operational Reserve credits</strong> at the start
+                of each billing cycle. This is your default working
+                budget for approved platform tools.
+              </dd>
             </div>
-          </div>
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>workspace_premium</mat-icon> ACI Bonus Credits</dt>
+              <dd>
+                <strong>ACI separately funds production bonuses</strong>
+                on top of the Pax baseline — credits awarded for signing
+                claims, closing claims, recruiting paid users, completing
+                training, and hitting monthly production goals.
+              </dd>
+            </div>
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>military_tech</mat-icon> Earned Rewards</dt>
+              <dd>
+                The automatic credits awarded by the system for the
+                ACI-funded milestones above. Posted to your wallet the
+                moment the event is recorded — no claim form, no waiting.
+              </dd>
+            </div>
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>bolt</mat-icon> Usage Spend</dt>
+              <dd>
+                Credits debited automatically when you run an approved
+                platform tool — SMS, skip trace, AI voice, estimating,
+                document/signature, intelligence/data lookups. Every
+                debit is logged in your wallet history.
+              </dd>
+            </div>
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>redeem</mat-icon> Admin Promotions</dt>
+              <dd>
+                One-off credit grants issued by ACI administration —
+                signing incentives, campaign promotions, training
+                spiffs, or error reversals. Distinct from automatic
+                rewards; always attributed to an admin operator.
+              </dd>
+            </div>
+            <div class="rewards-wallet-cheatsheet-def">
+              <dt><mat-icon>shield</mat-icon> Monthly Cap &amp; Controls</dt>
+              <dd>
+                The maximum credits this wallet may hold this month.
+                Treasury-side control to ensure unused credits don't
+                accumulate indefinitely. Configurable per role.
+              </dd>
+            </div>
+          </dl>
         </div>
 
         <div class="rewards-wallet-cheatsheet-tagline">
           <mat-icon class="rewards-wallet-cheatsheet-tagline-icon">menu_book</mat-icon>
           <span>
-            Below: what earns credits, what spends credits. Admin can
-            also grant <strong>bonus credits</strong> at any time.
+            Reference table below — what earns credits (ACI-funded
+            bonuses) and what spends credits (Pax-platform usage offset).
           </span>
         </div>
         <div class="rewards-wallet-cheatsheet-grid">
@@ -692,6 +736,9 @@
             <div class="rewards-wallet-cheatsheet-col-header">
               <mat-icon>military_tech</mat-icon>
               How You <strong>Earn</strong>
+              <span class="rewards-wallet-cheatsheet-funding-tag rewards-wallet-cheatsheet-funding-tag--aci">
+                ACI-funded
+              </span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
               <span>New user enrolled</span><span class="amount">+500</span>
@@ -719,6 +766,9 @@
             <div class="rewards-wallet-cheatsheet-col-header">
               <mat-icon>bolt</mat-icon>
               How You <strong>Spend</strong>
+              <span class="rewards-wallet-cheatsheet-funding-tag rewards-wallet-cheatsheet-funding-tag--pax">
+                Pax-platform usage
+              </span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
               <span>Send an SMS</span><span class="amount amount--spend">−1</span>
@@ -732,8 +782,17 @@
             <div class="rewards-wallet-cheatsheet-row">
               <span>Send an email</span><span class="amount amount--free">Free</span>
             </div>
+            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
+              <span>Estimating tools</span><span class="amount amount--coming">coming soon</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
+              <span>Document / signature</span><span class="amount amount--coming">coming soon</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
+              <span>Intelligence / data lookups</span><span class="amount amount--coming">coming soon</span>
+            </div>
             <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--note">
-              <span>Bonus from admin</span><span class="amount amount--bonus">manual grant</span>
+              <span>Admin promotional grant</span><span class="amount amount--bonus">non-billable</span>
             </div>
           </div>
         </div>
@@ -815,16 +874,16 @@
            who only reads this top panel still gets the full earn picture. -->
       <div class="rewards-wallet-achievements">
         <div class="rewards-wallet-achievements-header">
-          <mat-icon>workspace_premium</mat-icon>
-          <span class="rewards-wallet-achievements-title">Bonus Achievements</span>
+          <mat-icon>receipt_long</mat-icon>
+          <span class="rewards-wallet-achievements-title">Recent Credit Activity</span>
           <span class="rewards-wallet-achievements-sub">
-            Credits earned this month for milestones
+            ACI bonus credits posted this month, newest first
           </span>
         </div>
         <div *ngIf="rewardEventsMonth().length === 0"
              class="empty-state empty-state--inline">
           <mat-icon class="empty-state-icon">workspace_premium</mat-icon>
-          <div class="empty-state-status">No achievements yet this month</div>
+          <div class="empty-state-status">No credits posted yet this month</div>
           <div class="empty-state-hint">
             Credits land when you complete onboarding, sign a claim, close
             a paid claim, recruit a paid user, or hit a monthly milestone.
@@ -1398,10 +1457,10 @@
       <div class="reserve-mission-log reserve-bonus-achievements"
            *ngIf="wallet.monthly">
         <div class="reserve-mission-log-header">
-          <mat-icon>military_tech</mat-icon>
-          <span class="reserve-mission-log-title">Bonus Achievements</span>
+          <mat-icon>receipt_long</mat-icon>
+          <span class="reserve-mission-log-title">Recent Credit Activity</span>
           <span class="reserve-mission-log-sub">
-            Operational reserve credits earned for milestones this month
+            ACI bonus credits + admin promotions posted this month
           </span>
         </div>
         <div *ngIf="rewardEventsMonth().length === 0"

@@ -3253,6 +3253,133 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
 }
 
+// ── 7-section "How Credits Work" definition list (treasury copy) ────
+.rewards-wallet-cheatsheet-overview {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+}
+
+.rewards-wallet-cheatsheet-overview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: $accent-cyan;
+  font-weight: 700;
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.rewards-wallet-cheatsheet-defs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+  row-gap: 10px;
+  margin: 0;
+}
+
+.rewards-wallet-cheatsheet-def {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  align-items: baseline;
+  gap: 14px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+
+  &:last-child { border-bottom: none; }
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $text-primary;
+    font-weight: 700;
+    font-size: 0.84rem;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: $accent-cyan;
+      opacity: 0.85;
+    }
+  }
+
+  dd {
+    margin: 0;
+    color: $text-secondary;
+    font-size: 0.84rem;
+    line-height: 1.5;
+
+    strong {
+      color: $text-primary;
+      font-weight: 700;
+    }
+  }
+}
+
+// On narrower frames collapse to single-column stacked definitions
+@media (max-width: 1100px) {
+  .rewards-wallet-cheatsheet-defs { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .rewards-wallet-cheatsheet-def {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+// ── Funding-source tag chips on the earn/spend column headers ──────
+.rewards-wallet-cheatsheet-funding-tag {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.rewards-wallet-cheatsheet-funding-tag--aci {
+  color: $accent-yellow;
+  border-color: rgba(255, 214, 0, 0.5);
+  background: rgba(255, 214, 0, 0.08);
+}
+.rewards-wallet-cheatsheet-funding-tag--pax {
+  color: $accent-cyan;
+  border-color: rgba(0, 229, 255, 0.5);
+  background: rgba(0, 229, 255, 0.08);
+}
+
+// "Coming soon" tags for future platform tools
+.rewards-wallet-cheatsheet-row {
+  .amount--coming {
+    color: $text-muted;
+    font-size: 0.72rem;
+    font-style: italic;
+    text-shadow: none;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+}
+.rewards-wallet-cheatsheet-row--soon {
+  opacity: 0.78;
+  span:first-child::after {
+    content: ' ·';
+    color: $text-muted;
+    margin-left: 2px;
+  }
+}
+
 .rewards-wallet-cheatsheet-explainer-block {
   display: flex;
   flex-direction: column;
