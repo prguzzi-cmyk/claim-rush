@@ -151,19 +151,140 @@
     </div>
   </div>
 
-  <!-- Phase 3B–3D placeholder. Honest empty-state so the user sees what
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 2 — Monthly Reserve Allocations (Phase 3B, live)
+       Editable per-tier Operational Allocation. Same DB pattern as
+       pricing; backend resolves both first-wallet seed AND monthly
+       grant scanner via the same allocation.<slug> row.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="treasury-card treasury-card--allocations"
+       *ngIf="!loadError">
+
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">account_balance</mat-icon>
+      <span class="treasury-card-header-title">Monthly Reserve Allocations</span>
+      <span class="treasury-card-header-sub">
+        Per-tier Operational Allocation — seeds new wallets and refreshes existing wallets on the 1st
+      </span>
+    </div>
+
+    <!-- Exposure summary strip — total active users + projected
+         monthly treasury issuance at current live values. -->
+    <div class="treasury-allocation-summary"
+         *ngIf="allocations.length > 0">
+      <div class="treasury-allocation-summary-stat">
+        <span class="treasury-allocation-summary-label">Active users</span>
+        <span class="treasury-allocation-summary-value">{{ allocationsTotalActiveUsers | number }}</span>
+      </div>
+      <div class="treasury-allocation-summary-divider"></div>
+      <div class="treasury-allocation-summary-stat">
+        <span class="treasury-allocation-summary-label">Projected monthly issuance</span>
+        <span class="treasury-allocation-summary-value treasury-allocation-summary-value--credits">
+          {{ allocationsTotalProjectedIssuance | number }}
+        </span>
+        <span class="treasury-allocation-summary-unit">Intelligence Credits</span>
+      </div>
+      <div class="treasury-allocation-summary-divider"></div>
+      <div class="treasury-allocation-summary-stat treasury-allocation-summary-stat--hint">
+        Burn analytics arrive in the next slice.
+      </div>
+    </div>
+
+    <table class="treasury-pricing-table treasury-allocation-table">
+      <thead>
+        <tr>
+          <th class="th-label">Role</th>
+          <th class="th-key">Config Slug</th>
+          <th class="th-value">Live Allocation</th>
+          <th class="th-edit">Edit</th>
+          <th class="th-delta">Δ</th>
+          <th class="th-exposure">Active · Projected</th>
+          <th class="th-source">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of allocations"
+            [class.treasury-pricing-row--dirty]="editAllocations[row.slug] !== row.live_value">
+          <td class="td-label">{{ row.label }}</td>
+          <td class="td-key"><code>allocation.{{ row.slug }}</code></td>
+          <td class="td-value">
+            <span class="td-value-num">{{ row.live_value | number }}</span>
+          </td>
+          <td class="td-edit">
+            <input class="td-edit-input"
+                   type="number"
+                   min="0"
+                   step="10000"
+                   inputmode="numeric"
+                   [(ngModel)]="editAllocations[row.slug]"
+                   [attr.aria-label]="'Edit allocation for ' + row.label">
+          </td>
+          <td class="td-delta"
+              [class.td-delta--up]="allocationDelta(row) > 0"
+              [class.td-delta--down]="allocationDelta(row) < 0">
+            <ng-container *ngIf="allocationDelta(row) !== 0; else allocDashTpl">
+              {{ allocationDelta(row) > 0 ? '+' : '' }}{{ allocationDelta(row) | number }}
+              <span class="td-delta-pct" *ngIf="row.live_value > 0">
+                ({{ allocationDeltaPct(row) > 0 ? '+' : '' }}{{ allocationDeltaPct(row) }}%)
+              </span>
+            </ng-container>
+            <ng-template #allocDashTpl>—</ng-template>
+          </td>
+          <td class="td-exposure">
+            <div class="td-exposure-stack">
+              <span class="td-exposure-users">
+                <mat-icon class="td-exposure-icon">group</mat-icon>
+                {{ row.active_user_count | number }}
+              </span>
+              <span class="td-exposure-projected"
+                    [matTooltip]="'Projected issuance at the staged edit value × active user count'">
+                ≈ {{ stagedProjectedIssuance(row) | number }}
+              </span>
+            </div>
+          </td>
+          <td class="td-source">
+            <span class="td-source-chip"
+                  [class.td-source-chip--db]="row.source === 'db'"
+                  [class.td-source-chip--fallback]="row.source === 'fallback'">
+              {{ row.source === 'db' ? 'LIVE' : 'CONSTANT' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="treasury-card-savebar">
+      <input class="treasury-savebar-note"
+             type="text"
+             maxlength="200"
+             placeholder="Optional note for the audit log (e.g. 'Q3 reserve uplift')"
+             [(ngModel)]="allocationsSaveNote">
+      <button mat-button
+              (click)="cancelAllocationEdits()"
+              [disabled]="!hasAllocationChanges() || savingAllocations">
+        Reset
+      </button>
+      <button mat-flat-button
+              color="primary"
+              class="treasury-savebar-save"
+              (click)="saveAllocations()"
+              [disabled]="!hasAllocationChanges() || savingAllocations">
+        <mat-icon *ngIf="!savingAllocations">save</mat-icon>
+        <mat-icon *ngIf="savingAllocations" class="treasury-savebar-spin">refresh</mat-icon>
+        {{ savingAllocations ? 'Applying…' : 'Apply Allocation Update' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase 3C–3D placeholder. Honest empty-state so the user sees what
        sections are coming WITHOUT us shipping shells that pretend to work. -->
   <div class="treasury-card treasury-card--planned">
     <div class="treasury-card-header">
       <mat-icon class="treasury-card-header-icon">construction</mat-icon>
-      <span class="treasury-card-header-title">Coming in Phase 3B–3D</span>
+      <span class="treasury-card-header-title">Coming in Phase 3C–3D</span>
       <span class="treasury-card-header-sub">Sections scheduled but not yet shipped</span>
     </div>
     <div class="treasury-planned-grid">
-      <div class="treasury-planned-item">
-        <span class="treasury-planned-title">Monthly Allocations</span>
-        <span class="treasury-planned-body">Editable per-role Operational Allocation (Agent / RVP / CP / Executive Operator). Same DB pattern as pricing.</span>
-      </div>
       <div class="treasury-planned-item">
         <span class="treasury-planned-title">Treasury Promotions</span>
         <span class="treasury-planned-body">Manual reserve grants — backend helper already lives; UI form to wrap it.</span>

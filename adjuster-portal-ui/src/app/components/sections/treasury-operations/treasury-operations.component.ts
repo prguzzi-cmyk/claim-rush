@@ -24,6 +24,24 @@ interface PricingItem {
   source: 'db' | 'fallback';
 }
 
+interface AllocationItem {
+  slug: string;
+  label: string;
+  role_kinds: string[];
+  live_value: number;
+  fallback_value: number;
+  source: 'db' | 'fallback';
+  active_user_count: number;
+  projected_monthly_issuance: number;
+}
+
+interface AllocationsResponse {
+  items: AllocationItem[];
+  count: number;
+  total_active_users: number;
+  total_projected_monthly_issuance: number;
+}
+
 interface AuditRow {
   id: string;
   config_key: string;
@@ -59,6 +77,14 @@ export class TreasuryOperationsComponent implements OnInit {
   /** Recent treasury edits, newest first. Refreshed after every save. */
   audit: AuditRow[] = [];
 
+  // ── Phase 3B — Monthly Reserve Allocations ─────────────────────────
+  allocations: AllocationItem[] = [];
+  allocationsTotalActiveUsers = 0;
+  allocationsTotalProjectedIssuance = 0;
+  editAllocations: Record<string, number> = {};
+  allocationsSaveNote = '';
+  savingAllocations = false;
+
   constructor(
     private http: HttpClient,
     private snack: MatSnackBar,
@@ -93,12 +119,28 @@ export class TreasuryOperationsComponent implements OnInit {
     });
 
     this.http.get<{ items: AuditRow[] }>(
-      'admin/treasury/audit-log?section=pricing&limit=20',
+      'admin/treasury/audit-log?limit=30',
     ).subscribe({
       next: (resp) => { this.audit = resp.items || []; },
       error: () => { /* audit log is supplementary — don't tank the page */ },
     });
+
+    // Phase 3B — Monthly Reserve Allocations.
+    this.http.get<AllocationsResponse>('admin/treasury/allocations').subscribe({
+      next: (resp) => {
+        this.allocations = resp.items || [];
+        this.allocationsTotalActiveUsers = resp.total_active_users || 0;
+        this.allocationsTotalProjectedIssuance = resp.total_projected_monthly_issuance || 0;
+        this.editAllocations = {};
+        for (const a of this.allocations) {
+          this.editAllocations[a.slug] = a.live_value;
+        }
+      },
+      error: () => { /* allocations card stays in loading state if it 4xx's */ },
+    });
   }
+
+  // ── Pricing save helpers (already present, untouched) ────────────
 
   /** True if any input value differs from the live server value. */
   hasUnsavedChanges(): boolean {
@@ -198,6 +240,94 @@ export class TreasuryOperationsComponent implements OnInit {
     } catch { return ''; }
   }
   fmtKey(k: string): string {
-    return k.replace(/^pricing\./, '');
+    return k.replace(/^pricing\./, '').replace(/^allocation\./, '');
+  }
+
+  // ── Phase 3B Allocation helpers ────────────────────────────────────
+
+  hasAllocationChanges(): boolean {
+    return this.allocations.some(a => this.editAllocations[a.slug] !== a.live_value);
+  }
+
+  private changedAllocationSlugs(): string[] {
+    return this.allocations
+      .filter(a => this.editAllocations[a.slug] !== a.live_value)
+      .map(a => a.slug);
+  }
+
+  saveAllocations(): void {
+    if (!this.hasAllocationChanges() || this.savingAllocations) return;
+
+    const updates: Record<string, number> = {};
+    for (const slug of this.changedAllocationSlugs()) {
+      const value = Number(this.editAllocations[slug]);
+      if (!Number.isFinite(value) || value < 0) {
+        this.snack.open(
+          `Invalid value for ${slug}. Allocation must be ≥ 0.`,
+          'Dismiss',
+          { duration: 5000 },
+        );
+        return;
+      }
+      updates[slug] = Math.round(value);
+    }
+
+    // 5× confirmation prompt — same protection as pricing.
+    const bigJump = this.changedAllocationSlugs().find(s => {
+      const live = this.allocations.find(a => a.slug === s)?.live_value ?? 0;
+      const next = updates[s];
+      return live > 0 && (next > live * 5 || next < live / 5);
+    });
+    if (bigJump) {
+      const ok = window.confirm(
+        `One or more allocations change by more than 5×. ` +
+        `Please confirm before applying.`,
+      );
+      if (!ok) return;
+    }
+
+    this.savingAllocations = true;
+    this.http.put<{ applied: any[] }>('admin/treasury/allocations', {
+      updates,
+      note: this.allocationsSaveNote?.trim() || null,
+    }).subscribe({
+      next: (resp) => {
+        this.savingAllocations = false;
+        this.snack.open(
+          `Allocations updated · ${resp.applied?.length || 0} tier(s) live.`,
+          'OK',
+          { duration: 4000 },
+        );
+        this.allocationsSaveNote = '';
+        this.refresh();
+      },
+      error: (err) => {
+        this.savingAllocations = false;
+        const detail = err?.error?.detail || err?.statusText || `HTTP ${err?.status}`;
+        this.snack.open(`Allocation update failed: ${detail}`, 'Dismiss', { duration: 6000 });
+      },
+    });
+  }
+
+  cancelAllocationEdits(): void {
+    for (const a of this.allocations) {
+      this.editAllocations[a.slug] = a.live_value;
+    }
+    this.allocationsSaveNote = '';
+  }
+
+  allocationDelta(row: AllocationItem): number {
+    return (this.editAllocations[row.slug] ?? row.live_value) - row.live_value;
+  }
+  allocationDeltaPct(row: AllocationItem): number {
+    if (!row.live_value) return 0;
+    return Math.round((this.allocationDelta(row) / row.live_value) * 100);
+  }
+
+  /** Projected issuance using the STAGED edit value × current active count.
+   *  Lets the admin preview "if I save this, treasury will issue ~$X next cycle". */
+  stagedProjectedIssuance(row: AllocationItem): number {
+    const staged = this.editAllocations[row.slug] ?? row.live_value;
+    return staged * row.active_user_count;
   }
 }
