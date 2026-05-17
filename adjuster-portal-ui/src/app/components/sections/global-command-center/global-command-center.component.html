@@ -628,10 +628,13 @@
         <div class="rewards-wallet-titlestack">
           <span class="rewards-wallet-title">Rewards Wallet · Operational Reserve</span>
           <span class="rewards-wallet-subtitle">
-            Your monthly platform fee funds your baseline Operational
-            Reserve. ACI may add bonus credits for production, training,
-            recruiting, and claim activity. Credits help offset approved
-            platform tools and usage.
+            Your <strong>Pax Equitas subscription</strong> funds a baseline
+            Operational Reserve each cycle. Claim activity, recruiting,
+            training, and production milestones generate additional reserve
+            through <strong>ACI's production-driven economy</strong> —
+            productive operators replenish faster than typical usage
+            consumes. Reserve is denominated in
+            <strong>Intelligence Credits</strong>, never dollars.
           </span>
         </div>
         <span class="executive-meta">
@@ -675,45 +678,46 @@
             <span class="reserve-counter-hero-sub-icon">
               <mat-icon>insights</mat-icon>
             </span>
-            Operational reserve · refreshes monthly via Pax Equitas platform fee
+            AI throughput reserve · replenished each cycle via Pax Equitas
+            allocation and ACI production activity
           </div>
         </div>
 
         <div class="reserve-counter-metrics">
           <div class="reserve-counter-metric">
-            <span class="reserve-counter-metric-label">Monthly Allocation</span>
+            <span class="reserve-counter-metric-label">Monthly Operational Allocation</span>
             <span class="reserve-counter-metric-value"
                   [appOdometer]="monthlyAllocationCredits()"
                   [appOdometerCompact]="true">—</span>
-            <span class="reserve-counter-metric-unit">credits / cycle</span>
+            <span class="reserve-counter-metric-unit">Intelligence Credits / cycle</span>
           </div>
           <div class="reserve-counter-metric">
-            <span class="reserve-counter-metric-label">Reserve Throughput</span>
+            <span class="reserve-counter-metric-label">Reserve Velocity</span>
             <span class="reserve-counter-metric-value reserve-counter-metric-value--positive"
                   [appOdometer]="reserveThroughputMonth()"
                   [appOdometerPrefix]="'+'"
                   [appOdometerCompact]="true">—</span>
-            <span class="reserve-counter-metric-unit">earned this cycle</span>
+            <span class="reserve-counter-metric-unit">production reserve generated</span>
           </div>
           <div class="reserve-counter-metric">
             <span class="reserve-counter-metric-label">Operational Capacity</span>
             <span class="reserve-counter-metric-value">
               {{ operationalCapacityPct() }}<span class="reserve-counter-metric-suffix">%</span>
             </span>
-            <span class="reserve-counter-metric-unit">of monthly cap</span>
+            <span class="reserve-counter-metric-unit">utilization of allocation</span>
           </div>
           <div class="reserve-counter-metric">
-            <span class="reserve-counter-metric-label">Est. Remaining Capacity</span>
+            <span class="reserve-counter-metric-label">Utilization Runway</span>
             <span class="reserve-counter-metric-value">{{ runwayEstimate() }}</span>
-            <span class="reserve-counter-metric-unit">at current pace</span>
+            <span class="reserve-counter-metric-unit">at current throughput</span>
           </div>
         </div>
 
         <div class="reserve-counter-split">
           <div class="reserve-counter-split-heading">
-            Funding split this cycle
+            Treasury Composition · This Cycle
             <span class="reserve-counter-split-heading-hint">
-              (provisional estimate — full source attribution arrives with the next backend slice)
+              (provisional · backend per-event source attribution lands in the next slice)
             </span>
           </div>
           <div class="reserve-counter-split-rows">
@@ -721,7 +725,7 @@
               <div class="reserve-counter-split-row-meta">
                 <span class="reserve-counter-split-row-dot"
                       style="background: #00e5ff"></span>
-                <span class="reserve-counter-split-row-label">Pax baseline reserve</span>
+                <span class="reserve-counter-split-row-label">Pax baseline allocation</span>
               </div>
               <div class="reserve-counter-split-row-bar">
                 <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--pax"
@@ -735,7 +739,7 @@
               <div class="reserve-counter-split-row-meta">
                 <span class="reserve-counter-split-row-dot"
                       style="background: #ffd600"></span>
-                <span class="reserve-counter-split-row-label">ACI bonus credits</span>
+                <span class="reserve-counter-split-row-label">ACI production reserve</span>
               </div>
               <div class="reserve-counter-split-row-bar">
                 <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--aci"
@@ -749,7 +753,7 @@
               <div class="reserve-counter-split-row-meta">
                 <span class="reserve-counter-split-row-dot"
                       style="background: #ff6d00"></span>
-                <span class="reserve-counter-split-row-label">Used this cycle</span>
+                <span class="reserve-counter-split-row-label">Operational throughput consumed</span>
               </div>
               <div class="reserve-counter-split-row-bar">
                 <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--used"
@@ -782,211 +786,237 @@
         <div class="rewards-wallet-cheatsheet-overview">
           <div class="rewards-wallet-cheatsheet-overview-header">
             <mat-icon>menu_book</mat-icon>
-            How Credits Work
+            How the Operational Reserve Works
           </div>
           <dl class="rewards-wallet-cheatsheet-defs">
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>receipt_long</mat-icon> Monthly Platform Fee</dt>
+              <dt><mat-icon>receipt_long</mat-icon> Monthly Pax Equitas Subscription</dt>
               <dd>
-                Your subscription with <strong>Pax Equitas</strong>, the
-                platform infrastructure provider. Billed monthly.
+                Your platform infrastructure subscription with
+                <strong>Pax Equitas</strong>. Funds the baseline reserve
+                allocation each billing cycle. Billed monthly.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
               <dt><mat-icon>account_balance</mat-icon> Baseline Reserve Allocation</dt>
               <dd>
-                A portion of your monthly platform fee is converted into
-                <strong>Operational Reserve credits</strong> at the start
-                of each billing cycle. This is your default working
-                budget for approved platform tools.
+                Your guaranteed monthly <strong>Operational Reserve</strong>
+                granted at the start of each cycle, denominated in
+                <strong>Intelligence Credits</strong>. Scales with role —
+                Agent 150K, RVP 600K, Chapter President 2.5M, Executive
+                10M+ per cycle.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>workspace_premium</mat-icon> ACI Bonus Credits</dt>
+              <dt><mat-icon>workspace_premium</mat-icon> ACI Production Reserve</dt>
               <dd>
-                <strong>ACI separately funds production bonuses</strong>
-                on top of the Pax baseline — credits awarded for signing
-                claims, closing claims, recruiting paid users, completing
-                training, and hitting monthly production goals.
+                Additional reserve generated separately by <strong>ACI's
+                production-driven economy</strong> — signing claims,
+                closing claims, recruiting paid users, training,
+                and hitting monthly production goals. Stacks on top of
+                the Pax baseline.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>military_tech</mat-icon> Earned Rewards</dt>
+              <dt><mat-icon>trending_up</mat-icon> Production Reserve Generated</dt>
               <dd>
-                The automatic credits awarded by the system for the
-                ACI-funded milestones above. Posted to your wallet the
-                moment the event is recorded — no claim form, no waiting.
+                The cumulative reserve produced this cycle through
+                ACI-funded milestones. Posted to your treasury the moment
+                the production event is recorded — no claim form, no
+                waiting period.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>bolt</mat-icon> Usage Spend</dt>
+              <dt><mat-icon>bolt</mat-icon> Operational Throughput Consumed</dt>
               <dd>
-                Credits debited automatically when you run an approved
-                platform tool — SMS, skip trace, AI voice, estimating,
-                document/signature, intelligence/data lookups. Every
-                debit is logged in your wallet history.
+                Reserve drawn down when you run approved platform tools —
+                AI voice, SMS, skip trace, roof / carrier / policy
+                analyses, estimating, document &amp; signature, and
+                intelligence lookups. Every consumption is logged.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>redeem</mat-icon> Admin Promotions</dt>
+              <dt><mat-icon>redeem</mat-icon> Treasury Promotions</dt>
               <dd>
-                One-off credit grants issued by ACI administration —
-                signing incentives, campaign promotions, training
-                spiffs, or error reversals. Distinct from automatic
-                rewards; always attributed to an admin operator.
+                Discretionary reserve grants issued by ACI administration —
+                signing incentives, campaign promotions, training credits,
+                or operational adjustments. Distinct from automatic
+                production reserve; always attributed to an admin operator.
               </dd>
             </div>
             <div class="rewards-wallet-cheatsheet-def">
-              <dt><mat-icon>shield</mat-icon> Monthly Cap &amp; Controls</dt>
+              <dt><mat-icon>shield</mat-icon> Monthly Allocation Controls</dt>
               <dd>
-                The maximum credits this wallet may hold this month.
-                Treasury-side control to ensure unused credits don't
-                accumulate indefinitely. Configurable per role.
+                Treasury-side ceilings on per-cycle allocation, balance
+                accumulation, and per-event consumption. Ensures
+                infrastructure capacity is governed at the treasury level.
+                Configurable per role.
               </dd>
             </div>
           </dl>
+          <!-- Free-if-productive narrative — core business model thesis.
+               Positioned after the definitions so the operator reads
+               WHAT the system is, then WHY it pays for itself. -->
+          <div class="rewards-wallet-cheatsheet-thesis">
+            <mat-icon>insights</mat-icon>
+            <div class="rewards-wallet-cheatsheet-thesis-body">
+              <strong>Free-if-Productive economy.</strong>
+              The platform is designed so productive operators
+              <strong>replenish their Operational Reserve faster than typical usage
+              consumes it</strong> through claim activity, recruiting, onboarding,
+              and production milestones. Inactive accounts may consume reserve
+              faster than it replenishes — production is the multiplier.
+            </div>
+          </div>
         </div>
 
         <div class="rewards-wallet-cheatsheet-tagline">
           <mat-icon class="rewards-wallet-cheatsheet-tagline-icon">menu_book</mat-icon>
           <span>
-            Reference table below — what earns credits (ACI-funded
-            bonuses) and what spends credits (Pax-platform usage offset).
+            Treasury denomination table — production reserve generated
+            (ACI economy) vs. operational throughput consumed (Pax-platform
+            usage). All values in Intelligence Credits; no dollar equivalency.
           </span>
         </div>
         <div class="rewards-wallet-cheatsheet-grid">
           <div class="rewards-wallet-cheatsheet-col rewards-wallet-cheatsheet-col--earn">
             <div class="rewards-wallet-cheatsheet-col-header">
-              <mat-icon>military_tech</mat-icon>
-              How You <strong>Earn</strong>
+              <mat-icon>trending_up</mat-icon>
+              Production Reserve <strong>Generated</strong>
               <span class="rewards-wallet-cheatsheet-funding-tag rewards-wallet-cheatsheet-funding-tag--aci">
                 ACI-funded
               </span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>New user enrolled</span><span class="amount">+500</span>
+              <span>New user enrolled</span><span class="amount">+50,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Onboarding completed</span><span class="amount">+1,500</span>
+              <span>Onboarding completed</span><span class="amount">+150,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Claim signed by homeowner</span><span class="amount">+2,500</span>
+              <span>Claim signed by homeowner</span><span class="amount">+250,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Claim closed &amp; paid</span><span class="amount">+5,000</span>
+              <span>Claim closed &amp; paid</span><span class="amount">+1,500,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Recruit becomes paying</span><span class="amount">+7,500</span>
+              <span>Recruit becomes paying</span><span class="amount">+500,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Training completed</span><span class="amount">+1,000</span>
+              <span>Training completed</span><span class="amount">+100,000</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Monthly goal hit</span><span class="amount">+10,000</span>
+              <span>Monthly production goal hit</span><span class="amount">+5,000,000</span>
             </div>
           </div>
           <div class="rewards-wallet-cheatsheet-col rewards-wallet-cheatsheet-col--spend">
             <div class="rewards-wallet-cheatsheet-col-header">
               <mat-icon>bolt</mat-icon>
-              How You <strong>Spend</strong>
+              Operational Throughput <strong>Consumed</strong>
               <span class="rewards-wallet-cheatsheet-funding-tag rewards-wallet-cheatsheet-funding-tag--pax">
                 Pax-platform usage
               </span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Send an SMS</span><span class="amount amount--spend">−1</span>
+              <span>SMS</span><span class="amount amount--spend">−120</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Skip trace (find a property owner)</span><span class="amount amount--spend">−1</span>
+              <span>Skip Trace (owner intelligence)</span><span class="amount amount--spend">−850</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>AI voice call</span><span class="amount amount--spend">−5</span>
+              <span>AI Voice Call</span><span class="amount amount--spend">−2,500</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row">
-              <span>Send an email</span><span class="amount amount--free">Free</span>
+              <span>Roof Analysis</span><span class="amount amount--spend">−8,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Carrier Comparison</span><span class="amount amount--spend">−12,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Policy Intelligence Analysis</span><span class="amount amount--spend">−18,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Estimate Engine Run</span><span class="amount amount--spend">−25,000</span>
+            </div>
+            <div class="rewards-wallet-cheatsheet-row">
+              <span>Email</span><span class="amount amount--free">No throughput</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
-              <span>Estimating tools</span><span class="amount amount--coming">coming soon</span>
-            </div>
-            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
-              <span>Document / signature</span><span class="amount amount--coming">coming soon</span>
-            </div>
-            <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--soon">
-              <span>Intelligence / data lookups</span><span class="amount amount--coming">coming soon</span>
+              <span>Document &amp; signature</span><span class="amount amount--coming">coming soon</span>
             </div>
             <div class="rewards-wallet-cheatsheet-row rewards-wallet-cheatsheet-row--note">
-              <span>Admin promotional grant</span><span class="amount amount--bonus">non-billable</span>
+              <span>Treasury promotion</span><span class="amount amount--bonus">non-billable</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="rewards-wallet-card-grid">
-        <!-- 1. Current Credits — the live balance. Primary card. -->
+        <!-- 1. Operational Reserve Balance — the live balance. Primary card. -->
         <div class="rewards-wallet-card rewards-wallet-card--primary">
           <div class="rewards-wallet-card-eyebrow">
             <mat-icon class="rewards-wallet-card-icon">savings</mat-icon>
-            Current Credits
+            Operational Reserve Balance
           </div>
           <div class="rewards-wallet-card-value"
                [appOdometer]="reserveCapacity()"
                [appOdometerCompact]="false"
                [appOdometerDuration]="900">—</div>
-          <div class="rewards-wallet-card-meta">What you have right now</div>
+          <div class="rewards-wallet-card-meta">Intelligence Credits currently available</div>
         </div>
 
-        <!-- 2. Rewards Earned This Month -->
+        <!-- 2. Production Reserve Generated -->
         <div class="rewards-wallet-card rewards-wallet-card--earned">
           <div class="rewards-wallet-card-eyebrow">
-            <mat-icon class="rewards-wallet-card-icon">military_tech</mat-icon>
-            Rewards Earned This Month
+            <mat-icon class="rewards-wallet-card-icon">trending_up</mat-icon>
+            Production Reserve Generated
           </div>
           <div class="rewards-wallet-card-value rewards-wallet-card-value--earned"
                [appOdometer]="rewardsEarnedMonth()"
                [appOdometerPrefix]="'+'"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">Credits added for hitting milestones since the 1st</div>
+          <div class="rewards-wallet-card-meta">Generated this cycle through ACI milestones</div>
         </div>
 
-        <!-- 3. Bonus Credits — admin-adjusted only. Always visible
-                 so users see whether bonus grants happened this month. -->
+        <!-- 3. Treasury Promotions — admin-adjusted only. Always visible
+                 so users see whether discretionary grants happened this cycle. -->
         <div class="rewards-wallet-card rewards-wallet-card--bonus">
           <div class="rewards-wallet-card-eyebrow">
             <mat-icon class="rewards-wallet-card-icon">redeem</mat-icon>
-            Bonus Credits
+            Treasury Promotions
           </div>
           <div class="rewards-wallet-card-value rewards-wallet-card-value--bonus"
                [appOdometer]="bonusCreditsMonth()"
                [appOdometerPrefix]="'+'"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">Extra credits manually granted by admin this month</div>
+          <div class="rewards-wallet-card-meta">Discretionary grants from ACI administration this cycle</div>
         </div>
 
-        <!-- 4. Credits Spent This Month -->
+        <!-- 4. Operational Throughput Consumed -->
         <div class="rewards-wallet-card rewards-wallet-card--spent">
           <div class="rewards-wallet-card-eyebrow">
             <mat-icon class="rewards-wallet-card-icon">bolt</mat-icon>
-            Credits Spent This Month
+            Operational Throughput Consumed
           </div>
           <div class="rewards-wallet-card-value rewards-wallet-card-value--spent"
                [appOdometer]="usageSpentMonth()"
                [appOdometerCompact]="true">—</div>
-          <div class="rewards-wallet-card-meta">Credits used on SMS, skip trace, AI calls since the 1st</div>
+          <div class="rewards-wallet-card-meta">Reserve drawn down on platform tools this cycle</div>
         </div>
 
-        <!-- 5. Monthly Reserve Cap — ceiling, not balance. Hidden when
-                 unset (free-tier wallets), surfaced when an admin has
-                 capped the wallet. -->
+        <!-- 5. Monthly Operational Allocation — the per-cycle ceiling.
+                 Surfaces whenever the wallet has an allocation (real or
+                 role-mock from Treasury Rebalance Phase 1). -->
         <div class="rewards-wallet-card rewards-wallet-card--cap"
-             *ngIf="monthlyReserveCap() !== null">
+             *ngIf="monthlyAllocationCredits() > 0">
           <div class="rewards-wallet-card-eyebrow">
             <mat-icon class="rewards-wallet-card-icon">shield</mat-icon>
-            Monthly Reserve Cap
+            Monthly Operational Allocation
           </div>
           <div class="rewards-wallet-card-value rewards-wallet-card-value--cap">
-            {{ walletTokensFmt(monthlyReserveCap()) }}
+            {{ walletTokensFmt(monthlyAllocationCredits()) }}
           </div>
-          <div class="rewards-wallet-card-meta">The most credits this wallet can ever hold</div>
+          <div class="rewards-wallet-card-meta">Treasury ceiling for this cycle · {{ prestigeTier().name }} tier</div>
         </div>
       </div>
 
@@ -998,9 +1028,9 @@
       <div class="rewards-wallet-achievements">
         <div class="rewards-wallet-achievements-header">
           <mat-icon>receipt_long</mat-icon>
-          <span class="rewards-wallet-achievements-title">Recent Credit Activity</span>
+          <span class="rewards-wallet-achievements-title">Recent Reserve Activity</span>
           <span class="rewards-wallet-achievements-sub">
-            ACI bonus credits posted this month, newest first
+            Production reserve generated + treasury promotions this cycle, newest first
           </span>
         </div>
         <div *ngIf="rewardEventsMonth().length === 0"
@@ -1296,8 +1326,8 @@
                  game-y language. -->
             <div class="wallet-spend-row" *ngIf="wallet.monthly">
               <span class="wallet-spend-label"
-                    matTooltip="Rewards earned this calendar month from onboarding, claim signings, and operational milestones. Operational reserve credits are spendable on platform tools.">
-                Rewards Earned This Month
+                    matTooltip="Intelligence Credits generated this cycle through ACI's production-driven economy — claim signings, onboarding, recruiting, training, and production milestones.">
+                Production Reserve Generated
               </span>
               <span class="wallet-spend-val wallet-spend-val--earned"
                     [appOdometer]="rewardsEarnedMonth()"
@@ -1307,8 +1337,8 @@
             <div class="wallet-spend-row"
                  *ngIf="wallet.monthly && bonusCreditsMonth() > 0">
               <span class="wallet-spend-label"
-                    matTooltip="Manual operational credit adjustments applied by administration this month.">
-                Admin-Adjusted Bonus
+                    matTooltip="Discretionary reserve grants from ACI administration this cycle.">
+                Treasury Promotions
               </span>
               <span class="wallet-spend-val wallet-spend-val--earned"
                     [appOdometer]="bonusCreditsMonth()"
@@ -1322,8 +1352,8 @@
             </div>
             <div class="wallet-spend-row" *ngIf="wallet.myWallet.hard_limit_tokens !== null && !viewIsAgent()">
               <span class="wallet-spend-label"
-                    matTooltip="Maximum operational reserve credits the wallet may carry. Acts as a ceiling, not a ledger — refilled by monthly grants.">
-                Monthly Reserve Cap
+                    matTooltip="Treasury ceiling for Intelligence Credits this cycle. Allocation refreshes at the start of each Pax Equitas billing cycle.">
+                Monthly Operational Allocation
               </span>
               <span class="wallet-spend-val">{{ walletTokensFmt(wallet.myWallet.hard_limit_tokens) }}</span>
             </div>
@@ -1581,9 +1611,9 @@
            *ngIf="wallet.monthly">
         <div class="reserve-mission-log-header">
           <mat-icon>receipt_long</mat-icon>
-          <span class="reserve-mission-log-title">Recent Credit Activity</span>
+          <span class="reserve-mission-log-title">Recent Reserve Activity</span>
           <span class="reserve-mission-log-sub">
-            ACI bonus credits + admin promotions posted this month
+            Production reserve generated + treasury promotions this cycle
           </span>
         </div>
         <div *ngIf="rewardEventsMonth().length === 0"

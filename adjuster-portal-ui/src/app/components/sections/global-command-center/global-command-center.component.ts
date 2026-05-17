@@ -211,11 +211,31 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   // method is defensive: returns 0 / sensible default rather than
   // null so the template binds unconditionally.
 
-  /** Monthly allocation in credits — the recurring grant ceiling.
-   *  Falls back to the live balance when no cap is configured so the
-   *  counter still surfaces a meaningful number. */
+  // Treasury Economy Rebalance — Phase 1 (mock mappings only; backend
+  // logic untouched). When the backend hasn't yet supplied a real
+  // monthly_reserve cap, fall back to a role-based enterprise-scale
+  // allocation so the wallet visually demonstrates real platform
+  // capacity instead of penny denominations.
+  private readonly _MOCK_ALLOCATION_BY_ROLE: Record<string, number> = {
+    'agent':       150_000,
+    'rvp':         600_000,
+    'cp':          2_500_000,
+    'admin':       10_000_000,
+    'super-admin': 10_000_000,
+    'master':      10_000_000,
+  };
+
+  /** Monthly Operational Allocation — the per-cycle reserve ceiling
+   *  for this account. Reads the real backend cap when present,
+   *  otherwise falls back to a role-based mock value so the visual
+   *  scale stays enterprise-grade. The mock is intentionally large
+   *  (Agent 150K → Exec 10M+) to reinforce the AI-infrastructure
+   *  framing without changing any backend business logic. */
   monthlyAllocationCredits(): number {
-    return this.monthlyReserveCap() ?? this.reserveCapacity();
+    const real = this.monthlyReserveCap();
+    if (real != null && real > 0) return real;
+    const role = (this.wallet?.myWallet?.actor_role || '').toLowerCase();
+    return this._MOCK_ALLOCATION_BY_ROLE[role] ?? 150_000;
   }
 
   /** Earned-this-cycle throughput (positive credit flow this month). */
@@ -260,17 +280,20 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
     return 'Steady';
   }
 
-  /** Prestige tier — enterprise-flavored, not gaming. Thresholds are
-   *  local constants here; admin-configurable once the backend slice
-   *  lands. Colors stay subtle and metallic to keep the executive
-   *  treasury aesthetic. */
+  /** Prestige tier — enterprise-flavored, not gaming. Driven by the
+   *  monthly Operational Allocation (NOT the live balance) so the
+   *  tier reflects infrastructure capacity, not a transient cash-on-
+   *  hand snapshot. Thresholds are scaled to the Treasury Phase 1
+   *  rebalance (Agent 150K → Executive 10M+). Admin-configurable
+   *  once the backend slice lands. Colors stay metallic to keep the
+   *  executive treasury aesthetic, never video-game medals. */
   prestigeTier(): { name: string; color: string; glow: string } {
-    const bal = this.reserveCapacity();
-    if (bal >= 500_000) return { name: 'EXECUTIVE OPERATOR', color: '#00e5ff', glow: 'rgba(0,229,255,0.45)' };
-    if (bal >= 150_000) return { name: 'APEX',               color: '#aa00ff', glow: 'rgba(170,0,255,0.40)' };
-    if (bal >=  50_000) return { name: 'GOLD',               color: '#ffd700', glow: 'rgba(255,215,0,0.40)' };
-    if (bal >=  10_000) return { name: 'SILVER',             color: '#c8d0dc', glow: 'rgba(200,208,220,0.35)' };
-    return                     { name: 'BRONZE',             color: '#cd7f32', glow: 'rgba(205,127,50,0.30)' };
+    const allocation = this.monthlyAllocationCredits();
+    if (allocation >= 10_000_000) return { name: 'EXECUTIVE OPERATOR', color: '#00e5ff', glow: 'rgba(0,229,255,0.45)' };
+    if (allocation >=  2_500_000) return { name: 'APEX',               color: '#aa00ff', glow: 'rgba(170,0,255,0.40)' };
+    if (allocation >=    600_000) return { name: 'GOLD',               color: '#ffd700', glow: 'rgba(255,215,0,0.40)' };
+    if (allocation >=    150_000) return { name: 'SILVER',             color: '#c8d0dc', glow: 'rgba(200,208,220,0.35)' };
+    return                       { name: 'BRONZE',             color: '#cd7f32', glow: 'rgba(205,127,50,0.30)' };
   }
 
   /** Provisional funding-split — until backend Slice 2 ships real

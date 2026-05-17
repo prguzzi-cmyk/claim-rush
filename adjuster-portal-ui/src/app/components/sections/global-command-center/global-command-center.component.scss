@@ -3478,7 +3478,9 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
 
 .reserve-counter-split-row {
   display: grid;
-  grid-template-columns: 180px 1fr 96px;
+  // Wider label slot for "Operational throughput consumed", wider value
+  // slot to accommodate enterprise-scale 7-digit numbers post-rebalance.
+  grid-template-columns: 240px 1fr 140px;
   align-items: center;
   gap: 12px;
 }
@@ -3664,6 +3666,40 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
       color: $text-primary;
       font-weight: 700;
     }
+  }
+}
+
+// ── Free-if-Productive thesis callout (treasury rebalance phase 1) ──
+.rewards-wallet-cheatsheet-thesis {
+  margin-top: 14px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  background: linear-gradient(135deg,
+              rgba(0, 230, 118, 0.06),
+              rgba(0, 229, 255, 0.04));
+  border: 1px solid rgba(0, 230, 118, 0.22);
+  border-radius: 8px;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: $accent-green;
+    filter: drop-shadow(0 0 8px rgba(0, 230, 118, 0.35));
+    margin-top: 2px;
+  }
+}
+
+.rewards-wallet-cheatsheet-thesis-body {
+  color: $text-primary;
+  font-size: 0.88rem;
+  line-height: 1.55;
+
+  strong {
+    color: $accent-green;
+    font-weight: 700;
   }
 }
 
