@@ -205,6 +205,106 @@ export class GlobalCommandCenterComponent implements OnInit, OnDestroy {
   rewardEventsMonth(): RewardEvent[] {
     return this.wallet?.monthly?.reward_events_month || [];
   }
+  // ── Reserve Counter (premium hero) helpers ────────────────────────
+  //
+  // Backed by the existing wallet telemetry. No new fetches. Each
+  // method is defensive: returns 0 / sensible default rather than
+  // null so the template binds unconditionally.
+
+  /** Monthly allocation in credits — the recurring grant ceiling.
+   *  Falls back to the live balance when no cap is configured so the
+   *  counter still surfaces a meaningful number. */
+  monthlyAllocationCredits(): number {
+    return this.monthlyReserveCap() ?? this.reserveCapacity();
+  }
+
+  /** Earned-this-cycle throughput (positive credit flow this month). */
+  reserveThroughputMonth(): number {
+    const earned = this.rewardsEarnedMonth();
+    const bonus  = this.bonusCreditsMonth();
+    return earned + bonus;
+  }
+
+  /** Balance as a percentage of the monthly allocation, clamped 0-100. */
+  operationalCapacityPct(): number {
+    const bal = this.reserveCapacity();
+    const cap = this.monthlyAllocationCredits();
+    if (!cap || cap <= 0) return 0;
+    return Math.min(100, Math.max(0, Math.round((bal / cap) * 100)));
+  }
+
+  /** Plain-English "Est. Remaining Capacity" at current burn rate.
+   *  Uses the daily-burn telemetry when available, else falls back to
+   *  a stable string the counter can still render. Operational
+   *  language ("4-week runway", "Steady"), never financial. */
+  runwayEstimate(): string {
+    const bal = this.reserveCapacity();
+    if (bal <= 0) return 'Depleted';
+
+    // Average daily burn over the recent series, in credits.
+    const series = this.wallet?.dailyBurn || [];
+    if (series.length > 0) {
+      const totalTokens = series.reduce((s, p) => s + (p.tokens || 0), 0);
+      const avgDaily = totalTokens / series.length;
+      if (avgDaily > 0) {
+        const days = bal / avgDaily;
+        if (days < 1) return '< 1 day';
+        if (days < 7) return `${Math.floor(days)} day${days >= 2 ? 's' : ''}`;
+        if (days < 30) return `${Math.round(days / 7)} weeks`;
+        if (days < 365) return `${Math.round(days / 30)} months`;
+        return '12 months+';
+      }
+    }
+    // No burn data yet — treasury is fresh / inactive. Read as
+    // "ample reserve" rather than zero/runway language.
+    return 'Steady';
+  }
+
+  /** Prestige tier — enterprise-flavored, not gaming. Thresholds are
+   *  local constants here; admin-configurable once the backend slice
+   *  lands. Colors stay subtle and metallic to keep the executive
+   *  treasury aesthetic. */
+  prestigeTier(): { name: string; color: string; glow: string } {
+    const bal = this.reserveCapacity();
+    if (bal >= 500_000) return { name: 'EXECUTIVE OPERATOR', color: '#00e5ff', glow: 'rgba(0,229,255,0.45)' };
+    if (bal >= 150_000) return { name: 'APEX',               color: '#aa00ff', glow: 'rgba(170,0,255,0.40)' };
+    if (bal >=  50_000) return { name: 'GOLD',               color: '#ffd700', glow: 'rgba(255,215,0,0.40)' };
+    if (bal >=  10_000) return { name: 'SILVER',             color: '#c8d0dc', glow: 'rgba(200,208,220,0.35)' };
+    return                     { name: 'BRONZE',             color: '#cd7f32', glow: 'rgba(205,127,50,0.30)' };
+  }
+
+  /** Provisional funding-split — until backend Slice 2 ships real
+   *  vendor='pax_equitas' / 'aci' attribution on each usage_event,
+   *  these estimates read directly from the monthly summary:
+   *    aci_bonus    = rewards_earned_month + bonus_credits_month
+   *    pax_baseline = max(0, current_balance - aci_bonus)  // residue
+   *    used         = usage_spent_month
+   *  The split bar is labeled "provisional estimate" in the template
+   *  so the user sees the language sharpen when Slice 2 lands. */
+  aciBonusCredits(): number {
+    return this.reserveThroughputMonth();
+  }
+  paxBaselineCredits(): number {
+    const bal = this.reserveCapacity();
+    const aci = this.aciBonusCredits();
+    return Math.max(0, bal - aci);
+  }
+  private _splitTotal(): number {
+    return this.paxBaselineCredits() + this.aciBonusCredits() + this.usageSpentMonth();
+  }
+  paxBaselinePct(): number {
+    const t = this._splitTotal();
+    return t > 0 ? Math.round((this.paxBaselineCredits() / t) * 100) : 0;
+  }
+  aciBonusPct(): number {
+    const t = this._splitTotal();
+    return t > 0 ? Math.round((this.aciBonusCredits() / t) * 100) : 0;
+  }
+  usedSpendPct(): number {
+    const t = this._splitTotal();
+    return t > 0 ? Math.round((this.usageSpentMonth() / t) * 100) : 0;
+  }
+
   /** Clarity polish: ceiling-style cap for the wallet (null when no
    *  cap is configured — free-tier / uncapped wallets). Sourced from
    *  monthly_reserve first (= hard_limit_tokens server-side), with a

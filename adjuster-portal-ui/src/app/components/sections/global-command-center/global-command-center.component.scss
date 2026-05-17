@@ -3223,6 +3223,347 @@ $exec-tabular:    'SF Mono', 'Roboto Mono', monospace;
   max-width: 78ch;
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// Reserve Counter — premium hero block (Bloomberg / AI-API dashboard
+// aesthetic). Large glowing balance, tier chip, secondary metric strip,
+// funding-split bars. Visual weight is intentional: this is the first
+// thing a user reads after the panel title.
+// ══════════════════════════════════════════════════════════════════════
+
+.reserve-counter {
+  position: relative;
+  margin: 14px 18px 0;
+  padding: 22px 22px 18px;
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(0, 229, 255, 0.08), transparent 60%),
+    radial-gradient(circle at 80% 0%, rgba(170, 0, 255, 0.06), transparent 65%),
+    linear-gradient(180deg, rgba(13, 19, 32, 0.92), rgba(13, 19, 32, 0.78));
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.04) inset,
+    0 18px 48px -28px rgba(0, 0, 0, 0.85),
+    0 0 30px -10px rgba(0, 229, 255, 0.18);
+  overflow: hidden;
+
+  // Top hairline accent — moving cyan sweep
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 18px; right: 18px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, $accent-cyan, transparent);
+    opacity: 0.55;
+  }
+
+  // Faint diagonal scanline for the "live terminal" feel
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.012) 0,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+    pointer-events: none;
+  }
+}
+
+.reserve-counter-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.reserve-counter-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.reserve-counter-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $accent-green;
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.7);
+  animation: reserveCounterPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes reserveCounterPulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.85); }
+}
+
+.reserve-counter-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border: 1px solid;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  transition: box-shadow 320ms ease;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.reserve-counter-hero {
+  text-align: center;
+  margin: 4px 0 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.reserve-counter-hero-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: clamp(3.4rem, 8vw, 5.2rem);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.015em;
+  color: $text-primary;
+  text-shadow:
+    0 0 24px rgba(0, 229, 255, 0.45),
+    0 0 60px rgba(0, 229, 255, 0.20);
+  margin-bottom: 8px;
+
+  // Subtle "tick" pulse animation so the counter feels alive even
+  // without active throughput. ~6s cycle, very faint amplitude.
+  animation: reserveCounterTick 6s ease-in-out infinite;
+}
+
+@keyframes reserveCounterTick {
+  0%, 100% { text-shadow: 0 0 24px rgba(0, 229, 255, 0.45), 0 0 60px rgba(0, 229, 255, 0.20); }
+  50%      { text-shadow: 0 0 32px rgba(0, 229, 255, 0.65), 0 0 80px rgba(0, 229, 255, 0.30); }
+}
+
+.reserve-counter-hero-label {
+  color: $text-secondary;
+  font-size: 0.92rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.reserve-counter-hero-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-muted;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  font-style: italic;
+}
+
+.reserve-counter-hero-sub-icon mat-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: $accent-cyan;
+  opacity: 0.7;
+  vertical-align: middle;
+}
+
+.reserve-counter-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0;
+  padding: 14px 0;
+  margin: 0 -4px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.reserve-counter-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+
+  &:last-child { border-right: none; }
+}
+
+.reserve-counter-metric-label {
+  color: $text-muted;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.reserve-counter-metric-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+
+  &--positive {
+    color: $accent-green;
+    text-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+  }
+}
+
+.reserve-counter-metric-suffix {
+  font-size: 0.85rem;
+  color: $text-muted;
+  margin-left: 1px;
+}
+
+.reserve-counter-metric-unit {
+  color: $text-muted;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  font-style: italic;
+}
+
+// ── Funding split bars (Pax / ACI / Used) ──────────────────────────
+.reserve-counter-split {
+  position: relative;
+  z-index: 1;
+}
+
+.reserve-counter-split-heading {
+  color: $text-muted;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reserve-counter-split-heading-hint {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-style: italic;
+}
+
+.reserve-counter-split-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reserve-counter-split-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 96px;
+  align-items: center;
+  gap: 12px;
+}
+
+.reserve-counter-split-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reserve-counter-split-row-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.reserve-counter-split-row-label {
+  color: $text-primary;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.reserve-counter-split-row-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.reserve-counter-split-row-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 720ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  &--pax {
+    background: linear-gradient(90deg, $accent-cyan, rgba(0, 229, 255, 0.45));
+    box-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
+  }
+  &--aci {
+    background: linear-gradient(90deg, $accent-yellow, rgba(255, 214, 0, 0.45));
+    box-shadow: 0 0 14px rgba(255, 214, 0, 0.40);
+  }
+  &--used {
+    background: linear-gradient(90deg, $accent-orange, rgba(255, 109, 0, 0.45));
+    box-shadow: 0 0 14px rgba(255, 109, 0, 0.35);
+  }
+}
+
+.reserve-counter-split-row-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: right;
+  color: $text-primary;
+  letter-spacing: 0.01em;
+}
+
+// Mobile breakpoints for the reserve counter
+@media (max-width: 720px) {
+  .reserve-counter { padding: 18px 16px 16px; }
+  .reserve-counter-hero-value { font-size: 3rem; }
+  .reserve-counter-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reserve-counter-metric {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 4px;
+    &:nth-last-child(-n+2) { border-bottom: none; }
+  }
+  .reserve-counter-split-row {
+    grid-template-columns: 1fr 80px;
+    grid-template-areas:
+      "meta value"
+      "bar  bar";
+    row-gap: 4px;
+  }
+  .reserve-counter-split-row-meta  { grid-area: meta; }
+  .reserve-counter-split-row-bar   { grid-area: bar; }
+  .reserve-counter-split-row-value { grid-area: value; }
+}
+
 // ── Cheat Sheet (what is this thing + how it works) ──────────────────
 .rewards-wallet-cheatsheet {
   margin: 14px 18px 8px;

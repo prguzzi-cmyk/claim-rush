@@ -640,6 +640,129 @@
         </span>
       </div>
 
+      <!-- ══════ RESERVE COUNTER — premium hero block ════════════════
+           Enterprise AI-treasury / Bloomberg-terminal aesthetic: big
+           glowing balance, live pulse, prestige tier chip, secondary
+           metric strip, and a Pax / ACI / Used funding split bar. All
+           values flow from the existing wallet telemetry — no new
+           fetch, no fake data. Tier thresholds + colors are local
+           constants today; backend-config in a later slice.
+      ══════════════════════════════════════════════════════════════ -->
+      <div class="reserve-counter" *ngIf="wallet.myWallet || wallet.monthly">
+        <div class="reserve-counter-topline">
+          <span class="reserve-counter-live">
+            <span class="reserve-counter-live-dot"></span>
+            <span class="reserve-counter-live-text">LIVE · RESERVE COUNTER</span>
+          </span>
+          <span class="reserve-counter-tier"
+                [style.color]="prestigeTier().color"
+                [style.borderColor]="prestigeTier().color"
+                [style.boxShadow]="'0 0 24px ' + prestigeTier().glow">
+            <mat-icon>workspace_premium</mat-icon>
+            {{ prestigeTier().name }}
+          </span>
+        </div>
+
+        <div class="reserve-counter-hero">
+          <div class="reserve-counter-hero-value"
+               [appOdometer]="reserveCapacity()"
+               [appOdometerDuration]="1200"
+               [appOdometerCompact]="false">—</div>
+          <div class="reserve-counter-hero-label">
+            Intelligence Credits Available
+          </div>
+          <div class="reserve-counter-hero-sub">
+            <span class="reserve-counter-hero-sub-icon">
+              <mat-icon>insights</mat-icon>
+            </span>
+            Operational reserve · refreshes monthly via Pax Equitas platform fee
+          </div>
+        </div>
+
+        <div class="reserve-counter-metrics">
+          <div class="reserve-counter-metric">
+            <span class="reserve-counter-metric-label">Monthly Allocation</span>
+            <span class="reserve-counter-metric-value"
+                  [appOdometer]="monthlyAllocationCredits()"
+                  [appOdometerCompact]="true">—</span>
+            <span class="reserve-counter-metric-unit">credits / cycle</span>
+          </div>
+          <div class="reserve-counter-metric">
+            <span class="reserve-counter-metric-label">Reserve Throughput</span>
+            <span class="reserve-counter-metric-value reserve-counter-metric-value--positive"
+                  [appOdometer]="reserveThroughputMonth()"
+                  [appOdometerPrefix]="'+'"
+                  [appOdometerCompact]="true">—</span>
+            <span class="reserve-counter-metric-unit">earned this cycle</span>
+          </div>
+          <div class="reserve-counter-metric">
+            <span class="reserve-counter-metric-label">Operational Capacity</span>
+            <span class="reserve-counter-metric-value">
+              {{ operationalCapacityPct() }}<span class="reserve-counter-metric-suffix">%</span>
+            </span>
+            <span class="reserve-counter-metric-unit">of monthly cap</span>
+          </div>
+          <div class="reserve-counter-metric">
+            <span class="reserve-counter-metric-label">Est. Remaining Capacity</span>
+            <span class="reserve-counter-metric-value">{{ runwayEstimate() }}</span>
+            <span class="reserve-counter-metric-unit">at current pace</span>
+          </div>
+        </div>
+
+        <div class="reserve-counter-split">
+          <div class="reserve-counter-split-heading">
+            Funding split this cycle
+            <span class="reserve-counter-split-heading-hint">
+              (provisional estimate — full source attribution arrives with the next backend slice)
+            </span>
+          </div>
+          <div class="reserve-counter-split-rows">
+            <div class="reserve-counter-split-row">
+              <div class="reserve-counter-split-row-meta">
+                <span class="reserve-counter-split-row-dot"
+                      style="background: #00e5ff"></span>
+                <span class="reserve-counter-split-row-label">Pax baseline reserve</span>
+              </div>
+              <div class="reserve-counter-split-row-bar">
+                <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--pax"
+                     [style.width.%]="paxBaselinePct()"></div>
+              </div>
+              <span class="reserve-counter-split-row-value"
+                    [appOdometer]="paxBaselineCredits()"
+                    [appOdometerCompact]="true">—</span>
+            </div>
+            <div class="reserve-counter-split-row">
+              <div class="reserve-counter-split-row-meta">
+                <span class="reserve-counter-split-row-dot"
+                      style="background: #ffd600"></span>
+                <span class="reserve-counter-split-row-label">ACI bonus credits</span>
+              </div>
+              <div class="reserve-counter-split-row-bar">
+                <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--aci"
+                     [style.width.%]="aciBonusPct()"></div>
+              </div>
+              <span class="reserve-counter-split-row-value"
+                    [appOdometer]="aciBonusCredits()"
+                    [appOdometerCompact]="true">—</span>
+            </div>
+            <div class="reserve-counter-split-row">
+              <div class="reserve-counter-split-row-meta">
+                <span class="reserve-counter-split-row-dot"
+                      style="background: #ff6d00"></span>
+                <span class="reserve-counter-split-row-label">Used this cycle</span>
+              </div>
+              <div class="reserve-counter-split-row-bar">
+                <div class="reserve-counter-split-row-fill reserve-counter-split-row-fill--used"
+                     [style.width.%]="usedSpendPct()"></div>
+              </div>
+              <span class="reserve-counter-split-row-value"
+                    [appOdometer]="usageSpentMonth()"
+                    [appOdometerCompact]="true">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Cheat Sheet: how the wallet works, in one glance ──────────
            Two-column "earn / spend" reference card pinned to the top
            of the panel so a brand-new operator can grok the system
