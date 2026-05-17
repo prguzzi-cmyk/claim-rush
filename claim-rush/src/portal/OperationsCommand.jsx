@@ -81,13 +81,13 @@ function StatusTile({ label, value, sub, color, pulse }) {
       <div style={{
         position: "relative", zIndex: 1,
         display: "flex", alignItems: "center", gap: 6,
-        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.6,
-        textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
-        marginBottom: 4,
+        ...mono, fontSize: 12, fontWeight: 800, letterSpacing: 1.5,
+        textTransform: "uppercase", color: "rgba(255,255,255,0.70)",
+        marginBottom: 6,
       }}>
         {pulse && (
           <span style={{
-            width: 5, height: 5, borderRadius: 3,
+            width: 6, height: 6, borderRadius: 3,
             background: color, boxShadow: `0 0 6px ${color}aa`,
             animation: "ocPulse 1.6s ease-in-out infinite",
           }} />
@@ -96,14 +96,15 @@ function StatusTile({ label, value, sub, color, pulse }) {
       </div>
       <div style={{
         position: "relative", zIndex: 1,
-        ...mono, fontSize: 24, fontWeight: 800, color: "#fff",
+        ...mono, fontSize: 30, fontWeight: 800, color: "#fff",
         letterSpacing: -0.2, lineHeight: 1.05,
         textShadow: `0 0 12px ${color}40`,
       }}>{value}</div>
       <div style={{
         position: "relative", zIndex: 1,
-        marginTop: 2, ...mono, fontSize: 9, fontWeight: 700,
-        letterSpacing: 0.7, color: "rgba(255,255,255,0.45)",
+        marginTop: 5, fontSize: 13, fontWeight: 500,
+        letterSpacing: 0.1, color: "rgba(255,255,255,0.66)",
+        lineHeight: 1.35,
       }}>{sub}</div>
     </div>
   );
@@ -189,11 +190,11 @@ function ActionCard({ action, onTransition, onOutcome }) {
             background: `${km.color}1f`,
             border: `1px solid ${km.color}55`,
             borderRadius: 3,
-            ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
             color: km.color, textTransform: "uppercase",
             boxShadow: `0 0 10px ${km.color}25`,
           }}>
-            <span style={{ fontSize: 10 }}>{km.icon}</span>
+            <span style={{ fontSize: 12 }}>{km.icon}</span>
             {km.label}
           </span>
 
@@ -204,7 +205,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
             background: `${sm.color}1f`,
             border: `1px solid ${sm.color}55`,
             borderRadius: 3,
-            ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
             color: sm.color, textTransform: "uppercase",
             boxShadow: sm.pulse ? `0 0 10px ${sm.color}40` : "none",
           }}>
@@ -226,7 +227,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
               background: "rgba(255,255,255,0.025)",
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: 3,
-              ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+              ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
               color: "rgba(255,255,255,0.65)", textTransform: "uppercase",
             }}>
               <span style={{ width: 3, height: 3, borderRadius: 2, background: BLUE }} />
@@ -236,7 +237,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
         </div>
 
         <span style={{
-          ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.2,
+          ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.2,
           color: "rgba(255,255,255,0.45)", textTransform: "uppercase",
         }}>
           Generated · {ageStr}
@@ -267,7 +268,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
         }}>
           <span style={{
             color: km.color, fontWeight: 800, letterSpacing: 1.4,
-            fontSize: 9, textTransform: "uppercase", marginRight: 6,
+            fontSize: 11, textTransform: "uppercase", marginRight: 6,
           }}>AI Reasoning ·</span>
           {action.reasoning}
         </div>
@@ -275,7 +276,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
         {/* Telemetry row */}
         <div style={{
           display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
-          ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)",
+          ...mono, fontSize: 12, color: "rgba(255,255,255,0.55)",
           letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
         }}>
           {action.proposed_operator && (
@@ -360,7 +361,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                     border: `1px solid ${isPrimary ? `${sMeta.color}66` : "rgba(255,255,255,0.10)"}`,
                     borderRadius: 5,
                     color: isPrimary ? sMeta.color : "rgba(255,255,255,0.78)",
-                    ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.4,
+                    ...mono, fontSize: 12, fontWeight: 800, letterSpacing: 1.4,
                     textTransform: "uppercase",
                     cursor: "pointer",
                     transition: "all 0.18s cubic-bezier(.4,0,.2,1)",
@@ -396,7 +397,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                       border: "1px solid rgba(255,255,255,0.10)",
                       borderRadius: 4,
                       color: "rgba(255,255,255,0.65)",
-                      ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+                      ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
                       textTransform: "uppercase", cursor: "pointer",
                       transition: "all 0.15s",
                     }}
@@ -413,7 +414,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                       border: "1px solid rgba(255,255,255,0.10)",
                       borderRadius: 4,
                       color: "rgba(255,255,255,0.65)",
-                      ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+                      ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
                       textTransform: "uppercase", cursor: "pointer",
                       transition: "all 0.15s",
                     }}
@@ -426,7 +427,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                     padding: "3px 8px",
                     background: `${GREEN}14`, border: `1px solid ${GREEN}55`,
                     borderRadius: 3,
-                    ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.3,
+                    ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.3,
                     color: GREEN, textTransform: "uppercase",
                   }}>✓ Contacted</span>
                 )}
@@ -436,7 +437,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                     padding: "3px 8px",
                     background: `${GREEN}14`, border: `1px solid ${GREEN}55`,
                     borderRadius: 3,
-                    ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.3,
+                    ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.3,
                     color: GREEN, textTransform: "uppercase",
                   }}>✓ Responded</span>
                 )}
@@ -456,7 +457,7 @@ function ActionCard({ action, onTransition, onOutcome }) {
                   border: "1px solid rgba(255,255,255,0.10)",
                   borderRadius: 4,
                   color: "rgba(255,255,255,0.55)",
-                  ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+                  ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
                   textTransform: "uppercase", cursor: "pointer",
                   transition: "all 0.15s",
                 }}
@@ -489,7 +490,7 @@ function DeploymentRow({ action, onTransition }) {
         background: `${sm.color}1a`,
         border: `1px solid ${sm.color}55`,
         borderRadius: 3,
-        ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+        ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
         color: sm.color, textTransform: "uppercase",
         whiteSpace: "nowrap",
       }}>
@@ -508,12 +509,12 @@ function DeploymentRow({ action, onTransition }) {
           letterSpacing: 0.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>{action.title}</div>
         <div style={{
-          ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 1.2,
+          ...mono, fontSize: 11, fontWeight: 700, letterSpacing: 1.2,
           color: km.color, textTransform: "uppercase", marginTop: 2,
         }}>{km.label}{action.proposed_operator ? ` · ${action.proposed_operator.name}` : ""}</div>
       </div>
       <span style={{
-        ...mono, fontSize: 10, fontWeight: 700, letterSpacing: 0.8,
+        ...mono, fontSize: 12, fontWeight: 700, letterSpacing: 0.8,
         color: "rgba(255,255,255,0.55)", textTransform: "uppercase",
         whiteSpace: "nowrap",
       }}>
@@ -529,11 +530,145 @@ function DeploymentRow({ action, onTransition }) {
           border: `1px solid ${PURPLE}55`,
           borderRadius: 4,
           color: PURPLE,
-          ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.4,
+          ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.4,
           textTransform: "uppercase", cursor: "pointer",
           transition: "all 0.15s",
         }}
       >Mark Executed</button>
+    </div>
+  );
+}
+
+// ── Operational Reserve hero counter ─────────────────────────────────
+// Visible reserve balance + monthly allocation pulled from the same
+// /v1/wallet/me + /v1/wallet/me/monthly-summary endpoints the Angular
+// RIN portal uses. Pure read; no consumption happens on this page yet.
+function ReserveHero({ wallet, monthly, walletError }) {
+  const balance      = wallet?.token_balance ?? null;
+  const allocation   = monthly?.monthly_reserve ?? wallet?.hard_limit_tokens ?? null;
+  const earnedMonth  = monthly?.rewards_earned_month ?? 0;
+  const spentMonth   = monthly?.usage_spent_month ?? 0;
+  const utilizationPct = (allocation && allocation > 0 && typeof balance === "number")
+    ? Math.min(100, Math.max(0, Math.round((balance / allocation) * 100)))
+    : null;
+  const fmt = (n) => (typeof n === "number" ? n.toLocaleString() : "—");
+
+  return (
+    <div style={{
+      marginBottom: 22,
+      padding: "18px 22px",
+      borderRadius: 12,
+      background: `radial-gradient(circle at 0% 0%, ${GREEN}14, transparent 60%),
+                   radial-gradient(circle at 100% 0%, ${BLUE}10, transparent 65%),
+                   linear-gradient(180deg, rgba(13,19,32,0.92), rgba(13,19,32,0.78))`,
+      border: `1px solid ${GREEN}28`,
+      boxShadow: `0 18px 48px -28px rgba(0,0,0,0.85), 0 0 30px -10px ${GREEN}22`,
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* top hairline */}
+      <div style={{
+        position: "absolute", top: 0, left: 18, right: 18, height: 2,
+        background: `linear-gradient(90deg, transparent, ${GREEN}, transparent)`,
+        opacity: 0.55,
+      }} />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 22, alignItems: "stretch" }}>
+        {/* primary balance */}
+        <div>
+          <div style={{
+            ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.8,
+            color: "rgba(255,255,255,0.55)", textTransform: "uppercase",
+            marginBottom: 6,
+          }}>
+            Operational Reserve Available
+          </div>
+          <div style={{
+            ...mono, fontSize: 38, fontWeight: 300, letterSpacing: -0.5,
+            color: "#fff",
+            textShadow: `0 0 24px ${GREEN}66`,
+            lineHeight: 1.05,
+          }}>
+            {walletError ? "—" : fmt(balance)}
+          </div>
+          <div style={{
+            fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 6,
+            lineHeight: 1.4, maxWidth: "44ch",
+          }}>
+            <strong style={{ color: "#fff" }}>Intelligence Credits.</strong>
+            {" "}Usage is only consumed when approved actions execute.
+          </div>
+        </div>
+
+        {/* monthly allocation */}
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: 18 }}>
+          <div style={{
+            ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
+            color: "rgba(255,255,255,0.50)", textTransform: "uppercase",
+          }}>
+            Monthly Allocation
+          </div>
+          <div style={{ ...mono, fontSize: 22, fontWeight: 700, color: "#fff", marginTop: 4 }}>
+            {fmt(allocation)}
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
+            credits per cycle
+          </div>
+        </div>
+
+        {/* utilization runway */}
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: 18 }}>
+          <div style={{
+            ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
+            color: "rgba(255,255,255,0.50)", textTransform: "uppercase",
+          }}>
+            Capacity Remaining
+          </div>
+          <div style={{ ...mono, fontSize: 22, fontWeight: 700, color: GREEN, marginTop: 4 }}>
+            {utilizationPct === null ? "—" : `${utilizationPct}%`}
+          </div>
+          <div style={{
+            height: 6, marginTop: 8, background: "rgba(255,255,255,0.06)",
+            borderRadius: 3, overflow: "hidden",
+          }}>
+            <div style={{
+              width: `${utilizationPct ?? 0}%`,
+              height: "100%",
+              background: `linear-gradient(90deg, ${GREEN}, ${GREEN}80)`,
+              boxShadow: `0 0 12px ${GREEN}55`,
+              transition: "width 600ms ease",
+            }} />
+          </div>
+        </div>
+
+        {/* this-cycle activity */}
+        <div style={{ borderLeft: "1px solid rgba(255,255,255,0.06)", paddingLeft: 18 }}>
+          <div style={{
+            ...mono, fontSize: 10, fontWeight: 800, letterSpacing: 1.6,
+            color: "rgba(255,255,255,0.50)", textTransform: "uppercase",
+          }}>
+            This Cycle
+          </div>
+          <div style={{ ...mono, fontSize: 14, fontWeight: 700, color: GREEN, marginTop: 6 }}>
+            +{fmt(earnedMonth)} earned
+          </div>
+          <div style={{ ...mono, fontSize: 14, fontWeight: 700, color: COPPER, marginTop: 2 }}>
+            −{fmt(spentMonth)} consumed
+          </div>
+        </div>
+      </div>
+
+      {walletError && (
+        <div style={{
+          marginTop: 12, padding: "8px 12px",
+          background: "rgba(255,109,0,0.08)",
+          border: `1px solid ${COPPER}55`,
+          borderRadius: 6,
+          fontSize: 12, color: "rgba(255,255,255,0.78)",
+        }}>
+          Reserve balance unavailable right now ({walletError}). The console below still functions; consumption gates run on the backend.
+        </div>
+      )}
     </div>
   );
 }
@@ -549,6 +684,35 @@ export default function OperationsCommand() {
   const [loading, setLoading]             = useState(true);
   const [tick, setTick] = useState(0);
   const mountedAt = useRef(Date.now());
+
+  // Operational Reserve telemetry — pure read, no consumption from this
+  // page. /v1/wallet/me lazily creates the wallet if missing; the
+  // monthly-summary endpoint adds rollups. Either failure is non-fatal:
+  // page still renders, hero shows "—" with an honest error chip.
+  const [wallet,        setWallet]        = useState(null);
+  const [monthly,       setMonthly]       = useState(null);
+  const [walletError,   setWalletError]   = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadReserve() {
+      try {
+        const w = await apiJson("/wallet/me");
+        if (!cancelled) setWallet(w || null);
+      } catch (e) {
+        if (!cancelled) setWalletError(e?.detail || `HTTP ${e?.status || "?"}`);
+      }
+      try {
+        const m = await apiJson("/wallet/me/monthly-summary");
+        if (!cancelled) setMonthly(m || null);
+      } catch {
+        // monthly summary is supplementary — don't surface its
+        // failure separately if /wallet/me succeeded.
+      }
+    }
+    loadReserve();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -639,7 +803,7 @@ export default function OperationsCommand() {
         }
       `}</style>
 
-      <PreviewDataBanner label="Sample deployment actions — Deploy button does not place real outbound calls or SMS yet" />
+      <PreviewDataBanner label="Preview Data — sample deployment actions render below. Deploy button does NOT place real outbound calls, SMS, or AI voice yet; live execution is gated until wiring is verified." />
 
       <PageHeader
         title="Operations Command"
@@ -648,36 +812,70 @@ export default function OperationsCommand() {
         accent={COPPER}
       />
 
+      {/* Plain-English explainer — readable size, no jargon. Sits
+          between the page header and the reserve hero so a first-time
+          operator understands what this surface IS before staring at
+          the reserve counter. */}
+      <div style={{
+        marginBottom: 18,
+        padding: "12px 16px",
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 8,
+        fontSize: 14,
+        lineHeight: 1.55,
+        color: "rgba(255,255,255,0.85)",
+      }}>
+        <strong style={{ color: "#fff" }}>What this page is.</strong>{" "}
+        Operations Command coordinates automated deployment actions across
+        leads, outreach, claims, and intelligence modules.{" "}
+        <strong style={{ color: COPPER }}>
+          Approved actions may consume Operational Reserve when executed.
+        </strong>{" "}
+        Pending actions surface below; nothing is sent until you deploy.
+      </div>
+
+      {/* Operational Reserve hero — live balance + monthly allocation +
+          utilization. Same wallet endpoints the Angular RIN portal
+          already uses. */}
+      <ReserveHero wallet={wallet} monthly={monthly} walletError={walletError} />
+
       {/* KPI strip */}
       <div style={{
         display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12,
         marginBottom: 22,
       }}>
         <StatusTile
-          label="Pending Actions"
+          label="Waiting for Approval"
           value={loading ? "…" : metrics.queued}
-          sub={metrics.queued > 0 ? "Awaiting deployment" : "Queue clear"}
+          sub={metrics.queued > 0
+            ? "Suggested actions ready for you to review"
+            : "Nothing waiting · engine will surface new actions here"}
           color={metrics.queued > 0 ? COPPER : GREEN}
           pulse={metrics.queued > 0}
         />
         <StatusTile
-          label="Active Workflows"
+          label="Currently Deployed"
           value={loading ? "…" : metrics.activeWorkflows}
-          sub={metrics.activeWorkflows > 0 ? "Deployed / Monitoring" : "No active deployments"}
+          sub={metrics.activeWorkflows > 0
+            ? "In-flight workflows being monitored"
+            : "No actions deployed right now"}
           color={metrics.activeWorkflows > 0 ? GREEN : "rgba(255,255,255,0.45)"}
           pulse={metrics.activeWorkflows > 0}
         />
         <StatusTile
-          label="Surge Zones"
+          label="High-Priority Regions"
           value={loading ? "…" : metrics.surgeZones}
-          sub={metrics.surgeZones > 0 ? "Escalated regions" : "No surge zones"}
+          sub={metrics.surgeZones > 0
+            ? "Areas escalated above normal activity"
+            : "All regions at normal levels"}
           color={metrics.surgeZones > 0 ? RED : GREEN}
           pulse={metrics.surgeZones > 0}
         />
         <StatusTile
-          label="Network Throughput"
+          label="Completed This Cycle"
           value={loading ? "…" : metrics.executed}
-          sub={`${metrics.total} total · ${metrics.archived} archived`}
+          sub={`${metrics.total} total proposed · ${metrics.archived} archived`}
           color={GOLD}
           pulse={false}
         />
@@ -692,7 +890,7 @@ export default function OperationsCommand() {
             right={
               <span style={{
                 display: "inline-flex", alignItems: "center", gap: 5,
-                ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+                ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
                 color: GREEN, padding: "2px 8px",
                 background: `${GREEN}10`, border: `1px solid ${GREEN}40`,
                 borderRadius: 3, textTransform: "uppercase",
@@ -710,18 +908,18 @@ export default function OperationsCommand() {
 
       {/* Action queue */}
       <SectionStrip
-        label={`Action Queue${queue.length > 0 ? ` · ${queue.length}` : ""}`}
+        label={`Suggested Actions${queue.length > 0 ? ` · ${queue.length} waiting` : ""}`}
         color={COPPER}
         right={
           <span style={{
             display: "inline-flex", alignItems: "center", gap: 5,
-            ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.5,
+            ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.5,
             color: PURPLE, padding: "2px 8px",
             background: `${PURPLE}10`, border: `1px solid ${PURPLE}38`,
             borderRadius: 3, textTransform: "uppercase",
           }}>
             <span style={{ width: 4, height: 4, borderRadius: 2, background: PURPLE, boxShadow: `0 0 4px ${PURPLE}` }} />
-            Engine · Continuous
+            Engine · Always Watching
           </span>
         }
       />
@@ -732,10 +930,10 @@ export default function OperationsCommand() {
           background: "linear-gradient(180deg, rgba(255,255,255,0.022) 0%, rgba(255,255,255,0.005) 100%)",
           border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: 10,
-          ...mono, fontSize: 12, color: "rgba(255,255,255,0.50)",
-          letterSpacing: 1.2, textTransform: "uppercase", fontWeight: 700,
+          fontSize: 14, color: "rgba(255,255,255,0.70)",
+          fontWeight: 600,
         }}>
-          ● Synthesizing Operational Actions From Network Intelligence…
+          Synthesizing operational actions from network intelligence…
         </div>
       ) : queue.length === 0 ? (
         <div style={{
@@ -752,11 +950,17 @@ export default function OperationsCommand() {
             background: GREEN, boxShadow: `0 0 8px ${GREEN}aa`, pointerEvents: "none",
           }} />
           <div style={{ fontSize: 38, marginBottom: 12 }}>🛰️</div>
-          <div style={{ ...mono, fontSize: 14, color: "rgba(255,255,255,0.78)", fontWeight: 800, letterSpacing: 1.3, textTransform: "uppercase" }}>
-            Network Aligned
+          <div style={{ fontSize: 16, color: "#fff", fontWeight: 700, letterSpacing: 0.4 }}>
+            Nothing to approve right now
           </div>
-          <div style={{ ...mono, fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 8, letterSpacing: 0.6, lineHeight: 1.55, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
-            No pending operational actions. Engine is monitoring; new opportunities will surface here automatically.
+          <div style={{
+            fontSize: 13, color: "rgba(255,255,255,0.70)",
+            marginTop: 8, lineHeight: 1.55,
+            maxWidth: 540, marginLeft: "auto", marginRight: "auto",
+          }}>
+            The engine is monitoring the platform's intelligence signals continuously.
+            New suggested actions — outreach plays, claim follow-ups, surge responses — will appear here automatically.
+            <strong style={{ color: "#fff" }}> No reserve is consumed until you deploy an action.</strong>
           </div>
         </div>
       ) : (
@@ -796,14 +1000,14 @@ export default function OperationsCommand() {
                     background: `${sm.color}1a`,
                     border: `1px solid ${sm.color}45`,
                     borderRadius: 3,
-                    ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.3,
+                    ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.3,
                     color: sm.color, textTransform: "uppercase",
                     whiteSpace: "nowrap",
                   }}>
                     {sm.label}
                   </span>
                   <span style={{
-                    ...mono, fontSize: 9, fontWeight: 800, letterSpacing: 1.3,
+                    ...mono, fontSize: 11, fontWeight: 800, letterSpacing: 1.3,
                     color: km.color, textTransform: "uppercase",
                     whiteSpace: "nowrap",
                   }}>
@@ -817,7 +1021,7 @@ export default function OperationsCommand() {
                     {a.title}
                   </span>
                   <span style={{
-                    ...mono, fontSize: 9, fontWeight: 700, letterSpacing: 0.6,
+                    ...mono, fontSize: 11, fontWeight: 700, letterSpacing: 0.6,
                     color: "rgba(255,255,255,0.45)", textTransform: "uppercase",
                     whiteSpace: "nowrap",
                   }}>
@@ -838,7 +1042,7 @@ export default function OperationsCommand() {
         border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: 8,
         display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
-        ...mono, fontSize: 10, color: "rgba(255,255,255,0.55)",
+        ...mono, fontSize: 12, color: "rgba(255,255,255,0.55)",
         letterSpacing: 1.2, fontWeight: 700, textTransform: "uppercase",
       }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
