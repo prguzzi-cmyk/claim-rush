@@ -322,6 +322,39 @@ function ActionCard({ action, onTransition, onOutcome }) {
             <span style={{ width: 4, height: 4, borderRadius: 2, background: GOLD, boxShadow: `0 0 4px ${GOLD}` }} />
             Priority · <span style={{ color: "#fff", marginLeft: 2, fontWeight: 800 }}>{action.priority}</span>
           </span>
+          {/* Phase 2 — reserve estimate chip. Estimate only; no debit
+              happens at deploy time yet (gated until live execution
+              wires through). Renders even for 0-cost actions so the
+              operator can tell at a glance that the play is "free". */}
+          {typeof action.reserve_estimate === "number" && (
+            <>
+              <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "1px 8px",
+                background: action.reserve_estimate > 0 ? "rgba(0,229,255,0.08)" : "rgba(255,255,255,0.04)",
+                border: action.reserve_estimate > 0
+                  ? "1px solid rgba(0,229,255,0.45)"
+                  : "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 3,
+              }}>
+                <span style={{
+                  width: 4, height: 4, borderRadius: 2,
+                  background: action.reserve_estimate > 0 ? "#00E5FF" : "rgba(255,255,255,0.4)",
+                  boxShadow: action.reserve_estimate > 0 ? "0 0 4px #00E5FF" : "none",
+                }} />
+                Est. Reserve ·{" "}
+                <span style={{
+                  color: action.reserve_estimate > 0 ? "#00E5FF" : "rgba(255,255,255,0.55)",
+                  marginLeft: 2, fontWeight: 800,
+                }}>
+                  {action.reserve_estimate > 0
+                    ? `≈ ${action.reserve_estimate.toLocaleString()}`
+                    : "No reserve cost"}
+                </span>
+              </span>
+            </>
+          )}
         </div>
 
         {/* State-transition buttons */}
@@ -763,6 +796,7 @@ export default function OperationsCommand() {
     const generated = generateActions({
       unifiedTargets,
       pipeline,
+      fireIncidents,    // Phase 2 — required by ruleUncontactedFireLeads
       memory: _exportMemoryRaw(),
       effectiveness: eff,
     });
