@@ -542,6 +542,264 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
   opacity: 0.85;
 }
 
+// ── Phase 3C Treasury Analytics (mission-control KPI grid) ─────────
+.treasury-analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+.treasury-analytics-kpi {
+  position: relative;
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 100px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    opacity: 0.55;
+  }
+  &--generated::before { background: linear-gradient(90deg, transparent, $accent-green,  transparent); }
+  &--consumed::before  { background: linear-gradient(90deg, transparent, $accent-orange, transparent); }
+  &--projected::before { background: linear-gradient(90deg, transparent, $accent-cyan,   transparent); }
+  &--exposure::before  { background: linear-gradient(90deg, transparent, $accent-yellow, transparent); }
+}
+
+.treasury-analytics-kpi-label {
+  color: $text-muted;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.treasury-analytics-kpi-value {
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-primary;
+  letter-spacing: 0.005em;
+
+  .treasury-analytics-kpi--generated & {
+    color: $accent-green;
+    text-shadow: 0 0 14px rgba(0,230,118,0.30);
+  }
+  .treasury-analytics-kpi--consumed & {
+    color: $accent-orange;
+  }
+  .treasury-analytics-kpi--projected & {
+    color: $accent-cyan;
+  }
+  .treasury-analytics-kpi--exposure & {
+    color: $accent-yellow;
+    text-shadow: 0 0 14px rgba(255,214,0,0.25);
+  }
+}
+
+.treasury-analytics-kpi-unit {
+  color: $text-muted;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: auto;
+}
+
+.treasury-analytics-pending {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 18px 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 214, 0, 0.35);
+  background: rgba(255, 214, 0, 0.06);
+  border-radius: 6px;
+  color: $accent-yellow;
+  font-size: 0.78rem;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// ── Daily Burn sparkline (hand-built CSS bars) ─────────────────────
+.treasury-analytics-sparkline-wrap {
+  padding: 4px 18px 16px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.treasury-analytics-sparkline-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0 8px;
+}
+
+.treasury-analytics-sparkline-title {
+  color: $text-muted;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.treasury-analytics-sparkline-peak {
+  color: $accent-cyan;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.75rem;
+}
+
+.treasury-analytics-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 80px;
+  padding-bottom: 18px;
+  position: relative;
+}
+
+.treasury-analytics-sparkline-bar-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  transition: opacity 160ms $ease;
+
+  &:hover { opacity: 0.85; }
+}
+
+.treasury-analytics-sparkline-bar {
+  width: 100%;
+  max-width: 22px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, $accent-cyan, rgba(0,229,255,0.4));
+  box-shadow: 0 0 8px rgba(0,229,255,0.25);
+  min-height: 2px;
+}
+
+.treasury-analytics-sparkline-tick {
+  position: absolute;
+  bottom: -18px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  font-size: 0.62rem;
+  color: $text-muted;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+// ── 3-column rollup tables ─────────────────────────────────────────
+.treasury-analytics-rollups {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 6px 18px 18px;
+}
+
+.treasury-analytics-rollup {
+  background: $bg-panel-header;
+  border: 1px solid $border;
+  border-radius: 10px;
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  min-height: 160px;
+}
+
+.treasury-analytics-rollup-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-muted;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: $accent-cyan;
+  }
+}
+
+.treasury-analytics-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-muted;
+  font-size: 0.78rem;
+  font-style: italic;
+  padding: 18px;
+}
+
+.treasury-analytics-rollup-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  tr { border-bottom: 1px dashed rgba(255,255,255,0.04); }
+  tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 7px 0;
+    font-size: 0.82rem;
+    vertical-align: middle;
+  }
+
+  .rollup-label {
+    color: $text-primary;
+    font-weight: 500;
+    width: 60%;
+
+    .rollup-label-sub {
+      display: block;
+      color: $text-muted;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+    }
+  }
+  .rollup-count {
+    color: $text-muted;
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 0.74rem;
+    text-align: right;
+    width: 15%;
+  }
+  .rollup-value {
+    font-family: 'SF Mono', 'Menlo', monospace;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-align: right;
+    width: 25%;
+
+    &--generated {
+      color: $accent-green;
+      text-shadow: 0 0 8px rgba(0,230,118,0.20);
+    }
+    &--consumed {
+      color: $accent-orange;
+    }
+  }
+}
+
 // ── Mobile breakpoints ──────────────────────────────────────────
 @media (max-width: 980px) {
   .treasury-pricing-table {
@@ -555,6 +813,9 @@ $ease: cubic-bezier(0.22, 1, 0.36, 1);
   .treasury-audit-row {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+  .treasury-analytics-rollups {
+    grid-template-columns: 1fr;
   }
 }
 

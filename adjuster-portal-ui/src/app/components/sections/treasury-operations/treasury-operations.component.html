@@ -276,22 +276,246 @@
     </div>
   </div>
 
-  <!-- Phase 3C–3D placeholder. Honest empty-state so the user sees what
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 3 — Production Reward Catalog (Phase 3C, live)
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="treasury-card treasury-card--rewards" *ngIf="!loadError">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">trending_up</mat-icon>
+      <span class="treasury-card-header-title">Production Reward Catalog</span>
+      <span class="treasury-card-header-sub">
+        ACI-funded reserve generated per production milestone — edits land live
+      </span>
+    </div>
+
+    <table class="treasury-pricing-table">
+      <thead>
+        <tr>
+          <th class="th-label">Reward Event</th>
+          <th class="th-key">Config Key</th>
+          <th class="th-value">Live Value</th>
+          <th class="th-edit">Edit</th>
+          <th class="th-delta">Δ</th>
+          <th class="th-source">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rewards"
+            [class.treasury-pricing-row--dirty]="editRewards[row.key] !== row.live_value">
+          <td class="td-label">{{ row.label }}</td>
+          <td class="td-key"><code>{{ row.key }}</code></td>
+          <td class="td-value"><span class="td-value-num">{{ row.live_value | number }}</span></td>
+          <td class="td-edit">
+            <input class="td-edit-input"
+                   type="number"
+                   min="0"
+                   step="10000"
+                   inputmode="numeric"
+                   [(ngModel)]="editRewards[row.key]"
+                   [attr.aria-label]="'Edit ' + row.label">
+          </td>
+          <td class="td-delta"
+              [class.td-delta--up]="rewardDelta(row) > 0"
+              [class.td-delta--down]="rewardDelta(row) < 0">
+            <ng-container *ngIf="rewardDelta(row) !== 0; else rwDashTpl">
+              {{ rewardDelta(row) > 0 ? '+' : '' }}{{ rewardDelta(row) | number }}
+              <span class="td-delta-pct" *ngIf="row.live_value > 0">
+                ({{ rewardDeltaPct(row) > 0 ? '+' : '' }}{{ rewardDeltaPct(row) }}%)
+              </span>
+            </ng-container>
+            <ng-template #rwDashTpl>—</ng-template>
+          </td>
+          <td class="td-source">
+            <span class="td-source-chip"
+                  [class.td-source-chip--db]="row.source === 'db'"
+                  [class.td-source-chip--fallback]="row.source === 'fallback'">
+              {{ row.source === 'db' ? 'LIVE' : 'CONSTANT' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="treasury-card-savebar">
+      <input class="treasury-savebar-note"
+             type="text"
+             maxlength="200"
+             placeholder="Optional note for the audit log (e.g. 'Q3 reward uplift')"
+             [(ngModel)]="rewardsSaveNote">
+      <button mat-button
+              (click)="cancelRewardEdits()"
+              [disabled]="!hasRewardChanges() || savingRewards">Reset</button>
+      <button mat-flat-button
+              color="primary"
+              class="treasury-savebar-save"
+              (click)="saveRewards()"
+              [disabled]="!hasRewardChanges() || savingRewards">
+        <mat-icon *ngIf="!savingRewards">save</mat-icon>
+        <mat-icon *ngIf="savingRewards" class="treasury-savebar-spin">refresh</mat-icon>
+        {{ savingRewards ? 'Applying…' : 'Apply Reward Update' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       Section 4 — Treasury Analytics (Phase 3C)
+       Mission-control KPI cards over usage_event rollups. Premium
+       monospace numerics, accent rails, calm tone. No charts library
+       — sparkline is hand-built CSS bars.
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="treasury-card treasury-card--analytics" *ngIf="!loadError">
+    <div class="treasury-card-header">
+      <mat-icon class="treasury-card-header-icon">monitoring</mat-icon>
+      <span class="treasury-card-header-title">Treasury Analytics</span>
+      <span class="treasury-card-header-sub">
+        Reserve generation, throughput consumption, and treasury exposure · last 30 days
+      </span>
+    </div>
+
+    <!-- KPI strip — 4 cards. -->
+    <div class="treasury-analytics-kpi-grid">
+      <div class="treasury-analytics-kpi treasury-analytics-kpi--generated">
+        <div class="treasury-analytics-kpi-label">Reserve Generated · 30d</div>
+        <div class="treasury-analytics-kpi-value">
+          +{{ (analytics?.total_reserve_generated_window || 0) | number }}
+        </div>
+        <div class="treasury-analytics-kpi-unit">Intelligence Credits</div>
+      </div>
+      <div class="treasury-analytics-kpi treasury-analytics-kpi--consumed">
+        <div class="treasury-analytics-kpi-label">Reserve Consumed · 30d</div>
+        <div class="treasury-analytics-kpi-value">
+          −{{ (analytics?.total_reserve_consumed_window || 0) | number }}
+        </div>
+        <div class="treasury-analytics-kpi-unit">Intelligence Credits</div>
+      </div>
+      <div class="treasury-analytics-kpi treasury-analytics-kpi--projected">
+        <div class="treasury-analytics-kpi-label">Projected Monthly Throughput</div>
+        <div class="treasury-analytics-kpi-value">
+          {{ (projected?.projected_tokens || 0) | number }}
+        </div>
+        <div class="treasury-analytics-kpi-unit">credits / cycle (MTD pace)</div>
+      </div>
+      <div class="treasury-analytics-kpi treasury-analytics-kpi--exposure">
+        <div class="treasury-analytics-kpi-label">Estimated Monthly Treasury Exposure</div>
+        <div class="treasury-analytics-kpi-value">
+          {{ (analytics?.estimated_monthly_treasury_exposure || 0) | number }}
+        </div>
+        <div class="treasury-analytics-kpi-unit">allocation × active users</div>
+      </div>
+    </div>
+
+    <!-- Schema-pending banner (when usage_event isn't yet populated). -->
+    <div *ngIf="analytics?.schema_pending" class="treasury-analytics-pending">
+      <mat-icon>info</mat-icon>
+      Usage ledger is still warming up — totals will populate on the next event.
+    </div>
+
+    <!-- Daily Burn sparkline. Hand-built CSS bars; no chart library. -->
+    <div class="treasury-analytics-sparkline-wrap" *ngIf="dailyBurn.length > 0">
+      <div class="treasury-analytics-sparkline-head">
+        <span class="treasury-analytics-sparkline-title">Daily Burn Trend · last 14d</span>
+        <span class="treasury-analytics-sparkline-peak">
+          Peak {{ dailyBurnPeak() | number }} cr/day
+        </span>
+      </div>
+      <div class="treasury-analytics-sparkline">
+        <div *ngFor="let pt of dailyBurn"
+             class="treasury-analytics-sparkline-bar-wrap"
+             [matTooltip]="dailyBurnLabel(pt) + ': ' + (pt.tokens | number) + ' credits / ' + pt.events + ' events'">
+          <span class="treasury-analytics-sparkline-bar"
+                [style.height.%]="dailyBurnBarHeight(pt)"></span>
+          <span class="treasury-analytics-sparkline-tick">{{ dailyBurnLabel(pt) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Three side-by-side rollup tables: reward generation, burn ops, top operators. -->
+    <div class="treasury-analytics-rollups">
+
+      <div class="treasury-analytics-rollup">
+        <div class="treasury-analytics-rollup-head">
+          <mat-icon>military_tech</mat-icon>
+          Reserve Generated by Reward Type
+        </div>
+        <div *ngIf="!analytics || analytics.top_reserve_generating_events.length === 0"
+             class="treasury-analytics-empty">
+          No reward events in window
+        </div>
+        <table *ngIf="analytics && analytics.top_reserve_generating_events.length > 0"
+               class="treasury-analytics-rollup-table">
+          <tbody>
+            <tr *ngFor="let row of analytics.top_reserve_generating_events">
+              <td class="rollup-label">{{ rewardLabelFor(row.operation_type) }}</td>
+              <td class="rollup-count">{{ row.event_count }}×</td>
+              <td class="rollup-value rollup-value--generated">
+                +{{ (row.credits_generated || 0) | number }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="treasury-analytics-rollup">
+        <div class="treasury-analytics-rollup-head">
+          <mat-icon>bolt</mat-icon>
+          Burn by Operation
+        </div>
+        <div *ngIf="!analytics || analytics.top_burn_operations.length === 0"
+             class="treasury-analytics-empty">
+          No spend events in window
+        </div>
+        <table *ngIf="analytics && analytics.top_burn_operations.length > 0"
+               class="treasury-analytics-rollup-table">
+          <tbody>
+            <tr *ngFor="let row of analytics.top_burn_operations">
+              <td class="rollup-label">{{ pricingLabelFor(row.operation_type) }}</td>
+              <td class="rollup-count">{{ row.event_count }}×</td>
+              <td class="rollup-value rollup-value--consumed">
+                −{{ (row.credits_consumed || 0) | number }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="treasury-analytics-rollup">
+        <div class="treasury-analytics-rollup-head">
+          <mat-icon>group</mat-icon>
+          Top Operators · 30d
+        </div>
+        <div *ngIf="topSpenders.length === 0" class="treasury-analytics-empty">
+          No operator activity in window
+        </div>
+        <table *ngIf="topSpenders.length > 0" class="treasury-analytics-rollup-table">
+          <tbody>
+            <tr *ngFor="let row of topSpenders">
+              <td class="rollup-label">
+                {{ row.actor_role || 'user' }}
+                <span class="rollup-label-sub">{{ row.actor_user_id.substring(0,8) }}</span>
+              </td>
+              <td class="rollup-count">{{ row.calls }}×</td>
+              <td class="rollup-value rollup-value--consumed">
+                −{{ row.tokens | number }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3D placeholder. Honest empty-state so the user sees what
        sections are coming WITHOUT us shipping shells that pretend to work. -->
   <div class="treasury-card treasury-card--planned">
     <div class="treasury-card-header">
       <mat-icon class="treasury-card-header-icon">construction</mat-icon>
-      <span class="treasury-card-header-title">Coming in Phase 3C–3D</span>
+      <span class="treasury-card-header-title">Coming in Phase 3D</span>
       <span class="treasury-card-header-sub">Sections scheduled but not yet shipped</span>
     </div>
     <div class="treasury-planned-grid">
       <div class="treasury-planned-item">
         <span class="treasury-planned-title">Treasury Promotions</span>
         <span class="treasury-planned-body">Manual reserve grants — backend helper already lives; UI form to wrap it.</span>
-      </div>
-      <div class="treasury-planned-item">
-        <span class="treasury-planned-title">Reserve Analytics</span>
-        <span class="treasury-planned-body">KPI cards: total generated, total consumed, top operators, reserve burn by operation, treasury liability estimate.</span>
       </div>
       <div class="treasury-planned-item">
         <span class="treasury-planned-title">Vendor Cost Attribution</span>
