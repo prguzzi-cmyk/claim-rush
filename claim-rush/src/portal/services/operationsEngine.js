@@ -52,6 +52,15 @@ export const ACTION_KIND = {
   UNCONTACTED_FIRE_LEADS:   "UNCONTACTED_FIRE_LEADS",
   STALE_OUTREACH_FOLLOWUP:  "STALE_OUTREACH_FOLLOWUP",
   INACTIVE_SIGNED_CLAIM:    "INACTIVE_SIGNED_CLAIM",
+  // Phase 3 (2026-05-17) — granular intel signals split out for
+  // discrete operator framing (county-level fire density, stale fire
+  // intel without conversion, roof/storm specific clusters, and the
+  // zero-attempts case for outreach pipeline).
+  FIRE_DENSITY_CLUSTER:     "FIRE_DENSITY_CLUSTER",
+  STALE_FIRE_INTEL:         "STALE_FIRE_INTEL",
+  ROOF_INTEL_CLUSTER:       "ROOF_INTEL_CLUSTER",
+  STORM_ACTIVITY_SPIKE:     "STORM_ACTIVITY_SPIKE",
+  LEADS_NO_ATTEMPT:         "LEADS_NO_ATTEMPT",
 };
 
 // ── Reserve estimate per action kind (Phase 2) ──────────────────────
@@ -72,6 +81,12 @@ const RESERVE_ESTIMATE_PER_UNIT = {
   UNCONTACTED_FIRE_LEADS:    240,   // skip trace + SMS first contact
   STALE_OUTREACH_FOLLOWUP:   120,   // SMS nudge
   INACTIVE_SIGNED_CLAIM:   2_500,   // AI voice follow-up
+  // Phase 3 — granular intel rule costs
+  FIRE_DENSITY_CLUSTER:      360,   // skip trace + SMS + secondary check
+  STALE_FIRE_INTEL:          240,   // first-contact play on aging fires
+  ROOF_INTEL_CLUSTER:      8_000,   // roof analysis triggers a paid intel run
+  STORM_ACTIVITY_SPIKE:      120,   // SMS warm-up wave in the affected region
+  LEADS_NO_ATTEMPT:          120,   // first SMS touch
 };
 
 /** Compute the reserve-estimate for a partial action. Reads:
@@ -839,6 +854,350 @@ function ruleInactiveSignedClaim({ pipeline = [] }) {
   return out;
 }
 
+// ── Rule 12: FIRE_DENSITY_CLUSTER (Phase 3) ─────────────────────────
+//
+// County-level density rule that complements rule 9
+// (UNCONTACTED_FIRE_LEADS). Where rule 9 needs a *city* with no
+// pipeline lead, this rule fires whenever ≥5 fire incidents land in
+// the same county within the active dataset — even if some leads
+// already exist in nearby cities. Captures the "the whole county is
+// going up" pattern that city-bucketing misses.
+function ruleFireDensityCluster({ fireIncidents = [] }) {
+  if (!Array.isArray(fireIncidents) || fireIncidents.length === 0) return [];
+  const buckets = {};
+  for (const inc of fireIncidents) {
+    const state  = inc.state || inc.region?.state || inc.address?.state || null;
+    const county = inc.county || inc.region?.county || inc.address?.county || null;
+    if (!state || !county) continue;
+    const k = `${state.toLowerCase()}|${county.toLowerCase()}`;
+    if (!buckets[k]) buckets[k] = { state, county, items: [] };
+    buckets[k].items.push(inc);
+  }
+  const out = [];
+  for (const [, b] of Object.entries(buckets)) {
+    if (b.items.length < 5) continue;
+    out.push(makeAction({
+      id: `FIRE_DENSITY_CLUSTER__${b.state}__${b.county}`.toUpperCase().replace(/\s+/g, "_"),
+      kind: ACTION_KIND.FIRE_DENSITY_CLUSTER,
+      title: `High-density fire cluster detected · ${b.county} County, ${b.state}`,
+      reasoning:
+        `${b.items.length} active fire incidents are concentrated in ${b.county} County, ` +
+        `${b.state}. Engine recommends a coordinated outreach burst across the county ` +
+        `to capture the cluster before it disperses.`,
+      priority: Math.min(95, 65 + b.items.length * 2),
+      urgency: b.items.length >= 12 ? "critical" : "high",
+      confidence: Math.min(94, 72 + b.items.length * 2),
+      region: { state: b.state, city: null, county: b.county },
+      proposed_workflow: "county_burst",
+      meta: { incidentCount: b.items.length, county: b.county },
+    }));
+  }
+  return out;
+}
+
+// ── Rule 13: STALE_FIRE_INTEL (Phase 3) ─────────────────────────────
+//
+// Fire incidents older than 3 days that still have no matching
+// pipeline lead. Distinct from rule 9 (which fires immediately on
+// volume) — this rule catches the slow leak where fire intel sits
+// untouched. Bucketed by state since aging fires need re-prioritising
+// at the territory level.
+const FIRE_STALE_AGE_MS = 3 * 24 * 60 * 60 * 1000;
+function ruleStaleFireIntel({ fireIncidents = [], pipeline = [] }) {
+  if (!Array.isArray(fireIncidents) || fireIncidents.length === 0) return [];
+  const now = Date.now();
+  const coveredCities = new Set();
+  for (const lead of pipeline) {
+    const k = `${(lead.property?.state || lead.territory?.state || "").toLowerCase()}|`
+            + `${(lead.property?.city || lead.territory?.city || "").toLowerCase()}`;
+    coveredCities.add(k);
+  }
+  const buckets = {};
+  for (const inc of fireIncidents) {
+    const occurredIso = inc.occurred_at || inc.created_at || inc.reported_at || null;
+    if (!occurredIso) continue;
+    const occurredMs = Date.parse(occurredIso);
+    if (!Number.isFinite(occurredMs)) continue;
+    if (now - occurredMs < FIRE_STALE_AGE_MS) continue;
+    const state = inc.state || inc.region?.state || inc.address?.state || null;
+    const city  = inc.city  || inc.region?.city  || inc.address?.city  || null;
+    if (!state) continue;
+    const cityKey = `${state.toLowerCase()}|${(city || "").toLowerCase()}`;
+    if (coveredCities.has(cityKey)) continue;
+    if (!buckets[state]) buckets[state] = [];
+    buckets[state].push(inc);
+  }
+  const out = [];
+  for (const [state, list] of Object.entries(buckets)) {
+    if (list.length < 1) continue;
+    out.push(makeAction({
+      id: `STALE_FIRE_INTEL__${state}`,
+      kind: ACTION_KIND.STALE_FIRE_INTEL,
+      title: `${list.length} fire lead${list.length === 1 ? "" : "s"} aging beyond outreach threshold · ${state}`,
+      reasoning:
+        `${list.length} fire incident${list.length === 1 ? " has" : "s have"} been sitting > 3 days ` +
+        `in ${state} without pipeline conversion. Engine recommends triaging the cohort — ` +
+        `older intel still converts but rates drop sharply past one week.`,
+      priority: 55 + Math.min(20, list.length * 2),
+      urgency: list.length >= 5 ? "high" : "medium",
+      confidence: 80,
+      region: { state, city: null },
+      proposed_workflow: "stale_intel_triage",
+      meta: { incidentCount: list.length },
+    }));
+  }
+  return out;
+}
+
+// ── Rule 14: ROOF_INTEL_CLUSTER (Phase 3) ───────────────────────────
+//
+// Roof intel targets concentrated in one region without pipeline
+// coverage. Complements rule 1 (which acts on unifiedTargets across
+// all signals) by surfacing roof-only opportunities the broader fusion
+// might have averaged out.
+function ruleRoofIntelCluster({ roofTargets = [], pipeline = [] }) {
+  if (!Array.isArray(roofTargets) || roofTargets.length === 0) return [];
+  const coveredCities = new Set();
+  for (const lead of pipeline) {
+    const k = `${(lead.property?.state || "").toLowerCase()}|`
+            + `${(lead.property?.city || "").toLowerCase()}`;
+    coveredCities.add(k);
+  }
+  const buckets = {};
+  for (const t of roofTargets) {
+    const score = Number(t.opportunityScore ?? t.score ?? 0);
+    if (score < 60) continue;
+    const state = t.state || t.region?.state || null;
+    const city  = t.city  || t.region?.city  || null;
+    if (!state) continue;
+    const cityKey = `${state.toLowerCase()}|${(city || "").toLowerCase()}`;
+    if (coveredCities.has(cityKey)) continue;
+    if (!buckets[state]) buckets[state] = [];
+    buckets[state].push(t);
+  }
+  const out = [];
+  for (const [state, list] of Object.entries(buckets)) {
+    if (list.length < 3) continue;
+    const avgScore = Math.round(
+      list.reduce((s, t) => s + Number(t.opportunityScore ?? t.score ?? 0), 0) / list.length,
+    );
+    out.push(makeAction({
+      id: `ROOF_INTEL_CLUSTER__${state}`,
+      kind: ACTION_KIND.ROOF_INTEL_CLUSTER,
+      title: `Roof-intel cluster identified · ${state}`,
+      reasoning:
+        `${list.length} roof-intel targets averaging score ${avgScore} cluster in ${state} ` +
+        `with no pipeline coverage yet. Engine recommends a roof-analysis run on the cohort ` +
+        `to confirm condition before warm outreach.`,
+      priority: Math.min(95, 60 + Math.round(avgScore / 3)),
+      urgency: avgScore >= 80 ? "high" : "medium",
+      confidence: Math.min(92, 65 + Math.round(avgScore / 4)),
+      region: { state, city: null },
+      proposed_workflow: "roof_analysis_run",
+      meta: { targetCount: list.length, avgScore },
+    }));
+  }
+  return out;
+}
+
+// ── Rule 15: STORM_ACTIVITY_SPIKE (Phase 3) ─────────────────────────
+//
+// Recent storm events (last 72h) with high response priority in a
+// state. Surfaces a regional warm-up wave before any roof inspection
+// or claim play. Pure storm signal — doesn't depend on roof targets
+// or fire incidents being present.
+const STORM_RECENCY_MS = 72 * 60 * 60 * 1000;
+function ruleStormActivitySpike({ stormEvents = [] }) {
+  if (!Array.isArray(stormEvents) || stormEvents.length === 0) return [];
+  const now = Date.now();
+  const buckets = {};
+  for (const ev of stormEvents) {
+    const occurredIso = ev.occurred_at || ev.created_at || null;
+    if (!occurredIso) continue;
+    const occurredMs = Date.parse(occurredIso);
+    if (!Number.isFinite(occurredMs)) continue;
+    if (now - occurredMs > STORM_RECENCY_MS) continue;
+    const priority = Number(ev.scoring?.response_priority ?? ev.response_priority ?? 0);
+    if (priority < 65) continue;
+    const states = Array.isArray(ev.location?.states) && ev.location.states.length
+      ? ev.location.states
+      : ev.location?.state ? [ev.location.state] : ev.state ? [ev.state] : [];
+    for (const state of states) {
+      if (!state) continue;
+      if (!buckets[state]) buckets[state] = [];
+      buckets[state].push(ev);
+    }
+  }
+  const out = [];
+  for (const [state, list] of Object.entries(buckets)) {
+    if (list.length < 1) continue;
+    const eventTypes = Array.from(new Set(
+      list.map(ev => ev.event_type).filter(Boolean),
+    )).slice(0, 3).join(" + ") || "weather";
+    const topPriority = Math.max(
+      ...list.map(ev => Number(ev.scoring?.response_priority ?? ev.response_priority ?? 0)),
+    );
+    out.push(makeAction({
+      id: `STORM_ACTIVITY_SPIKE__${state}`,
+      kind: ACTION_KIND.STORM_ACTIVITY_SPIKE,
+      title: `Storm activity spike detected · ${state} (${eventTypes})`,
+      reasoning:
+        `${list.length} ${eventTypes} event${list.length === 1 ? "" : "s"} in ${state} within ` +
+        `the last 72h, top response-priority ${topPriority}. Engine recommends a regional ` +
+        `SMS warm-up wave to surface affected properties before competitors land.`,
+      priority: Math.min(95, 60 + Math.round(topPriority / 4)),
+      urgency: topPriority >= 85 ? "critical" : "high",
+      confidence: Math.min(92, 65 + list.length * 3),
+      region: { state, city: null },
+      proposed_workflow: "storm_warmup_wave",
+      meta: { eventCount: list.length, topPriority, eventTypes },
+    }));
+  }
+  return out;
+}
+
+// ── Rule 16: LEADS_NO_ATTEMPT (Phase 3) ─────────────────────────────
+//
+// Pipeline leads in early-stage states that have ZERO recorded
+// outreach attempts beyond 6 hours from creation. Distinct from
+// rule 10 (STALE_OUTREACH_FOLLOWUP) which catches leads >24h with
+// last_touch staleness — this rule catches "never touched at all"
+// specifically. Different urgency, different framing.
+const NO_ATTEMPT_AGE_MS = 6 * 60 * 60 * 1000;
+function ruleLeadsNoAttempt({ pipeline = [] }) {
+  if (!Array.isArray(pipeline) || pipeline.length === 0) return [];
+  const now = Date.now();
+  const buckets = {};
+  for (const lead of pipeline) {
+    const stage = lead.operational_stage;
+    if (stage !== "GENERATED" && stage !== "OUTREACH_READY") continue;
+    const attempts = Number(
+      lead.outreach_attempts
+      ?? lead.contact_attempts
+      ?? (Array.isArray(lead.attempts) ? lead.attempts.length : 0)
+    );
+    if (attempts > 0) continue;
+    const createdIso = lead.created_at || lead.added_at || null;
+    if (!createdIso) continue;
+    const createdMs = Date.parse(createdIso);
+    if (!Number.isFinite(createdMs)) continue;
+    if (now - createdMs < NO_ATTEMPT_AGE_MS) continue;
+    const state = lead.property?.state || lead.territory?.state;
+    if (!state) continue;
+    if (!buckets[state]) buckets[state] = [];
+    buckets[state].push(lead);
+  }
+  const out = [];
+  for (const [state, list] of Object.entries(buckets)) {
+    out.push(makeAction({
+      id: `LEADS_NO_ATTEMPT__${state}`,
+      kind: ACTION_KIND.LEADS_NO_ATTEMPT,
+      title: `${list.length} lead${list.length === 1 ? "" : "s"} with no response attempts · ${state}`,
+      reasoning:
+        `${list.length} active lead${list.length === 1 ? " has" : "s have"} sat for >6 hours ` +
+        `in ${state} with zero recorded outreach attempts. First-touch conversion drops ` +
+        `~3% per hour past intake — engine recommends an immediate SMS pass.`,
+      priority: 70 + Math.min(15, list.length * 2),
+      urgency: list.length >= 4 ? "high" : "medium",
+      confidence: 85,
+      region: { state, city: null },
+      proposed_workflow: "first_touch_sms",
+      meta: { leadCount: list.length },
+    }));
+  }
+  return out;
+}
+
+// ── Phase 3: explicit composite scoring engine ──────────────────────
+//
+// Six-dimension score combining urgency, lead volume, recency,
+// territory ownership (optional), outreach inactivity, and
+// intelligence confidence. Normalised to a 0-100 priority_score.
+// The existing `priority` field stays in place as a rule-author hint;
+// `priority_score` is what the queue actually sorts on after Phase 3.
+//
+// Territory ownership only contributes when `operatorTerritory` is
+// supplied (a {state, city?} object). Otherwise the dimension is
+// dropped from the denominator so unmatched operators don't get
+// artificially penalised.
+const URGENCY_WEIGHT_MAP = { critical: 30, high: 22, medium: 14, low: 6 };
+function computeActionScore(action, params = {}) {
+  const operatorTerritory = params.operatorTerritory;
+
+  // 1. Urgency band → 30pt scale
+  const urgency = URGENCY_WEIGHT_MAP[action.urgency] ?? 8;
+
+  // 2. Lead/incident/target volume → 25pt logarithmic ramp
+  const count = Number(
+    action.meta?.leadCount
+    ?? action.meta?.incidentCount
+    ?? action.meta?.targetCount
+    ?? action.meta?.eventCount
+    ?? action.meta?.activeSignalCount
+    ?? 1
+  );
+  const volume = Math.min(25, Math.round(Math.log2(Math.max(1, count) + 1) * 7));
+
+  // 3. Recency → 15pt scale, fresh (<1h) = full credit, decays linearly to 24h
+  const ageMs = action.created_at
+    ? (Date.now() - new Date(action.created_at).getTime())
+    : 0;
+  const ageHours = ageMs / (60 * 60 * 1000);
+  const recency = Math.max(0, Math.round(15 * (1 - Math.min(1, ageHours / 24))));
+
+  // 4. Territory ownership (optional) → 10pt all-or-nothing
+  let territory = null;     // null = dimension skipped
+  if (operatorTerritory) {
+    const t = action.region || {};
+    const matchState = t.state && operatorTerritory.state
+      ? t.state.toLowerCase() === operatorTerritory.state.toLowerCase()
+      : false;
+    const matchCity = t.city && operatorTerritory.city
+      ? t.city.toLowerCase() === operatorTerritory.city.toLowerCase()
+      : matchState;  // state match counts when city not specified
+    territory = (matchState || matchCity) ? 10 : 0;
+  }
+
+  // 5. Outreach inactivity signal → 10pt, fires on the specific kinds
+  //    that surface dormant pipeline activity.
+  const inactivityKinds = new Set([
+    ACTION_KIND.STALE_OUTREACH_FOLLOWUP,
+    ACTION_KIND.INACTIVE_SIGNED_CLAIM,
+    ACTION_KIND.STALE_FIRE_INTEL,
+    ACTION_KIND.LEADS_NO_ATTEMPT,
+  ]);
+  const inactivity = inactivityKinds.has(action.kind) ? 10 : 0;
+
+  // 6. Intelligence confidence → 20pt scale of action.confidence
+  const confidence = Math.round((Number(action.confidence) || 0) * 0.2);
+
+  const components = { urgency, volume, recency, inactivity, confidence };
+  let total = urgency + volume + recency + inactivity + confidence;
+  let denominator = 30 + 25 + 15 + 10 + 20;       // 100
+  if (territory !== null) {
+    components.territory = territory;
+    total += territory;
+    denominator += 10;
+  }
+
+  // Normalise to 0-100 so the score is comparable across action kinds.
+  const priority_score = Math.round((total / denominator) * 100);
+
+  return {
+    priority_score: Math.max(0, Math.min(100, priority_score)),
+    score_components: components,
+  };
+}
+
+// Public helper — stamps priority_score + score_components on every
+// action in a list. Called from generateActions before mergeAndPersist.
+export function applyPriorityScoring(actions, params = {}) {
+  return actions.map(a => {
+    const { priority_score, score_components } = computeActionScore(a, params);
+    return { ...a, priority_score, score_components };
+  });
+}
+
 // ── Orchestrator ────────────────────────────────────────────────────
 
 export function generateActions(input = {}) {
@@ -859,6 +1218,13 @@ export function generateActions(input = {}) {
     ...ruleUncontactedFireLeads(params),
     ...ruleStaleOutreachFollowup(params),
     ...ruleInactiveSignedClaim(params),
+    // Phase 3 — granular intel rules (fire density / stale fire intel /
+    // roof cluster / storm spike / leads with zero attempts).
+    ...ruleFireDensityCluster(params),
+    ...ruleStaleFireIntel(params),
+    ...ruleRoofIntelCluster(params),
+    ...ruleStormActivitySpike(params),
+    ...ruleLeadsNoAttempt(params),
   ];
 
   // Dedupe within this run by id (rules can theoretically collide).
@@ -866,7 +1232,14 @@ export function generateActions(input = {}) {
   for (const a of all) {
     if (!dedup[a.id]) dedup[a.id] = a;
   }
-  return Object.values(dedup);
+  // Phase 3 — stamp the composite priority_score before returning so
+  // every consumer (mergeAndPersist, sortActionsForQueue, the UI) sees
+  // the same ranking number. The optional `operatorTerritory` param
+  // flows through via `input.operatorTerritory` when supplied.
+  return applyPriorityScoring(
+    Object.values(dedup),
+    { operatorTerritory: input.operatorTerritory },
+  );
 }
 
 /**
@@ -1105,6 +1478,14 @@ export function sortActionsForQueue(actions) {
     const sa = stateRank[a.state] ?? 9;
     const sb = stateRank[b.state] ?? 9;
     if (sa !== sb) return sa - sb;
+    // Phase 3 — composite priority_score wins when both actions have
+    // one stamped. Falls back to the legacy `priority` field for any
+    // action that pre-dates the Phase 3 stamping pass.
+    const psA = Number(a.priority_score);
+    const psB = Number(b.priority_score);
+    if (Number.isFinite(psA) && Number.isFinite(psB) && psA !== psB) {
+      return psB - psA;
+    }
     if (b.priority !== a.priority) return b.priority - a.priority;
     return (ACTION_KIND_RANK[a.kind] ?? 99) - (ACTION_KIND_RANK[b.kind] ?? 99);
   });
@@ -1124,6 +1505,12 @@ export const KIND_META = {
   UNCONTACTED_FIRE_LEADS:   { label: "First Contact · Fire",color: "#FF6D00", icon: "🔥" },
   STALE_OUTREACH_FOLLOWUP:  { label: "Stale Outreach",      color: "#D4A853", icon: "⏱" },
   INACTIVE_SIGNED_CLAIM:    { label: "Signed Claim F/U",    color: "#A855F7", icon: "📝" },
+  // Phase 3 — granular intel rules
+  FIRE_DENSITY_CLUSTER:     { label: "Fire Density",        color: "#E05050", icon: "🌐" },
+  STALE_FIRE_INTEL:         { label: "Stale Fire Intel",    color: "#FF6D00", icon: "⌛" },
+  ROOF_INTEL_CLUSTER:       { label: "Roof Cluster",        color: "#3B82F6", icon: "🏠" },
+  STORM_ACTIVITY_SPIKE:     { label: "Storm Spike",         color: "#A855F7", icon: "⚡" },
+  LEADS_NO_ATTEMPT:         { label: "No Attempts",         color: "#E05050", icon: "‼" },
 };
 
 export const STATE_META = {

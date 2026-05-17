@@ -322,6 +322,29 @@ function ActionCard({ action, onTransition, onOutcome }) {
             <span style={{ width: 4, height: 4, borderRadius: 2, background: GOLD, boxShadow: `0 0 4px ${GOLD}` }} />
             Priority · <span style={{ color: "#fff", marginLeft: 2, fontWeight: 800 }}>{action.priority}</span>
           </span>
+          {/* Phase 3 — composite priority_score (urgency + volume +
+              recency + territory + outreach inactivity + intel
+              confidence, normalized 0-100). Sits next to the legacy
+              rule-author Priority hint so power users can see both;
+              the queue sorts on priority_score. */}
+          {typeof action.priority_score === "number" && (
+            <>
+              <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+                    title={action.score_components
+                      ? `Urgency ${action.score_components.urgency}/30 · `
+                        + `Volume ${action.score_components.volume}/25 · `
+                        + `Recency ${action.score_components.recency}/15 · `
+                        + (action.score_components.territory !== undefined
+                          ? `Territory ${action.score_components.territory}/10 · ` : "")
+                        + `Inactivity ${action.score_components.inactivity}/10 · `
+                        + `Confidence ${action.score_components.confidence}/20`
+                      : ""}>
+                <span style={{ width: 4, height: 4, borderRadius: 2, background: "#A855F7", boxShadow: `0 0 4px #A855F7` }} />
+                Score · <span style={{ color: "#A855F7", marginLeft: 2, fontWeight: 800 }}>{action.priority_score}</span>
+              </span>
+            </>
+          )}
           {/* Phase 2 — reserve estimate chip. Estimate only; no debit
               happens at deploy time yet (gated until live execution
               wires through). Renders even for 0-cost actions so the
@@ -1088,7 +1111,7 @@ export default function OperationsCommand() {
           Operations Engine v1
         </span>
         <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
-        <span>8 Rule Generators Active</span>
+        <span>16 Rule Generators Active</span>
         <span style={{ color: "rgba(255,255,255,0.20)" }}>·</span>
         <span>Last Sync: {minutesSinceCheck === 0 ? "just now" : `${minutesSinceCheck}m ago`}</span>
         <span style={{
