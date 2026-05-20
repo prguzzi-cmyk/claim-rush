@@ -1,0 +1,28 @@
+<header class="si-masthead">
+  <div class="si-masthead__inner">
+    <div class="si-masthead__brand">
+      <div class="si-masthead__brand-name">{{ (brand$ | async)?.brandName }}</div>
+      <div class="si-masthead__brand-tagline">{{ (brand$ | async)?.brandTagline }}</div>
+    </div>
+  </div>
+</header>
+
+<main class="si-main">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="si-footer">
+  <div class="si-footer__inner">
+    <p class="si-footer__disclaimer">
+      Dollar estimates are projections based on regional pricing data and the
+      findings identified by the analysis. Actual recovery depends on
+      negotiation, documentation, and applicable statutes. Nothing in this
+      product constitutes legal advice.
+    </p>
+    <nav class="si-footer__links">
+      <a class="si-footer__link" routerLink="/settlement-iq/data-request">
+        Data removal request
+      </a>
+    </nav>
+  </div>
+</footer>

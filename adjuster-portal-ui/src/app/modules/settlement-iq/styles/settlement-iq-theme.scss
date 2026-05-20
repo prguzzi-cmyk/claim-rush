@@ -1,0 +1,56 @@
+// Settlement IQ tenant theme tokens.
+//
+// Tokens are CSS custom properties applied via `:host(.si-tenant-{id})`
+// in settlement-iq-layout.component.scss — they inherit down through the
+// component tree but DO NOT leak into other parts of the portal because
+// the host selector only matches the layout component's element.
+//
+// When tenant #2 (Pax Equitas) onboards, add a new map below and a new
+// `:host(.si-tenant-pax_equitas)` block in the layout's SCSS that calls
+// si-emit-tokens($pax-equitas-tokens).
+
+@mixin si-emit-tokens($tokens) {
+  @each $key, $value in $tokens {
+    #{$key}: #{$value};
+  }
+}
+
+$si-settlement-iq-tokens: (
+  // Surface
+  --si-bg:           #f7f5f0,
+  --si-paper:        #ffffff,
+  --si-card:         #fcfbf7,
+  --si-rule:         #d8d4cb,
+
+  // Ink
+  --si-ink:          #1a1a1a,
+  --si-muted:        #5b5b5b,
+  --si-faint:        #8a8580,
+  --si-accent:       #5d4e37,
+
+  // Verdict colors — mirror the HTML report's palette for visual
+  // continuity between in-app report screen and the printable HTML.
+  --si-verdict-strong:    #1b5e20,
+  --si-verdict-possible:  #1565c0,
+  --si-verdict-weak:      #4e342e,
+  --si-verdict-open:      #6a1b9a,
+  --si-verdict-released:  #5d4e37,
+  --si-verdict-expired:   #6b6b6b,
+
+  // Severity accents
+  --si-severity-major:     #8b0000,
+  --si-severity-moderate:  #b27300,
+  --si-severity-minor:     #777777,
+
+  // Typography
+  --si-font-serif:   #{Georgia, "Times New Roman", serif},
+  --si-font-sans:    #{"Helvetica Neue", Arial, sans-serif},
+);
+
+// Reserved for tenant #2. Uncomment when Pax Equitas onboards.
+//
+// $si-pax-equitas-tokens: (
+//   --si-bg:           #ffffff,
+//   --si-ink:          #0a0a0a,
+//   ...
+// );

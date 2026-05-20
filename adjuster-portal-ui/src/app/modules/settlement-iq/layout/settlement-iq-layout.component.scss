@@ -1,0 +1,112 @@
+@use '../styles/settlement-iq-theme' as theme;
+
+// ── Tenant tokens, scoped to this host element only ──────────────────────
+// Defined via `:host(.si-tenant-{id})` so the tokens inherit down to every
+// child component rendered inside this layout but don't leak into the
+// rest of the portal.
+
+:host(.si-tenant-settlement_iq) {
+  @include theme.si-emit-tokens(theme.$si-settlement-iq-tokens);
+}
+
+// Reserved Pax-Equitas slot — uncomment + add tokens map when tenant #2
+// onboards.
+//
+// :host(.si-tenant-pax_equitas) {
+//   @include theme.si-emit-tokens(theme.$si-pax-equitas-tokens);
+// }
+
+// ── Layout ────────────────────────────────────────────────────────────────
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--si-bg);
+  color: var(--si-ink);
+  font-family: var(--si-font-serif);
+  line-height: 1.55;
+}
+
+.si-masthead {
+  background: var(--si-paper);
+  border-bottom: 2px solid var(--si-ink);
+
+  &__inner {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 28px 32px 18px;
+  }
+
+  &__brand-name {
+    font-family: var(--si-font-sans);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    font-size: 13px;
+    color: var(--si-muted);
+    text-transform: uppercase;
+  }
+
+  &__brand-tagline {
+    font-size: 22px;
+    margin-top: 4px;
+    font-weight: 600;
+    color: var(--si-ink);
+  }
+}
+
+.si-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.si-footer {
+  background: var(--si-paper);
+  border-top: 1px solid var(--si-rule);
+  margin-top: 48px;
+
+  &__inner {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    color: var(--si-muted);
+    line-height: 1.6;
+  }
+
+  &__disclaimer {
+    margin: 0 0 10px 0;
+  }
+
+  &__links {
+    display: flex;
+    gap: 18px;
+  }
+
+  &__link {
+    color: var(--si-accent);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// ── Print styles — same fidelity as the server-side HTML report ──────────
+
+@media print {
+  :host {
+    background: #fff;
+  }
+
+  .si-masthead {
+    border-bottom-width: 1px;
+  }
+
+  .si-footer {
+    margin-top: 24px;
+  }
+}
