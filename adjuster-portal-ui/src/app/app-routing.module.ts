@@ -702,6 +702,17 @@ const routes: Routes = [
   { path: "signup", redirectTo: "app/agreements", pathMatch: "full" },
   { path: "register", redirectTo: "app/agreements", pathMatch: "full" },
   { path: "upasign", redirectTo: "app/agreements", pathMatch: "full" },
+  // ── Settlement IQ — public forensic settlement analysis ────────────────
+  // Public homeowner flow: land → upload → report. No auth, no portal
+  // shell. Standalone components + lazy-loaded for bundle isolation;
+  // first-page-load weight matters when a homeowner lands cold.
+  {
+    path: "settlement-iq",
+    loadChildren: () =>
+      import("./modules/settlement-iq/settlement-iq.routes").then(
+        (m) => m.SETTLEMENT_IQ_ROUTES
+      ),
+  },
   // Catch-all redirect to app dashboard
   { path: "**", redirectTo: "app/dashboard" },
 ];
