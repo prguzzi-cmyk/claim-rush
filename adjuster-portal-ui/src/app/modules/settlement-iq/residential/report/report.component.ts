@@ -111,7 +111,11 @@ export class ReportComponent implements OnInit {
   }
 
   get printFriendlyUrl(): string | null {
-    return this.scanId ? this.service.reportHtmlUrl(this.scanId) : null;
+    if (!this.scanId) return null;
+    const url = this.service.reportHtmlUrl(this.scanId);
+    // Demo mode returns an empty string — hide the link rather than
+    // surface a broken anchor.
+    return url || null;
   }
 
   private formatDate(isoDate: string | null | undefined): string | null {

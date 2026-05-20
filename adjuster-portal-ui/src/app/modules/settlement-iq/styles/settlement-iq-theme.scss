@@ -16,30 +16,38 @@
 }
 
 $si-settlement-iq-tokens: (
-  // Surface
-  --si-bg:           #f7f5f0,
+  // Surface — slightly warmer cream against pure-white card for contrast.
+  --si-bg:           #f0ecdf,
   --si-paper:        #ffffff,
-  --si-card:         #fcfbf7,
-  --si-rule:         #d8d4cb,
+  --si-card:         #faf7ee,
+  --si-rule:         #cfc8b5,
 
-  // Ink
-  --si-ink:          #1a1a1a,
-  --si-muted:        #5b5b5b,
+  // Ink — near-black with navy hint, "law office" gravitas.
+  --si-ink:          #0e1726,
+  --si-muted:        #4a5468,
   --si-faint:        #8a8580,
-  --si-accent:       #5d4e37,
 
-  // Verdict colors — mirror the HTML report's palette for visual
-  // continuity between in-app report screen and the printable HTML.
-  --si-verdict-strong:    #1b5e20,
-  --si-verdict-possible:  #1565c0,
-  --si-verdict-weak:      #4e342e,
-  --si-verdict-open:      #6a1b9a,
-  --si-verdict-released:  #5d4e37,
-  --si-verdict-expired:   #6b6b6b,
+  // Primary — deep navy. Used for CTA buttons, brand accents, section heads.
+  --si-accent:       #1a2f4d,
+  --si-accent-hover: #0f1e36,
 
-  // Severity accents
+  // Gold — used sparingly on rules, dividers, and "evidence" highlights.
+  // Pulled from a forensic-accountant ledger aesthetic, not a marketing
+  // gradient.
+  --si-gold:         #b08010,
+
+  // Verdict colors — muted, document-grade. No cheery green, no bright
+  // blue. Each remains distinct from --si-accent.
+  --si-verdict-strong:    #2d4a2e,   // deep forest
+  --si-verdict-possible:  #2c4870,   // muted navy (lighter than --si-accent)
+  --si-verdict-weak:      #5d4e37,   // muted brown
+  --si-verdict-open:      #4a2f5d,   // deep aubergine
+  --si-verdict-released:  #3d3329,   // dark sepia
+  --si-verdict-expired:   #4a4a4a,   // graphite
+
+  // Severity accents — for the finding card's left border.
   --si-severity-major:     #8b0000,
-  --si-severity-moderate:  #b27300,
+  --si-severity-moderate:  #b08010,  // same gold as the gold token
   --si-severity-minor:     #777777,
 
   // Typography

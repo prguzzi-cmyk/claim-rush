@@ -38,3 +38,23 @@
     &[data-state="expired"]  { color: var(--si-severity-major); }
   }
 }
+
+@media (max-width: 640px) {
+  .si-recovery {
+    padding: 16px 18px;
+
+    &__row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+
+      & + .si-recovery__row {
+        margin-top: 8px;
+      }
+    }
+
+    &__value {
+      font-size: 22px;
+    }
+  }
+}

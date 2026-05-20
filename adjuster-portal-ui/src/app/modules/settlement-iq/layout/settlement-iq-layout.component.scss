@@ -110,3 +110,23 @@
     margin-top: 24px;
   }
 }
+
+// ── Mobile — homeowners hit this from Facebook ad traffic on phones ──────
+
+@media (max-width: 640px) {
+  .si-masthead__inner {
+    padding: 22px 20px 14px;
+  }
+
+  .si-masthead__brand-tagline {
+    font-size: 18px;
+  }
+
+  .si-footer__inner {
+    padding: 20px 20px;
+  }
+
+  .si-footer__links {
+    margin-top: 6px;
+  }
+}

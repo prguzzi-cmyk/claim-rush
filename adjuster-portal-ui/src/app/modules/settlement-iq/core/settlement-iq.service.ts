@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, timer } from 'rxjs';
-import { switchMap, takeWhile, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, timer } from 'rxjs';
+import { delay, switchMap, takeWhile, tap } from 'rxjs/operators';
 
+import { DEMO_REPORT } from './demo-report-fixture';
 import {
   ConsultationRequestPayload,
   ConsultationRequestResponse,
@@ -15,6 +16,10 @@ import {
   ScanStatusResponse,
   ScanSubmitResponse,
 } from './settlement-iq.models';
+
+/** Special scan_id that returns the demo fixture instead of hitting the API.
+ *  Useful for design review + browser smoke tests without the backend running. */
+export const DEMO_SCAN_ID = 'demo';
 
 const TERMINAL_STATUSES: ScanStatus[] = ['complete', 'failed', 'purged'];
 
@@ -93,6 +98,19 @@ export class SettlementIqService {
   // ─── Fetch report ──────────────────────────────────────────────────────
 
   fetchReport(scanId: string): Observable<ReportPayload> {
+    // Special-case the demo fixture so designers and stakeholders can
+    // review the Report screen without a running backend.
+    if (scanId === DEMO_SCAN_ID) {
+      return of(DEMO_REPORT).pipe(
+        delay(150),
+        tap((report) => {
+          this.state$.next({
+            ...this.state$.value,
+            report,
+          });
+        }),
+      );
+    }
     return this.http.get<ReportPayload>(`${this.base}/scan/${scanId}/report`).pipe(
       tap((report) => {
         this.state$.next({
@@ -109,6 +127,10 @@ export class SettlementIqService {
    * because the response is HTML, not JSON.
    */
   reportHtmlUrl(scanId: string): string {
+    // The demo fixture has no server-side HTML render.
+    if (scanId === DEMO_SCAN_ID) {
+      return '';
+    }
     return `/v1/${this.base}/scan/${scanId}/report.html`;
   }
 

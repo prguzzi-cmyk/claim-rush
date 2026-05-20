@@ -48,6 +48,10 @@
         [disabled]="!canSubmit">
         Begin Forensic Analysis
       </button>
+      <p class="si-upload__expectation">
+        Analysis typically takes 60–90 seconds. Your report appears on
+        screen when ready, and a copy is sent to your email.
+      </p>
 
       <p *ngIf="submitError" class="si-upload__error">{{ submitError }}</p>
 

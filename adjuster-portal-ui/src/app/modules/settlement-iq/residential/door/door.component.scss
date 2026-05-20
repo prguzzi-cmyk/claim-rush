@@ -70,7 +70,7 @@
     transition: background-color 150ms ease;
 
     &:hover {
-      background: #44382a;
+      background: var(--si-accent-hover);
     }
   }
 
@@ -81,5 +81,60 @@
     margin: 16px auto 0;
     max-width: 480px;
     line-height: 1.6;
+  }
+
+  &__demo-note {
+    margin: 24px 0 0;
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+
+    a {
+      color: var(--si-gold);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .si-door {
+    padding: 36px 20px 64px;
+
+    &__lede {
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    &__hero {
+      font-size: 16px;
+      margin-bottom: 32px;
+    }
+
+    &__heading {
+      margin: 32px 0 14px;
+    }
+
+    &__list,
+    &__steps {
+      font-size: 15px;
+    }
+
+    &__cta-wrap {
+      margin-top: 40px;
+    }
+
+    &__cta {
+      display: block;
+      width: 100%;
+      padding: 18px 24px;
+      font-size: 16px;
+    }
+
+    &__cta-note {
+      font-size: 13px;
+    }
   }
 }

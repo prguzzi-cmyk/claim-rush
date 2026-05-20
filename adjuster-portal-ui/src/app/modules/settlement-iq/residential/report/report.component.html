@@ -77,9 +77,9 @@
           Request a Consultation
         </a>
         <a
-          *ngIf="printFriendlyUrl as url"
+          *ngIf="printFriendlyUrl"
           class="si-report__cta-secondary"
-          [href]="url"
+          [href]="printFriendlyUrl"
           target="_blank"
           rel="noopener">
           Open print-friendly version
