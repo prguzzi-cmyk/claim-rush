@@ -4,6 +4,8 @@ import { BehaviorSubject, Observable, timer } from 'rxjs';
 import { switchMap, takeWhile, tap } from 'rxjs/operators';
 
 import {
+  ConsultationRequestPayload,
+  ConsultationRequestResponse,
   DataRequestResponse,
   HealthcheckResponse,
   INITIAL_SCAN_STATE,
@@ -114,6 +116,26 @@ export class SettlementIqService {
 
   submitDataRequest(email: string): Observable<DataRequestResponse> {
     return this.http.post<DataRequestResponse>(`${this.base}/data-request`, { email });
+  }
+
+  /**
+   * POST a consultation request. Backend endpoint is a Phase 1.5 follow-up
+   * (route exists on the frontend so the homeowner experience ships now;
+   * the backend handler is a separate slice that will fan out to the
+   * tenant's configured PA firm by tenant_id + scan context).
+   *
+   * Until the backend handler ships, this call returns 404. The
+   * consultation form component handles that gracefully by surfacing a
+   * fallback "please contact us at ..." message instead of pretending the
+   * submission succeeded.
+   */
+  submitConsultationRequest(
+    payload: ConsultationRequestPayload,
+  ): Observable<ConsultationRequestResponse> {
+    return this.http.post<ConsultationRequestResponse>(
+      `${this.base}/consultation`,
+      payload,
+    );
   }
 
   // ─── Ops ───────────────────────────────────────────────────────────────

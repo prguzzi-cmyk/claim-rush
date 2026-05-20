@@ -1,0 +1,116 @@
+.si-upload {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+
+  &__heading {
+    font-size: 26px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: var(--si-ink);
+  }
+
+  &__intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--si-ink);
+    margin: 0 0 28px 0;
+  }
+
+  &__error {
+    margin: 12px 0 0;
+    color: var(--si-severity-major);
+    font-family: var(--si-font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  &__file-confirm {
+    margin: 16px 0 0;
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-muted);
+  }
+
+  &__form {
+    margin-top: 32px;
+  }
+
+  &__label {
+    display: block;
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--si-muted);
+    margin-bottom: 6px;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: var(--si-font-sans);
+    font-size: 15px;
+    background: var(--si-paper);
+    border: 1px solid var(--si-rule);
+    border-radius: 3px;
+    color: var(--si-ink);
+
+    &:focus {
+      outline: none;
+      border-color: var(--si-accent);
+    }
+  }
+
+  &__helper {
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    color: var(--si-muted);
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+
+  &__submit {
+    margin-top: 28px;
+    background: var(--si-accent);
+    color: var(--si-paper);
+    border: none;
+    font-family: var(--si-font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 14px 32px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover:not(:disabled) {
+      background: #44382a;
+    }
+
+    &:disabled {
+      background: var(--si-rule);
+      color: var(--si-muted);
+      cursor: not-allowed;
+    }
+  }
+
+  &__processing {
+    text-align: left;
+
+    &-heading {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--si-ink);
+      margin: 0 0 12px;
+    }
+
+    &-sub {
+      font-family: var(--si-font-sans);
+      font-size: 14px;
+      color: var(--si-muted);
+      margin: 0 0 28px;
+      line-height: 1.6;
+    }
+  }
+}

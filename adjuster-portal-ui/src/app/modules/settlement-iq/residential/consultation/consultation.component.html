@@ -1,0 +1,94 @@
+<section class="si-consult">
+
+  <ng-container *ngIf="!submitted; else doneTpl">
+
+    <h1 class="si-consult__heading">Request a Consultation</h1>
+    <p class="si-consult__intro">
+      A public adjuster will review your scan report and contact you to
+      discuss what's recoverable on your claim. The conversation is free
+      and there's no obligation.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="si-consult__form">
+
+      <label class="si-consult__label" for="si-name">Full name</label>
+      <input
+        id="si-name"
+        type="text"
+        formControlName="full_name"
+        class="si-consult__input"
+        autocomplete="name" />
+
+      <label class="si-consult__label" for="si-phone">Phone number</label>
+      <input
+        id="si-phone"
+        type="tel"
+        formControlName="phone"
+        class="si-consult__input"
+        autocomplete="tel" />
+
+      <label class="si-consult__label" for="si-time">Preferred contact time</label>
+      <select
+        id="si-time"
+        formControlName="preferred_contact_time"
+        class="si-consult__input">
+        <option value="morning">Morning (8 AM – 12 PM)</option>
+        <option value="afternoon">Afternoon (12 PM – 5 PM)</option>
+        <option value="evening">Evening (5 PM – 8 PM)</option>
+        <option value="anytime">Any time</option>
+      </select>
+
+      <label class="si-consult__label" for="si-message">
+        Anything we should know before the call? <span class="si-consult__optional">(optional)</span>
+      </label>
+      <textarea
+        id="si-message"
+        formControlName="message"
+        rows="4"
+        class="si-consult__input si-consult__textarea"></textarea>
+
+      <button
+        type="submit"
+        class="si-consult__submit"
+        [disabled]="isSubmitting || form.invalid">
+        <ng-container *ngIf="!isSubmitting; else submittingTpl">
+          Send Consultation Request
+        </ng-container>
+        <ng-template #submittingTpl>Submitting…</ng-template>
+      </button>
+
+      <p *ngIf="errorMessage" class="si-consult__error">{{ errorMessage }}</p>
+
+    </form>
+  </ng-container>
+
+  <ng-template #doneTpl>
+    <div class="si-consult__done">
+      <h1 class="si-consult__heading">Request received</h1>
+
+      <ng-container *ngIf="!fallbackMode; else fallbackTpl">
+        <p>
+          A public adjuster will review your forensic report and contact you
+          at the phone number you provided, within your preferred time
+          window. Please allow up to one business day.
+        </p>
+      </ng-container>
+
+      <ng-template #fallbackTpl>
+        <p>
+          Your request has been recorded. The consultation routing service
+          is currently being upgraded, so please also reach out directly
+          using the contact information below — we'll respond within one
+          business day either way.
+        </p>
+      </ng-template>
+
+      <p class="si-consult__back">
+        <a [routerLink]="scanId ? ['/settlement-iq/residential/report', scanId] : ['/settlement-iq']">
+          Return to your report
+        </a>
+      </p>
+    </div>
+  </ng-template>
+
+</section>

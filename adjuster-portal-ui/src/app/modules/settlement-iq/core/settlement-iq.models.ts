@@ -94,6 +94,19 @@ export interface DataRequestResponse {
   note: string;
 }
 
+export interface ConsultationRequestPayload {
+  scan_id: string;
+  full_name: string;
+  phone: string;
+  preferred_contact_time: 'morning' | 'afternoon' | 'evening' | 'anytime';
+  message: string | null;
+}
+
+export interface ConsultationRequestResponse {
+  accepted: boolean;
+  note: string;
+}
+
 export interface HealthcheckResponse {
   storage_backend: 'r2' | 'local_fs';
   r2_configured: boolean;

@@ -1,0 +1,73 @@
+<section class="si-upload">
+
+  <h1 class="si-upload__heading">Upload Your Settlement Document</h1>
+
+  <p class="si-upload__intro">
+    Upload the settlement letter, estimate, or carrier statement you
+    received. PDF or DOCX, up to 25&nbsp;MB. Your document is encrypted at
+    rest and removed within 30&nbsp;days unless you choose to continue with
+    a consultation.
+  </p>
+
+  <!-- Idle / form state -->
+  <ng-container *ngIf="!isSubmitting; else processingTpl">
+
+    <si-file-dropzone
+      (fileSelected)="onFileSelected($event)"
+      (rejected)="onFileRejected($event)">
+    </si-file-dropzone>
+
+    <p *ngIf="fileError" class="si-upload__error">{{ fileError }}</p>
+
+    <p *ngIf="selectedFile" class="si-upload__file-confirm">
+      Selected: <strong>{{ selectedFile.name }}</strong>
+      ({{ (selectedFile.size / 1024 / 1024) | number: '1.1-1' }}&nbsp;MB)
+    </p>
+
+    <form [formGroup]="emailForm" (ngSubmit)="submit()" class="si-upload__form">
+
+      <label for="si-email" class="si-upload__label">
+        Where should we deliver the report?
+      </label>
+      <input
+        id="si-email"
+        type="email"
+        formControlName="email"
+        class="si-upload__input"
+        placeholder="your.email@example.com"
+        autocomplete="email" />
+      <p class="si-upload__helper">
+        We use this address only to deliver your report. We do not sell,
+        share, or market to addresses entered here. You may request removal
+        at any time.
+      </p>
+
+      <button
+        type="submit"
+        class="si-upload__submit"
+        [disabled]="!canSubmit">
+        Begin Forensic Analysis
+      </button>
+
+      <p *ngIf="submitError" class="si-upload__error">{{ submitError }}</p>
+
+    </form>
+  </ng-container>
+
+  <!-- Processing state -->
+  <ng-template #processingTpl>
+    <div class="si-upload__processing">
+      <h2 class="si-upload__processing-heading">Analysis in progress</h2>
+      <p class="si-upload__processing-sub">
+        Typically under 90 seconds. You can leave this page open or return
+        later — the report is also emailed when it's ready.
+      </p>
+      <si-progress-stepper
+        [progressPct]="progressPct"
+        [label]="progressLabel"
+        [errorMessage]="submitError">
+      </si-progress-stepper>
+    </div>
+  </ng-template>
+
+</section>

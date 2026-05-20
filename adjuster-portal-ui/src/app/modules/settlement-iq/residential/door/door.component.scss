@@ -1,0 +1,85 @@
+.si-door {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 32px 80px;
+
+  &__lede {
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 600;
+    margin: 0 0 32px 0;
+    color: var(--si-ink);
+  }
+
+  &__hero {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--si-ink);
+    margin: 0 0 40px 0;
+  }
+
+  &__heading {
+    font-family: var(--si-font-sans);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--si-accent);
+    border-bottom: 1px solid var(--si-rule);
+    padding-bottom: 6px;
+    margin: 40px 0 18px 0;
+  }
+
+  &__list,
+  &__steps {
+    margin: 0;
+    padding-left: 22px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--si-ink);
+  }
+
+  &__list li {
+    margin-bottom: 6px;
+  }
+
+  &__steps li {
+    margin-bottom: 14px;
+    strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+  }
+
+  &__cta-wrap {
+    margin-top: 56px;
+    text-align: center;
+  }
+
+  &__cta {
+    display: inline-block;
+    background: var(--si-accent);
+    color: var(--si-paper);
+    font-family: var(--si-font-sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 16px 36px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: #44382a;
+    }
+  }
+
+  &__cta-note {
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-muted);
+    margin: 16px auto 0;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+}

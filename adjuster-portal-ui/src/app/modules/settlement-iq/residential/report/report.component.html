@@ -1,0 +1,96 @@
+<section class="si-report">
+
+  <div *ngIf="loading" class="si-report__loading">
+    Loading forensic report…
+  </div>
+
+  <div *ngIf="errorMessage" class="si-report__error">
+    {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="report as r">
+
+    <header class="si-report__masthead">
+      <p class="si-report__eyebrow">Forensic Analysis Result</p>
+      <si-verdict-badge [verdict]="r.verdict"></si-verdict-badge>
+    </header>
+
+    <section class="si-report__block">
+      <si-recovery-range-display
+        [lowCents]="r.recovery_low_cents"
+        [highCents]="r.recovery_high_cents"
+        [statuteWindowDays]="r.statute_window_days">
+      </si-recovery-range-display>
+    </section>
+
+    <section class="si-report__block">
+      <h2 class="si-report__heading">Document Summary</h2>
+      <dl class="si-report__summary">
+        <ng-container *ngIf="r.carrier_name">
+          <dt>Carrier</dt><dd>{{ r.carrier_name }}</dd>
+        </ng-container>
+        <ng-container *ngIf="formattedLossDate as d">
+          <dt>Loss Date</dt><dd>{{ d }}</dd>
+        </ng-container>
+        <ng-container *ngIf="formattedSettlementDate as d">
+          <dt>Settlement Date</dt><dd>{{ d }}</dd>
+        </ng-container>
+        <ng-container *ngIf="formattedSettlementAmount as amt">
+          <dt>Settlement Amount</dt><dd>{{ amt }}</dd>
+        </ng-container>
+        <ng-container *ngIf="r.peril">
+          <dt>Peril</dt><dd>{{ r.peril | titlecase }}</dd>
+        </ng-container>
+        <ng-container *ngIf="locationDisplay as loc">
+          <dt>Location</dt><dd>{{ loc }}</dd>
+        </ng-container>
+      </dl>
+    </section>
+
+    <section *ngIf="sortedFindings.length" class="si-report__block">
+      <h2 class="si-report__heading">Forensic Findings</h2>
+      <p class="si-report__sub">
+        Each finding cites a specific authority — a building code, statute,
+        regional pricing comparison, or recognized carrier behavior pattern.
+        Findings are ordered by severity.
+      </p>
+      <si-finding-card
+        *ngFor="let f of sortedFindings"
+        [finding]="f">
+      </si-finding-card>
+    </section>
+
+    <section class="si-report__block si-report__cta">
+      <h2 class="si-report__heading">What This Means</h2>
+      <p class="si-report__what-means-body">
+        The findings above are the engine's first read. A public adjuster
+        can review these against the original carrier documents and confirm
+        which are recoverable. A consultation is the next step if the
+        verdict supports it.
+      </p>
+
+      <div class="si-report__cta-buttons">
+        <a
+          *ngIf="scanId"
+          class="si-report__cta-primary"
+          [routerLink]="['/settlement-iq/residential/consultation', scanId]">
+          Request a Consultation
+        </a>
+        <a
+          *ngIf="printFriendlyUrl as url"
+          class="si-report__cta-secondary"
+          [href]="url"
+          target="_blank"
+          rel="noopener">
+          Open print-friendly version
+        </a>
+      </div>
+    </section>
+
+    <p class="si-report__hash">
+      Report integrity hash (SHA-256): {{ r.report_sha256 }}
+    </p>
+
+  </ng-container>
+
+</section>

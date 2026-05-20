@@ -1,0 +1,132 @@
+.si-report {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+
+  &__loading,
+  &__error {
+    font-family: var(--si-font-sans);
+    color: var(--si-muted);
+    text-align: center;
+    padding: 80px 0;
+  }
+  &__error {
+    color: var(--si-severity-major);
+  }
+
+  &__masthead {
+    margin-bottom: 28px;
+  }
+
+  &__eyebrow {
+    font-family: var(--si-font-sans);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--si-muted);
+    margin: 0 0 10px;
+  }
+
+  &__block {
+    margin-top: 36px;
+  }
+
+  &__heading {
+    font-family: var(--si-font-sans);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--si-accent);
+    border-bottom: 1px solid var(--si-rule);
+    padding-bottom: 6px;
+    margin: 0 0 18px;
+  }
+
+  &__sub {
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-muted);
+    margin: -6px 0 18px;
+    line-height: 1.6;
+  }
+
+  &__summary {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 8px 16px;
+    font-size: 15px;
+    margin: 0;
+
+    dt {
+      font-family: var(--si-font-sans);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--si-muted);
+      align-self: center;
+    }
+    dd {
+      margin: 0;
+      color: var(--si-ink);
+      padding: 8px 0;
+      border-bottom: 1px dotted var(--si-rule);
+    }
+    dt {
+      padding: 8px 0;
+      border-bottom: 1px dotted var(--si-rule);
+    }
+  }
+
+  &__cta {
+    background: var(--si-card);
+    border: 1px solid var(--si-rule);
+    padding: 24px 28px;
+    margin-top: 48px;
+  }
+
+  &__what-means-body {
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0 0 20px;
+    color: var(--si-ink);
+  }
+
+  &__cta-buttons {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__cta-primary {
+    background: var(--si-accent);
+    color: var(--si-paper);
+    font-family: var(--si-font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 12px 24px;
+    border-radius: 3px;
+    text-decoration: none;
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: #44382a;
+    }
+  }
+
+  &__cta-secondary {
+    color: var(--si-accent);
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    text-decoration: underline;
+  }
+
+  &__hash {
+    margin-top: 48px;
+    font-family: var(--si-font-sans);
+    font-size: 11px;
+    color: var(--si-faint);
+    word-break: break-all;
+  }
+}

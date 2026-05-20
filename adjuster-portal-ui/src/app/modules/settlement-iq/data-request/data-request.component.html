@@ -1,0 +1,51 @@
+<section class="si-dreq">
+
+  <ng-container *ngIf="!submitted; else doneTpl">
+
+    <h1 class="si-dreq__heading">Data Removal Request</h1>
+    <p class="si-dreq__intro">
+      Enter the email address you used when uploading your settlement
+      document. Any associated scan records will have all personally
+      identifying information removed within 24 hours. A record of the
+      deletion request itself is retained for audit purposes; no
+      personally identifying information is preserved.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="si-dreq__form">
+      <label class="si-dreq__label" for="si-dreq-email">Email address</label>
+      <input
+        id="si-dreq-email"
+        type="email"
+        formControlName="email"
+        class="si-dreq__input"
+        autocomplete="email"
+        placeholder="your.email@example.com" />
+
+      <button
+        type="submit"
+        class="si-dreq__submit"
+        [disabled]="isSubmitting || form.invalid">
+        <ng-container *ngIf="!isSubmitting; else loadingTpl">
+          Submit Removal Request
+        </ng-container>
+        <ng-template #loadingTpl>Submitting…</ng-template>
+      </button>
+
+      <p *ngIf="errorMessage" class="si-dreq__error">{{ errorMessage }}</p>
+    </form>
+
+  </ng-container>
+
+  <ng-template #doneTpl>
+    <h1 class="si-dreq__heading">Request received</h1>
+    <p>
+      Your removal request has been recorded. Any matching scan records
+      will be purged within 24 hours.
+    </p>
+    <p *ngIf="response?.note" class="si-dreq__note">{{ response?.note }}</p>
+    <p class="si-dreq__back">
+      <a routerLink="/settlement-iq/residential">Return to Settlement IQ</a>
+    </p>
+  </ng-template>
+
+</section>
