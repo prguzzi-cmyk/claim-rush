@@ -1,0 +1,12 @@
+<label class="si-dropzone__label" for="si-dropzone-file">
+  <span class="si-dropzone__icon" aria-hidden="true">↑</span>
+  <span class="si-dropzone__primary">Drop your settlement document here</span>
+  <span class="si-dropzone__secondary">or click to browse — PDF or DOCX, up to 25&nbsp;MB</span>
+  <input
+    id="si-dropzone-file"
+    class="si-dropzone__input"
+    type="file"
+    [accept]="allowedExtensions.join(',')"
+    (change)="onFileInputChange($event)"
+  />
+</label>

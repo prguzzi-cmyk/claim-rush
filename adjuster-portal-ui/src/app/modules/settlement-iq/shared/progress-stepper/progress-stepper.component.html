@@ -1,0 +1,18 @@
+<div class="si-progress" [class.is-error]="errorMessage">
+  <div class="si-progress__track" role="progressbar"
+       [attr.aria-valuenow]="clampedPct"
+       aria-valuemin="0" aria-valuemax="100">
+    <div class="si-progress__fill" [style.width.%]="clampedPct"></div>
+  </div>
+
+  <div class="si-progress__row">
+    <span *ngIf="!errorMessage; else errorTpl" class="si-progress__label">
+      {{ label || 'Working…' }}
+    </span>
+    <ng-template #errorTpl>
+      <span class="si-progress__label si-progress__label--error">{{ errorMessage }}</span>
+    </ng-template>
+
+    <span *ngIf="!errorMessage" class="si-progress__pct">{{ clampedPct }}%</span>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+:host {
+  display: block;
+  border: 2px dashed var(--si-rule);
+  border-radius: 6px;
+  background: var(--si-card);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+:host(.is-dragover) {
+  border-color: var(--si-accent);
+  background: var(--si-paper);
+}
+
+.si-dropzone__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 200px;
+  padding: 32px 24px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.si-dropzone__icon {
+  font-family: var(--si-font-sans);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--si-accent);
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--si-accent);
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+.si-dropzone__primary {
+  font-family: var(--si-font-serif);
+  font-size: 18px;
+  color: var(--si-ink);
+}
+
+.si-dropzone__secondary {
+  font-family: var(--si-font-sans);
+  font-size: 13px;
+  color: var(--si-muted);
+}
+
+.si-dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

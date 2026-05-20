@@ -1,0 +1,40 @@
+.si-recovery {
+  border: 1px solid var(--si-rule);
+  background: var(--si-card);
+  padding: 18px 22px;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+
+    & + .si-recovery__row {
+      border-top: 1px dotted var(--si-rule);
+    }
+
+    &--secondary {
+      .si-recovery__value {
+        font-size: 16px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  &__label {
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--si-muted);
+  }
+
+  &__value {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--si-ink);
+
+    &[data-state="narrow"]   { color: var(--si-severity-moderate); }
+    &[data-state="expired"]  { color: var(--si-severity-major); }
+  }
+}

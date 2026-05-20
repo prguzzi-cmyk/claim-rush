@@ -1,0 +1,11 @@
+<div class="si-recovery">
+  <div class="si-recovery__row">
+    <div class="si-recovery__label">Estimated Additional Recovery</div>
+    <div class="si-recovery__value">{{ rangeDisplay }}</div>
+  </div>
+
+  <div *ngIf="windowDisplay as w" class="si-recovery__row si-recovery__row--secondary">
+    <div class="si-recovery__label">Statute Window</div>
+    <div class="si-recovery__value" [attr.data-state]="windowState">{{ w }}</div>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+.si-verdict-pill {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 3px;
+  font-family: var(--si-font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--si-paper);
+
+  &.is-strong   { background: var(--si-verdict-strong); }
+  &.is-possible { background: var(--si-verdict-possible); }
+  &.is-weak     { background: var(--si-verdict-weak); }
+  &.is-open     { background: var(--si-verdict-open); }
+  &.is-released { background: var(--si-verdict-released); }
+  &.is-expired  { background: var(--si-verdict-expired); }
+}

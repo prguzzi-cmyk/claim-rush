@@ -1,0 +1,17 @@
+<article class="si-finding" [attr.data-severity]="finding.severity">
+  <header class="si-finding__head">
+    <span class="si-finding__type">{{ typeLabel }}</span>
+    <span class="si-finding__sev">{{ finding.severity | uppercase }}</span>
+  </header>
+
+  <p class="si-finding__desc">{{ finding.description }}</p>
+
+  <div class="si-finding__meta">
+    <span *ngIf="impactDollars as d" class="si-finding__impact">
+      Estimated impact: {{ d }}
+    </span>
+    <span *ngIf="finding.evidence_citation as c" class="si-finding__cite">
+      Citation: {{ c }}
+    </span>
+  </div>
+</article>

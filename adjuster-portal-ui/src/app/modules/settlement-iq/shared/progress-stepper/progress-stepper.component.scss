@@ -1,0 +1,43 @@
+.si-progress {
+  font-family: var(--si-font-sans);
+
+  &__track {
+    height: 6px;
+    background: var(--si-rule);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: var(--si-accent);
+    transition: width 400ms ease-out;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--si-muted);
+  }
+
+  &__label {
+    font-weight: 500;
+
+    &--error {
+      color: var(--si-severity-major);
+    }
+  }
+
+  &__pct {
+    font-feature-settings: 'tnum' 1;
+    color: var(--si-ink);
+  }
+
+  &.is-error {
+    .si-progress__fill {
+      background: var(--si-severity-major);
+    }
+  }
+}
