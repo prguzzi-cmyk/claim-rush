@@ -3,12 +3,13 @@ import { Component, EventEmitter, HostBinding, HostListener, Input, Output } fro
 
 /**
  * Drag-and-drop file picker. Validates extension + size client-side
- * before the upload service ever sees the file — keeps the 413/415
+ * before the upload service ever sees each file — keeps the 413/415
  * round-trips to the backend rare.
  *
- * Emits `(fileSelected)` with a valid File or `(rejected)` with a
- * human-readable reason. The parent component owns presentation of
- * either.
+ * Supports multi-file selection (both drag-drop of N files at once and
+ * the browser file picker with `multiple`). Emits `(fileSelected)` once
+ * per VALID file and `(rejected)` once per INVALID file. The parent
+ * component accumulates and owns presentation of the file list.
  */
 @Component({
   selector: 'si-file-dropzone',
@@ -46,17 +47,23 @@ export class FileDropzoneComponent {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragover = false;
-    const file = event.dataTransfer?.files?.item(0);
-    if (file) {
-      this.handleFile(file);
+    const dropped = event.dataTransfer?.files;
+    if (dropped && dropped.length) {
+      for (let i = 0; i < dropped.length; i++) {
+        const f = dropped.item(i);
+        if (f) this.handleFile(f);
+      }
     }
   }
 
   onFileInputChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.item(0);
-    if (file) {
-      this.handleFile(file);
+    const picked = input.files;
+    if (picked && picked.length) {
+      for (let i = 0; i < picked.length; i++) {
+        const f = picked.item(i);
+        if (f) this.handleFile(f);
+      }
     }
     // Reset so picking the same file twice still fires.
     input.value = '';

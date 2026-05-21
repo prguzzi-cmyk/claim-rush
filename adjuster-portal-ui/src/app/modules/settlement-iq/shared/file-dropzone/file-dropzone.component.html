@@ -6,6 +6,7 @@
     id="si-dropzone-file"
     class="si-dropzone__input"
     type="file"
+    multiple
     [accept]="allowedExtensions.join(',')"
     (change)="onFileInputChange($event)"
   />

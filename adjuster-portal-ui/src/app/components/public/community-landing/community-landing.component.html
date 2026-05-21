@@ -77,6 +77,15 @@
             </a>
           </div>
 
+          <div class="hero-secondary-link">
+            <a href="#already-settled"
+               (click)="$event.preventDefault(); scrollToSection('already-settled')">
+              Already settled?
+              <span class="emphasis">Get a forensic analysis</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+
           <ul class="trust-row" aria-label="Why homeowners trust UPA">
             <li *ngFor="let t of heroTrust">
               <span class="check" aria-hidden="true">
@@ -199,7 +208,9 @@
           </ul>
 
           <div class="already-settled-cta">
-            <a [href]="settlementIqUrl" class="btn btn-primary btn-lg">
+            <a [routerLink]="['/settlement-iq/residential']"
+               [queryParams]="{ rep: slug }"
+               class="btn btn-primary btn-lg">
               <span>Get a Forensic Analysis</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </a>

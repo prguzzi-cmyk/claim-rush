@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { SettlementIqService } from '../../core/settlement-iq.service';
@@ -30,8 +30,13 @@ import { ProgressStepperComponent } from '../../shared/progress-stepper/progress
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
 })
-export class UploadComponent implements OnDestroy {
-  selectedFile: File | null = null;
+export class UploadComponent implements OnInit, OnDestroy {
+  /** All files the user has added to the upload list. Multi-file
+   *  picking is supported in the UI; per the Phase-1 backend contract,
+   *  only `selectedFiles[0]` is sent to the analysis chain on submit.
+   *  Additional files in the list are visible to the user but
+   *  explicitly labeled "(not analyzed)". */
+  selectedFiles: File[] = [];
   fileError: string | null = null;
   submitError: string | null = null;
   isSubmitting = false;
@@ -48,37 +53,117 @@ export class UploadComponent implements OnDestroy {
     private readonly fb: FormBuilder,
     private readonly service: SettlementIqService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {}
+
+  ngOnInit(): void {
+    // Deep-link support: a user can land directly at /upload?rep=<slug>
+    // (skipping the Door screen). Pick up the param either way; Door
+    // already wrote it to the service if they came through there.
+    const rep = this.route.snapshot.queryParamMap.get('rep');
+    if (rep) {
+      this.service.setReferralRepSlug(rep);
+    }
+  }
 
   ngOnDestroy(): void {
     this.statusSub?.unsubscribe();
   }
 
+  /** Active rep slug from the service. Surfaced in the template as
+   *  a quiet "Referred by:" chip so the homeowner sees they're being
+   *  attributed correctly. Null hides the chip. */
+  get repSlug(): string | null {
+    return this.service.currentReferralRepSlug;
+  }
+
+  /** Manual dismissal for the chip. Clears the slug — submission will
+   *  no longer be attributed. Two real scenarios: privacy preference,
+   *  or correction (link from one rep but actually referred by another). */
+  dismissRepSlug(): void {
+    this.service.setReferralRepSlug(null);
+  }
+
   onFileSelected(file: File): void {
-    this.selectedFile = file;
+    // Dedupe by (name, size) so the same picked-twice file doesn't
+    // double-list. Real duplicates are rare; this prevents drag-then-
+    // browse-with-same-file from showing two entries.
+    const dupe = this.selectedFiles.some(
+      (f) => f.name === file.name && f.size === file.size,
+    );
+    if (!dupe) {
+      this.selectedFiles = [...this.selectedFiles, file];
+    }
     this.fileError = null;
   }
 
   onFileRejected(reason: string): void {
-    this.selectedFile = null;
+    // Note: do NOT clear the existing list — earlier valid files stay.
+    // Only the rejected file is dropped, and we surface the reason.
     this.fileError = reason;
   }
 
+  removeFile(index: number): void {
+    if (index < 0 || index >= this.selectedFiles.length) return;
+    this.selectedFiles = this.selectedFiles.filter((_, i) => i !== index);
+  }
+
+  clearAll(): void {
+    this.selectedFiles = [];
+    this.fileError = null;
+  }
+
+  /** Files the user can SEE in the list but that will NOT be sent to the
+   *  backend on submit. Always indices >= 1 in the current Phase-1 design. */
+  isAnalyzed(index: number): boolean {
+    return index === 0;
+  }
+
   get canSubmit(): boolean {
-    return !this.isSubmitting && this.selectedFile !== null && this.emailForm.valid;
+    return !this.isSubmitting && this.selectedFiles.length > 0 && this.emailForm.valid;
+  }
+
+  /** Human-readable reason the button is disabled, or null when ready.
+   *  Surfaced below the CTA so the user knows what's gating them. */
+  get disabledReason(): string | null {
+    if (this.isSubmitting) {
+      return null;
+    }
+    const noFile = this.selectedFiles.length === 0;
+    const emailValue = (this.emailForm.value.email || '').trim();
+    const noEmail = emailValue.length === 0;
+    const invalidEmail = !noEmail && this.emailForm.invalid;
+    if (noFile && noEmail) {
+      return 'Drop your settlement document above and enter your email to begin.';
+    }
+    if (noFile) {
+      return 'Drop your settlement document above to begin.';
+    }
+    if (noEmail) {
+      return 'Enter the email address where we should send your report.';
+    }
+    if (invalidEmail) {
+      return 'That email address doesn\'t look right — double-check it.';
+    }
+    return null;
   }
 
   submit(): void {
-    if (!this.canSubmit || !this.selectedFile) {
+    if (!this.canSubmit || this.selectedFiles.length === 0) {
       return;
     }
+    // Phase-1 backend accepts ONE file per scan. The UI displays every
+    // selected file so the user knows what they attached, but only
+    // selectedFiles[0] is sent. Indices >= 1 are flagged "(not analyzed)"
+    // in the list. Backend multi-file is a Phase 1.5 slice.
+    const primaryFile = this.selectedFiles[0];
     const email = this.emailForm.value.email!;
     this.isSubmitting = true;
     this.submitError = null;
     this.progressPct = 0;
     this.progressLabel = 'Uploading document';
 
-    this.service.submitScan(this.selectedFile, email).subscribe({
+    this.service.submitScan(primaryFile, email, null, this.repSlug).subscribe({
       next: (res) => {
         this.startPolling(res.scan_id);
       },

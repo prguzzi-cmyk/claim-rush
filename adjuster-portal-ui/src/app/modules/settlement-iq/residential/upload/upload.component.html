@@ -17,11 +17,39 @@
       (rejected)="onFileRejected($event)">
     </si-file-dropzone>
 
+    <p class="si-upload__multi-warning" role="note">
+      We currently analyze just the first document you select. For best
+      results, upload only your carrier's settlement letter.
+    </p>
+
     <p *ngIf="fileError" class="si-upload__error">{{ fileError }}</p>
 
-    <p *ngIf="selectedFile" class="si-upload__file-confirm">
-      Selected: <strong>{{ selectedFile.name }}</strong>
-      ({{ (selectedFile.size / 1024 / 1024) | number: '1.1-1' }}&nbsp;MB)
+    <ul *ngIf="selectedFiles.length" class="si-upload__file-list" aria-label="Selected files">
+      <li *ngFor="let f of selectedFiles; let i = index"
+          class="si-upload__file-row"
+          [class.is-not-analyzed]="!isAnalyzed(i)">
+        <span class="si-upload__file-check" aria-hidden="true">✓</span>
+        <span class="si-upload__file-name">{{ f.name }}</span>
+        <span class="si-upload__file-size">
+          ({{ (f.size / 1024 / 1024) | number: '1.1-1' }}&nbsp;MB)
+        </span>
+        <span *ngIf="!isAnalyzed(i)" class="si-upload__file-skip-label">
+          (not analyzed)
+        </span>
+        <button
+          type="button"
+          class="si-upload__file-remove"
+          (click)="removeFile(i)"
+          [attr.aria-label]="'Remove ' + f.name">
+          ×
+        </button>
+      </li>
+    </ul>
+
+    <p *ngIf="selectedFiles.length >= 2" class="si-upload__clear-all">
+      <a href="javascript:void(0)" (click)="$event.preventDefault(); clearAll()">
+        Clear all
+      </a>
     </p>
 
     <form [formGroup]="emailForm" (ngSubmit)="submit()" class="si-upload__form">
@@ -42,13 +70,30 @@
         at any time.
       </p>
 
+      <p *ngIf="repSlug as slug" class="si-upload__rep-chip" role="status">
+        <span class="si-upload__rep-chip-label">Referred by:</span>
+        <span class="si-upload__rep-chip-slug">{{ slug }}</span>
+        <button
+          type="button"
+          class="si-upload__rep-chip-dismiss"
+          (click)="dismissRepSlug()"
+          aria-label="Remove referral attribution">
+          ×
+        </button>
+      </p>
+
       <button
         type="submit"
         class="si-upload__submit"
+        [class.is-pending]="!canSubmit && !isSubmitting"
         [disabled]="!canSubmit">
         Begin Forensic Analysis
       </button>
-      <p class="si-upload__expectation">
+
+      <p *ngIf="disabledReason as r" class="si-upload__pending-note">
+        {{ r }}
+      </p>
+      <p *ngIf="!disabledReason && !isSubmitting" class="si-upload__expectation">
         Analysis typically takes 60–90 seconds. Your report appears on
         screen when ready, and a copy is sent to your email.
       </p>

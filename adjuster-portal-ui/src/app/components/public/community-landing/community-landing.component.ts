@@ -324,13 +324,11 @@ export class CommunityLandingComponent implements OnInit, AfterViewInit, OnDestr
     return `/claim/${this.slug}`;
   }
   // Settlement IQ — alternate funnel for homeowners whose claim is
-  // already settled. The `rep` query param ties scans to this same
-  // landing-page rep so resulting leads route to the same owner.
-  // The Settlement IQ destination carries its own brand palette; this
-  // landing card stays in the UPA palette.
-  get settlementIqUrl(): string {
-    return `/settlement-iq/residential?rep=${this.slug}`;
-  }
+  // already settled. The CTA in the #already-settled section uses
+  // [routerLink] + [queryParams] directly (NOT a getter URL), because
+  // plain [href] with hash routing falls through to the catch-all and
+  // bounces to the auth shell. The `rep` query param ties scans to
+  // this landing-page rep so resulting leads route to the same owner.
   // Partner Portal (CP / RVP / Agent) — feeds straight into RIN auth.
   get loginUrl(): string {
     return `/#/login`;

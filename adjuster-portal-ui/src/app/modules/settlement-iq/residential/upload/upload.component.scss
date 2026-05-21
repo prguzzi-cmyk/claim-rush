@@ -40,6 +40,112 @@
     color: var(--si-muted);
   }
 
+  &__multi-warning {
+    margin: 14px 0 0;
+    padding: 10px 14px;
+    background: rgba(184, 134, 11, 0.10);
+    border-left: 3px solid var(--si-gold);
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-ink);
+    line-height: 1.55;
+    border-radius: 0 4px 4px 0;
+  }
+
+  &__file-list {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    border: 1px solid var(--si-rule);
+    border-radius: 4px;
+    background: var(--si-paper);
+  }
+
+  &__file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-family: var(--si-font-sans);
+    font-size: 14px;
+    color: var(--si-ink);
+    border-bottom: 1px solid var(--si-rule);
+
+    &:last-child { border-bottom: none; }
+
+    &.is-not-analyzed {
+      opacity: 0.75;
+      .si-upload__file-name,
+      .si-upload__file-size {
+        color: var(--si-muted);
+      }
+    }
+  }
+
+  &__file-check {
+    color: var(--si-verdict-strong);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  &__file-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--si-ink);
+  }
+
+  &__file-size {
+    color: var(--si-muted);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  &__file-skip-label {
+    font-size: 12px;
+    color: var(--si-faint);
+    font-style: italic;
+    flex-shrink: 0;
+  }
+
+  &__file-remove {
+    flex-shrink: 0;
+    background: transparent;
+    border: 1px solid var(--si-rule);
+    color: var(--si-muted);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+
+    &:hover {
+      background: var(--si-severity-major);
+      border-color: var(--si-severity-major);
+      color: var(--si-paper);
+    }
+  }
+
+  &__clear-all {
+    margin: 10px 0 0;
+    text-align: right;
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+
+    a {
+      color: var(--si-accent);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
   &__form {
     margin-top: 32px;
   }
@@ -78,6 +184,33 @@
     line-height: 1.5;
   }
 
+  &__rep-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 16px 0 0;
+    padding: 4px 4px 4px 10px;
+    background: var(--si-card);
+    border: 1px solid var(--si-rule);
+    border-radius: 3px;
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    color: var(--si-muted);
+  }
+  &__rep-chip-label { letter-spacing: 0.04em; }
+  &__rep-chip-slug  { font-weight: 600; color: var(--si-ink); }
+  &__rep-chip-dismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    color: var(--si-faint);
+
+    &:hover { color: var(--si-ink); }
+  }
+
   &__submit {
     margin-top: 28px;
     background: var(--si-accent);
@@ -96,11 +229,25 @@
       background: var(--si-accent-hover);
     }
 
-    &:disabled {
-      background: var(--si-rule);
-      color: var(--si-muted);
+    &:disabled,
+    &.is-pending {
+      // Faded brand-accent instead of dead grey — reads as "waiting
+      // for input" rather than "broken/unavailable". The helper-text
+      // beneath the button names what's gating it.
+      background: rgba(26, 47, 77, 0.35);
+      color: rgba(255, 255, 255, 0.78);
       cursor: not-allowed;
+      opacity: 1;
     }
+  }
+
+  &__pending-note {
+    margin: 12px 0 0;
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-accent);
+    font-weight: 500;
+    line-height: 1.5;
   }
 
   &__processing {

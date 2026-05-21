@@ -1108,6 +1108,65 @@ $shadow-nav:  0 6px 22px rgba(11, 31, 51, 0.08);
   }
 }
 
+// ─── Hero secondary link — pill anchor to #already-settled ────────
+// Pill treatment so the link reads as unmistakably tappable against
+// the dark hero. Smaller scale than the primary "Submit a Claim"
+// CTA so it doesn't compete for the new-claim funnel.
+
+.hero-secondary-link {
+  margin-top: 22px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: $accent-orange;
+    background: rgba(224, 122, 47, 0.14);
+    border: 1px solid rgba(224, 122, 47, 0.55);
+    border-radius: 999px;
+    padding: 9px 20px;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+    .emphasis {
+      font-weight: 600;
+      color: $accent-orange;
+    }
+
+    .arrow {
+      display: inline-block;
+      color: $accent-orange;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+
+    &:hover {
+      background: rgba(224, 122, 47, 0.24);
+      border-color: $accent-orange;
+      color: #fff;
+
+      .emphasis,
+      .arrow {
+        color: #fff;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-secondary-link {
+    margin-top: 16px;
+
+    a {
+      font-size: 13px;
+      padding: 8px 16px;
+    }
+  }
+}
+
 // ─── Already Settled — Settlement IQ pointer card ──────────────────
 // Lives inside #already-settled. UPA palette only (navy / gray /
 // accent-orange) — Settlement IQ's own navy/gold tokens stay on the

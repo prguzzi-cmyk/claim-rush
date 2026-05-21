@@ -23,6 +23,12 @@ export const DEMO_SCAN_ID = 'demo';
 
 const TERMINAL_STATUSES: ScanStatus[] = ['complete', 'failed', 'purged'];
 
+/** sessionStorage key for the active referral rep slug. Survives a
+ *  page reload during the Door→Upload flow without persisting across
+ *  browser sessions (homeowners shouldn't be cross-attributed if they
+ *  return weeks later from a different entry point). */
+const REP_SLUG_STORAGE_KEY = 'si_referral_rep';
+
 /**
  * Settlement IQ — public API client + per-scan state holder.
  *
@@ -42,7 +48,63 @@ export class SettlementIqService {
   private readonly state$ = new BehaviorSubject<ScanState>({ ...INITIAL_SCAN_STATE });
   readonly scan$: Observable<ScanState> = this.state$.asObservable();
 
+  /** Rep slug captured from ?rep=<slug> on the Door or Upload screen.
+   *  Threaded into POST /scan as the rep_slug form field so the scan
+   *  row records which rep referred the homeowner. Distinct from
+   *  referral_source (marketing-channel attribution). */
+  private readonly referralRepSlugState$ = new BehaviorSubject<string | null>(
+    SettlementIqService.readStoredRepSlug(),
+  );
+  readonly referralRepSlug$: Observable<string | null> =
+    this.referralRepSlugState$.asObservable();
+
   constructor(private readonly http: HttpClient) {}
+
+  /** Update the active rep slug. Idempotent — passing the same slug
+   *  twice is a no-op. Passing null clears (used after submit so a
+   *  subsequent scan from a different entry point isn't mis-attributed). */
+  setReferralRepSlug(slug: string | null): void {
+    const normalized = SettlementIqService.normalizeRepSlug(slug);
+    if (normalized === this.referralRepSlugState$.value) return;
+    this.referralRepSlugState$.next(normalized);
+    try {
+      if (normalized) {
+        sessionStorage.setItem(REP_SLUG_STORAGE_KEY, normalized);
+      } else {
+        sessionStorage.removeItem(REP_SLUG_STORAGE_KEY);
+      }
+    } catch {
+      // sessionStorage may be unavailable (private mode in some browsers).
+      // The BehaviorSubject still holds the value for the active tab —
+      // we just lose reload-survival, which is acceptable graceful
+      // degradation rather than a hard failure.
+    }
+  }
+
+  get currentReferralRepSlug(): string | null {
+    return this.referralRepSlugState$.value;
+  }
+
+  private static normalizeRepSlug(raw: string | null | undefined): string | null {
+    if (!raw) return null;
+    const trimmed = raw.trim().toLowerCase();
+    // Defensive: reject anything that doesn't look like a slug. Backend
+    // will also validate, but we'd rather not POST garbage. Matches the
+    // backend's expected character set (lowercase alphanumerics + hyphen,
+    // 2-64 chars, no leading/trailing hyphen).
+    if (!/^[a-z0-9][a-z0-9-]{0,62}[a-z0-9]$/.test(trimmed)) return null;
+    return trimmed;
+  }
+
+  private static readStoredRepSlug(): string | null {
+    try {
+      return SettlementIqService.normalizeRepSlug(
+        sessionStorage.getItem(REP_SLUG_STORAGE_KEY),
+      );
+    } catch {
+      return null;
+    }
+  }
 
   // ─── Submit ────────────────────────────────────────────────────────────
 
@@ -50,6 +112,7 @@ export class SettlementIqService {
     file: File,
     email: string,
     referralSource?: string | null,
+    repSlug?: string | null,
   ): Observable<ScanSubmitResponse> {
     const fd = new FormData();
     fd.append('file', file, file.name);
@@ -57,6 +120,9 @@ export class SettlementIqService {
     fd.append('channel', 'residential');
     if (referralSource) {
       fd.append('referral_source', referralSource);
+    }
+    if (repSlug) {
+      fd.append('rep_slug', repSlug);
     }
     return this.http.post<ScanSubmitResponse>(`${this.base}/scan`, fd).pipe(
       tap((res) => {
