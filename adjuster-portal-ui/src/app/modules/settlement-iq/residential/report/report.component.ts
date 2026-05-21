@@ -55,7 +55,21 @@ export class ReportComponent implements OnInit {
   // lives in named variables that can be swapped via config later.
   readonly tenantFirmName = 'ACI Adjustment Group';
   readonly tenantFirmDescriptor = 'a national licensed public adjusting firm';
-  readonly tenantPhone: string | null = null;
+
+  // Rep contact channels — hardcoded ACI defaults for the only currently
+  // configured rep (Tim Clauss). Phase 1.5 plan in
+  // ~/upa-portal-backend/app/app/services/settlement_iq/roadmap.md:
+  // replace with a `reps` table joined by rep_slug. Per-tenant override
+  // pattern already in place for tenantFirmName/Descriptor; same pattern
+  // applies when the reps table lands. Null-handling rule applies:
+  // suppress any CTA whose backing field is null.
+  readonly tenantConsultationPhone: string | null = '+18008094303';
+  readonly tenantConsultationEmailPrimary: string | null = 'tclauss@upaclaim.org';
+  readonly tenantConsultationEmailCC: string | null = 'pguzzi@upaclaim.org';
+
+  readonly consultationChannelHelperText =
+    'Text reaches our team fastest. Calls connect you directly to an ' +
+    'adjuster. Emails reach intake for non-urgent inquiries.';
 
   readonly uploadFullEstimateTooltip =
     'If you can obtain the carrier\'s full itemized estimate from your ' +
@@ -120,10 +134,66 @@ export class ReportComponent implements OnInit {
     return !!p && ReportComponent.PERILS_WITH_DISPLAY.has(p);
   }
 
-  get primaryCtaLabel(): string {
-    return this.isLimitedAnalysis
-      ? 'Request a Free Consultation'
-      : 'Request a Consultation';
+  /** sms: deep link to the rep's phone. INBOUND only — opens the
+   *  homeowner's own Messages app composing to the rep's number. Does
+   *  NOT trigger any outbound Twilio path from our server; the TWILIO_
+   *  HALTED kill switch is irrelevant here. Body pre-fills the scan ID
+   *  so the rep has context immediately. */
+  get consultationSmsUrl(): string | null {
+    if (!this.tenantConsultationPhone) return null;
+    const parts = ["Hi, I'd like a forensic settlement consultation."];
+    if (this.scanId) parts.push(`Scan ID: ${this.scanId}`);
+    const body = parts.join(' ');
+    return `sms:${this.tenantConsultationPhone}?body=${encodeURIComponent(body)}`;
+  }
+
+  /** tel: deep link — opens the homeowner's dialer pre-populated with
+   *  the rep's number. They press call to connect. */
+  get consultationTelUrl(): string | null {
+    if (!this.tenantConsultationPhone) return null;
+    return `tel:${this.tenantConsultationPhone}`;
+  }
+
+  /** mailto: URL for the email channel. Pre-fills To: (primary rep),
+   *  Cc: (ACI intake), subject (with scan ID), and body (with carrier /
+   *  state / loss date / scan ID context). Homeowner reviews and clicks
+   *  Send in their own mail client; nothing is sent from our server. */
+  get consultationMailtoUrl(): string | null {
+    if (!this.tenantConsultationEmailPrimary) return null;
+    const subjectBase = 'Forensic Settlement Consultation';
+    const subject = this.scanId
+      ? `${subjectBase} — Scan ${this.scanId}`
+      : subjectBase;
+    const lines: string[] = [
+      'Hello,',
+      '',
+      'I would like to request a free consultation about my insurance settlement.',
+      '',
+    ];
+    if (this.report?.carrier_name) lines.push(`Carrier: ${this.report.carrier_name}`);
+    if (this.report?.state) lines.push(`State: ${this.report.state}`);
+    if (this.report?.loss_date) lines.push(`Loss date: ${this.report.loss_date}`);
+    if (this.scanId) lines.push(`Settlement IQ Scan ID: ${this.scanId}`);
+    lines.push('');
+    lines.push('Please reach out with next steps.');
+    lines.push('');
+    lines.push('Thanks');
+    const body = lines.join('\r\n');
+
+    const params: string[] = [];
+    if (this.tenantConsultationEmailCC) {
+      params.push(`cc=${encodeURIComponent(this.tenantConsultationEmailCC)}`);
+    }
+    params.push(`subject=${encodeURIComponent(subject)}`);
+    params.push(`body=${encodeURIComponent(body)}`);
+    return `mailto:${this.tenantConsultationEmailPrimary}?${params.join('&')}`;
+  }
+
+  /** True when at least one consultation channel is configured. Used
+   *  to suppress the helper text when all three channels happen to be
+   *  null on some hypothetical future tenant. */
+  get hasAnyConsultationChannel(): boolean {
+    return !!(this.consultationSmsUrl || this.consultationTelUrl || this.consultationMailtoUrl);
   }
 
   /**

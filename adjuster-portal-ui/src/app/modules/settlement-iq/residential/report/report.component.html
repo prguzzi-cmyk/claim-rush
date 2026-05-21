@@ -148,41 +148,48 @@
         </p>
       </ng-container>
 
-      <div class="si-report__cta-buttons">
-        <a
-          *ngIf="scanId"
-          class="si-report__cta-primary"
-          [routerLink]="['/settlement-iq/residential/consultation', scanId]">
-          {{ primaryCtaLabel }}
+      <!-- Three-channel consultation CTAs. Each link is a protocol
+           handler opening the homeowner's own device (Messages, dialer,
+           or mail client) — INBOUND only to ACI. No outbound Twilio
+           path from our server; the TWILIO_HALTED kill switch is
+           irrelevant here. Order is intentional: text first (highest
+           homeowner conversion), call second (urgent / older
+           demographic), email third (non-urgent intake). -->
+      <div class="si-report__cta-buttons si-report__cta-buttons--triple">
+        <a *ngIf="consultationSmsUrl"
+           class="si-report__cta-text"
+           [href]="consultationSmsUrl">
+          Text Us
         </a>
-        <a
-          *ngIf="isLimitedAnalysis"
-          class="si-report__cta-secondary si-report__cta-secondary--with-tip"
-          [routerLink]="['/settlement-iq/residential/upload']"
-          [attr.title]="uploadFullEstimateTooltip">
-          Upload Full Line-Item Estimate
-          <span class="si-report__cta-info" aria-hidden="true">i</span>
+        <a *ngIf="consultationTelUrl"
+           class="si-report__cta-call"
+           [href]="consultationTelUrl">
+          Call Us
         </a>
-        <a
-          *ngIf="!isLimitedAnalysis && printFriendlyUrl"
-          class="si-report__cta-secondary"
-          [href]="printFriendlyUrl"
-          target="_blank"
-          rel="noopener">
-          Open print-friendly version
+        <a *ngIf="consultationMailtoUrl"
+           class="si-report__cta-email"
+           [href]="consultationMailtoUrl">
+          Email Us
         </a>
       </div>
+
+      <p *ngIf="hasAnyConsultationChannel" class="si-report__cta-helper">
+        {{ consultationChannelHelperText }}
+      </p>
+
+      <a *ngIf="isLimitedAnalysis"
+         class="si-report__cta-upload"
+         [routerLink]="['/settlement-iq/residential/upload']"
+         [attr.title]="uploadFullEstimateTooltip">
+        Upload Full Line-Item Estimate
+        <span class="si-report__cta-info" aria-hidden="true">i</span>
+      </a>
 
       <p *ngIf="isLimitedAnalysis" class="si-report__cta-tooltip-text">
         {{ uploadFullEstimateTooltip }}
       </p>
 
-      <p *ngIf="isLimitedAnalysis && tenantPhone" class="si-report__cta-phone">
-        Or call us directly:
-        <a [href]="'tel:' + tenantPhone">{{ tenantPhone }}</a>
-      </p>
-
-      <p *ngIf="isLimitedAnalysis && printFriendlyUrl" class="si-report__cta-print">
+      <p *ngIf="printFriendlyUrl" class="si-report__cta-print">
         <a [href]="printFriendlyUrl" target="_blank" rel="noopener">
           Open print-friendly version
         </a>
