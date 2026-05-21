@@ -1107,3 +1107,76 @@ $shadow-nav:  0 6px 22px rgba(11, 31, 51, 0.08);
     line-height: 1.6;
   }
 }
+
+// ─── Already Settled — Settlement IQ pointer card ──────────────────
+// Lives inside #already-settled. UPA palette only (navy / gray /
+// accent-orange) — Settlement IQ's own navy/gold tokens stay on the
+// /settlement-iq destination, not here.
+
+.already-settled-card {
+  max-width: 720px;
+  margin: 40px auto 0;
+  background: $white;
+  border: 1px solid $gray-100;
+  border-radius: $radius-lg;
+  padding: 36px 36px 32px;
+  box-shadow: $shadow-sm;
+}
+
+.already-settled-list {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+
+  li {
+    position: relative;
+    padding: 10px 0 10px 28px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: $ink-2;
+    border-bottom: 1px dotted $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      color: $accent-orange;
+      font-weight: 700;
+    }
+  }
+}
+
+.already-settled-cta {
+  text-align: center;
+  border-top: 1px solid $gray-100;
+  padding-top: 28px;
+  margin-top: 24px;
+
+  &-note {
+    margin: 16px auto 0;
+    max-width: 480px;
+    font-size: 13px;
+    color: $gray-600;
+    line-height: 1.55;
+  }
+}
+
+@media (max-width: 640px) {
+  .already-settled-card {
+    margin-top: 24px;
+    padding: 24px 20px 24px;
+  }
+  .already-settled-list li {
+    font-size: 15px;
+  }
+  .already-settled-cta {
+    .btn {
+      width: 100%;
+    }
+  }
+}

@@ -13,6 +13,7 @@
       <nav class="nav-links" aria-label="Section navigation">
         <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('how-we-help')">How We Help</a>
         <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('claims-we-handle')">Claims We Handle</a>
+        <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('already-settled')">Already Settled?</a>
         <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('what-happens-next')">What Happens Next</a>
         <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('your-partner')">Your Local Partner</a>
         <a href="javascript:void(0)" (click)="$event.preventDefault(); scrollToSection('faq')">FAQ</a>
@@ -167,6 +168,48 @@
           "The first phone call after a fire or storm shouldn't be to a stranger trained to minimize your claim. It should be to someone trained to advocate for you."
         </blockquote>
         <p class="quote-attribution">— Unified Public Advocacy</p>
+      </div>
+    </section>
+
+    <!-- ─────────────────────  ALREADY SETTLED — SETTLEMENT IQ  ───────────── -->
+    <!-- Forensic-tone copy inside the UPA palette. The destination at
+         /settlement-iq carries the Settlement IQ brand in full; this
+         on-ramp stays visually inside this landing page. -->
+    <section id="already-settled" class="section">
+      <div class="cl-container">
+        <header class="section-head reveal">
+          <p class="section-eyebrow">Already received a settlement check?</p>
+          <h2>Settlement IQ — a line-by-line review of what your settlement should have included.</h2>
+          <p class="section-lede">
+            If your claim is already settled and the check has arrived,
+            Settlement IQ reads the document line by line and identifies
+            what's missing, what's underpriced, how depreciation was
+            applied, and where policy provisions may have been misread.
+            The same review a public adjuster would perform — typically
+            returned in under 90 seconds.
+          </p>
+        </header>
+
+        <div class="already-settled-card reveal">
+          <ul class="already-settled-list">
+            <li>Scope items the carrier may have omitted from your settlement</li>
+            <li>Unit pricing compared against regional norms for your county</li>
+            <li>Depreciation analysis — what was depreciated, whether it should have been</li>
+            <li>Estimated recovery range and statute-of-limitations window remaining</li>
+          </ul>
+
+          <div class="already-settled-cta">
+            <a [href]="settlementIqUrl" class="btn btn-primary btn-lg">
+              <span>Get a Forensic Analysis</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </a>
+            <p class="already-settled-cta-note">
+              Free analysis. No account required. Your report is delivered to
+              the email address you provide on the next screen, and your data
+              can be removed at any time.
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 
