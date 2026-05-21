@@ -122,6 +122,116 @@
     text-decoration: underline;
   }
 
+  &__narrative-paragraph {
+    font-size: 15px;
+    line-height: 1.7;
+    margin: 0 0 14px;
+    color: var(--si-ink);
+  }
+
+  &__summary-findings-lead {
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--si-muted);
+    margin: 18px 0 8px;
+  }
+
+  &__summary-findings-list {
+    margin: 0 0 14px 18px;
+    padding: 0;
+
+    li {
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+      color: var(--si-ink);
+    }
+  }
+
+  &__carrier-note {
+    border-left: 3px solid var(--si-verdict-limited);
+    background: #f5f7fb;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 14px 0;
+    color: var(--si-ink);
+  }
+
+  &__next-step {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-top: 12px;
+    color: var(--si-ink);
+  }
+
+  &__why-pa {
+    p {
+      font-size: 15px;
+      line-height: 1.7;
+      margin: 0 0 12px;
+      color: var(--si-ink);
+    }
+  }
+
+  &__cta-secondary--with-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 22px;
+    border: 1px solid var(--si-accent);
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  &__cta-info {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    line-height: 12px;
+    text-align: center;
+    font-size: 11px;
+    border: 1px solid var(--si-muted);
+    border-radius: 50%;
+    color: var(--si-muted);
+    font-style: italic;
+  }
+
+  &__cta-tooltip-text {
+    font-family: var(--si-font-sans);
+    font-size: 12px;
+    color: var(--si-muted);
+    margin: 12px 0 0;
+    line-height: 1.5;
+  }
+
+  &__cta-phone {
+    font-family: var(--si-font-sans);
+    font-size: 13px;
+    color: var(--si-muted);
+    margin: 12px 0 0;
+
+    a {
+      color: var(--si-accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+  }
+
+  &__cta-print {
+    margin: 12px 0 0;
+
+    a {
+      color: var(--si-accent);
+      font-family: var(--si-font-sans);
+      font-size: 13px;
+      text-decoration: underline;
+    }
+  }
+
   &__hash {
     margin-top: 48px;
     font-family: var(--si-font-sans);

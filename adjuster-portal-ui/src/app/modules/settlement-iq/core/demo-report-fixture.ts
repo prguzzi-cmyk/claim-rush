@@ -88,6 +88,20 @@ export const DEMO_REPORT: ReportPayload = {
     },
   ],
 
+  // Carrier-side dollar fields are null on this fixture because the
+  // demo verdict is strong_reopen — those fields are only meaningful
+  // on the limited_analysis path.
+  carrier_rcv_cents: null,
+  carrier_acv_cents: null,
+  carrier_deductible_cents: null,
+  carrier_depreciation_cents: null,
+  carrier_net_remaining_cents: null,
+
+  narrative_paragraphs: null,
+  summary_findings: null,
+  carrier_specific_note: null,
+  next_step_recommendation: null,
+
   report_version: 'v1.0',
   report_sha256: '7f2c8a4b1e6d9c3a5f8b2e4d6a8c1f3e5b7d9a2c4e6f8b1d3a5c7e9f2b4d6a8c',
   generated_at: new Date().toISOString(),

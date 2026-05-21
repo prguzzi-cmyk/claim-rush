@@ -14,4 +14,5 @@
   &.is-open     { background: var(--si-verdict-open); }
   &.is-released { background: var(--si-verdict-released); }
   &.is-expired  { background: var(--si-verdict-expired); }
+  &.is-limited  { background: var(--si-verdict-limited); }
 }

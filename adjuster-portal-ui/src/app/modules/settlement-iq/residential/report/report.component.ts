@@ -6,6 +6,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   FindingPublic,
   FindingSeverity,
+  Peril,
   ReportPayload,
 } from '../../core/settlement-iq.models';
 import { SettlementIqService } from '../../core/settlement-iq.service';
@@ -17,9 +18,18 @@ import { VerdictBadgeComponent } from '../../shared/verdict-badge/verdict-badge.
  * Settlement IQ — Report (screen 3).
  *
  * Fetches /v1/settlement-iq/scan/{scanId}/report on init and renders
- * the forensic teardown. Findings are sorted major → moderate → minor
- * within the component; the backend's `sort_order` is preserved within
- * a severity bucket.
+ * the forensic teardown.
+ *
+ * Two render paths:
+ *
+ *   1. Standard forensic verdicts (strong/possible/weak/open/released/
+ *      expired) — recovery range + findings list + boilerplate WHAT THIS
+ *      MEANS + generic consultation CTA.
+ *
+ *   2. Limited-analysis verdict — carrier settlement totals + server-
+ *      generated narrative paragraphs + "From your summary, we can
+ *      identify:" bullets + optional carrier-specific note + WHY A
+ *      PUBLIC ADJUSTER section + new CTAs.
  */
 @Component({
   selector: 'si-report',
@@ -40,11 +50,34 @@ export class ReportComponent implements OnInit {
   loading = true;
   errorMessage: string | null = null;
 
+  // Tenant defaults. Build-to-sell: founder intends to white-label this
+  // surface for partner firms (e.g., Pax Equitas), so brand identity
+  // lives in named variables that can be swapped via config later.
+  readonly tenantFirmName = 'ACI Adjustment Group';
+  readonly tenantFirmDescriptor = 'a national licensed public adjusting firm';
+  readonly tenantPhone: string | null = null;
+
+  readonly uploadFullEstimateTooltip =
+    'If you can obtain the carrier\'s full itemized estimate from your ' +
+    'insurance company, upload it here for a complete forensic review.';
+
   private static readonly SEVERITY_ORDER: Record<FindingSeverity, number> = {
     major: 0,
     moderate: 1,
     minor: 2,
   };
+
+  // Perils we render in the Document Summary. 'other' and null are
+  // suppressed — the carrier's loss-type classification is often
+  // disputed and showing "Other" reads as either broken or as
+  // endorsement of a label that may be wrong.
+  private static readonly PERILS_WITH_DISPLAY: ReadonlySet<Peril> = new Set<Peril>([
+    'hail',
+    'wind',
+    'water',
+    'fire',
+    'theft',
+  ]);
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -76,6 +109,45 @@ export class ReportComponent implements OnInit {
         }
       },
     });
+  }
+
+  get isLimitedAnalysis(): boolean {
+    return this.report?.verdict === 'limited_analysis';
+  }
+
+  get showPerilRow(): boolean {
+    const p = this.report?.peril;
+    return !!p && ReportComponent.PERILS_WITH_DISPLAY.has(p);
+  }
+
+  get primaryCtaLabel(): string {
+    return this.isLimitedAnalysis
+      ? 'Request a Free Consultation'
+      : 'Request a Consultation';
+  }
+
+  /**
+   * Format the "Carrier Paid" line for the limited_analysis path.
+   * Returns null when no carrier-side dollar fields are present; the
+   * template then falls back to the legacy settlement_amount_cents
+   * row, and ultimately to "Not specified in the document we received".
+   */
+  get carrierSettlementLine(): string | null {
+    if (!this.report) return null;
+    const parts: string[] = [];
+    const fmt = (cents: number) =>
+      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+        .format(cents / 100);
+    if (this.report.carrier_rcv_cents != null) {
+      parts.push(`${fmt(this.report.carrier_rcv_cents)} RCV`);
+    }
+    if (this.report.carrier_acv_cents != null) {
+      parts.push(`${fmt(this.report.carrier_acv_cents)} ACV`);
+    }
+    if (this.report.carrier_net_remaining_cents != null) {
+      parts.push(`${fmt(this.report.carrier_net_remaining_cents)} net remaining`);
+    }
+    return parts.length ? parts.join(' · ') : null;
   }
 
   get sortedFindings(): FindingPublic[] {

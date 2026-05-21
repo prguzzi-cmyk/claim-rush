@@ -26,7 +26,8 @@ export type Verdict =
   | 'weak_reopen'
   | 'open_claim'
   | 'released_decline'
-  | 'statute_expired';
+  | 'statute_expired'
+  | 'limited_analysis';
 
 export type FindingType =
   | 'scope_omission'
@@ -79,6 +80,25 @@ export interface ReportPayload {
   peril: Peril | null;
   state: string | null;
   county: string | null;
+
+  // Extracted carrier-side dollar fields (in cents). Populated for
+  // verdict='limited_analysis' so the report screen renders a "Carrier
+  // Settlement" row instead of a recovery range. Null on standard
+  // forensic verdicts.
+  carrier_rcv_cents: number | null;
+  carrier_acv_cents: number | null;
+  carrier_deductible_cents: number | null;
+  carrier_depreciation_cents: number | null;
+  carrier_net_remaining_cents: number | null;
+
+  // Limited-analysis narrative — populated by the backend's
+  // generate_summary_only_narrative.md when verdict='limited_analysis'
+  // (both summary_only and post-analysis safety-net paths). Null on
+  // standard forensic verdicts.
+  narrative_paragraphs: string[] | null;
+  summary_findings: string[] | null;
+  carrier_specific_note: string | null;
+  next_step_recommendation: string | null;
 
   findings: FindingPublic[];
 

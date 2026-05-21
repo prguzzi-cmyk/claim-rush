@@ -44,6 +44,7 @@ $si-settlement-iq-tokens: (
   --si-verdict-open:      #4a2f5d,   // deep aubergine
   --si-verdict-released:  #3d3329,   // dark sepia
   --si-verdict-expired:   #4a4a4a,   // graphite
+  --si-verdict-limited:   #3b4a63,   // slate blue (matches server-side report_html)
 
   // Severity accents — for the finding card's left border.
   --si-severity-major:     #8b0000,

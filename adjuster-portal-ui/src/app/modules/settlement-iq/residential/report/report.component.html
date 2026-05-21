@@ -15,13 +15,38 @@
       <si-verdict-badge [verdict]="r.verdict"></si-verdict-badge>
     </header>
 
-    <section class="si-report__block">
-      <si-recovery-range-display
-        [lowCents]="r.recovery_low_cents"
-        [highCents]="r.recovery_high_cents"
-        [statuteWindowDays]="r.statute_window_days">
-      </si-recovery-range-display>
+    <!-- Limited-analysis path: render Carrier Settlement totals instead -->
+    <!-- of an estimated recovery range. The range fields are null on    -->
+    <!-- this verdict and would otherwise display "Not calculated" — the -->
+    <!-- carrier-side totals are the useful number here.                  -->
+    <section *ngIf="isLimitedAnalysis; else recoveryRangeTpl" class="si-report__block">
+      <h2 class="si-report__heading">Carrier Settlement</h2>
+      <dl class="si-report__summary">
+        <ng-container *ngIf="carrierSettlementLine as line">
+          <dt>Carrier Paid</dt><dd>{{ line }}</dd>
+        </ng-container>
+        <ng-container *ngIf="!carrierSettlementLine && formattedSettlementAmount as amt">
+          <dt>Settlement Amount</dt><dd>{{ amt }}</dd>
+        </ng-container>
+        <ng-container *ngIf="!carrierSettlementLine && !formattedSettlementAmount">
+          <dt>Settlement Amount</dt><dd>Not specified in the document we received</dd>
+        </ng-container>
+        <ng-container *ngIf="r.statute_window_days != null">
+          <dt>Statute Window</dt>
+          <dd>{{ r.statute_window_days }} day{{ r.statute_window_days === 1 ? '' : 's' }} remaining</dd>
+        </ng-container>
+      </dl>
     </section>
+
+    <ng-template #recoveryRangeTpl>
+      <section class="si-report__block">
+        <si-recovery-range-display
+          [lowCents]="r.recovery_low_cents"
+          [highCents]="r.recovery_high_cents"
+          [statuteWindowDays]="r.statute_window_days">
+        </si-recovery-range-display>
+      </section>
+    </ng-template>
 
     <section class="si-report__block">
       <h2 class="si-report__heading">Document Summary</h2>
@@ -35,10 +60,10 @@
         <ng-container *ngIf="formattedSettlementDate as d">
           <dt>Settlement Date</dt><dd>{{ d }}</dd>
         </ng-container>
-        <ng-container *ngIf="formattedSettlementAmount as amt">
+        <ng-container *ngIf="!isLimitedAnalysis && formattedSettlementAmount as amt">
           <dt>Settlement Amount</dt><dd>{{ amt }}</dd>
         </ng-container>
-        <ng-container *ngIf="r.peril">
+        <ng-container *ngIf="showPerilRow">
           <dt>Peril</dt><dd>{{ r.peril | titlecase }}</dd>
         </ng-container>
         <ng-container *ngIf="locationDisplay as loc">
@@ -47,7 +72,59 @@
       </dl>
     </section>
 
-    <section *ngIf="sortedFindings.length" class="si-report__block">
+    <!-- Limited-analysis narrative — server-generated, plain prose.    -->
+    <!-- Never hardcode WHAT THIS MEANS boilerplate on this path; the   -->
+    <!-- backend's narrative is path-aware (summary_only vs safety_net) -->
+    <!-- and must render verbatim.                                       -->
+    <section *ngIf="isLimitedAnalysis" class="si-report__block">
+      <h2 class="si-report__heading">What This Means</h2>
+      <p *ngFor="let p of r.narrative_paragraphs || []" class="si-report__narrative-paragraph">
+        {{ p }}
+      </p>
+      <ng-container *ngIf="r.summary_findings?.length">
+        <p class="si-report__summary-findings-lead">From your summary, we can identify:</p>
+        <ul class="si-report__summary-findings-list">
+          <li *ngFor="let b of r.summary_findings">{{ b }}</li>
+        </ul>
+      </ng-container>
+      <p *ngIf="r.carrier_specific_note" class="si-report__carrier-note">
+        {{ r.carrier_specific_note }}
+      </p>
+      <p *ngIf="r.next_step_recommendation" class="si-report__next-step">
+        {{ r.next_step_recommendation }}
+      </p>
+    </section>
+
+    <section *ngIf="isLimitedAnalysis" class="si-report__block si-report__why-pa">
+      <h2 class="si-report__heading">Why a Public Adjuster</h2>
+      <p>
+        When a carrier settles a claim with a summary instead of a full
+        line-item estimate, the homeowner is left without the line-by-line
+        detail needed to verify scope, pricing, and applicable coverages.
+        A public adjuster works for you — not the carrier — and is licensed
+        to obtain the complete itemized estimate, review it against your
+        policy and state law, and identify omissions or pricing gaps.
+      </p>
+      <p>
+        {{ tenantFirmName }} is {{ tenantFirmDescriptor }}. We routinely
+        request full carrier estimates on behalf of homeowners who received
+        only a settlement summary, then perform the line-item review the
+        carrier didn't provide.
+      </p>
+      <p>
+        The initial consultation is free. We do not charge upfront fees;
+        our compensation is a percentage of additional recovery we secure
+        on your behalf, which means we only earn when you do.
+      </p>
+      <p>
+        If there is nothing to recover, we will tell you that directly and
+        you will owe us nothing. A summary-only settlement does not always
+        mean the carrier underpaid — it means we cannot tell from the
+        summary alone, and the full estimate is the next honest step.
+      </p>
+    </section>
+
+    <section *ngIf="!isLimitedAnalysis && sortedFindings.length" class="si-report__block">
       <h2 class="si-report__heading">Forensic Findings</h2>
       <p class="si-report__sub">
         Each finding cites a specific authority — a building code, statute,
@@ -61,23 +138,33 @@
     </section>
 
     <section class="si-report__block si-report__cta">
-      <h2 class="si-report__heading">What This Means</h2>
-      <p class="si-report__what-means-body">
-        The findings above are the engine's first read. A public adjuster
-        can review these against the original carrier documents and confirm
-        which are recoverable. A consultation is the next step if the
-        verdict supports it.
-      </p>
+      <ng-container *ngIf="!isLimitedAnalysis">
+        <h2 class="si-report__heading">What This Means</h2>
+        <p class="si-report__what-means-body">
+          The findings above are the engine's first read. A public adjuster
+          can review these against the original carrier documents and confirm
+          which are recoverable. A consultation is the next step if the
+          verdict supports it.
+        </p>
+      </ng-container>
 
       <div class="si-report__cta-buttons">
         <a
           *ngIf="scanId"
           class="si-report__cta-primary"
           [routerLink]="['/settlement-iq/residential/consultation', scanId]">
-          Request a Consultation
+          {{ primaryCtaLabel }}
         </a>
         <a
-          *ngIf="printFriendlyUrl"
+          *ngIf="isLimitedAnalysis"
+          class="si-report__cta-secondary si-report__cta-secondary--with-tip"
+          [routerLink]="['/settlement-iq/residential/upload']"
+          [attr.title]="uploadFullEstimateTooltip">
+          Upload Full Line-Item Estimate
+          <span class="si-report__cta-info" aria-hidden="true">i</span>
+        </a>
+        <a
+          *ngIf="!isLimitedAnalysis && printFriendlyUrl"
           class="si-report__cta-secondary"
           [href]="printFriendlyUrl"
           target="_blank"
@@ -85,6 +172,21 @@
           Open print-friendly version
         </a>
       </div>
+
+      <p *ngIf="isLimitedAnalysis" class="si-report__cta-tooltip-text">
+        {{ uploadFullEstimateTooltip }}
+      </p>
+
+      <p *ngIf="isLimitedAnalysis && tenantPhone" class="si-report__cta-phone">
+        Or call us directly:
+        <a [href]="'tel:' + tenantPhone">{{ tenantPhone }}</a>
+      </p>
+
+      <p *ngIf="isLimitedAnalysis && printFriendlyUrl" class="si-report__cta-print">
+        <a [href]="printFriendlyUrl" target="_blank" rel="noopener">
+          Open print-friendly version
+        </a>
+      </p>
     </section>
 
     <p class="si-report__hash">

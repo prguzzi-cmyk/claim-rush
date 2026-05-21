@@ -23,12 +23,13 @@ export class VerdictBadgeComponent {
   @Input() verdict: Verdict | null = null;
 
   private static readonly META: Record<Verdict, VerdictMeta> = {
-    strong_reopen:     { label: 'Strong Recovery Candidate',  cssClass: 'is-strong' },
-    possible_reopen:   { label: 'Possible Recovery Candidate', cssClass: 'is-possible' },
-    weak_reopen:       { label: 'Limited Recovery Indicated',  cssClass: 'is-weak' },
-    open_claim:        { label: 'Open Claim',                  cssClass: 'is-open' },
-    released_decline:  { label: 'Released Claim',              cssClass: 'is-released' },
-    statute_expired:   { label: 'Statute Expired',             cssClass: 'is-expired' },
+    strong_reopen:     { label: 'Strong Recovery Candidate',                cssClass: 'is-strong' },
+    possible_reopen:   { label: 'Possible Recovery Candidate',              cssClass: 'is-possible' },
+    weak_reopen:       { label: 'Limited Recovery Indicated',               cssClass: 'is-weak' },
+    open_claim:        { label: 'Open Claim',                               cssClass: 'is-open' },
+    released_decline:  { label: 'Released Claim',                           cssClass: 'is-released' },
+    statute_expired:   { label: 'Statute Expired',                          cssClass: 'is-expired' },
+    limited_analysis:  { label: 'Limited Analysis — Full Estimate Recommended', cssClass: 'is-limited' },
   };
 
   get meta(): VerdictMeta | null {
